@@ -1,5 +1,6 @@
 /* see LICENSE / README for more info
- * 2022 Modified by thevindu-w
+ * 
+ * 2022 Modified by H. Thevindu J. Wijesekera
  */
 
 #include <stdio.h>
