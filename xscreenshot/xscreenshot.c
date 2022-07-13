@@ -1,3 +1,7 @@
+/* see LICENSE / README for more info
+ * 2022 Modified by thevindu-w
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>

@@ -18,12 +18,14 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/**
+ * 2022 Modified by thevindu-w
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-//#include <ctype.h>
 #ifdef HAVE_ICONV
 #include <errno.h>
 #include <iconv.h>
@@ -32,24 +34,19 @@
 #include <X11/Xatom.h>
 #include <X11/Xmu/Atoms.h>
 #include "xcdef.h"
-//#include "xcprint.h"
 #include "xclib.h"
 #include "xclip.h"
 
 /* command line option table for XrmParseCommand() */
-XrmOptionDescRec opt_tab[2]; // originally 14
+XrmOptionDescRec opt_tab[2];
 
 /* Options that get set on the command line */
-// int sloop = 0;			 /* number of loops */
 char *sdisp = NULL;		 /* X display to connect to */
 Atom sseln = XA_PRIMARY; /* X selection to work with */
 Atom target = XA_STRING;
 
 /* Flags for command line options */
-// static int fverb = OSILENT; /* output level */
 static int fdiri = T; /* direction is in */
-// static int ffilt = F;		/* filter mode */
-// static int frmnl = F;		/* remove (single) newline character at the very end if present */
 
 Display *dpy;			   /* connection to X11 display */
 XrmDatabase opt_db = NULL; /* database for options */
@@ -57,7 +54,6 @@ XrmDatabase opt_db = NULL; /* database for options */
 char **fil_names;	/* names of files to read */
 int fil_number = 0; /* number of files to read */
 int fil_current = 0;
-// FILE *fil_handle = NULL;
 
 /* variables to hold Xrm database record and type */
 XrmValue rec_val;
@@ -70,13 +66,10 @@ doIn(Window win, unsigned long len, const char *buf)
 {
 	unsigned char *sel_buf;		 /* buffer for selection data */
 	unsigned long sel_len = len; /* length of sel_buf */
-	// unsigned long sel_all = 0; /* allocated size of sel_buf */
-	XEvent evt;	   /* X Event Structures */
-	int dloop = 0; /* done loops counter */
+	XEvent evt;					 /* X Event Structures */
+	int dloop = 0;				 /* done loops counter */
 
 	/* in mode */
-	// sel_all = 16; /* Reasonable ballpark figure */
-	// sel_buf = xcmalloc(sel_all * sizeof(char));
 	sel_buf = xcmalloc(sel_len * sizeof(char));
 	memcpy(sel_buf, buf, sel_len);
 
@@ -96,14 +89,13 @@ doIn(Window win, unsigned long len, const char *buf)
 	/* Avoid making the current directory in use, in case it will need to be umounted */
 	if (chdir("/") == -1)
 	{
-		// fputs("Error : chdir to \"/\"", stderr);
 		return EXIT_FAILURE;
 	}
 
 	/* loop and wait for the expected number of
 	 * SelectionRequest events
 	 */
-	while (1) // dloop < sloop || sloop < 1)
+	while (1)
 	{
 		/* wait for a SelectionRequest event */
 		while (1)
@@ -165,10 +157,6 @@ doOut(Window win, unsigned long *length, char **buf)
 			else
 			{
 				/* no fallback available, exit with failure */
-				// char *atom_name = XGetAtomName(dpy, target);
-				// fprintf(stderr, "Error: target atom not available\n");
-				// XFree(atom_name);
-				// return EXIT_FAILURE;
 				*length = 0;
 				return EXIT_FAILURE;
 			}

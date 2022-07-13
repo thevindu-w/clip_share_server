@@ -1,18 +1,15 @@
 //#define _GNU_SOURCE
 #ifndef NO_WEB
 #include <stdio.h>
-// #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-// #include <arpa/inet.h>
 #include <sys/socket.h>
-// #include <sys/stat.h>
 #include <sys/wait.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include "utils.h"
-#include "xclip_src/xclip.h"
-#include "screenshot/screenshot.h"
+#include "xclip/xclip.h"
+#include "xscreenshot/screenshot.h"
 
 #define FAIL -1
 
@@ -95,25 +92,6 @@ static void say(char *msg, SSL *ssl)
     if (SSL_write(ssl, msg, strlen(msg)) <= 0)
         error("send failed");
 }
-/*
-static int read_in(SSL *ssl, char *buf, int len)
-{
-    char *s = buf;
-    int slen = len - 1;
-    //int pending, c;
-    while (1)
-    {
-        c = SSL_read(ssl, s, slen);
-        if (c <= 0)
-        {
-            break;
-        }
-        s += c;
-        slen -= c;
-    }
-    buf[len - slen - 1] = '\0';
-    return len - slen - 1;
-}*/
 
 static void receiver_web(SSL *ssl)
 {

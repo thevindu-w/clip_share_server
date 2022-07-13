@@ -6,8 +6,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include "utils.h"
-#include "xclip_src/xclip.h"
-#include "screenshot/screenshot.h"
+#include "xclip/xclip.h"
+#include "xscreenshot/screenshot.h"
 
 // protocol version status
 #define PROTOCOL_SUPPORTED 1

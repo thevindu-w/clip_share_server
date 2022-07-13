@@ -1,14 +1,14 @@
 MAKEFLAGS += -j4
 
-INFO_NAME=clip_server
+INFO_NAME=clip_share
 
-PROGRAM_NAME=clip_server
-PROGRAM_NAME_NO_WEB=clip_server_no_web
+PROGRAM_NAME=clip_share
+PROGRAM_NAME_NO_WEB=clip_share_no_web
 
-OBJS=main.o clip_server.o xclip_src/xclip.o xclip_src/xclib.o screenshot/screenshot.o
-WEB_OBJS=clip_server_web.o page_blob.o cert_blob.o key_blob.o
-SRC_FILES=main.c clip_server.c xclip_src/xclip.c xclip_src/xclib.c screenshot/screenshot.c
-WEB_SRC=clip_server_web.c page_blob.S cert_blob.S key_blob.S
+OBJS=main.o clip_share.o xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
+WEB_OBJS=clip_share_web.o page_blob.o cert_blob.o key_blob.o
+SRC_FILES=main.c clip_share.c xclip/xclip.c xclip/xclib.c xscreenshot/xscreenshot.c
+WEB_SRC=clip_share_web.c page_blob.S cert_blob.S key_blob.S
 CFLAGS=-pipe -Wall -Wextra -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=1
 CFLAGS_DEBUG=-g -c -DDEBUG_MODE -DPROGRAM_NAME=\"$(PROGRAM_NAME)\"
 LDLIBS=-lssl -lcrypto -lX11 -lXmu -lpng
@@ -19,19 +19,19 @@ $(PROGRAM_NAME): $(OBJS) $(WEB_OBJS)
 main.o: main.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
 
-clip_server.o: clip_server.c
+clip_share.o: clip_share.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
-clip_server_web.o: clip_server_web.c
+clip_share_web.o: clip_share_web.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
 
-xclip_src/xclip.o: xclip_src/xclip.c
+xclip/xclip.o: xclip/xclip.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
-xclip_src/xclib.o: xclip_src/xclib.c
+xclip/xclib.o: xclip/xclib.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
-screenshot/screenshot.o: screenshot/screenshot.c
+xscreenshot/xscreenshot.o: xscreenshot/xscreenshot.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
 page_blob.o: page_blob.S
@@ -43,17 +43,7 @@ cert_blob.o: cert_blob.S
 key_blob.o: key_blob.S
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
-.PHONY: clean release no_web static dist
-
-# dist: $(SRC_FILES) $(WEB_SRC)
-# 	gcc -Os -D PROGRAM_NAME=\"$(PROGRAM_NAME)\" -fno-pie $^ $(LDLIBS) -no-pie -o $(PROGRAM_NAME)
-# 	mkdir -p dist/bin
-# 	cp $(PROGRAM_NAME) dist/bin/
-# 	tar -cvf $(PROGRAM_NAME).tar --transform 's/dist/$(PROGRAM_NAME)/' dist/*
-# 	xz -z9v -T 4 $(PROGRAM_NAME).tar
-
-static: $(SRC_FILES) $(WEB_SRC)
-	gcc -Os $(CFLAGS) -DPROGRAM_NAME=\"$(PROGRAM_NAME)_static\" -fno-pie $^ -l:libssl.a -l:libcrypto.a -l:libpng.a -l:libz.a -l:libpthread.a -static-libgcc -lm -ldl -lX11 -lXmu -no-pie -o $(PROGRAM_NAME)_static
+.PHONY: clean release no_web
 
 no_web: $(SRC_FILES)
 	gcc -Os $(CFLAGS) -DPROGRAM_NAME=\"$(PROGRAM_NAME_NO_WEB)\" -DNO_WEB -fno-pie $^ $(LDLIBS) -no-pie -o $(PROGRAM_NAME_NO_WEB)
