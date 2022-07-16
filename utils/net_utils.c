@@ -1,10 +1,29 @@
+/*
+ *  utils/net_utils.c - platform specific implementation for socket connections
+ *  Copyright (C) 2022 H. Thevindu J. Wijesekera
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <ctype.h>
+#include <unistd.h>
 
 #include "utils.h"
-#include "netutils.h"
+#include "net_utils.h"
 
 int open_listener_socket()
 {
@@ -24,14 +43,15 @@ void bind_port(int socket, int port)
     if (setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1)
         error("Can't set the reuse option on the socket");
     int c = bind(socket, (struct sockaddr *)&name, sizeof(name));
-    if (c == -1){
-    	char errmsg[32];
-    	sprintf(errmsg, "Can\'t bind to port %i", port);
+    if (c == -1)
+    {
+        char errmsg[32];
+        sprintf(errmsg, "Can\'t bind to port %i TCP", port);
         error(errmsg);
     }
 }
 
-int getConnection(int socket)
+int get_connection(int socket)
 {
     struct sockaddr_in client_addr;
     unsigned int address_size = sizeof(client_addr);
@@ -45,6 +65,11 @@ int getConnection(int socket)
     printf("\nConnection: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 #endif
     return connect_d;
+}
+
+void close_socket(int socket)
+{
+    close(socket);
 }
 
 int read_sock(int socket, char *buf, size_t size)
@@ -75,7 +100,8 @@ int read_sock(int socket, char *buf, size_t size)
     return EXIT_SUCCESS;
 }
 
-int write_sock(int socket, void *buf, size_t size){
+int write_sock(int socket, void *buf, size_t size)
+{
     return (send(socket, buf, size, 0) == -1) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 

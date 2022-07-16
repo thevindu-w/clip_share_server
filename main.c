@@ -19,17 +19,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <ctype.h>
 #include <dirent.h>
 
+#include "servers.h"
 #include "utils/utils.h"
-#include "utils/netutils.h"
-
-#define ERROR_LOG_FILE "server_err.log"
+#include "utils/net_utils.h"
 
 // tcp and udp
 #define APP_PORT 4337
@@ -41,7 +39,6 @@
 #define WEB_PORT_NO_ROOT 4339
 
 static int kill_other_processes(const char *);
-static void udp_info_serve(const int);
 static void print_usage(void);
 
 static void print_usage()
@@ -51,20 +48,6 @@ static void print_usage()
 #else
 	fprintf(stderr, "Usage: %s [-s] [-p app_port] [-w web_port]\n", PROGRAM_NAME);
 #endif
-}
-
-void error(const char *msg)
-{
-#ifdef DEBUG_MODE
-    fprintf(stderr, "%s\n", msg);
-#endif
-    FILE *f = fopen(ERROR_LOG_FILE, "a");
-    fprintf(f, "%s\n", msg);
-    fclose(f);
-#ifdef unix
-    chmod(ERROR_LOG_FILE, S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH);
-#endif
-    exit(1);
 }
 
 static int kill_other_processes(const char *prog_name)
@@ -131,61 +114,6 @@ static int kill_other_processes(const char *prog_name)
     }
     closedir(dir);
     return cnt;
-}
-
-static void udp_info_serve(const int port)
-{
-    int sockfd;
-    struct sockaddr_in servaddr, cliaddr;
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-    {
-        error("UDP socket creation failed");
-    }
-
-#ifdef DEBUG_MODE
-    puts("UDP socket created");
-#endif
-
-    memset(&servaddr, 0, sizeof(servaddr));
-    memset(&cliaddr, 0, sizeof(cliaddr));
-
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htons(INADDR_ANY);
-    servaddr.sin_port = htons(port);
-
-    if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
-    {
-        error("UDP bind failed");
-    }
-
-#ifdef DEBUG_MODE
-    puts("UDP bind completed");
-#endif
-
-    const size_t info_len = strlen(INFO_NAME);
-    
-    int n;
-    socklen_t len;
-    const int buf_sz = 8;
-    char buffer[buf_sz];
-
-    while (1)
-    {
-        len = sizeof(cliaddr);
-        n = recvfrom(sockfd, (char *)buffer, 2, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len);
-        buffer[n] = '\0';
-
-#ifdef DEBUG_MODE
-        printf("Client UDP message : %s\n", buffer);
-#endif
-
-        if (strcmp(buffer, "in"))
-        {
-            continue;
-        }
-
-        sendto(sockfd, INFO_NAME, info_len, MSG_CONFIRM, (const struct sockaddr *)&cliaddr, len);
-    }
 }
 
 int main(int argc, char **argv)
@@ -274,7 +202,7 @@ int main(int argc, char **argv)
     if (p_clip == 0)
     {
 #endif
-        return clip_server(app_port);
+        return clip_share(app_port);
 #ifndef DEBUG_MODE
     }
 #ifndef NO_WEB

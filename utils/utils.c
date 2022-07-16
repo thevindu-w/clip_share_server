@@ -1,11 +1,74 @@
+/*
+ *  utils/utils.c - platform specific implementation for utils
+ *  Copyright (C) 2022 H. Thevindu J. Wijesekera
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include "utils.h"
+#include "list_utils.h"
 #include "../xclip/xclip.h"
 #include "../xscreenshot/screenshot.h"
+
+#define ERROR_LOG_FILE "server_err.log"
+
+void error(const char *msg)
+{
+#ifdef DEBUG_MODE
+    fprintf(stderr, "%s\n", msg);
+#endif
+    FILE *f = fopen(ERROR_LOG_FILE, "a");
+    fprintf(f, "%s\n", msg);
+    fclose(f);
+#ifdef unix
+    chmod(ERROR_LOG_FILE, S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH);
+#endif
+    exit(1);
+}
+
+static int url_decode(char *);
+
+int get_clipboard_text(char **bufptr, size_t *lenptr)
+{
+    if (xclip_util(1, NULL, lenptr, bufptr) != EXIT_SUCCESS || *lenptr <= 0) // do not change the order
+    {
+#ifdef DEBUG_MODE
+        printf("xclip read text failed. len = %lu\n", *lenptr);
+#endif
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
+int put_clipboard_text(char *data, size_t len)
+{
+    if (xclip_util(0, NULL, (size_t *)&len, &data) != EXIT_SUCCESS)
+    {
+#ifdef DEBUG_MODE
+        fputs("Failed to write to clip", stderr);
+#endif
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
 
 int get_image(char **buf_ptr, size_t *len_ptr)
 {
@@ -38,7 +101,7 @@ static inline char hex2char(char h)
     return -1;
 }
 
-int url_decode(char *str)
+static int url_decode(char *str)
 {
     if (strncmp("file://", str, 7))
         return EXIT_FAILURE;
@@ -75,4 +138,87 @@ int url_decode(char *str)
     } while (*ptr2);
     *ptr1 = 0;
     return EXIT_SUCCESS;
+}
+
+list2 *get_copied_files()
+{
+    char *fnames;
+    size_t fname_len;
+    if (xclip_util(1, "x-special/gnome-copied-files", &fname_len, &fnames) || fname_len == 0) // do not change the order
+    {
+#ifdef DEBUG_MODE
+        printf("xclip read copied files. len = %lu\n", fname_len);
+#endif
+        return NULL;
+    }
+    fnames[fname_len] = 0;
+
+    char *file_path = strchr(fnames, '\n');
+    if (!file_path)
+    {
+        free(fnames);
+        return NULL;
+    }
+    *file_path = 0;
+    if (strcmp(fnames, "copy") && strcmp(fnames, "cut"))
+    {
+        free(fnames);
+        return NULL;
+    }
+
+    size_t file_cnt = 1;
+    for (char *ptr = file_path + 1; *ptr; ptr++)
+    {
+        if (*ptr == '\n')
+        {
+            file_cnt++;
+            *ptr = 0;
+        }
+    }
+
+    list2 *lst = init_list(file_cnt);
+    if (!lst)
+    {
+        free(fnames);
+        return NULL;
+    }
+    char **arr = (char **)lst->array;
+    char *fname = file_path + 1;
+    for (size_t i = 0; i < file_cnt; i++)
+    {
+        size_t off = strlen(fname) + 1;
+        if (url_decode(fname) == EXIT_FAILURE)
+            break;
+        arr[i] = strdup(fname);
+        fname += off;
+    }
+    free(fnames);
+    return lst;
+}
+
+long get_file_size(FILE *fp)
+{
+    struct stat statbuf;
+    if (fstat(fileno(fp), &statbuf))
+    {
+#ifdef DEBUG_MODE
+        printf("fstat failed\n");
+#endif
+        return -1;
+    }
+    if (!S_ISREG(statbuf.st_mode))
+    {
+#ifdef DEBUG_MODE
+        printf("not a file\n");
+#endif
+        return -1;
+    }
+    fseek(fp, 0L, SEEK_END);
+    long file_size = ftell(fp);
+    rewind(fp);
+    return file_size;
+}
+
+int file_exists(const char *file_name){
+    return access(file_name, F_OK);
 }

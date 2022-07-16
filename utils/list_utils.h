@@ -1,5 +1,5 @@
 /*
- *  utils/utils.h - header for utils
+ *  utils/list_utils.h - header for 2d list
  *  Copyright (C) 2022 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,19 +16,15 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _UTILS_
-#define _UTILS_
+#ifndef _LISTUTILS_
+#define _LISTUTILS_
 
-#include <stdio.h>
-#include "list_utils.h"
+typedef struct _list
+{
+    size_t len;
+    void **array;
+} list2;
 
-extern void error(const char *);
-
-extern int get_clipboard_text(char **, size_t *);
-extern int put_clipboard_text(char *, size_t);
-extern int get_image(char **, size_t *);
-extern list2 *get_copied_files(void);
-extern long get_file_size(FILE *);
-extern int file_exists(const char *);
-
+extern list2 *init_list(size_t);
+extern void free_list(list2 *);
 #endif

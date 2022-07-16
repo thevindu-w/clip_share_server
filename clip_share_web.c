@@ -1,5 +1,5 @@
 /*
- *  main.c - web server of the application
+ *  clip_share_web.c - web server of the application
  *  Copyright (C) 2022 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@
 #include <openssl/err.h>
 
 #include "utils/utils.h"
-#include "utils/netutils.h"
+#include "utils/net_utils.h"
 #include "xclip/xclip.h"
 #include "xscreenshot/screenshot.h"
 
@@ -355,7 +355,7 @@ int web_server(const int port)
     LoadCertificates(ctx); /* load certs */
     while (1)
     {
-        int connect_d = getConnection(listener_d);
+        int connect_d = get_connection(listener_d);
         pid_t p1 = fork();
         if (p1)
         {

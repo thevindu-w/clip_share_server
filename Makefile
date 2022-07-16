@@ -1,3 +1,20 @@
+# Makefile - makefile
+# Copyright (C) 2022 H. Thevindu J. Wijesekera
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+
 MAKEFLAGS += -j4
 
 INFO_NAME=clip_share
@@ -5,9 +22,9 @@ INFO_NAME=clip_share
 PROGRAM_NAME=clip_share
 PROGRAM_NAME_NO_WEB=clip_share_no_web
 
-OBJS=main.o clip_share.o proto/v1.o utils/utils.o utils/netutils.o xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
+OBJS=main.o clip_share.o udp_serve.o proto/server.o proto/v1.o utils/utils.o utils/net_utils.o utils/list_utils.o xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 WEB_OBJS=clip_share_web.o page_blob.o cert_blob.o key_blob.o
-SRC_FILES=main.c clip_share.c proto/v1.c utils/utils.c utils/netutils.c xclip/xclip.c xclip/xclib.c xscreenshot/xscreenshot.c
+SRC_FILES=main.c clip_share.c udp_serve.c proto/server.c proto/v1.c utils/utils.c utils/net_utils.c utils/list_utils.c xclip/xclip.c xclip/xclib.c xscreenshot/xscreenshot.c
 WEB_SRC=clip_share_web.c page_blob.S cert_blob.S key_blob.S
 CFLAGS=-pipe -Wall -Wextra -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=1 -DPROTO_V1
 CFLAGS_DEBUG=-g -c -DDEBUG_MODE -DPROGRAM_NAME=\"$(PROGRAM_NAME)\"
@@ -25,13 +42,22 @@ clip_share.o: clip_share.c
 clip_share_web.o: clip_share_web.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
 
+udp_serve.o: udp_serve.c
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
+
+proto/server.o: proto/server.c
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
+
 proto/v1.o: proto/v1.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
 
 utils/utils.o: utils/utils.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
 
-utils/netutils.o: utils/netutils.c
+utils/net_utils.o: utils/net_utils.c
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
+
+utils/list_utils.o: utils/list_utils.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
 
 xclip/xclip.o: xclip/xclip.c
