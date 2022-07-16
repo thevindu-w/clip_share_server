@@ -5,11 +5,11 @@ INFO_NAME=clip_share
 PROGRAM_NAME=clip_share
 PROGRAM_NAME_NO_WEB=clip_share_no_web
 
-OBJS=main.o clip_share.o xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
+OBJS=main.o clip_share.o proto/v1.o utils/utils.o utils/netutils.o xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 WEB_OBJS=clip_share_web.o page_blob.o cert_blob.o key_blob.o
-SRC_FILES=main.c clip_share.c xclip/xclip.c xclip/xclib.c xscreenshot/xscreenshot.c
+SRC_FILES=main.c clip_share.c proto/v1.c utils/utils.c utils/netutils.c xclip/xclip.c xclip/xclib.c xscreenshot/xscreenshot.c
 WEB_SRC=clip_share_web.c page_blob.S cert_blob.S key_blob.S
-CFLAGS=-pipe -Wall -Wextra -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=1
+CFLAGS=-pipe -Wall -Wextra -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=1 -DPROTO_V1
 CFLAGS_DEBUG=-g -c -DDEBUG_MODE -DPROGRAM_NAME=\"$(PROGRAM_NAME)\"
 LDLIBS=-lssl -lcrypto -lX11 -lXmu -lpng
 
@@ -23,6 +23,15 @@ clip_share.o: clip_share.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
 clip_share_web.o: clip_share_web.c
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
+
+proto/v1.o: proto/v1.c
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
+
+utils/utils.o: utils/utils.c
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
+
+utils/netutils.o: utils/netutils.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) -DNO_WEB $^ -o $@
 
 xclip/xclip.o: xclip/xclip.c

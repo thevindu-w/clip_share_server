@@ -1,4 +1,5 @@
 *.o
+utils/*.o
 xclip/*.o
 xclip/xclip
 screenshot/*.o

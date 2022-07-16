@@ -24,7 +24,9 @@
 #include <sys/wait.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include "utils.h"
+
+#include "utils/utils.h"
+#include "utils/netutils.h"
 #include "xclip/xclip.h"
 #include "xscreenshot/screenshot.h"
 

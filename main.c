@@ -25,7 +25,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <dirent.h>
-#include "utils.h"
+
+#include "utils/utils.h"
+#include "utils/netutils.h"
 
 #define ERROR_LOG_FILE "server_err.log"
 
@@ -63,47 +65,6 @@ void error(const char *msg)
     chmod(ERROR_LOG_FILE, S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH);
 #endif
     exit(1);
-}
-
-int open_listener_socket()
-{
-    int listener_d = socket(PF_INET, SOCK_STREAM, 0);
-    if (listener_d == -1)
-        error("Can\'t open socket");
-    return listener_d;
-}
-
-void bind_port(int socket, int port)
-{
-    struct sockaddr_in name;
-    name.sin_family = PF_INET;
-    name.sin_port = (in_port_t)htons(port);
-    name.sin_addr.s_addr = htonl(INADDR_ANY);
-    int reuse = 1;
-    if (setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1)
-        error("Can't set the reuse option on the socket");
-    int c = bind(socket, (struct sockaddr *)&name, sizeof(name));
-    if (c == -1){
-    	char errmsg[32];
-    	sprintf(errmsg, "Can\'t bind to port %i", port);
-        error(errmsg);
-    }
-}
-
-int getConnection(int socket)
-{
-    struct sockaddr_in client_addr;
-    unsigned int address_size = sizeof(client_addr);
-    int connect_d = accept(socket, (struct sockaddr *)&client_addr, &address_size);
-    struct timeval tv = {0, 100000};
-    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) == -1) // set timeout option to 100ms
-        error("Can't set the timeout option of the connection");
-    if (connect_d == -1)
-        error("Can\'t open secondary socket");
-#ifdef DEBUG_MODE
-    printf("\nConnection: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-#endif
-    return connect_d;
 }
 
 static int kill_other_processes(const char *prog_name)
