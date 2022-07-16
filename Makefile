@@ -22,6 +22,12 @@ INFO_NAME=clip_share
 PROGRAM_NAME=clip_share
 PROGRAM_NAME_NO_WEB=clip_share_no_web
 
+ifeq ($(OS),Windows_NT) 
+    detected_OS := Windows
+else
+    detected_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
+endif
+
 OBJS=main.o clip_share.o udp_serve.o proto/server.o proto/v1.o utils/utils.o utils/net_utils.o utils/list_utils.o xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 WEB_OBJS=clip_share_web.o page_blob.o cert_blob.o key_blob.o
 SRC_FILES=main.c clip_share.c udp_serve.c proto/server.c proto/v1.c utils/utils.c utils/net_utils.c utils/list_utils.c xclip/xclip.c xclip/xclib.c xscreenshot/xscreenshot.c

@@ -11,6 +11,8 @@ clip_share_no_web
 *.tar.xz
 *.tar.gz
 *.tar
+*.exe
+*.res
 server_err.log
 TODO
 dist/

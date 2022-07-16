@@ -19,9 +19,17 @@
 #ifndef _NET_UTILS_
 #define _NET_UTILS_
 
+#ifdef _WIN32
+#include <winsock2.h>
+#endif
+
 extern int open_listener_socket();
 extern void bind_port(int, int);
+#ifdef __linux__
 extern int get_connection(int);
+#elif _WIN32
+extern SOCKET get_connection(int);
+#endif
 extern void close_socket(int);
 
 extern int read_sock(int, char *, size_t);

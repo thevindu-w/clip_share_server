@@ -19,7 +19,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifdef __linux__
 #include <sys/wait.h>
+#endif
 #include <sys/stat.h>
 #include <string.h>
 #include <ctype.h>
@@ -38,6 +40,8 @@
 // tcp
 #define WEB_PORT_NO_ROOT 4339
 
+#ifdef __linux__
+
 static int kill_other_processes(const char *);
 static void print_usage(void);
 
@@ -46,7 +50,7 @@ static void print_usage()
 #ifdef NO_WEB
     fprintf(stderr, "Usage: %s [-s] [-p app_port]\n", PROGRAM_NAME);
 #else
-	fprintf(stderr, "Usage: %s [-s] [-p app_port] [-w web_port]\n", PROGRAM_NAME);
+    fprintf(stderr, "Usage: %s [-s] [-p app_port] [-w web_port]\n", PROGRAM_NAME);
 #endif
 }
 
@@ -118,7 +122,6 @@ static int kill_other_processes(const char *prog_name)
 
 int main(int argc, char **argv)
 {
-#ifdef unix
     /*program must be called as PROGRAM_NAME*/
     {
         char *prog_name = strrchr(argv[0], '/');
@@ -136,7 +139,7 @@ int main(int argc, char **argv)
             return 1;
         }
     }
-#endif
+
     // Parse args
     int stop = 0;
     int app_port = APP_PORT;
@@ -222,3 +225,41 @@ int main(int argc, char **argv)
 #endif
     exit(EXIT_SUCCESS);
 }
+
+#elif _WIN32
+
+static DWORD WINAPI udpThreadFn(void *arg)
+{
+	(void)arg;
+	WSADATA wsa;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+	{
+		error("failed WSAStartup for UDP");
+		return EXIT_FAILURE;
+	}
+	udp_info_serve(APP_PORT);
+	return EXIT_SUCCESS;
+}
+
+int main()
+{
+    HANDLE udpThread = CreateThread(NULL, 0, udpThreadFn, NULL, 0, NULL);
+	if (udpThread == NULL)
+	{
+#ifdef DEBUG_MODE
+		error("UDP thread creation failed");
+#endif
+	}
+	WSADATA wsa;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+	{
+		error("failed WSAStartup");
+		return EXIT_FAILURE;
+	}
+
+	clip_share(APP_PORT);
+
+	return EXIT_SUCCESS;
+}
+
+#endif

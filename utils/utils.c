@@ -20,7 +20,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#ifdef __linux__
 #include <sys/socket.h>
+#elif _WIN32
+#include <windows.h>
+#include "win_screenshot.h"
+#endif
 #include <unistd.h>
 
 #include "utils.h"
@@ -38,11 +43,41 @@ void error(const char *msg)
     FILE *f = fopen(ERROR_LOG_FILE, "a");
     fprintf(f, "%s\n", msg);
     fclose(f);
-#ifdef unix
+#ifdef __linux__
     chmod(ERROR_LOG_FILE, S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH);
-#endif
     exit(1);
+#endif
 }
+
+int file_exists(const char *file_name)
+{
+    return access(file_name, F_OK);
+}
+
+long get_file_size(FILE *fp)
+{
+    struct stat statbuf;
+    if (fstat(fileno(fp), &statbuf))
+    {
+#ifdef DEBUG_MODE
+        printf("fstat failed\n");
+#endif
+        return -1;
+    }
+    if (!S_ISREG(statbuf.st_mode))
+    {
+#ifdef DEBUG_MODE
+        printf("not a file\n");
+#endif
+        return -1;
+    }
+    fseek(fp, 0L, SEEK_END);
+    long file_size = ftell(fp);
+    rewind(fp);
+    return file_size;
+}
+
+#ifdef __linux__
 
 static int url_decode(char *);
 
@@ -196,29 +231,81 @@ list2 *get_copied_files()
     return lst;
 }
 
-long get_file_size(FILE *fp)
+#elif _WIN32
+
+int get_clipboard_text(char **bufptr, size_t *lenptr)
 {
-    struct stat statbuf;
-    if (fstat(fileno(fp), &statbuf))
+    OpenClipboard(0);
+    HANDLE h = GetClipboardData(CF_TEXT);
+    char *data = strdup((char *)h);
+    CloseClipboard();
+
+    if (!data)
     {
 #ifdef DEBUG_MODE
-        printf("fstat failed\n");
+        fputs("clipboard data is null\n", stderr);
 #endif
-        return -1;
+        *lenptr = 0;
+        return EXIT_FAILURE;
     }
-    if (!S_ISREG(statbuf.st_mode))
-    {
-#ifdef DEBUG_MODE
-        printf("not a file\n");
-#endif
-        return -1;
-    }
-    fseek(fp, 0L, SEEK_END);
-    long file_size = ftell(fp);
-    rewind(fp);
-    return file_size;
+    *bufptr = data;
+    *lenptr = strlen(data);
+    return EXIT_SUCCESS;
 }
 
-int file_exists(const char *file_name){
-    return access(file_name, F_OK);
+int put_clipboard_text(char *data, size_t len)
+{
+    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len + 1);
+    memcpy(GlobalLock(hMem), data, len + 1);
+    GlobalUnlock(hMem);
+    OpenClipboard(0);
+    EmptyClipboard();
+    HANDLE res = SetClipboardData(CF_TEXT, hMem);
+    CloseClipboard();
+    return (res == NULL ? EXIT_FAILURE : EXIT_SUCCESS);
 }
+
+int get_image(char **buf_ptr, size_t *len_ptr)
+{
+    screenCapture(buf_ptr, len_ptr);
+    return EXIT_SUCCESS;
+}
+
+list2 *get_copied_files()
+{
+    OpenClipboard(0);
+    HGLOBAL hGlobal = (HGLOBAL)GetClipboardData(CF_HDROP);
+    if (!hGlobal)
+    {
+        CloseClipboard();
+        return NULL;
+    }
+    HDROP hDrop = (HDROP)GlobalLock(hGlobal);
+    if (!hDrop)
+    {
+        CloseClipboard();
+        return NULL;
+    }
+
+    size_t file_cnt = DragQueryFile(hDrop, -1, NULL, MAX_PATH);
+
+    if (file_cnt <= 0)
+        return NULL;
+    list2 *lst = init_list(file_cnt);
+    if (!lst)
+        return NULL;
+
+    char **arr = (char **)lst->array;
+    char fileName[MAX_PATH + 1];
+    for (size_t i = 0; i < file_cnt; i++)
+    {
+        fileName[0] = '\0';
+        DragQueryFile(hDrop, i, fileName, MAX_PATH);
+        arr[i] = strdup(fileName);
+    }
+    GlobalUnlock(hGlobal);
+    CloseClipboard();
+    return lst;
+}
+
+#endif

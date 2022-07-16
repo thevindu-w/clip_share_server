@@ -18,12 +18,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef __linux__
 #include <arpa/inet.h>
+#elif _WIN32
+#include <winsock2.h>
+#endif
 #include <ctype.h>
 #include <unistd.h>
 
 #include "utils.h"
 #include "net_utils.h"
+
+#ifdef _WIN32
+typedef u_short in_port_t;
+#endif
 
 int open_listener_socket()
 {
@@ -51,6 +59,7 @@ void bind_port(int socket, int port)
     }
 }
 
+#ifdef __linux__
 int get_connection(int socket)
 {
     struct sockaddr_in client_addr;
@@ -66,6 +75,23 @@ int get_connection(int socket)
 #endif
     return connect_d;
 }
+#elif _WIN32
+SOCKET get_connection(int socket)
+{
+    struct sockaddr_in client_addr;
+    int address_size = (int)sizeof(client_addr);
+    SOCKET connect_d = accept(socket, (struct sockaddr *)&client_addr, &address_size);
+    struct timeval tv = {0, 100000};
+    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) == -1) // set timeout option to 100ms
+        error("Can't set the timeout option of the connection");
+    if (connect_d == INVALID_SOCKET)
+        error("Can\'t open secondary socket");
+#ifdef DEBUG_MODE
+    printf("\nConnection: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+#endif
+    return connect_d;
+}
+#endif
 
 void close_socket(int socket)
 {

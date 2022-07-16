@@ -42,7 +42,11 @@
 
 #define FILE_BUF_SZ 65536
 
+#ifdef __linux__
 #define PATH_SEP '/'
+#elif _WIN32
+#define PATH_SEP '\\'
+#endif
 
 static int get_files_fn(int socket, list2 *file_list)
 {
