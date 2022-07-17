@@ -1,6 +1,6 @@
 /*
- *  
- * 
+ *
+ *
  *  xclib.h - header file for functions in xclib.c
  *  Copyright (C) 2001 Kim Saunders
  *  Copyright (C) 2007-2008 Peter Åstrand
@@ -22,40 +22,38 @@
 #include <X11/Xlib.h>
 
 /* xcout() contexts */
-#define XCLIB_XCOUT_NONE	0	/* no context */
-#define XCLIB_XCOUT_SENTCONVSEL	1	/* sent a request */
-#define XCLIB_XCOUT_INCR	2	/* in an incr loop */
-#define XCLIB_XCOUT_BAD_TARGET	3	/* given target failed */
+#define XCLIB_XCOUT_NONE 0		  /* no context */
+#define XCLIB_XCOUT_SENTCONVSEL 1 /* sent a request */
+#define XCLIB_XCOUT_INCR 2		  /* in an incr loop */
+#define XCLIB_XCOUT_BAD_TARGET 3  /* given target failed */
 
 /* xcin() contexts */
-#define XCLIB_XCIN_NONE		0
-#define XCLIB_XCIN_SELREQ	1
-#define XCLIB_XCIN_INCR		2
+#define XCLIB_XCIN_NONE 0
+#define XCLIB_XCIN_SELREQ 1
+#define XCLIB_XCIN_INCR 2
 
 /* functions in xclib.c */
 extern int xcout(
-	Display*,
+	Display *,
 	Window,
 	XEvent,
 	Atom,
 	Atom,
-	Atom*,
-	unsigned char**,
-	unsigned long*,
-	unsigned int*
-);
+	Atom *,
+	unsigned char **,
+	unsigned long *,
+	unsigned int *);
 extern int xcin(
-	Display*,
-	Window*,
+	Display *,
+	Window *,
 	XEvent,
-	Atom*,
+	Atom *,
 	Atom,
-	unsigned char*,
+	unsigned char *,
 	unsigned long,
-	unsigned long*,
-	unsigned int*
-);
+	unsigned long *,
+	unsigned int *);
 extern void *xcmalloc(size_t);
-extern void *xcrealloc(void*, size_t);
+extern void *xcrealloc(void *, size_t);
 extern void *xcstrdup(const char *);
-extern void xcmemcheck(void*);
+extern void xcmemcheck(void *);

@@ -6,12 +6,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
@@ -42,7 +42,7 @@ static SSL_CTX *InitServerCTX(void);
 static void LoadCertificates(SSL_CTX *ctx);
 static void ShowCerts(SSL *ssl);
 static void receiver_web(SSL *ssl);
-//int read_in(SSL *ssl, char *buf, int len);
+// int read_in(SSL *ssl, char *buf, int len);
 
 static SSL_CTX *InitServerCTX(void)
 {
@@ -254,7 +254,7 @@ static void receiver_web(SSL *ssl)
                 r = SSL_read(ssl, buf, 256);
                 if (r > 0)
                 {
-                    //buf[r] = '\0';
+                    // buf[r] = '\0';
                     memcpy(ptr, buf, r);
                     ptr += r;
                     *ptr = 0;
@@ -307,7 +307,7 @@ static void receiver_web(SSL *ssl)
                 r = SSL_read(ssl, buf, 256);
                 if (r > 0)
                 {
-                    //buf[r] = '\0';
+                    // buf[r] = '\0';
                     memcpy(ptr, buf, r);
                     ptr += r;
                     *ptr = 0;
@@ -367,7 +367,7 @@ int web_server(const int port)
             SSL *ssl = SSL_new(ctx);
             SSL_set_fd(ssl, connect_d); /* set connection socket to SSL state */
             receiver_web(ssl);
-            //close(connect_d);
+            // close(connect_d);
             break;
         }
     }

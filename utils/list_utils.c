@@ -6,12 +6,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
@@ -21,11 +21,14 @@
 
 #include "list_utils.h"
 
-list2 * init_list(size_t len){
+list2 *init_list(size_t len)
+{
     list2 *lst = (list2 *)malloc(sizeof(list2));
-    if (!lst) return NULL;
+    if (!lst)
+        return NULL;
     void *arr = (void *)calloc(len, sizeof(void *));
-    if (!arr){
+    if (!arr)
+    {
         free(lst);
         return NULL;
     }
@@ -34,10 +37,12 @@ list2 * init_list(size_t len){
     return lst;
 }
 
-void free_list(list2 *lst){
+void free_list(list2 *lst)
+{
     for (size_t i = 0; i < lst->len; i++)
     {
-        if (lst->array[i]) free(lst->array[i]);
+        if (lst->array[i])
+            free(lst->array[i]);
     }
     free(lst->array);
     free(lst);

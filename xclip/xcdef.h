@@ -1,6 +1,6 @@
 /*
- *  
- * 
+ *
+ *
  *  xcdef.h - definitions for use throughout xclip
  *  Copyright (C) 2001 Kim Saunders
  *  Copyright (C) 2007-2008 Peter Åstrand
@@ -20,14 +20,14 @@
  */
 
 /* output level constants */
-#define OSILENT  0
-#define OQUIET   1
+#define OSILENT 0
+#define OQUIET 1
 #define OVERBOSE 2
 
 /* generic true/false constants for stuff */
-#define F 0     /* false... */
-#define T 1     /* true...  */
+#define F 0 /* false... */
+#define T 1 /* true...  */
 
 /* true/false string constants */
-#define SF "F"	/* false */
-#define ST "T"	/* true  */
+#define SF "F" /* false */
+#define ST "T" /* true  */

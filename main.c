@@ -6,12 +6,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
     pid_t p_scan = fork();
     if (p_scan == 0)
     {
-        udp_info_serve(app_port);
+        udp_server(app_port);
         return 0;
     }
 #endif
@@ -230,36 +230,36 @@ int main(int argc, char **argv)
 
 static DWORD WINAPI udpThreadFn(void *arg)
 {
-	(void)arg;
-	WSADATA wsa;
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-	{
-		error("failed WSAStartup for UDP");
-		return EXIT_FAILURE;
-	}
-	udp_info_serve(APP_PORT);
-	return EXIT_SUCCESS;
+    (void)arg;
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+    {
+        error("failed WSAStartup for UDP");
+        return EXIT_FAILURE;
+    }
+    udp_server(APP_PORT);
+    return EXIT_SUCCESS;
 }
 
 int main()
 {
     HANDLE udpThread = CreateThread(NULL, 0, udpThreadFn, NULL, 0, NULL);
-	if (udpThread == NULL)
-	{
+    if (udpThread == NULL)
+    {
 #ifdef DEBUG_MODE
-		error("UDP thread creation failed");
+        error("UDP thread creation failed");
 #endif
-	}
-	WSADATA wsa;
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-	{
-		error("failed WSAStartup");
-		return EXIT_FAILURE;
-	}
+    }
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+    {
+        error("failed WSAStartup");
+        return EXIT_FAILURE;
+    }
 
-	clip_share(APP_PORT);
+    clip_share(APP_PORT);
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
 #endif

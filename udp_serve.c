@@ -1,3 +1,21 @@
+/*
+ *  udp_serve.c - UDP server for scanning
+ *  Copyright (C) 2022 H. Thevindu J. Wijesekera
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <string.h>
 #ifdef __linux__
@@ -13,7 +31,7 @@
 typedef int socklen_t;
 #endif
 
-void udp_info_serve(const int port)
+void udp_server(const int port)
 {
     int sockfd;
     struct sockaddr_in servaddr, cliaddr;
@@ -36,8 +54,8 @@ void udp_info_serve(const int port)
 
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
     {
-    	char errmsg[32];
-    	sprintf(errmsg, "Can\'t bind to port %i UDP", port);
+        char errmsg[32];
+        sprintf(errmsg, "Can\'t bind to port %i UDP", port);
         error(errmsg);
     }
 
@@ -46,7 +64,7 @@ void udp_info_serve(const int port)
 #endif
 
     const size_t info_len = strlen(INFO_NAME);
-    
+
     int n;
     socklen_t len;
     const int buf_sz = 8;
@@ -62,21 +80,25 @@ void udp_info_serve(const int port)
 #elif _WIN32
         n = recvfrom(sockfd, (char *)buffer, 2, 0, (struct sockaddr *)&cliaddr, &len);
 #endif
-        if (n<0){
+        if (n <= 0)
+        {
             continue;
         }
 
         buffer[n] = '\0';
 
 #ifdef DEBUG_MODE
-        if (n>0) printf("Client UDP message : %s\n", buffer);
+        printf("Client UDP message : %s\n", buffer);
 #endif
 
         if (strcmp(buffer, "in"))
         {
             continue;
         }
-
+#ifdef __linux__
+        sendto(sockfd, INFO_NAME, info_len, MSG_CONFIRM, (const struct sockaddr *)&cliaddr, len);
+#elif _WIN32
         sendto(sockfd, INFO_NAME, info_len, 0, (const struct sockaddr *)&cliaddr, len);
+#endif
     }
 }

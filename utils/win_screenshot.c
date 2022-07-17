@@ -1,3 +1,21 @@
+/*
+ *  utils/win_screenshot.c - get screenshot in windows
+ *  Copyright (C) 2022 H. Thevindu J. Wijesekera
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #ifdef _WIN32
 
 #include <libpng16/png.h>
@@ -132,7 +150,7 @@ void screenCapture(char **buf_ptr, size_t *len_ptr)
 
   int capX = GetDeviceCaps(hdcSource, DESKTOPHORZRES);
   int capY = GetDeviceCaps(hdcSource, DESKTOPVERTRES);
-  
+
   HBITMAP hBitmap = CreateCompatibleBitmap(hdcSource, capX, capY);
   HBITMAP hBitmapOld = (HBITMAP)SelectObject(hdcMemory, hBitmap);
 
@@ -193,11 +211,11 @@ static int write_png_to_mem(RGBBitmap *bitmap, char **buf_ptr, size_t *len_ptr)
   row_pointers = png_malloc(png_ptr, bitmap->height * sizeof(png_byte *));
   for (y = 0; y < bitmap->height; ++y)
   {
-    uint8_t *row = (uint8_t *)malloc(bitmap->bytes_per_pixel * bitmap->width); //png_malloc(png_ptr, sizeof(uint8_t)* bitmap->bytes_per_pixel);
+    uint8_t *row = (uint8_t *)malloc(bitmap->bytes_per_pixel * bitmap->width); // png_malloc(png_ptr, sizeof(uint8_t)* bitmap->bytes_per_pixel);
     row_pointers[y] = (png_byte *)row;                                         /************* MARKED LINE ***************/
     for (x = 0; x < bitmap->width; ++x)
     {
-      RGBPixel color = *(RGBPixel *)(((uint8_t *)(bitmap->pixels)) + ((bitmap->bytewidth) * y) + (bitmap->bytes_per_pixel) * x); //RGBPixelAtPoint(bitmap, x, y);
+      RGBPixel color = *(RGBPixel *)(((uint8_t *)(bitmap->pixels)) + ((bitmap->bytewidth) * y) + (bitmap->bytes_per_pixel) * x); // RGBPixelAtPoint(bitmap, x, y);
       *row++ = color.red;
       *row++ = color.green;
       *row++ = color.blue;
