@@ -33,15 +33,15 @@
 typedef u_short in_port_t;
 #endif
 
-int open_listener_socket()
+sock_t open_listener_socket()
 {
-    int listener_d = socket(PF_INET, SOCK_STREAM, 0);
-    if (listener_d == -1)
+    sock_t listener_d = socket(PF_INET, SOCK_STREAM, 0);
+    if (listener_d == INVALID_SOCKET)
         error("Can\'t open socket");
     return listener_d;
 }
 
-void bind_port(int socket, int port)
+void bind_port(sock_t socket, int port)
 {
     struct sockaddr_in name;
     name.sin_family = PF_INET;
@@ -59,28 +59,15 @@ void bind_port(int socket, int port)
     }
 }
 
+sock_t get_connection(sock_t socket)
+{
+    struct sockaddr_in client_addr;
 #ifdef __linux__
-int get_connection(int socket)
-{
-    struct sockaddr_in client_addr;
     unsigned int address_size = sizeof(client_addr);
-    int connect_d = accept(socket, (struct sockaddr *)&client_addr, &address_size);
-    struct timeval tv = {0, 100000};
-    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) == -1) // set timeout option to 100ms
-        error("Can't set the timeout option of the connection");
-    if (connect_d == -1)
-        error("Can\'t open secondary socket");
-#ifdef DEBUG_MODE
-    printf("\nConnection: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-#endif
-    return connect_d;
-}
 #elif _WIN32
-SOCKET get_connection(int socket)
-{
-    struct sockaddr_in client_addr;
     int address_size = (int)sizeof(client_addr);
-    SOCKET connect_d = accept(socket, (struct sockaddr *)&client_addr, &address_size);
+#endif
+    sock_t connect_d = accept(socket, (struct sockaddr *)&client_addr, &address_size);
     struct timeval tv = {0, 100000};
     if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) == -1) // set timeout option to 100ms
         error("Can't set the timeout option of the connection");
@@ -91,14 +78,17 @@ SOCKET get_connection(int socket)
 #endif
     return connect_d;
 }
-#endif
 
-void close_socket(int socket)
+void close_socket(sock_t socket)
 {
+#ifdef __linux__
     close(socket);
+#elif _WIN32
+    closesocket(socket);
+#endif
 }
 
-int read_sock(int socket, char *buf, size_t size)
+int read_sock(sock_t socket, char *buf, size_t size)
 {
     int cnt = 0;
     size_t read = 0;
@@ -126,7 +116,7 @@ int read_sock(int socket, char *buf, size_t size)
     return EXIT_SUCCESS;
 }
 
-int write_sock(int socket, void *buf, size_t size)
+int write_sock(sock_t socket, void *buf, size_t size)
 {
     return (send(socket, buf, size, 0) == -1) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
@@ -135,7 +125,7 @@ int write_sock(int socket, void *buf, size_t size)
  * Sends a 64-bit long integer
  * encodes in big-endian byte order
  */
-int send_size(int socket, size_t size)
+int send_size(sock_t socket, size_t size)
 {
     unsigned char sz_buf[8];
     {
@@ -153,7 +143,7 @@ int send_size(int socket, size_t size)
  * Reads a 64-bit long integer
  * decodes from big-endian byte order
  */
-long read_size(int socket)
+long read_size(sock_t socket)
 {
     unsigned char sz_buf[8];
     if (read_sock(socket, (char *)sz_buf, sizeof(sz_buf)) == EXIT_FAILURE)

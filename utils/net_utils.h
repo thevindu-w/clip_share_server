@@ -23,18 +23,24 @@
 #include <winsock2.h>
 #endif
 
-extern int open_listener_socket();
-extern void bind_port(int, int);
 #ifdef __linux__
-extern int get_connection(int);
+typedef int sock_t;
 #elif _WIN32
-extern SOCKET get_connection(int);
+typedef SOCKET sock_t;
 #endif
-extern void close_socket(int);
 
-extern int read_sock(int, char *, size_t);
-extern int write_sock(int, void *, size_t);
-extern int send_size(int, size_t);
-extern long read_size(int);
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET -1
+#endif
+
+extern sock_t open_listener_socket();
+extern void bind_port(sock_t, int);
+extern sock_t get_connection(sock_t);
+extern void close_socket(sock_t);
+
+extern int read_sock(sock_t, char *, size_t);
+extern int write_sock(sock_t, void *, size_t);
+extern int send_size(sock_t, size_t);
+extern long read_size(sock_t);
 
 #endif

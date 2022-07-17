@@ -19,6 +19,8 @@
 #ifndef _SERVER_
 #define _SERVER_
 
-extern void server(int);
+#include "../utils/net_utils.h"
+
+extern void server(sock_t);
 
 #endif

@@ -16,8 +16,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _LISTUTILS_
-#define _LISTUTILS_
+#ifndef _LIST_UTILS_
+#define _LIST_UTILS_
 
 typedef struct _list
 {

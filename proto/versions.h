@@ -15,7 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+#ifndef _VERSIONS_
+#define _VERSIONS_
+
+#include "../utils/net_utils.h"
 
 #ifdef PROTO_V1
-extern int version_1(int);
+extern int version_1(sock_t);
+#endif
+
 #endif

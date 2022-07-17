@@ -24,6 +24,7 @@
 #include <winsock2.h>
 #endif
 
+#include "utils/net_utils.h"
 #include "utils/utils.h"
 #include "servers.h"
 
@@ -33,9 +34,9 @@ typedef int socklen_t;
 
 void udp_server(const int port)
 {
-    int sockfd;
+    sock_t sockfd;
     struct sockaddr_in servaddr, cliaddr;
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
     {
         error("UDP socket creation failed");
         return;

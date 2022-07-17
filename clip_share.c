@@ -33,7 +33,7 @@
 #ifdef _WIN32
 static DWORD WINAPI serverThreadFn(void *arg)
 {
-    SOCKET socket = (SOCKET)arg;
+    sock_t socket = (sock_t)arg;
     server(socket);
     close(socket);
     return 0;
@@ -50,7 +50,7 @@ int clip_share(const int port)
         return EXIT_FAILURE;
     }
 #endif
-    int listener_d = open_listener_socket();
+    sock_t listener_d = open_listener_socket();
     bind_port(listener_d, port);
     if (listen(listener_d, 3) == -1)
         error("Can\'t listen");
@@ -59,7 +59,7 @@ int clip_share(const int port)
 #endif
     while (1)
     {
-        int connect_d = get_connection(listener_d);
+        sock_t connect_d = get_connection(listener_d);
 #ifdef __linux__
 #ifndef DEBUG_MODE
         pid_t p1 = fork();
