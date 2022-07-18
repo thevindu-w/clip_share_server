@@ -45,6 +45,7 @@ ifeq ($(detected_OS),Windows)
 	SRC_FILES+= utils/win_screenshot.c
 	LDLIBS=-lws2_32 -lgdi32 -lpng16 -lz
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
+	PROGRAM_NAME:=$(PROGRAM_NAME).exe
 endif
 
 ifeq ($(detected_OS),Linux)
@@ -111,6 +112,9 @@ key_blob.o: key_blob.S
 endif
 ifeq ($(detected_OS),Windows)
 
+utils/win_screenshot.o: utils/win_screenshot.c
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
+
 winres/app.res: winres/app.rc
 	windres $^ -O coff -o $@
 
@@ -118,8 +122,8 @@ endif
 
 .PHONY: clean debug web
 
-debug: $(OBJS) $(WEB_OBJS)
-	gcc -g $^ $(LDLIBS) -o $(PROGRAM_NAME)
+debug: $(OBJS)
+	gcc -g $(CFLAGS) $^ $(LDLIBS) -o $(PROGRAM_NAME)
 
 ifeq ($(detected_OS),Linux)
 
@@ -132,4 +136,3 @@ clean:
 	rm -f $(OBJS) $(WEB_OBJS)
 	rm -f $(PROGRAM_NAME)
 	rm -f $(PROGRAM_NAME_WEB)
-	rm -f $(PROGRAM_NAME)_static
