@@ -53,7 +53,10 @@ int clip_share(const int port)
     sock_t listener_d = open_listener_socket();
     bind_port(listener_d, port);
     if (listen(listener_d, 3) == -1)
+    {
         error("Can\'t listen");
+        return EXIT_FAILURE;
+    }
 #ifdef __linux__
     signal(SIGCHLD, SIG_IGN);
 #endif
@@ -83,6 +86,7 @@ int clip_share(const int port)
         if (serveThread == NULL)
         {
             error("Thread creation failed");
+            return EXIT_FAILURE;
         }
 #else
         (void)serveThread;

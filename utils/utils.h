@@ -20,6 +20,7 @@
 #define _UTILS_
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "list_utils.h"
 
 extern void error(const char *);
@@ -28,7 +29,7 @@ extern int get_clipboard_text(char **, size_t *);
 extern int put_clipboard_text(char *, size_t);
 extern int get_image(char **, size_t *);
 extern list2 *get_copied_files(void);
-extern long get_file_size(FILE *);
+extern ssize_t get_file_size(FILE *);
 extern int file_exists(const char *);
 
 #endif

@@ -53,7 +53,7 @@ static int get_files_fn(sock_t socket, list2 *file_list)
     size_t file_cnt = file_list->len;
     char **files = (char **)file_list->array;
 #ifdef DEBUG_MODE
-    printf("%lu file(s)\n", file_list->len);
+    printf("%zu file(s)\n", file_cnt);
 #endif
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
         return EXIT_FAILURE;
@@ -90,7 +90,7 @@ static int get_files_fn(sock_t socket, list2 *file_list)
             status = EXIT_FAILURE;
             continue;
         }
-        long file_size = get_file_size(fp);
+        ssize_t file_size = get_file_size(fp);
         if (file_size < 0)
         {
 #ifdef DEBUG_MODE
@@ -142,13 +142,13 @@ int version_1(sock_t socket)
         if (get_clipboard_text(&buf, &length) != EXIT_SUCCESS || length <= 0) // do not change the order
         {
 #ifdef DEBUG_MODE
-            printf("clipboard read text failed. len = %lu\n", length);
+            printf("clipboard read text failed. len = %zu\n", length);
 #endif
             write_sock(socket, &(char){STATUS_NO_DATA}, 1);
             return EXIT_SUCCESS;
         }
 #ifdef DEBUG_MODE
-        printf("Len = %lu\n", length);
+        printf("Len = %zu\n", length);
         if (length < 1024)
         {
             fwrite(buf, 1, length, stdout);
@@ -177,9 +177,9 @@ int version_1(sock_t socket)
     {
         if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
             return EXIT_FAILURE;
-        long length = read_size(socket);
+        ssize_t length = read_size(socket);
 #ifdef DEBUG_MODE
-        printf("Len = %lu\n", length);
+        printf("Len = %zi\n", length);
 #endif
         if (length <= 0)
         {
@@ -223,9 +223,9 @@ int version_1(sock_t socket)
     {
         if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
             return EXIT_FAILURE;
-        long name_length = read_size(socket);
+        ssize_t name_length = read_size(socket);
 #ifdef DEBUG_MODE
-        printf("name_len = %lu\n", name_length);
+        printf("name_len = %zi\n", name_length);
 #endif
         if (name_length < 0)
         {
@@ -251,9 +251,9 @@ int version_1(sock_t socket)
             }
         }
 
-        long length = read_size(socket);
+        ssize_t length = read_size(socket);
 #ifdef DEBUG_MODE
-        printf("data len = %lu\n", length);
+        printf("data len = %zi\n", length);
 #endif
         if (length < 0)
             return EXIT_FAILURE;
@@ -308,13 +308,13 @@ int version_1(sock_t socket)
         if (get_image(&buf, &length) == EXIT_FAILURE || length == 0) // do not change the order
         {
 #ifdef DEBUG_MODE
-            printf("get image failed. len = %lu\n", length);
+            printf("get image failed. len = %zu\n", length);
 #endif
             write_sock(socket, &(char){STATUS_NO_DATA}, 1);
             return EXIT_SUCCESS;
         }
 #ifdef DEBUG_MODE
-        printf("Len = %lu\n", length);
+        printf("Len = %zu\n", length);
 #endif
         if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
             return EXIT_FAILURE;

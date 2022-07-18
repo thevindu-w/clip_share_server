@@ -43,14 +43,14 @@
 #ifdef __linux__
 
 static int kill_other_processes(const char *);
-static void print_usage(void);
+static void print_usage(const char *);
 
-static void print_usage()
+static void print_usage(const char *prog_name)
 {
 #ifdef NO_WEB
-    fprintf(stderr, "Usage: %s [-s] [-p app_port]\n", PROGRAM_NAME);
+    fprintf(stderr, "Usage: %s [-h] [-s] [-p app_port]\n", prog_name);
 #else
-    fprintf(stderr, "Usage: %s [-s] [-p app_port] [-w web_port]\n", PROGRAM_NAME);
+    fprintf(stderr, "Usage: %s [-h] [-s] [-p app_port] [-w web_port]\n", prog_name);
 #endif
 }
 
@@ -60,7 +60,7 @@ static int kill_other_processes(const char *prog_name)
     struct dirent *dir_ptr;
     FILE *fp;
     char filepath[269];
-    char cur_task_name[48];
+    char cur_task_name[16];
     char buf[128];
     buf[127] = 0;
     dir = opendir("/proc");
@@ -100,7 +100,7 @@ static int kill_other_processes(const char *prog_name)
             fclose(fp);
             continue;
         }
-        sscanf(buf, "%*s %s", cur_task_name);
+        sscanf(buf, "%*s %15s", cur_task_name);
         if (!strncmp(prog_name, cur_task_name, 15)) // /proc/<pid>/status truncates executable name to 15 chars
         {
             pid_t pid = (pid_t)strtoul(dir_ptr->d_name, NULL, 10);
@@ -122,22 +122,15 @@ static int kill_other_processes(const char *prog_name)
 
 int main(int argc, char **argv)
 {
-    /*program must be called as PROGRAM_NAME*/
+    // Get basename of the program
+    char *prog_name = strrchr(argv[0], '/');
+    if (!prog_name)
     {
-        char *prog_name = strrchr(argv[0], '/');
-        if (!prog_name)
-        {
-            prog_name = argv[0];
-        }
-        else
-        {
-            prog_name++; // don't want the '/' before the program name
-        }
-        if (strcmp(prog_name, PROGRAM_NAME))
-        { // prog_name is not equal to PROGRAM_NAME
-            fprintf(stderr, "This program must be called as %s\nBut it is called as %s\nAborting\n", PROGRAM_NAME, prog_name);
-            return 1;
-        }
+        prog_name = argv[0];
+    }
+    else
+    {
+        prog_name++; // don't want the '/' before the program name
     }
 
     // Parse args
@@ -148,43 +141,49 @@ int main(int argc, char **argv)
 #endif
     {
         int opt;
-        while ((opt = getopt(argc, argv, "sp:w:")) != -1) // TODO : implement quiet mode
+        while ((opt = getopt(argc, argv, "hsp:w:")) != -1)
         {
             switch (opt)
             {
-            case 's':
+            case 'h': // help
+            {
+                print_usage(prog_name);
+                exit(EXIT_SUCCESS);
+                break;
+            }
+            case 's': // stop
             {
                 stop = 1;
                 break;
             }
-            case 'p':
+            case 'p': // app port
             {
                 char *endptr;
                 app_port = strtol(optarg, &endptr, 10);
                 if (*endptr != '\0' || endptr == optarg)
                 {
                     fprintf(stderr, "Invalid app port %s\n", optarg);
-                    print_usage();
+                    print_usage(prog_name);
                     exit(EXIT_FAILURE);
                 }
                 break;
             }
 #ifndef NO_WEB
-            case 'w':
+            case 'w': // web port
             {
                 char *endptr;
                 web_port = strtol(optarg, &endptr, 10);
                 if (*endptr != '\0' || endptr == optarg)
                 {
                     fprintf(stderr, "Invalid web port %s\n", optarg);
-                    print_usage();
+                    print_usage(prog_name);
                     exit(EXIT_FAILURE);
                 }
                 break;
             }
 #endif
-            default: /* '?' */
-                print_usage();
+            default:
+                print_usage(prog_name);
                 exit(EXIT_FAILURE);
             }
         }
@@ -192,7 +191,7 @@ int main(int argc, char **argv)
     /*stop other instances of this process if any and stop this process*/
     if (stop)
     {
-        int cnt = kill_other_processes(PROGRAM_NAME);
+        int cnt = kill_other_processes(prog_name);
         if (cnt > 0)
         {
             puts("Server Stopped");

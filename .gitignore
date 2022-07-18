@@ -7,7 +7,7 @@ screenshot/screenshot
 test.c
 clip_share
 clip_share_static
-clip_share_no_web
+clip_share_web
 *.tar.xz
 *.tar.gz
 *.tar

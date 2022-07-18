@@ -19,6 +19,8 @@
 #ifndef _NET_UTILS_
 #define _NET_UTILS_
 
+#include <stdlib.h>
+
 #ifdef _WIN32
 #include <winsock2.h>
 #endif
@@ -40,7 +42,7 @@ extern void close_socket(sock_t);
 
 extern int read_sock(sock_t, char *, size_t);
 extern int write_sock(sock_t, void *, size_t);
-extern int send_size(sock_t, size_t);
-extern long read_size(sock_t);
+extern int send_size(sock_t, ssize_t);
+extern ssize_t read_size(sock_t);
 
 #endif

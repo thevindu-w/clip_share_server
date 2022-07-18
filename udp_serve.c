@@ -58,6 +58,7 @@ void udp_server(const int port)
         char errmsg[32];
         sprintf(errmsg, "Can\'t bind to port %i UDP", port);
         error(errmsg);
+        return;
     }
 
 #ifdef DEBUG_MODE

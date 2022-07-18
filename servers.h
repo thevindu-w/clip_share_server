@@ -19,8 +19,19 @@
 #ifndef _SERVERS_
 #define _SERVERS_
 
+/**
+ * start TCP application server
+ */
 extern int clip_share(const int);
+
+/**
+ * start TCP web server
+ */
 extern int web_server(const int);
+
+/**
+ * start UDP server listening for broadcast packets
+ */
 extern void udp_server(const int);
 
 #endif

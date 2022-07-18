@@ -54,7 +54,7 @@ int file_exists(const char *file_name)
     return access(file_name, F_OK);
 }
 
-long get_file_size(FILE *fp)
+ssize_t get_file_size(FILE *fp)
 {
     struct stat statbuf;
     if (fstat(fileno(fp), &statbuf))
@@ -72,7 +72,7 @@ long get_file_size(FILE *fp)
         return -1;
     }
     fseek(fp, 0L, SEEK_END);
-    long file_size = ftell(fp);
+    ssize_t file_size = ftell(fp);
     rewind(fp);
     return file_size;
 }
@@ -86,7 +86,7 @@ int get_clipboard_text(char **bufptr, size_t *lenptr)
     if (xclip_util(1, NULL, lenptr, bufptr) != EXIT_SUCCESS || *lenptr <= 0) // do not change the order
     {
 #ifdef DEBUG_MODE
-        printf("xclip read text failed. len = %lu\n", *lenptr);
+        printf("xclip read text failed. len = %zu\n", *lenptr);
 #endif
         return EXIT_FAILURE;
     }
@@ -110,7 +110,7 @@ int get_image(char **buf_ptr, size_t *len_ptr)
     if (xclip_util(1, "image/png", len_ptr, buf_ptr) || *len_ptr == 0) // do not change the order
     {
 #ifdef DEBUG_MODE
-        printf("xclip failed to get image/png. len = %lu\n", *len_ptr);
+        printf("xclip failed to get image/png. len = %zu\n", *len_ptr);
 #endif
         *len_ptr = 0;
         if (screenshot_util(len_ptr, buf_ptr) || *len_ptr == 0) // do not change the order
@@ -182,7 +182,7 @@ list2 *get_copied_files()
     if (xclip_util(1, "x-special/gnome-copied-files", &fname_len, &fnames) || fname_len == 0) // do not change the order
     {
 #ifdef DEBUG_MODE
-        printf("xclip read copied files. len = %lu\n", fname_len);
+        printf("xclip read copied files. len = %zu\n", fname_len);
 #endif
         return NULL;
     }

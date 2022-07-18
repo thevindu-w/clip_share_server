@@ -37,7 +37,10 @@ sock_t open_listener_socket()
 {
     sock_t listener_d = socket(PF_INET, SOCK_STREAM, 0);
     if (listener_d == INVALID_SOCKET)
+    {
         error("Can\'t open socket");
+        return INVALID_SOCKET;
+    }
     return listener_d;
 }
 
@@ -49,13 +52,17 @@ void bind_port(sock_t socket, int port)
     name.sin_addr.s_addr = htonl(INADDR_ANY);
     int reuse = 1;
     if (setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1)
+    {
         error("Can't set the reuse option on the socket");
+        return;
+    }
     int c = bind(socket, (struct sockaddr *)&name, sizeof(name));
     if (c == -1)
     {
         char errmsg[32];
         sprintf(errmsg, "Can\'t bind to port %i TCP", port);
         error(errmsg);
+        return;
     }
 }
 
@@ -69,10 +76,16 @@ sock_t get_connection(sock_t socket)
 #endif
     sock_t connect_d = accept(socket, (struct sockaddr *)&client_addr, &address_size);
     struct timeval tv = {0, 100000};
-    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) == -1) // set timeout option to 100ms
+    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) == -1)
+    { // set timeout option to 100ms
         error("Can't set the timeout option of the connection");
+        return INVALID_SOCKET;
+    }
     if (connect_d == INVALID_SOCKET)
+    {
         error("Can\'t open secondary socket");
+        return INVALID_SOCKET;
+    }
 #ifdef DEBUG_MODE
     printf("\nConnection: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 #endif
@@ -122,14 +135,15 @@ int write_sock(sock_t socket, void *buf, size_t size)
 }
 
 /**
- * Sends a 64-bit long integer
- * encodes in big-endian byte order
+ * Sends a 64-bit signed integer
+ * encodes into big-endian byte order
+ * returns -1 if an error occured
  */
-int send_size(sock_t socket, size_t size)
+int send_size(sock_t socket, ssize_t size)
 {
     unsigned char sz_buf[8];
     {
-        long sz = (long)size;
+        ssize_t sz = (ssize_t)size;
         for (int i = sizeof(sz_buf) - 1; i >= 0; i--)
         {
             sz_buf[i] = sz & 0xff;
@@ -140,10 +154,11 @@ int send_size(sock_t socket, size_t size)
 }
 
 /**
- * Reads a 64-bit long integer
- * decodes from big-endian byte order
+ * Reads a 64-bit signed integer from the socket connection
+ * decodes it from big-endian byte order
+ * returns -1 if an error occured
  */
-long read_size(sock_t socket)
+ssize_t read_size(sock_t socket)
 {
     unsigned char sz_buf[8];
     if (read_sock(socket, (char *)sz_buf, sizeof(sz_buf)) == EXIT_FAILURE)
@@ -153,7 +168,7 @@ long read_size(sock_t socket)
 #endif
         return -1;
     }
-    long size = 0;
+    ssize_t size = 0;
     for (unsigned i = 0; i < sizeof(sz_buf); i++)
     {
         size = (size << 8) | sz_buf[i];

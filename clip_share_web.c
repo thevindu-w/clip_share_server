@@ -188,6 +188,7 @@ static void receiver_web(SSL *ssl)
             if (SSL_write(ssl, blob_page, blob_size_page) < blob_size_page)
             {
                 error("send failed");
+                goto END;
             }
         }
         else if (!strcmp(path, "/clip"))
@@ -198,6 +199,7 @@ static void receiver_web(SSL *ssl)
             {
                 say("HTTP/1.0 500 Internal Server Error\r\n\r\n", ssl);
                 error("xclip read failed");
+                goto END;
             }
             say("HTTP/1.0 200 OK\r\n", ssl);
             say("Content-Type: text/plain; charset=utf-8\r\n", ssl);
@@ -205,7 +207,10 @@ static void receiver_web(SSL *ssl)
             sprintf(tmp, "Content-Length: %lu\r\nConnection: close\r\n\r\n", len);
             say(tmp, ssl);
             if (SSL_write(ssl, buf, len) <= 0)
+            {
                 error("send failed");
+                goto END;
+            }
             if (len)
                 free(buf);
         }
@@ -224,7 +229,7 @@ static void receiver_web(SSL *ssl)
             say("HTTP/1.0 200 OK\r\n", ssl);
             say("Content-Type: image/png\r\nContent-Disposition: attachment; filename=\"clip.png\"\r\n", ssl);
             char tmp[64];
-            sprintf(tmp, "Content-Length: %lu\r\nConnection: close\r\n\r\n", len);
+            sprintf(tmp, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len);
             say(tmp, ssl);
             if (SSL_write(ssl, buf, len) <= 0)
             {
@@ -349,7 +354,10 @@ int web_server(const int port)
     int listener_d = open_listener_socket();
     bind_port(listener_d, port);
     if (listen(listener_d, 10) == -1)
+    {
         error("Can\'t listen");
+        return 1;
+    }
     SSL_library_init();
     SSL_CTX *ctx = InitServerCTX();
     LoadCertificates(ctx); /* load certs */

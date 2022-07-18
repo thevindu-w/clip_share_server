@@ -19,12 +19,24 @@
 #ifndef _LIST_UTILS_
 #define _LIST_UTILS_
 
+#include <stdlib.h>
+
 typedef struct _list
 {
     size_t len;
     void **array;
 } list2;
 
+/**
+ * initializes a list2
+ * returns NULL on error
+ */
 extern list2 *init_list(size_t);
+
+/**
+ * free memory allocated to a list2
+ * returns NULL on error
+ */
 extern void free_list(list2 *);
+
 #endif
