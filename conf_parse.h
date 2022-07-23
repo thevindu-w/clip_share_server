@@ -1,5 +1,5 @@
 /*
- *  proto/versions.h - header for declaring protocol versions
+ *  conf_parse.h - header for conf_parse.c
  *  Copyright (C) 2022 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -15,13 +15,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef _VERSIONS_
-#define _VERSIONS_
 
-#include "../utils/net_utils.h"
+#ifndef _CONF_PARSE_
+#define _CONF_PARSE_
 
-#ifdef PROTO_V1
-extern int version_1(socket_t);
-#endif
+typedef struct _config
+{
+    unsigned short app_port;
+    unsigned short app_port_secure;
+    unsigned short web_port;
+    char *priv_key;
+    char *server_cert;
+    char *ca_cert;
+} config;
+
+extern config parse_conf(const char *);
 
 #endif

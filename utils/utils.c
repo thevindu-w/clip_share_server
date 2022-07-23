@@ -98,7 +98,7 @@ int put_clipboard_text(char *data, size_t len)
     if (xclip_util(0, NULL, (size_t *)&len, &data) != EXIT_SUCCESS)
     {
 #ifdef DEBUG_MODE
-        fputs("Failed to write to clip", stderr);
+        fputs("Failed to write to clipboard", stderr);
 #endif
         return EXIT_FAILURE;
     }

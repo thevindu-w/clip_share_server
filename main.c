@@ -27,6 +27,7 @@
 #include <ctype.h>
 #include <dirent.h>
 
+#include "conf_parse.h"
 #include "servers.h"
 #include "utils/utils.h"
 #include "utils/net_utils.h"
@@ -41,6 +42,10 @@
 #define WEB_PORT_NO_ROOT 4339
 
 #ifdef __linux__
+
+extern char blob_cert[];
+extern char blob_key[];
+extern char blob_ca_cert[];
 
 static int kill_other_processes(const char *);
 static void print_usage(const char *);
@@ -133,15 +138,31 @@ int main(int argc, char **argv)
         prog_name++; // don't want the '/' before the program name
     }
 
+    const char *priv_key;
+    const char *server_cert;
+    const char *ca_cert;
+
+    config cfg = parse_conf("clipshare.conf");
+
     // Parse args
     int stop = 0;
-    int app_port = APP_PORT;
+    int restart = 0;
+    int app_port = cfg.app_port >0 ? cfg.app_port : APP_PORT;
+    int app_port_secure = cfg.app_port_secure >0 ? cfg.app_port_secure : APP_PORT_SECURE;
 #ifndef NO_WEB
     int web_port = geteuid() ? WEB_PORT_NO_ROOT : WEB_PORT;
+    if (cfg.web_port > 0){
+        web_port = cfg.web_port;
+    }
 #endif
+
+    priv_key = cfg.priv_key ? cfg.priv_key : blob_key;
+    server_cert = cfg.server_cert ? cfg.server_cert : blob_cert;
+    ca_cert = cfg.ca_cert ? cfg.ca_cert : blob_ca_cert;
+
     {
         int opt;
-        while ((opt = getopt(argc, argv, "hsp:w:")) != -1)
+        while ((opt = getopt(argc, argv, "hsrp:w:")) != -1)
         {
             switch (opt)
             {
@@ -154,6 +175,11 @@ int main(int argc, char **argv)
             case 's': // stop
             {
                 stop = 1;
+                break;
+            }
+            case 'r': // restart
+            {
+                restart = 1;
                 break;
             }
             case 'p': // app port
@@ -188,30 +214,35 @@ int main(int argc, char **argv)
             }
         }
     }
-    /*stop other instances of this process if any and stop this process*/
-    if (stop)
+    /* stop other instances of this process if any.
+    Stop this process if stop flag is set */
+    if (stop || restart)
     {
         int cnt = kill_other_processes(prog_name);
         if (cnt > 0)
         {
-            puts("Server Stopped");
+            const char *msg = stop ? "Server Stopped" : "Server Restarting...";
+            puts(msg);
         }
-        exit(EXIT_SUCCESS);
+        if (stop)
+            exit(EXIT_SUCCESS);
     }
 
-#ifndef DEBUG_MODE
     pid_t p_clip = fork();
     if (p_clip == 0)
     {
-#endif
-        return clip_share(app_port);
-#ifndef DEBUG_MODE
+        return clip_share(app_port, 0, NULL, NULL, NULL);
+    }
+    pid_t p_clip_ssl = fork();
+    if (p_clip_ssl == 0)
+    {
+        return clip_share(app_port_secure, 1, priv_key, server_cert, ca_cert);
     }
 #ifndef NO_WEB
     pid_t p_web = fork();
     if (p_web == 0)
     {
-        return web_server(web_port);
+        return web_server(web_port, priv_key, server_cert, ca_cert);
     }
 #endif
     puts("Server Started");
@@ -221,7 +252,6 @@ int main(int argc, char **argv)
         udp_server(app_port);
         return 0;
     }
-#endif
     exit(EXIT_SUCCESS);
 }
 

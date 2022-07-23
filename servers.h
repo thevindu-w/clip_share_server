@@ -22,12 +22,12 @@
 /**
  * start TCP application server
  */
-extern int clip_share(const int);
+extern int clip_share(const int, const int, const char *, const char *, const char *);
 
 /**
  * start TCP web server
  */
-extern int web_server(const int);
+extern int web_server(const int, const char *, const char *, const char *);
 
 /**
  * start UDP server listening for broadcast packets

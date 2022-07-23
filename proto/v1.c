@@ -48,7 +48,7 @@
 #define PATH_SEP '\\'
 #endif
 
-static int get_files_fn(sock_t socket, list2 *file_list)
+static int get_files_fn(socket_t socket, list2 *file_list)
 {
     size_t file_cnt = file_list->len;
     char **files = (char **)file_list->array;
@@ -125,7 +125,7 @@ static int get_files_fn(sock_t socket, list2 *file_list)
     return status;
 }
 
-int version_1(sock_t socket)
+int version_1(socket_t socket)
 {
     unsigned char method;
     if (read_sock(socket, (char *)&method, 1) == EXIT_FAILURE)

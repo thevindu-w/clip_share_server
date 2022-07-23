@@ -28,7 +28,7 @@
 #define PROTOCOL_OBSOLETE 2
 #define PROTOCOL_UNKNOWN 3
 
-void server(sock_t socket)
+void server(socket_t socket)
 {
     unsigned char version;
     if (read_sock(socket, (char *)&version, 1) == EXIT_FAILURE)

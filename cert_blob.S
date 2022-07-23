@@ -2,4 +2,4 @@
 .section .rodata
 
 blob_cert:
-    .incbin "cert_keys/keycert.crt"
+    .incbin "cert_keys/server.crt"

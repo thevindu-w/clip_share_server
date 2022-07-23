@@ -20,6 +20,7 @@
 #define _NET_UTILS_
 
 #include <stdlib.h>
+#include <openssl/ssl.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -35,14 +36,33 @@ typedef SOCKET sock_t;
 #define INVALID_SOCKET -1
 #endif
 
-extern sock_t open_listener_socket();
-extern void bind_port(sock_t, int);
-extern sock_t get_connection(sock_t);
-extern void close_socket(sock_t);
+#define NULL_SOCK 0
+#define PLAIN_SOCK 1
+#define SSL_SOCK 2
 
-extern int read_sock(sock_t, char *, size_t);
-extern int write_sock(sock_t, void *, size_t);
-extern int send_size(sock_t, ssize_t);
-extern ssize_t read_size(sock_t);
+typedef struct _socket_t
+{
+    sock_t plain;
+    SSL *ssl;
+    unsigned char type;
+} socket_t;
+
+typedef struct _listener_socket_t
+{
+    sock_t socket;
+    unsigned char type;
+    SSL_CTX *ctx;
+} listener_t;
+
+extern listener_t open_listener_socket(const int, const char *, const char *, const char *);
+extern int bind_port(listener_t, int);
+extern socket_t get_connection(listener_t);
+extern void close_socket(socket_t);
+
+extern int read_sock(socket_t, char *, size_t);
+extern int read_sock_no_wait(socket_t, char *, size_t);
+extern int write_sock(socket_t, void *, size_t);
+extern int send_size(socket_t, ssize_t);
+extern ssize_t read_size(socket_t);
 
 #endif

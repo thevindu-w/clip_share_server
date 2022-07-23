@@ -19,6 +19,7 @@
 #include "utils/utils.h"
 #include "utils/net_utils.h"
 #include "proto/server.h"
+#include "servers.h"
 
 #include <stdlib.h>
 #ifdef __linux__
@@ -40,7 +41,7 @@ static DWORD WINAPI serverThreadFn(void *arg)
 }
 #endif
 
-int clip_share(const int port)
+int clip_share(const int port, const int secure, const char *priv_key, const char *server_cert, const char *ca_cert)
 {
 #ifdef _WIN32
     WSADATA wsa;
@@ -50,9 +51,12 @@ int clip_share(const int port)
         return EXIT_FAILURE;
     }
 #endif
-    sock_t listener_d = open_listener_socket();
-    bind_port(listener_d, port);
-    if (listen(listener_d, 3) == -1)
+    listener_t listener = open_listener_socket(secure, priv_key, server_cert, ca_cert);
+    if (bind_port(listener, port) != EXIT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
+    if (listen(listener.socket, 3) == -1)
     {
         error("Can\'t listen");
         return EXIT_FAILURE;
@@ -62,20 +66,20 @@ int clip_share(const int port)
 #endif
     while (1)
     {
-        sock_t connect_d = get_connection(listener_d);
+        socket_t connect_sock = get_connection(listener);
 #ifdef __linux__
 #ifndef DEBUG_MODE
         pid_t p1 = fork();
         if (p1)
         {
-            close(connect_d);
+            close_socket(connect_sock);
         }
         else
         {
-            close(listener_d);
+            close(listener.socket);
 #endif
-            server(connect_d);
-            close(connect_d);
+            server(connect_sock);
+            close_socket(connect_sock);
 #ifndef DEBUG_MODE
             break;
         }

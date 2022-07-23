@@ -20,10 +20,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/socket.h>
 #include <sys/wait.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
+#include <arpa/inet.h>
 
 #include "utils/utils.h"
 #include "utils/net_utils.h"
@@ -32,216 +30,111 @@
 
 #define FAIL -1
 
-extern char blob_cert[];
-extern char blob_key[];
 extern char blob_page[];
 extern int blob_size_page;
 
-static void say(char *msg, SSL *ssl);
-static SSL_CTX *InitServerCTX(void);
-static void LoadCertificates(SSL_CTX *ctx);
-static void ShowCerts(SSL *ssl);
-static void receiver_web(SSL *ssl);
-// int read_in(SSL *ssl, char *buf, int len);
+static int say(char *, socket_t);
+static void receiver_web(socket_t);
 
-static SSL_CTX *InitServerCTX(void)
+static int say(char *msg, socket_t sock)
 {
-    const SSL_METHOD *method;
-    SSL_CTX *ctx;
-
-    OpenSSL_add_all_algorithms(); /* load & register all cryptos, etc. */
-    SSL_load_error_strings();     /* load all error messages */
-    method = TLS_server_method(); /* create new server-method instance */
-    ctx = SSL_CTX_new(method);    /* create new context from method */
-    if (ctx == NULL)
-    {
-        ERR_print_errors_fp(stderr);
-        abort();
-    }
-    return ctx;
+    return write_sock(sock, msg, strlen(msg));
 }
 
-static void LoadCertificates(SSL_CTX *ctx)
+static void receiver_web(socket_t sock)
 {
-    BIO *cbio = BIO_new_mem_buf((void *)blob_cert, -1);
-    X509 *cert = PEM_read_bio_X509(cbio, NULL, 0, NULL);
-    if (SSL_CTX_use_certificate(ctx, cert) <= 0)
+    char method[8];
     {
-        ERR_print_errors_fp(stderr);
-        abort();
-    }
-
-    BIO *kbio = BIO_new_mem_buf((void *)blob_key, -1);
-    RSA *rsa = PEM_read_bio_RSAPrivateKey(kbio, NULL, 0, NULL);
-    if (SSL_CTX_use_RSAPrivateKey(ctx, rsa) <= 0)
-    {
-        ERR_print_errors_fp(stderr);
-        abort();
-    }
-
-    /* verify private key */
-    if (!SSL_CTX_check_private_key(ctx))
-    {
-        fprintf(stderr, "Private key does not match the public certificate\n");
-        abort();
-    }
-}
-
-static void ShowCerts(SSL *ssl)
-{
-    X509 *cert;
-    char *line;
-
-    cert = SSL_get_peer_certificate(ssl); /* Get certificates (if available) */
-    if (cert != NULL)
-    {
-        printf("Server certificates:\n");
-        line = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
-        printf("Subject: %s\n", line);
-        free(line);
-        line = X509_NAME_oneline(X509_get_issuer_name(cert), 0, 0);
-        printf("Issuer: %s\n", line);
-        free(line);
-        X509_free(cert);
-    }
-}
-
-static void say(char *msg, SSL *ssl)
-{
-    if (SSL_write(ssl, msg, strlen(msg)) <= 0)
-        error("send failed");
-}
-
-static void receiver_web(SSL *ssl)
-{
-    int sd;
-    if (SSL_accept(ssl) < 0)
-    { /* do SSL-protocol accept */
-        // ERR_print_errors_fp(stderr);
-        // goto END;
-    }
-    ShowCerts(ssl); /* get any certificates */
-
-    char method[16];
-    {
-        int read = 0, r = 0, cnt = 0;
-        char *ptr = method;
-        while (read == 0 || r > 0)
+        int ind = 0;
+        do
         {
-            r = SSL_read(ssl, ptr, 1);
-            if (r > 0)
-            {
-                read = 1;
-                if (*ptr == ' ')
-                {
-                    *ptr = '\0';
-                    break;
-                }
-                ptr++;
-            }
-            else
-            {
-                if (cnt++ > 50)
-                {
-                    goto END;
-                }
-            }
-        }
+            if (read_sock(sock, method + ind, 1) != EXIT_SUCCESS)
+                return;
+            ind++;
+        } while (method[ind - 1]!=' ');
+        method[ind-1] = 0;
     }
+#ifdef DEBUG_MODE
+            puts(method);
+#endif
 
     char path[2049];
     {
-        int r, cnt = 0;
-        char *ptr = path;
+        int ind = 0;
         do
         {
-            if ((r = SSL_read(ssl, ptr, 1)) > 0)
-            {
-                if (*ptr == ' ')
-                {
-                    *ptr = '\0';
-                    break;
-                }
-                ptr++;
-            }
-            else
-            {
-                if (cnt++ > 50)
-                {
-                    goto END;
-                }
-            }
-        } while (r > 0);
+            if (read_sock(sock, path + ind, 1) != EXIT_SUCCESS)
+                return;
+            ind++;
+        } while (path[ind - 1]!=' ');
+        path[ind-1] = 0;
     }
+#ifdef DEBUG_MODE
+            puts(path);
+#endif
 
     if (!strcmp(method, "GET"))
     {
         char buf[128];
-        while (SSL_read(ssl, buf, 128) > 0)
+        while (read_sock_no_wait(sock, buf, 128) > 0)
             ;
         if (!strcmp(path, "/"))
         {
-            say("HTTP/1.0 200 OK\r\n", ssl);
+            if (say("HTTP/1.0 200 OK\r\n", sock) != EXIT_SUCCESS)
+                return;
             char tmp[96];                                                                                                              // = (char *)malloc(96);
             sprintf(tmp, "Content-Type: text/html; charset=utf-8\r\nContent-Length: %i\r\nConnection: close\r\n\r\n", blob_size_page); // Content-Disposition: attachment; filename="filename.ext" // put this, filename parameter is optional
-            say(tmp, ssl);
-            if (SSL_write(ssl, blob_page, blob_size_page) < blob_size_page)
-            {
-                error("send failed");
-                goto END;
-            }
+            if (say(tmp, sock) != EXIT_SUCCESS)
+                return;
+            if (write_sock(sock, blob_page, blob_size_page) != EXIT_SUCCESS)
+                return;
         }
         else if (!strcmp(path, "/clip"))
         {
-            unsigned long len;
+            size_t len;
             char *buf;
-            if (xclip_util(1, NULL, &len, &buf))
+            if (get_clipboard_text(&buf, &len) != EXIT_SUCCESS || len <= 0) // do not change the order
             {
-                say("HTTP/1.0 500 Internal Server Error\r\n\r\n", ssl);
-                error("xclip read failed");
-                goto END;
+                say("HTTP/1.0 500 Internal Server Error\r\n\r\n", sock);
+                return;
             }
-            say("HTTP/1.0 200 OK\r\n", ssl);
-            say("Content-Type: text/plain; charset=utf-8\r\n", ssl);
+            if (say("HTTP/1.0 200 OK\r\n", sock) != EXIT_SUCCESS)
+                return;
+            if (say("Content-Type: text/plain; charset=utf-8\r\n", sock) != EXIT_SUCCESS)
+                return;
             char tmp[64];
             sprintf(tmp, "Content-Length: %lu\r\nConnection: close\r\n\r\n", len);
-            say(tmp, ssl);
-            if (SSL_write(ssl, buf, len) <= 0)
-            {
-                error("send failed");
-                goto END;
-            }
-            if (len)
-                free(buf);
+            if (say(tmp, sock) != EXIT_SUCCESS)
+                return;
+            if (write_sock(sock, buf, len) != EXIT_SUCCESS)
+                return;
+            free(buf);
         }
         else if (!strcmp(path, "/img"))
         {
             size_t len = 0;
             char *buf;
-            if (xclip_util(1, "image/png", &len, &buf) || len == 0)
+            if (get_image(&buf, &len) == EXIT_FAILURE || len <= 0)
             {
-                if (screenshot_util(&len, &buf) || len == 0)
-                {
-                    say("HTTP/1.0 404 Not Found\r\n\r\n", ssl);
-                    goto END;
-                }
+                say("HTTP/1.0 404 Not Found\r\n\r\n", sock);
+                return;
             }
-            say("HTTP/1.0 200 OK\r\n", ssl);
-            say("Content-Type: image/png\r\nContent-Disposition: attachment; filename=\"clip.png\"\r\n", ssl);
+            if (say("HTTP/1.0 200 OK\r\n", sock) != EXIT_SUCCESS)
+                return;
+            if (say("Content-Type: image/png\r\nContent-Disposition: attachment; filename=\"clip.png\"\r\n", sock) != EXIT_SUCCESS)
+                return;
             char tmp[64];
             sprintf(tmp, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len);
-            say(tmp, ssl);
-            if (SSL_write(ssl, buf, len) <= 0)
-            {
-                fputs("send failed\n", stderr);
-            }
-            if (len)
-                free(buf);
+            if (say(tmp, sock) != EXIT_SUCCESS)
+                return;
+            if (write_sock(sock, buf, len) != EXIT_SUCCESS)
+                return;
+            free(buf);
         }
         else
         {
-            say("HTTP/1.0 404 Not Found\r\n\r\n", ssl);
-            goto END;
+            say("HTTP/1.0 404 Not Found\r\n\r\n", sock);
+            return;
         }
     }
     else if (!strcmp(method, "POST"))
@@ -256,7 +149,7 @@ static void receiver_web(SSL *ssl)
             char *check = ptr;
             while (1)
             {
-                r = SSL_read(ssl, buf, 256);
+                r = read_sock_no_wait(sock, buf, 256);
                 if (r > 0)
                 {
                     // buf[r] = '\0';
@@ -288,16 +181,20 @@ static void receiver_web(SSL *ssl)
             char *cont_len_header = strstr(headers, "Content-Length: ");
             if (cont_len_header == NULL)
             {
-                fputs("Content-Length header not found", stderr);
-                goto END;
+                free(headers);
+                return;
             }
             data_len = strtoul(cont_len_header + 16, NULL, 10);
+            if (data_len <= 0 || 1048576 < data_len){
+                free(headers);
+                return;
+            }
         }
         char *data = strstr(headers, "\r\n\r\n");
         if (data == NULL)
         {
-            fputs("HTTP Error", stderr);
-            goto END;
+            free(headers);
+            return;
         }
         data += 4;
         *(data - 1) = '\0';
@@ -309,8 +206,7 @@ static void receiver_web(SSL *ssl)
             char *ptr = data + strlen(data);
             while (ptr - data < (long)data_len)
             {
-                r = SSL_read(ssl, buf, 256);
-                if (r > 0)
+                if ((r = read_sock_no_wait(sock, buf, 256)) > 0)
                 {
                     // buf[r] = '\0';
                     memcpy(ptr, buf, r);
@@ -322,60 +218,44 @@ static void receiver_web(SSL *ssl)
                 {
                     if (cnt++ > 50)
                     {
-                        fputs("Failed to receive data", stderr);
-                        goto END;
+                        free(headers);
+                        return;
                     }
                 }
             }
         }
 
-        // fprintf(stderr, "Expected : %lu\nGot : %lu\n", data_len, strlen(data));
-        // puts(data);
-        say("HTTP/1.0 204 No Content\r\n\r\n", ssl);
-        sd = SSL_get_fd(ssl); /* get socket connection */
-        SSL_free(ssl);        /* release SSL state */
-        close(sd);
-        if (xclip_util(0, NULL, &data_len, &data))
-        {
-            fputs("Failed to write to xclip", stderr);
-        }
+        if(say("HTTP/1.0 204 No Content\r\n\r\n", sock) != EXIT_SUCCESS)
+                return;
+        put_clipboard_text(data, data_len);
         free(headers);
         return;
     }
-END:
-    sd = SSL_get_fd(ssl); /* get socket connection */
-    SSL_free(ssl);        /* release SSL state */
-    close(sd);
 }
 
-int web_server(const int port)
+int web_server(const int port, const char *priv_key, const char *server_cert, const char *ca_cert)
 {
     signal(SIGCHLD, SIG_IGN);
-    int listener_d = open_listener_socket();
+    listener_t listener_d = open_listener_socket(1, priv_key, server_cert, ca_cert);
     bind_port(listener_d, port);
-    if (listen(listener_d, 10) == -1)
+    if (listen(listener_d.socket, 10) == -1)
     {
         error("Can\'t listen");
         return 1;
     }
-    SSL_library_init();
-    SSL_CTX *ctx = InitServerCTX();
-    LoadCertificates(ctx); /* load certs */
     while (1)
     {
-        int connect_d = get_connection(listener_d);
+        socket_t connect_d = get_connection(listener_d);
         pid_t p1 = fork();
         if (p1)
         {
-            close(connect_d);
+            close_socket(connect_d);
         }
         else
         {
-            close(listener_d);
-            SSL *ssl = SSL_new(ctx);
-            SSL_set_fd(ssl, connect_d); /* set connection socket to SSL state */
-            receiver_web(ssl);
-            // close(connect_d);
+            close(listener_d.socket);
+            receiver_web(connect_d);
+            close_socket(connect_d);
             break;
         }
     }

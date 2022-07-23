@@ -28,10 +28,10 @@ else
     detected_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
 endif
 
-OBJS=main.o clip_share.o udp_serve.o proto/server.o proto/v1.o utils/utils.o utils/net_utils.o utils/list_utils.o
+OBJS=main.o clip_share.o udp_serve.o proto/server.o proto/v1.o utils/utils.o utils/net_utils.o utils/list_utils.o conf_parse.o cert_blob.o key_blob.o ca_cert_blob.o
 WEB_OBJS=clip_share_web.o page_blob.o cert_blob.o key_blob.o
-SRC_FILES=main.c clip_share.c udp_serve.c proto/server.c proto/v1.c utils/utils.c utils/net_utils.c utils/list_utils.c
-WEB_SRC=clip_share_web.c page_blob.S cert_blob.S key_blob.S
+SRC_FILES=main.c clip_share.c udp_serve.c proto/server.c proto/v1.c utils/utils.c utils/net_utils.c utils/list_utils.c conf_parse.c cert_blob.S key_blob.S ca_cert_blob.S
+WEB_SRC=clip_share_web.c page_blob.S
 CFLAGS=-pipe -Wall -Wextra -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=1 -DPROTO_V1
 CFLAGS_DEBUG=-g -c -DDEBUG_MODE -DNO_WEB
 
@@ -89,6 +89,9 @@ utils/net_utils.o: utils/net_utils.c
 utils/list_utils.o: utils/list_utils.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
+conf_parse.o: conf_parse.c
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
+
 ifeq ($(detected_OS),Linux)
 
 xclip/xclip.o: xclip/xclip.c
@@ -107,6 +110,9 @@ cert_blob.o: cert_blob.S
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
 key_blob.o: key_blob.S
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
+
+ca_cert_blob.o: ca_cert_blob.S
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
 endif
