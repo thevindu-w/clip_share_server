@@ -1,5 +1,5 @@
 /*
- *  conf_parse.h - header for conf_parse.c
+ *  config.h - header for conf_parse.c
  *  Copyright (C) 2022 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,8 @@
 #ifndef _CONF_PARSE_
 #define _CONF_PARSE_
 
+#include "utils/list_utils.h"
+
 typedef struct _config
 {
     unsigned short app_port;
@@ -27,6 +29,7 @@ typedef struct _config
     char *priv_key;
     char *server_cert;
     char *ca_cert;
+    list2 *allowed_clients;
 } config;
 
 extern config parse_conf(const char *);

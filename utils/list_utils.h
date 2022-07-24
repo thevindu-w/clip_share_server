@@ -24,6 +24,7 @@
 typedef struct _list
 {
     size_t len;
+    size_t capacity;
     void **array;
 } list2;
 
@@ -38,5 +39,11 @@ extern list2 *init_list(size_t);
  * returns NULL on error
  */
 extern void free_list(list2 *);
+
+/**
+ * appends an element to a list
+ * allocates space if insufficient
+ */
+extern void append(list2 *, void *);
 
 #endif

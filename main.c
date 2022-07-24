@@ -27,7 +27,7 @@
 #include <ctype.h>
 #include <dirent.h>
 
-#include "conf_parse.h"
+#include "config.h"
 #include "servers.h"
 #include "utils/utils.h"
 #include "utils/net_utils.h"
@@ -138,27 +138,27 @@ int main(int argc, char **argv)
         prog_name++; // don't want the '/' before the program name
     }
 
-    const char *priv_key;
-    const char *server_cert;
-    const char *ca_cert;
-
     config cfg = parse_conf("clipshare.conf");
 
     // Parse args
     int stop = 0;
     int restart = 0;
-    int app_port = cfg.app_port >0 ? cfg.app_port : APP_PORT;
-    int app_port_secure = cfg.app_port_secure >0 ? cfg.app_port_secure : APP_PORT_SECURE;
+    int app_port = cfg.app_port > 0 ? cfg.app_port : APP_PORT;
+    int app_port_secure = cfg.app_port_secure > 0 ? cfg.app_port_secure : APP_PORT_SECURE;
 #ifndef NO_WEB
     int web_port = geteuid() ? WEB_PORT_NO_ROOT : WEB_PORT;
-    if (cfg.web_port > 0){
+    if (cfg.web_port > 0)
+    {
         web_port = cfg.web_port;
     }
 #endif
 
-    priv_key = cfg.priv_key ? cfg.priv_key : blob_key;
-    server_cert = cfg.server_cert ? cfg.server_cert : blob_cert;
-    ca_cert = cfg.ca_cert ? cfg.ca_cert : blob_ca_cert;
+    char *priv_key = cfg.priv_key ? cfg.priv_key : blob_key;
+    cfg.priv_key = priv_key;
+    char *server_cert = cfg.server_cert ? cfg.server_cert : blob_cert;
+    cfg.server_cert = server_cert;
+    char *ca_cert = cfg.ca_cert ? cfg.ca_cert : blob_ca_cert;
+    cfg.ca_cert = ca_cert;
 
     {
         int opt;
@@ -231,18 +231,18 @@ int main(int argc, char **argv)
     pid_t p_clip = fork();
     if (p_clip == 0)
     {
-        return clip_share(app_port, 0, NULL, NULL, NULL);
+        return clip_share(app_port, 0, cfg);
     }
     pid_t p_clip_ssl = fork();
     if (p_clip_ssl == 0)
     {
-        return clip_share(app_port_secure, 1, priv_key, server_cert, ca_cert);
+        return clip_share(app_port_secure, 1, cfg);
     }
 #ifndef NO_WEB
     pid_t p_web = fork();
     if (p_web == 0)
     {
-        return web_server(web_port, priv_key, server_cert, ca_cert);
+        return web_server(web_port, cfg);
     }
 #endif
     puts("Server Started");

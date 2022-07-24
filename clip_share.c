@@ -20,6 +20,7 @@
 #include "utils/net_utils.h"
 #include "proto/server.h"
 #include "servers.h"
+#include "config.h"
 
 #include <stdlib.h>
 #ifdef __linux__
@@ -41,7 +42,7 @@ static DWORD WINAPI serverThreadFn(void *arg)
 }
 #endif
 
-int clip_share(const int port, const int secure, const char *priv_key, const char *server_cert, const char *ca_cert)
+int clip_share(const int port, const int secure, config cfg)
 {
 #ifdef _WIN32
     WSADATA wsa;
@@ -51,7 +52,7 @@ int clip_share(const int port, const int secure, const char *priv_key, const cha
         return EXIT_FAILURE;
     }
 #endif
-    listener_t listener = open_listener_socket(secure, priv_key, server_cert, ca_cert);
+    listener_t listener = open_listener_socket(secure, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
     if (bind_port(listener, port) != EXIT_SUCCESS)
     {
         return EXIT_FAILURE;
@@ -66,7 +67,11 @@ int clip_share(const int port, const int secure, const char *priv_key, const cha
 #endif
     while (1)
     {
-        socket_t connect_sock = get_connection(listener);
+        socket_t connect_sock = get_connection(listener, cfg.allowed_clients);
+        if (connect_sock.type == NULL_SOCK){
+            close_socket(connect_sock);
+            continue;
+        }
 #ifdef __linux__
 #ifndef DEBUG_MODE
         pid_t p1 = fork();

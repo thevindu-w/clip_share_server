@@ -20,28 +20,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "conf_parse.h"
+#include "utils/list_utils.h"
+#include "config.h"
 
-static void parse_line(char *line, config *cfg)
+static void trim(char *string)
 {
-    char *eq = strchr(line, '=');
-    if (!eq)
-    {
-        return;
-    }
-    *eq = 0;
-    char key[256];
-    sscanf(line, "%255s", key);
-    char value[1024];
-    strcpy(value, eq + 1);
-
     char *ptr;
-    ptr = value;
+    ptr = string;
     while (0 < *ptr && *ptr <= ' ')
     {
         ptr++;
     }
-    char *p1 = value;
+    char *p1 = string;
     while (*ptr)
     {
         *p1 = *ptr;
@@ -55,6 +45,40 @@ static void parse_line(char *line, config *cfg)
         *p1 = 0;
         p1--;
     }
+}
+
+static list2 *get_client_list(const char *filename)
+{
+    FILE *f = fopen(filename, "r");
+    if (!f)
+        return NULL;
+    list2 *client_list = init_list(1);
+    char client[512];
+    while (fscanf(f, "%511[^\n]%*c", client) != EOF)
+    {
+        trim(client);
+        size_t len = strlen(client);
+        if (len < 1) continue;
+        if (client[0]=='#') continue;
+        append(client_list, strdup(client));
+    }
+    return client_list;
+}
+
+static void parse_line(char *line, config *cfg)
+{
+    char *eq = strchr(line, '=');
+    if (!eq)
+    {
+        return;
+    }
+    *eq = 0;
+    char key[256];
+    sscanf(line, "%255s", key);
+    char value[2048];
+    strcpy(value, eq + 1);
+
+    trim(value);
 
     if (!strcmp("app_port", key))
     {
@@ -83,17 +107,20 @@ static void parse_line(char *line, config *cfg)
     else if (!strcmp("server_key", key))
     {
         FILE *f = fopen(value, "r");
-        if (!f) return;
+        if (!f)
+            return;
         fseek(f, 0, SEEK_END);
         ssize_t len = ftell(f);
         rewind(f);
-        if (len<=0 || 65536<len){
+        if (len <= 0 || 65536 < len)
+        {
             fclose(f);
             return;
         }
         char *buf = (char *)malloc(len);
         ssize_t sz = (ssize_t)fread(buf, 1, len, f);
-        if (sz < len){
+        if (sz < len)
+        {
             free(buf);
             return;
         }
@@ -103,17 +130,20 @@ static void parse_line(char *line, config *cfg)
     else if (!strcmp("server_cert", key))
     {
         FILE *f = fopen(value, "r");
-        if (!f) return;
+        if (!f)
+            return;
         fseek(f, 0, SEEK_END);
         ssize_t len = ftell(f);
         rewind(f);
-        if (len<=0 || 65536<len){
+        if (len <= 0 || 65536 < len)
+        {
             fclose(f);
             return;
         }
         char *buf = (char *)malloc(len);
         ssize_t sz = (ssize_t)fread(buf, 1, len, f);
-        if (sz < len){
+        if (sz < len)
+        {
             free(buf);
             return;
         }
@@ -123,34 +153,43 @@ static void parse_line(char *line, config *cfg)
     else if (!strcmp("ca_cert", key))
     {
         FILE *f = fopen(value, "r");
-        if (!f) return;
+        if (!f)
+            return;
         fseek(f, 0, SEEK_END);
         ssize_t len = ftell(f);
         rewind(f);
-        if (len<=0 || 65536<len){
+        if (len <= 0 || 65536 < len)
+        {
             fclose(f);
             return;
         }
         char *buf = (char *)malloc(len);
         ssize_t sz = (ssize_t)fread(buf, 1, len, f);
-        if (sz < len){
+        if (sz < len)
+        {
             free(buf);
             return;
         }
         fclose(f);
         cfg->ca_cert = buf;
     }
+    else if (!strcmp("allowed_clients", key))
+    {
+        list2 *client_list = get_client_list(value);
+        if (client_list) cfg->allowed_clients = client_list;
+    }
 }
 
 config parse_conf(const char *conf_file)
 {
     config cfg;
-    cfg.app_port = -1;
-    cfg.app_port_secure = -1;
-    cfg.web_port = -1;
+    cfg.app_port = 0;
+    cfg.app_port_secure = 0;
+    cfg.web_port = 0;
     cfg.priv_key = NULL;
     cfg.server_cert = NULL;
     cfg.ca_cert = NULL;
+    cfg.allowed_clients = NULL;
 
     FILE *f = fopen(conf_file, "r");
     if (!f)
@@ -158,8 +197,8 @@ config parse_conf(const char *conf_file)
         return cfg;
     }
 
-    char line[1024];
-    while (fscanf(f, "%1023[^\n]%*c", line) != EOF)
+    char line[2048];
+    while (fscanf(f, "%2047[^\n]%*c", line) != EOF)
     {
         parse_line(line, &cfg);
     }

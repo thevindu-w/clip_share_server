@@ -25,8 +25,7 @@
 
 #include "utils/utils.h"
 #include "utils/net_utils.h"
-#include "xclip/xclip.h"
-#include "xscreenshot/screenshot.h"
+#include "config.h"
 
 #define FAIL -1
 
@@ -233,10 +232,10 @@ static void receiver_web(socket_t sock)
     }
 }
 
-int web_server(const int port, const char *priv_key, const char *server_cert, const char *ca_cert)
+int web_server(const int port, config cfg)
 {
     signal(SIGCHLD, SIG_IGN);
-    listener_t listener_d = open_listener_socket(1, priv_key, server_cert, ca_cert);
+    listener_t listener_d = open_listener_socket(1, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
     bind_port(listener_d, port);
     if (listen(listener_d.socket, 10) == -1)
     {
@@ -245,7 +244,11 @@ int web_server(const int port, const char *priv_key, const char *server_cert, co
     }
     while (1)
     {
-        socket_t connect_d = get_connection(listener_d);
+        socket_t connect_d = get_connection(listener_d, cfg.allowed_clients);
+        if (connect_d.type == NULL_SOCK){
+            close_socket(connect_d);
+            continue;
+        }
         pid_t p1 = fork();
         if (p1)
         {

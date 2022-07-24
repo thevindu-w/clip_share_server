@@ -32,7 +32,7 @@
 #define METHOD_GET_FILE 3
 #define METHOD_SEND_FILE 4
 #define METHOD_GET_IMAGE 5
-#define METHOD_INFO 253
+#define METHOD_INFO 125
 
 // status codes
 #define STATUS_OK 1
@@ -327,6 +327,8 @@ int version_1(socket_t socket)
     }
     case METHOD_INFO:
     {
+        if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
+            return EXIT_FAILURE;
         size_t len = strlen(INFO_NAME);
         if (send_size(socket, len) == EXIT_FAILURE)
         {
@@ -346,6 +348,9 @@ int version_1(socket_t socket)
     }
     default: // unknown method
     {
+#ifdef DEBUG_MODE
+        fprintf(stderr, "Unknown method\n");
+#endif
         write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
         return EXIT_FAILURE;
         break;

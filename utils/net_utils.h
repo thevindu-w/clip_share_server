@@ -26,6 +26,8 @@
 #include <winsock2.h>
 #endif
 
+#include "list_utils.h"
+
 #ifdef __linux__
 typedef int sock_t;
 #elif _WIN32
@@ -56,7 +58,7 @@ typedef struct _listener_socket_t
 
 extern listener_t open_listener_socket(const int, const char *, const char *, const char *);
 extern int bind_port(listener_t, int);
-extern socket_t get_connection(listener_t);
+extern socket_t get_connection(listener_t, list2 *);
 extern void close_socket(socket_t);
 
 extern int read_sock(socket_t, char *, size_t);

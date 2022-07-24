@@ -32,6 +32,7 @@
 
 #include "utils.h"
 #include "net_utils.h"
+#include "list_utils.h"
 
 #ifdef _WIN32
 typedef u_short in_port_t;
@@ -102,7 +103,7 @@ static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *
     return EXIT_SUCCESS;
 }
 
-static int getClientCerts(SSL *ssl)
+static int getClientCerts(SSL *ssl, list2 *allowed_clients)
 {
     X509 *cert;
     char *buf;
@@ -118,12 +119,16 @@ static int getClientCerts(SSL *ssl)
 #ifdef DEBUG_MODE
     printf("Client Common Name: %s\n", buf);
 #endif
-    if (!strcmp(buf, "clipshare"))
+    for (size_t i=0; i < allowed_clients->len; i++)
     {
-        verified = 1;
+        if (!strcmp(buf, allowed_clients->array[i]))
+        {
+            verified = 1;
 #ifdef DEBUG_MODE
-        puts("client verified");
+            puts("client verified");
 #endif
+            break;
+        }
     }
     free(buf);
     X509_free(cert);
@@ -191,7 +196,7 @@ int bind_port(listener_t listener, int port)
     return EXIT_SUCCESS;
 }
 
-socket_t get_connection(listener_t listener)
+socket_t get_connection(listener_t listener, list2 *allowed_clients)
 {
     socket_t sock;
     sock.type = NULL_SOCK;
@@ -261,7 +266,7 @@ socket_t get_connection(listener_t listener)
             // ERR_print_errors_fp(stdout);
             // goto END;
         }
-        if (getClientCerts(ssl) != EXIT_SUCCESS) /* get any certificates */
+        if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) /* get any certificates */
         {
             return sock;
         }
@@ -280,6 +285,7 @@ void close_socket(socket_t socket)
 {
     switch (socket.type)
     {
+    case NULL_SOCK:
     case PLAIN_SOCK:
     {
 #ifdef __linux__
