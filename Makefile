@@ -20,7 +20,7 @@ MAKEFLAGS += -j4
 INFO_NAME=clip_share
 
 PROGRAM_NAME=clip_share
-PROGRAM_NAME_WEB=$(PROGRAM_NAME)_web
+PROGRAM_NAME_WEB=clip_share_web
 
 ifeq ($(OS),Windows_NT) 
     detected_OS := Windows
