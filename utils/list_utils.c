@@ -52,7 +52,7 @@ void free_list(list2 *lst)
 void append(list2 *lst, void *elem){
     if (lst->len >= lst->capacity){
         lst->capacity *= 2;
-        lst->array = (void **)realloc(lst->array, lst->capacity);
+        lst->array = (void **)realloc(lst->array, sizeof(void *) * lst->capacity);
     }
     lst->array[lst->len] = elem;
     lst->len++;
