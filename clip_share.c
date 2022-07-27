@@ -35,23 +35,17 @@
 #ifdef _WIN32
 static DWORD WINAPI serverThreadFn(void *arg)
 {
-    sock_t socket = (sock_t)arg;
+    socket_t socket;
+    memcpy(&socket, arg, sizeof(socket_t));
+    free(arg);
     server(socket);
-    close(socket);
+    close_socket(&socket);
     return 0;
 }
 #endif
 
 int clip_share(const int port, const int secure, config cfg)
 {
-#ifdef _WIN32
-    WSADATA wsa;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-    {
-        error("failed WSAStartup");
-        return EXIT_FAILURE;
-    }
-#endif
     listener_t listener = open_listener_socket(secure, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
     if (bind_port(listener, port) != EXIT_SUCCESS)
     {
@@ -69,7 +63,7 @@ int clip_share(const int port, const int secure, config cfg)
     {
         socket_t connect_sock = get_connection(listener, cfg.allowed_clients);
         if (connect_sock.type == NULL_SOCK){
-            close_socket(connect_sock);
+            close_socket(&connect_sock);
             continue;
         }
 #ifdef __linux__
@@ -77,20 +71,22 @@ int clip_share(const int port, const int secure, config cfg)
         pid_t p1 = fork();
         if (p1)
         {
-            close_socket(connect_sock);
+            close_socket(&connect_sock);
         }
         else
         {
             close(listener.socket);
 #endif
             server(connect_sock);
-            close_socket(connect_sock);
+            close_socket(&connect_sock);
 #ifndef DEBUG_MODE
             break;
         }
 #endif
 #elif _WIN32
-        HANDLE serveThread = CreateThread(NULL, 0, serverThreadFn, (LPDWORD)connect_d, 0, NULL);
+        socket_t *connect_ptr = malloc(sizeof(socket_t));
+        memcpy(connect_ptr, &connect_sock, sizeof(socket_t));
+        HANDLE serveThread = CreateThread(NULL, 0, serverThreadFn, (LPDWORD)connect_ptr, 0, NULL);
 #ifdef DEBUG_MODE
         if (serveThread == NULL)
         {

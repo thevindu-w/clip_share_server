@@ -195,7 +195,7 @@ int version_1(socket_t socket)
             free(data);
             return EXIT_FAILURE;
         }
-        close_socket(socket);
+        close_socket(&socket);
         data[length] = 0;
 #ifdef DEBUG_MODE
         if (length < 1024)

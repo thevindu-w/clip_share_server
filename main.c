@@ -31,6 +31,9 @@
 #include "servers.h"
 #include "utils/utils.h"
 #include "utils/net_utils.h"
+#ifdef _WIN32
+#include "win_getopt/getopt.h"
+#endif
 
 // tcp and udp
 #define APP_PORT 4337
@@ -41,24 +44,25 @@
 // tcp
 #define WEB_PORT_NO_ROOT 4339
 
-#ifdef __linux__
-
 extern char blob_cert[];
 extern char blob_key[];
 extern char blob_ca_cert[];
 
-static int kill_other_processes(const char *);
 static void print_usage(const char *);
+#ifdef __linux__
+static int kill_other_processes(const char *);
+#endif
 
 static void print_usage(const char *prog_name)
 {
 #ifdef NO_WEB
-    fprintf(stderr, "Usage: %s [-h] [-s] [-p app_port]\n", prog_name);
+    fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-p app_port]\n", prog_name);
 #else
-    fprintf(stderr, "Usage: %s [-h] [-s] [-p app_port] [-w web_port]\n", prog_name);
+    fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-p app_port] [-w web_port]\n", prog_name);
 #endif
 }
 
+#ifdef __linux__
 static int kill_other_processes(const char *prog_name)
 {
     DIR *dir;
@@ -257,36 +261,178 @@ int main(int argc, char **argv)
 
 #elif _WIN32
 
+static void kill_other_processes(const char *prog_name){
+    char cmd[2048];
+    sprintf(cmd, "taskkill /IM \"%s\" /F", prog_name);
+    system(cmd);
+}
+
 static DWORD WINAPI udpThreadFn(void *arg)
 {
-    (void)arg;
-    WSADATA wsa;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-    {
-        error("failed WSAStartup for UDP");
-        return EXIT_FAILURE;
-    }
-    udp_server(APP_PORT);
+    config cfg;
+    memcpy(&cfg, arg, sizeof(config));
+    free(arg);
+    udp_server(cfg.app_port);
     return EXIT_SUCCESS;
 }
 
-int main()
+static DWORD WINAPI appThreadFn(void *arg)
 {
-    HANDLE udpThread = CreateThread(NULL, 0, udpThreadFn, NULL, 0, NULL);
-    if (udpThread == NULL)
-    {
-#ifdef DEBUG_MODE
-        error("UDP thread creation failed");
+    config cfg;
+    memcpy(&cfg, arg, sizeof(config));
+    free(arg);
+    clip_share(cfg.app_port, 0, cfg);
+    return EXIT_SUCCESS;
+}
+
+#ifndef NO_WEB
+static DWORD WINAPI webThreadFn(void *arg)
+{
+    config cfg;
+    memcpy(&cfg, arg, sizeof(config));
+    free(arg);
+    web_server(cfg.web_port, cfg);
+    return EXIT_SUCCESS;
+}
 #endif
+
+int main(int argc, char **argv)
+{
+    (void)argc;
+    char *prog_name = strrchr(argv[0], '\\');
+    if (!prog_name)
+    {
+        prog_name = argv[0];
     }
+    else
+    {
+        prog_name++; // don't want the '/' before the program name
+    }
+
+    config cfg = parse_conf("clipshare.conf");
+    int stop = 0;
+    int restart = 0;
+    int app_port = cfg.app_port > 0 ? cfg.app_port : APP_PORT;
+    int app_port_secure = cfg.app_port_secure > 0 ? cfg.app_port_secure : APP_PORT_SECURE;
+#ifndef NO_WEB
+    int web_port = WEB_PORT_NO_ROOT;
+    if (cfg.web_port > 0)
+    {
+        web_port = cfg.web_port;
+    }
+#endif
+
+    {
+        int opt;
+        while ((opt = getopt(argc, argv, "hsrp:w:")) != -1)
+        {
+            switch (opt)
+            {
+            case 'h': // help
+            {
+                print_usage(prog_name);
+                exit(EXIT_SUCCESS);
+                break;
+            }
+            case 's': // stop
+            {
+                stop = 1;
+                break;
+            }
+            case 'r': // restart
+            {
+                restart = 1;
+                break;
+            }
+            case 'p': // app port
+            {
+                char *endptr;
+                app_port = strtol(optarg, &endptr, 10);
+                if (*endptr != '\0' || endptr == optarg)
+                {
+                    fprintf(stderr, "Invalid app port %s\n", optarg);
+                    print_usage(prog_name);
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            }
+#ifndef NO_WEB
+            case 'w': // web port
+            {
+                char *endptr;
+                web_port = strtol(optarg, &endptr, 10);
+                if (*endptr != '\0' || endptr == optarg)
+                {
+                    fprintf(stderr, "Invalid web port %s\n", optarg);
+                    print_usage(prog_name);
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            }
+#endif
+            default:
+                print_usage(prog_name);
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+    /* stop other instances of this process if any.
+    Stop this process if stop flag is set */
+    if (stop || restart)
+    {
+        kill_other_processes(prog_name);
+        const char *msg = stop ? "Server Stopped" : "Server Restarting...";
+        puts(msg);
+        if (stop)
+            exit(EXIT_SUCCESS);
+    }
+
+    cfg.app_port = app_port;
+    cfg.app_port_secure = app_port_secure;
+#ifndef NO_WEB
+    cfg.web_port = web_port;
+#endif
+
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
     {
         error("failed WSAStartup");
         return EXIT_FAILURE;
     }
+    config *cfg_insec_ptr = malloc(sizeof(config));
+    memcpy(cfg_insec_ptr, &cfg, sizeof(config));
+    HANDLE insecThread = CreateThread(NULL, 0, appThreadFn, (void *)cfg_insec_ptr, 0, NULL);
+    if (insecThread == NULL)
+    {
+#ifdef DEBUG_MODE
+        error("App thread creation failed");
+#endif
+    }
 
-    clip_share(APP_PORT);
+#ifndef NO_WEB
+    config *cfg_web_ptr = malloc(sizeof(config));
+    memcpy(cfg_web_ptr, &cfg, sizeof(config));
+    HANDLE webThread = CreateThread(NULL, 0, webThreadFn, (void *)cfg_web_ptr, 0, NULL);
+    if (webThread == NULL)
+    {
+#ifdef DEBUG_MODE
+        error("Web thread creation failed");
+#endif
+    }
+#endif
+
+    config *cfg_udp_ptr = malloc(sizeof(config));
+    memcpy(cfg_udp_ptr, &cfg, sizeof(config));
+    HANDLE udpThread = CreateThread(NULL, 0, udpThreadFn, (void *)cfg_udp_ptr, 0, NULL);
+    if (udpThread == NULL)
+    {
+#ifdef DEBUG_MODE
+        error("UDP thread creation failed");
+#endif
+    }
+
+    clip_share(app_port_secure, 1, cfg);
 
     return EXIT_SUCCESS;
 }

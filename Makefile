@@ -34,16 +34,17 @@ SRC_FILES=main.c clip_share.c udp_serve.c proto/server.c proto/v1.c utils/utils.
 WEB_SRC=clip_share_web.c page_blob.S
 CFLAGS=-pipe -Wall -Wextra -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=1 -DPROTO_V1
 CFLAGS_DEBUG=-g -c -DDEBUG_MODE
+LDLIBS=-lssl -lcrypto
 
 ifeq ($(detected_OS),Linux)
 	OBJS+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 	SRC_FILES+= xclip/xclip.c xclip/xclib.c xscreenshot/xscreenshot.c
-	LDLIBS=-lssl -lcrypto -lX11 -lXmu -lpng
+	LDLIBS+= -lX11 -lXmu -lpng
 endif
 ifeq ($(detected_OS),Windows)
-	OBJS+= utils/win_screenshot.o
-	SRC_FILES+= utils/win_screenshot.c
-	LDLIBS=-lws2_32 -lgdi32 -lpng16 -lz
+	OBJS+= utils/win_screenshot.o win_getopt/getopt.o
+	SRC_FILES+= utils/win_screenshot.c win_getopt/getopt.c
+	LDLIBS+= -lws2_32 -lgdi32 -lpng16 -lz
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
 endif
@@ -92,6 +93,18 @@ utils/list_utils.o: utils/list_utils.c
 conf_parse.o: conf_parse.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
+cert_blob.o: cert_blob.S
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
+
+key_blob.o: key_blob.S
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
+
+ca_cert_blob.o: ca_cert_blob.S
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
+
+page_blob.o: page_blob.S
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
+
 ifeq ($(detected_OS),Linux)
 
 xclip/xclip.o: xclip/xclip.c
@@ -103,22 +116,13 @@ xclip/xclib.o: xclip/xclib.c
 xscreenshot/xscreenshot.o: xscreenshot/xscreenshot.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
-page_blob.o: page_blob.S
-	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
-
-cert_blob.o: cert_blob.S
-	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
-
-key_blob.o: key_blob.S
-	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
-
-ca_cert_blob.o: ca_cert_blob.S
-	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
-
 endif
 ifeq ($(detected_OS),Windows)
 
 utils/win_screenshot.o: utils/win_screenshot.c
+	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
+
+win_getopt/getopt.o: win_getopt/getopt.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
 winres/app.res: winres/app.rc
@@ -135,6 +139,12 @@ ifeq ($(detected_OS),Linux)
 
 web: $(SRC_FILES) $(WEB_SRC)
 	gcc -Os $(CFLAGS) -fno-pie $^ -no-pie $(LDLIBS) -o $(PROGRAM_NAME_WEB)
+
+endif
+ifeq ($(detected_OS),Windows)
+
+web: $(SRC_FILES) $(WEB_SRC) winres/app.res
+	gcc -O3 $(CFLAGS) -fno-pie $^ -no-pie -mwindows $(LDLIBS) -o $(PROGRAM_NAME_WEB)
 
 endif
 

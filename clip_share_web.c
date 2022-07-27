@@ -16,16 +16,21 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "utils/net_utils.h"
+#include "utils/utils.h"
+#include "config.h"
+
 #ifndef NO_WEB
 #include <stdio.h>
 #include <string.h>
+#ifdef __linux__
 #include <unistd.h>
 #include <sys/wait.h>
 #include <arpa/inet.h>
-
-#include "utils/utils.h"
-#include "utils/net_utils.h"
-#include "config.h"
+#elif _WIN32
+#include <io.h>
+#include <windows.h>
+#endif
 
 #define FAIL -1
 
@@ -102,7 +107,7 @@ static void receiver_web(socket_t sock)
             if (say("Content-Type: text/plain; charset=utf-8\r\n", sock) != EXIT_SUCCESS)
                 return;
             char tmp[64];
-            sprintf(tmp, "Content-Length: %lu\r\nConnection: close\r\n\r\n", len);
+            sprintf(tmp, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len);
             if (say(tmp, sock) != EXIT_SUCCESS)
                 return;
             if (write_sock(sock, buf, len) != EXIT_SUCCESS)
@@ -232,35 +237,68 @@ static void receiver_web(socket_t sock)
     }
 }
 
+#ifdef _WIN32
+static DWORD WINAPI webServerThreadFn(void *arg)
+{
+    socket_t socket;
+    memcpy(&socket, arg, sizeof(socket_t));
+    free(arg);
+    receiver_web(socket);
+    close_socket(&socket);
+    return 0;
+}
+#endif
+
 int web_server(const int port, config cfg)
 {
+#ifdef __linux__
     signal(SIGCHLD, SIG_IGN);
-    listener_t listener_d = open_listener_socket(1, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
-    bind_port(listener_d, port);
-    if (listen(listener_d.socket, 10) == -1)
+#endif
+    listener_t listener = open_listener_socket(1, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
+    bind_port(listener, port);
+    if (listen(listener.socket, 10) == -1)
     {
         error("Can\'t listen");
         return 1;
     }
     while (1)
     {
-        socket_t connect_d = get_connection(listener_d, cfg.allowed_clients);
-        if (connect_d.type == NULL_SOCK){
-            close_socket(connect_d);
+        socket_t connect_sock = get_connection(listener, cfg.allowed_clients);
+        if (connect_sock.type == NULL_SOCK){
+            close_socket(&connect_sock);
             continue;
         }
+#ifdef __linux__
+#ifndef DEBUG_MODE
         pid_t p1 = fork();
         if (p1)
         {
-            close_socket(connect_d);
+            close_socket(&connect_sock);
         }
         else
         {
-            close(listener_d.socket);
-            receiver_web(connect_d);
-            close_socket(connect_d);
+            close(listener.socket);
+#endif
+            receiver_web(connect_sock);
+            close_socket(&connect_sock);
+#ifndef DEBUG_MODE
             break;
         }
+#endif
+#elif _WIN32
+        socket_t *connect_ptr = malloc(sizeof(socket_t));
+        memcpy(connect_ptr, &connect_sock, sizeof(socket_t));
+        HANDLE serveThread = CreateThread(NULL, 0, webServerThreadFn, (LPDWORD)connect_ptr, 0, NULL);
+#ifdef DEBUG_MODE
+        if (serveThread == NULL)
+        {
+            error("Thread creation failed");
+            return EXIT_FAILURE;
+        }
+#else
+        (void)serveThread;
+#endif
+#endif
     }
     return 0;
 }

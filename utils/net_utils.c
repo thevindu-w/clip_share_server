@@ -119,7 +119,7 @@ static int getClientCerts(SSL *ssl, list2 *allowed_clients)
 #ifdef DEBUG_MODE
     printf("Client Common Name: %s\n", buf);
 #endif
-    for (size_t i=0; i < allowed_clients->len; i++)
+    for (size_t i = 0; i < allowed_clients->len; i++)
     {
         if (!strcmp(buf, allowed_clients->array[i]))
         {
@@ -281,32 +281,36 @@ socket_t get_connection(listener_t listener, list2 *allowed_clients)
     return sock;
 }
 
-void close_socket(socket_t socket)
+void close_socket(socket_t *socket)
 {
-    switch (socket.type)
+    switch (socket->type)
     {
-    case NULL_SOCK:
     case PLAIN_SOCK:
     {
 #ifdef __linux__
-        close(socket.plain);
+        close(socket->plain);
 #elif _WIN32
-        closesocket(socket);
+        closesocket(socket->plain);
 #endif
         break;
     }
 
     case SSL_SOCK:
     {
-        sock_t sd = SSL_get_fd(socket.ssl); /* get socket connection */
-        SSL_free(socket.ssl);               /* release SSL state */
+        sock_t sd = SSL_get_fd(socket->ssl); /* get socket connection */
+        SSL_free(socket->ssl);            /* release SSL state */
+#ifdef __linux__
         close(sd);
+#elif _WIN32
+        closesocket(sd);
+#endif
         break;
     }
 
     default:
         break;
     }
+    socket->type = NULL_SOCK;
 }
 
 int read_sock(socket_t socket, char *buf, size_t size)

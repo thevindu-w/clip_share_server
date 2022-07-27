@@ -294,7 +294,6 @@ list2 *get_copied_files()
     if (!lst)
         return NULL;
 
-    char **arr = (char **)lst->array;
     char fileName[MAX_PATH + 1];
     for (size_t i = 0; i < file_cnt; i++)
     {
