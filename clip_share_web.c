@@ -37,15 +37,15 @@
 extern char blob_page[];
 extern int blob_size_page;
 
-static int say(char *, socket_t);
-static void receiver_web(socket_t);
+static int say(char *, socket_t *);
+static void receiver_web(socket_t *);
 
-static int say(char *msg, socket_t sock)
+static int say(char *msg, socket_t *sock)
 {
     return write_sock(sock, msg, strlen(msg));
 }
 
-static void receiver_web(socket_t sock)
+static void receiver_web(socket_t *sock)
 {
     char method[8];
     {
@@ -243,7 +243,7 @@ static DWORD WINAPI webServerThreadFn(void *arg)
     socket_t socket;
     memcpy(&socket, arg, sizeof(socket_t));
     free(arg);
-    receiver_web(socket);
+    receiver_web(&socket);
     close_socket(&socket);
     return 0;
 }
@@ -279,7 +279,7 @@ int web_server(const int port, config cfg)
         {
             close(listener.socket);
 #endif
-            receiver_web(connect_sock);
+            receiver_web(&connect_sock);
             close_socket(&connect_sock);
 #ifndef DEBUG_MODE
             break;

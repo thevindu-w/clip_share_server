@@ -313,7 +313,7 @@ void close_socket(socket_t *socket)
     socket->type = NULL_SOCK;
 }
 
-int read_sock(socket_t socket, char *buf, size_t size)
+int read_sock(socket_t *socket, char *buf, size_t size)
 {
     int cnt = 0;
     size_t read = 0;
@@ -321,17 +321,17 @@ int read_sock(socket_t socket, char *buf, size_t size)
     while (read < size)
     {
         ssize_t r;
-        switch (socket.type)
+        switch (socket->type)
         {
         case PLAIN_SOCK:
         {
-            r = recv(socket.plain, ptr, size - read, 0);
+            r = recv(socket->plain, ptr, size - read, 0);
             break;
         }
 
         case SSL_SOCK:
         {
-            r = SSL_read(socket.ssl, ptr, size - read);
+            r = SSL_read(socket->ssl, ptr, size - read);
             break;
         }
 
@@ -359,19 +359,19 @@ int read_sock(socket_t socket, char *buf, size_t size)
     return EXIT_SUCCESS;
 }
 
-int read_sock_no_wait(socket_t socket, char *buf, size_t size)
+int read_sock_no_wait(socket_t *socket, char *buf, size_t size)
 {
-    switch (socket.type)
+    switch (socket->type)
     {
     case PLAIN_SOCK:
     {
-        return (int)recv(socket.plain, buf, size, 0);
+        return (int)recv(socket->plain, buf, size, 0);
         break;
     }
 
     case SSL_SOCK:
     {
-        return (int)SSL_read(socket.ssl, buf, size);
+        return (int)SSL_read(socket->ssl, buf, size);
         break;
     }
 
@@ -382,7 +382,7 @@ int read_sock_no_wait(socket_t socket, char *buf, size_t size)
     return 0;
 }
 
-int write_sock(socket_t socket, void *buf, size_t size)
+int write_sock(socket_t *socket, void *buf, size_t size)
 {
     int cnt = 0;
     size_t written = 0;
@@ -390,17 +390,17 @@ int write_sock(socket_t socket, void *buf, size_t size)
     while (written < size)
     {
         ssize_t r;
-        switch (socket.type)
+        switch (socket->type)
         {
         case PLAIN_SOCK:
         {
-            r = send(socket.plain, ptr, size, 0);
+            r = send(socket->plain, ptr, size, 0);
             break;
         }
 
         case SSL_SOCK:
         {
-            r = SSL_write(socket.ssl, ptr, size);
+            r = SSL_write(socket->ssl, ptr, size);
             break;
         }
 
@@ -440,7 +440,7 @@ int write_sock(socket_t socket, void *buf, size_t size)
  * encodes into big-endian byte order
  * returns -1 if an error occured
  */
-int send_size(socket_t socket, ssize_t size)
+int send_size(socket_t *socket, ssize_t size)
 {
     unsigned char sz_buf[8];
     {
@@ -459,7 +459,7 @@ int send_size(socket_t socket, ssize_t size)
  * decodes it from big-endian byte order
  * returns -1 if an error occured
  */
-ssize_t read_size(socket_t socket)
+ssize_t read_size(socket_t *socket)
 {
     unsigned char sz_buf[8];
     if (read_sock(socket, (char *)sz_buf, sizeof(sz_buf)) == EXIT_FAILURE)

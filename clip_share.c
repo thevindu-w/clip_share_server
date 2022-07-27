@@ -38,7 +38,7 @@ static DWORD WINAPI serverThreadFn(void *arg)
     socket_t socket;
     memcpy(&socket, arg, sizeof(socket_t));
     free(arg);
-    server(socket);
+    server(&socket);
     close_socket(&socket);
     return 0;
 }
@@ -77,7 +77,7 @@ int clip_share(const int port, const int secure, config cfg)
         {
             close(listener.socket);
 #endif
-            server(connect_sock);
+            server(&connect_sock);
             close_socket(&connect_sock);
 #ifndef DEBUG_MODE
             break;

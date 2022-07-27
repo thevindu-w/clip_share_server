@@ -20,7 +20,7 @@ MAKEFLAGS += -j4
 INFO_NAME=clip_share
 
 PROGRAM_NAME=clip_share
-PROGRAM_NAME_WEB=clip_share_web
+PROGRAM_NAME_WEB=$(PROGRAM_NAME)_web
 
 ifeq ($(OS),Windows_NT) 
     detected_OS := Windows
@@ -47,6 +47,7 @@ ifeq ($(detected_OS),Windows)
 	LDLIBS+= -lws2_32 -lgdi32 -lpng16 -lz
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
+	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB).exe
 endif
 
 ifeq ($(detected_OS),Linux)

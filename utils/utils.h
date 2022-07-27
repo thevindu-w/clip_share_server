@@ -23,6 +23,12 @@
 #include <stdlib.h>
 #include "list_utils.h"
 
+#ifdef __linux__
+#define PATH_SEP '/'
+#elif _WIN32
+#define PATH_SEP '\\'
+#endif
+
 extern void error(const char *);
 
 extern int get_clipboard_text(char **, size_t *);

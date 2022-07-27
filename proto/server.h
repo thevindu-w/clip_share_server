@@ -21,6 +21,6 @@
 
 #include "../utils/net_utils.h"
 
-extern void server(socket_t);
+extern void server(socket_t *);
 
 #endif

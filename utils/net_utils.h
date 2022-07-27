@@ -60,11 +60,10 @@ extern listener_t open_listener_socket(const int, const char *, const char *, co
 extern int bind_port(listener_t, int);
 extern socket_t get_connection(listener_t, list2 *);
 extern void close_socket(socket_t *);
-
-extern int read_sock(socket_t, char *, size_t);
-extern int read_sock_no_wait(socket_t, char *, size_t);
-extern int write_sock(socket_t, void *, size_t);
-extern int send_size(socket_t, ssize_t);
-extern ssize_t read_size(socket_t);
+extern int read_sock(socket_t *, char *, size_t);
+extern int read_sock_no_wait(socket_t *, char *, size_t);
+extern int write_sock(socket_t *, void *, size_t);
+extern int send_size(socket_t *, ssize_t);
+extern ssize_t read_size(socket_t *);
 
 #endif

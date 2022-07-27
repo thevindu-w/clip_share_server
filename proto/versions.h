@@ -21,7 +21,7 @@
 #include "../utils/net_utils.h"
 
 #ifdef PROTO_V1
-extern int version_1(socket_t);
+extern int version_1(socket_t *);
 #endif
 
 #endif

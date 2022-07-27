@@ -49,9 +49,7 @@ extern char blob_key[];
 extern char blob_ca_cert[];
 
 static void print_usage(const char *);
-#ifdef __linux__
-static int kill_other_processes(const char *);
-#endif
+static void kill_other_processes(const char *);
 
 static void print_usage(const char *prog_name)
 {
@@ -63,7 +61,8 @@ static void print_usage(const char *prog_name)
 }
 
 #ifdef __linux__
-static int kill_other_processes(const char *prog_name)
+
+static void kill_other_processes(const char *prog_name)
 {
     DIR *dir;
     struct dirent *dir_ptr;
@@ -80,7 +79,7 @@ static int kill_other_processes(const char *prog_name)
 #ifdef DEBUG_MODE
         fprintf(stderr, "Error opening /proc. dir = NULL\n");
 #endif
-        return -1;
+        return;
     }
     while ((dir_ptr = readdir(dir)) != NULL)
     {
@@ -126,137 +125,7 @@ static int kill_other_processes(const char *prog_name)
     LOOP_END:;
     }
     closedir(dir);
-    return cnt;
-}
-
-int main(int argc, char **argv)
-{
-    // Get basename of the program
-    char *prog_name = strrchr(argv[0], '/');
-    if (!prog_name)
-    {
-        prog_name = argv[0];
-    }
-    else
-    {
-        prog_name++; // don't want the '/' before the program name
-    }
-
-    config cfg = parse_conf("clipshare.conf");
-
-    // Parse args
-    int stop = 0;
-    int restart = 0;
-    int app_port = cfg.app_port > 0 ? cfg.app_port : APP_PORT;
-    int app_port_secure = cfg.app_port_secure > 0 ? cfg.app_port_secure : APP_PORT_SECURE;
-#ifndef NO_WEB
-    int web_port = geteuid() ? WEB_PORT_NO_ROOT : WEB_PORT;
-    if (cfg.web_port > 0)
-    {
-        web_port = cfg.web_port;
-    }
-#endif
-
-    char *priv_key = cfg.priv_key ? cfg.priv_key : blob_key;
-    cfg.priv_key = priv_key;
-    char *server_cert = cfg.server_cert ? cfg.server_cert : blob_cert;
-    cfg.server_cert = server_cert;
-    char *ca_cert = cfg.ca_cert ? cfg.ca_cert : blob_ca_cert;
-    cfg.ca_cert = ca_cert;
-
-    {
-        int opt;
-        while ((opt = getopt(argc, argv, "hsrp:w:")) != -1)
-        {
-            switch (opt)
-            {
-            case 'h': // help
-            {
-                print_usage(prog_name);
-                exit(EXIT_SUCCESS);
-                break;
-            }
-            case 's': // stop
-            {
-                stop = 1;
-                break;
-            }
-            case 'r': // restart
-            {
-                restart = 1;
-                break;
-            }
-            case 'p': // app port
-            {
-                char *endptr;
-                app_port = strtol(optarg, &endptr, 10);
-                if (*endptr != '\0' || endptr == optarg)
-                {
-                    fprintf(stderr, "Invalid app port %s\n", optarg);
-                    print_usage(prog_name);
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            }
-#ifndef NO_WEB
-            case 'w': // web port
-            {
-                char *endptr;
-                web_port = strtol(optarg, &endptr, 10);
-                if (*endptr != '\0' || endptr == optarg)
-                {
-                    fprintf(stderr, "Invalid web port %s\n", optarg);
-                    print_usage(prog_name);
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            }
-#endif
-            default:
-                print_usage(prog_name);
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
-    /* stop other instances of this process if any.
-    Stop this process if stop flag is set */
-    if (stop || restart)
-    {
-        int cnt = kill_other_processes(prog_name);
-        if (cnt > 0)
-        {
-            const char *msg = stop ? "Server Stopped" : "Server Restarting...";
-            puts(msg);
-        }
-        if (stop)
-            exit(EXIT_SUCCESS);
-    }
-
-    pid_t p_clip = fork();
-    if (p_clip == 0)
-    {
-        return clip_share(app_port, 0, cfg);
-    }
-    pid_t p_clip_ssl = fork();
-    if (p_clip_ssl == 0)
-    {
-        return clip_share(app_port_secure, 1, cfg);
-    }
-#ifndef NO_WEB
-    pid_t p_web = fork();
-    if (p_web == 0)
-    {
-        return web_server(web_port, cfg);
-    }
-#endif
-    puts("Server Started");
-    pid_t p_scan = fork();
-    if (p_scan == 0)
-    {
-        udp_server(app_port);
-        return 0;
-    }
-    exit(EXIT_SUCCESS);
+    return;
 }
 
 #elif _WIN32
@@ -296,10 +165,12 @@ static DWORD WINAPI webThreadFn(void *arg)
 }
 #endif
 
+#endif
+
 int main(int argc, char **argv)
 {
-    (void)argc;
-    char *prog_name = strrchr(argv[0], '\\');
+    // Get basename of the program
+    char *prog_name = strrchr(argv[0], PATH_SEP);
     if (!prog_name)
     {
         prog_name = argv[0];
@@ -310,12 +181,19 @@ int main(int argc, char **argv)
     }
 
     config cfg = parse_conf("clipshare.conf");
+
+    // Parse args
     int stop = 0;
     int restart = 0;
     int app_port = cfg.app_port > 0 ? cfg.app_port : APP_PORT;
     int app_port_secure = cfg.app_port_secure > 0 ? cfg.app_port_secure : APP_PORT_SECURE;
 #ifndef NO_WEB
-    int web_port = WEB_PORT_NO_ROOT;
+    int web_port;
+#ifdef __linux__
+    web_port = geteuid() ? WEB_PORT_NO_ROOT : WEB_PORT;
+#elif _WIN32
+    web_port = WEB_PORT_NO_ROOT;
+#endif
     if (cfg.web_port > 0)
     {
         web_port = cfg.web_port;
@@ -393,6 +271,41 @@ int main(int argc, char **argv)
 #ifndef NO_WEB
     cfg.web_port = web_port;
 #endif
+    char *priv_key = cfg.priv_key ? cfg.priv_key : blob_key;
+    cfg.priv_key = priv_key;
+    char *server_cert = cfg.server_cert ? cfg.server_cert : blob_cert;
+    cfg.server_cert = server_cert;
+    char *ca_cert = cfg.ca_cert ? cfg.ca_cert : blob_ca_cert;
+    cfg.ca_cert = ca_cert;
+
+#ifdef __linux__
+
+pid_t p_clip = fork();
+    if (p_clip == 0)
+    {
+        return clip_share(app_port, 0, cfg);
+    }
+    pid_t p_clip_ssl = fork();
+    if (p_clip_ssl == 0)
+    {
+        return clip_share(app_port_secure, 1, cfg);
+    }
+#ifndef NO_WEB
+    pid_t p_web = fork();
+    if (p_web == 0)
+    {
+        return web_server(web_port, cfg);
+    }
+#endif
+    puts("Server Started");
+    pid_t p_scan = fork();
+    if (p_scan == 0)
+    {
+        udp_server(app_port);
+        return 0;
+    }
+
+#elif _WIN32
 
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -434,7 +347,6 @@ int main(int argc, char **argv)
 
     clip_share(app_port_secure, 1, cfg);
 
+#endif
     return EXIT_SUCCESS;
 }
-
-#endif
