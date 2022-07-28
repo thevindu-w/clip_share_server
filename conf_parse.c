@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "utils/utils.h"
 #include "utils/list_utils.h"
 #include "config.h"
 
@@ -58,11 +59,40 @@ static list2 *get_client_list(const char *filename)
     {
         trim(client);
         size_t len = strlen(client);
-        if (len < 1) continue;
-        if (client[0]=='#') continue;
+        if (len < 1)
+            continue;
+        if (client[0] == '#')
+            continue;
+#ifdef DEBUG_MODE
+        printf("Client : %s\n", client);
+#endif
         append(client_list, strdup(client));
     }
     return client_list;
+}
+
+static char *load_file(FILE *f)
+{
+    ssize_t len = get_file_size(f);
+    if (len <= 0 || 65536 < len)
+    {
+        fclose(f);
+        return NULL;
+    }
+    char *buf = (char *)malloc(len);
+    if (!buf)
+    {
+        fclose(f);
+        return NULL;
+    }
+    ssize_t sz = (ssize_t)fread(buf, 1, len, f);
+    if (sz < len)
+    {
+        free(buf);
+        return NULL;
+    }
+    fclose(f);
+    return buf;
 }
 
 static void parse_line(char *line, config *cfg)
@@ -79,6 +109,10 @@ static void parse_line(char *line, config *cfg)
     strcpy(value, eq + 1);
 
     trim(value);
+
+#ifdef DEBUG_MODE
+        printf("Key=%s : Value=%s\n", key, value);
+#endif
 
     if (!strcmp("app_port", key))
     {
@@ -109,22 +143,7 @@ static void parse_line(char *line, config *cfg)
         FILE *f = fopen(value, "r");
         if (!f)
             return;
-        fseek(f, 0, SEEK_END);
-        ssize_t len = ftell(f);
-        rewind(f);
-        if (len <= 0 || 65536 < len)
-        {
-            fclose(f);
-            return;
-        }
-        char *buf = (char *)malloc(len);
-        ssize_t sz = (ssize_t)fread(buf, 1, len, f);
-        if (sz < len)
-        {
-            free(buf);
-            return;
-        }
-        fclose(f);
+        char *buf = load_file(f);
         cfg->priv_key = buf;
     }
     else if (!strcmp("server_cert", key))
@@ -132,22 +151,7 @@ static void parse_line(char *line, config *cfg)
         FILE *f = fopen(value, "r");
         if (!f)
             return;
-        fseek(f, 0, SEEK_END);
-        ssize_t len = ftell(f);
-        rewind(f);
-        if (len <= 0 || 65536 < len)
-        {
-            fclose(f);
-            return;
-        }
-        char *buf = (char *)malloc(len);
-        ssize_t sz = (ssize_t)fread(buf, 1, len, f);
-        if (sz < len)
-        {
-            free(buf);
-            return;
-        }
-        fclose(f);
+        char *buf = load_file(f);
         cfg->server_cert = buf;
     }
     else if (!strcmp("ca_cert", key))
@@ -155,28 +159,14 @@ static void parse_line(char *line, config *cfg)
         FILE *f = fopen(value, "r");
         if (!f)
             return;
-        fseek(f, 0, SEEK_END);
-        ssize_t len = ftell(f);
-        rewind(f);
-        if (len <= 0 || 65536 < len)
-        {
-            fclose(f);
-            return;
-        }
-        char *buf = (char *)malloc(len);
-        ssize_t sz = (ssize_t)fread(buf, 1, len, f);
-        if (sz < len)
-        {
-            free(buf);
-            return;
-        }
-        fclose(f);
+        char *buf = load_file(f);
         cfg->ca_cert = buf;
     }
     else if (!strcmp("allowed_clients", key))
     {
         list2 *client_list = get_client_list(value);
-        if (client_list) cfg->allowed_clients = client_list;
+        if (client_list)
+            cfg->allowed_clients = client_list;
     }
 }
 
@@ -194,6 +184,9 @@ config parse_conf(const char *conf_file)
     FILE *f = fopen(conf_file, "r");
     if (!f)
     {
+#ifdef DEBUG_MODE
+        printf("Error opening conf file\n");
+#endif
         return cfg;
     }
 

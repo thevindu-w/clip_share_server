@@ -179,6 +179,9 @@ int main(int argc, char **argv)
     {
         prog_name++; // don't want the '/' before the program name
     }
+#ifdef DEBUG_MODE
+        printf("prog_name=%s\n", prog_name);
+#endif
 
     config cfg = parse_conf("clipshare.conf");
 
