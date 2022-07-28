@@ -34,17 +34,16 @@ SRC_FILES=main.c clip_share.c udp_serve.c proto/server.c proto/v1.c utils/utils.
 WEB_SRC=clip_share_web.c page_blob.S
 CFLAGS=-pipe -Wall -Wextra -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=1 -DPROTO_V1
 CFLAGS_DEBUG=-g -c -DDEBUG_MODE
-LDLIBS=-lssl -lcrypto
 
 ifeq ($(detected_OS),Linux)
 	OBJS+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 	SRC_FILES+= xclip/xclip.c xclip/xclib.c xscreenshot/xscreenshot.c
-	LDLIBS+= -lX11 -lXmu -lpng
+	LDLIBS=-lssl -lcrypto -lX11 -lXmu -lpng
 endif
 ifeq ($(detected_OS),Windows)
 	OBJS+= utils/win_screenshot.o win_getopt/getopt.o
 	SRC_FILES+= utils/win_screenshot.c win_getopt/getopt.c
-	LDLIBS+= -lws2_32 -lgdi32 -lpng16 -lz
+	LDLIBS=-l:libssl.a -l:libcrypto.a -lws2_32 -lgdi32 -lpng16 -lz
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
 	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB).exe
