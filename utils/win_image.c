@@ -1,5 +1,5 @@
 /*
- *  utils/win_screenshot.c - get screenshot in windows
+ *  utils/win_image.c - get screenshot in windows
  *  Copyright (C) 2022 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <windows.h>
 
-#include "win_screenshot.h"
+#include "win_image.h"
 
 typedef struct _RGBPixel
 {
@@ -246,6 +246,30 @@ static int write_png_to_mem(RGBBitmap *bitmap, char **buf_ptr, size_t *len_ptr)
   *buf_ptr = fake_file.buffer;
   *len_ptr = fake_file.size;
   return 0;
+}
+
+void getCopiedImage(char **buf_ptr, size_t *len_ptr)
+{
+  if (!OpenClipboard(0))
+  {
+    *len_ptr = 0;
+    return;
+  }
+  if (!IsClipboardFormatAvailable(CF_BITMAP))
+  {
+    CloseClipboard();
+    *len_ptr = 0;
+    return;
+  }
+  HBITMAP hBitmap = GetClipboardData(CF_BITMAP);
+  if (!hBitmap)
+  {
+    CloseClipboard();
+    *len_ptr = 0;
+    return;
+  }
+  CloseClipboard();
+  write_image(hBitmap, buf_ptr, len_ptr);
 }
 
 #endif

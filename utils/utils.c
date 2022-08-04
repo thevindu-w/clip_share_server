@@ -24,7 +24,7 @@
 #include <sys/socket.h>
 #elif _WIN32
 #include <windows.h>
-#include "win_screenshot.h"
+#include "win_image.h"
 #endif
 #include <unistd.h>
 
@@ -235,7 +235,13 @@ list2 *get_copied_files()
 
 int get_clipboard_text(char **bufptr, size_t *lenptr)
 {
-    OpenClipboard(0);
+    if (!OpenClipboard(0))
+        return EXIT_FAILURE;
+    if (!IsClipboardFormatAvailable(CF_TEXT))
+    {
+        CloseClipboard();
+        return EXIT_FAILURE;
+    }
     HANDLE h = GetClipboardData(CF_TEXT);
     char *data = strdup((char *)h);
     CloseClipboard();
@@ -258,7 +264,8 @@ int put_clipboard_text(char *data, size_t len)
     HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len + 1);
     memcpy(GlobalLock(hMem), data, len + 1);
     GlobalUnlock(hMem);
-    OpenClipboard(0);
+    if (!OpenClipboard(0))
+        return EXIT_FAILURE;
     EmptyClipboard();
     HANDLE res = SetClipboardData(CF_TEXT, hMem);
     CloseClipboard();
@@ -267,13 +274,24 @@ int put_clipboard_text(char *data, size_t len)
 
 int get_image(char **buf_ptr, size_t *len_ptr)
 {
+    getCopiedImage(buf_ptr, len_ptr);
+    if (*len_ptr > 8)
+        return EXIT_SUCCESS;
     screenCapture(buf_ptr, len_ptr);
-    return EXIT_SUCCESS;
+    if (*len_ptr > 8)
+        return EXIT_SUCCESS;
+    return EXIT_FAILURE;
 }
 
 list2 *get_copied_files()
 {
-    OpenClipboard(0);
+    if (!OpenClipboard(0))
+        return NULL;
+    if (!IsClipboardFormatAvailable(CF_HDROP))
+    {
+        CloseClipboard();
+        return NULL;
+    }
     HGLOBAL hGlobal = (HGLOBAL)GetClipboardData(CF_HDROP);
     if (!hGlobal)
     {

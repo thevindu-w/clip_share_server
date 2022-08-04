@@ -41,8 +41,8 @@ ifeq ($(detected_OS),Linux)
 	LDLIBS=-lssl -lcrypto -lX11 -lXmu -lpng
 endif
 ifeq ($(detected_OS),Windows)
-	OBJS+= utils/win_screenshot.o
-	SRC_FILES+= utils/win_screenshot.c
+	OBJS+= utils/win_image.o
+	SRC_FILES+= utils/win_image.c
 	LDLIBS=-lws2_32 -lgdi32 -lpng16 -lz
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
@@ -112,7 +112,7 @@ key_blob.o: key_blob.S
 endif
 ifeq ($(detected_OS),Windows)
 
-utils/win_screenshot.o: utils/win_screenshot.c
+utils/win_image.o: utils/win_image.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $^ -o $@
 
 winres/app.res: winres/app.rc

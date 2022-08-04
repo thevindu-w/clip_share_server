@@ -1,5 +1,5 @@
 /*
- *  utils/win_screenshot.h - get screenshot in windows (header)
+ *  utils/win_image.h - get screenshot in windows (header)
  *  Copyright (C) 2022 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include <stdlib.h>
 
 extern void screenCapture(char **, size_t *);
+extern void getCopiedImage(char **, size_t *);
 
 #endif
 #endif
