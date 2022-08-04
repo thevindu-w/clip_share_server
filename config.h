@@ -1,5 +1,5 @@
 /*
- *  proto/server.h - header of server
+ *  config.h - header for conf_parse.c
  *  Copyright (C) 2022 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,11 +16,22 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _SERVER_
-#define _SERVER_
+#ifndef _CONF_PARSE_
+#define _CONF_PARSE_
 
-#include "../utils/net_utils.h"
+#include "utils/list_utils.h"
 
-extern void server(socket_t *);
+typedef struct _config
+{
+    unsigned short app_port;
+    unsigned short app_port_secure;
+    unsigned short web_port;
+    char *priv_key;
+    char *server_cert;
+    char *ca_cert;
+    list2 *allowed_clients;
+} config;
+
+extern config parse_conf(const char *);
 
 #endif

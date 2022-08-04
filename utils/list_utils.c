@@ -26,14 +26,15 @@ list2 *init_list(size_t len)
     list2 *lst = (list2 *)malloc(sizeof(list2));
     if (!lst)
         return NULL;
-    void *arr = (void *)calloc(len, sizeof(void *));
+    void *arr = (void *)malloc(len * sizeof(void *));
     if (!arr)
     {
         free(lst);
         return NULL;
     }
     lst->array = arr;
-    lst->len = len;
+    lst->len = 0;
+    lst->capacity = len;
     return lst;
 }
 
@@ -46,4 +47,13 @@ void free_list(list2 *lst)
     }
     free(lst->array);
     free(lst);
+}
+
+void append(list2 *lst, void *elem){
+    if (lst->len >= lst->capacity){
+        lst->capacity *= 2;
+        lst->array = (void **)realloc(lst->array, sizeof(void *) * lst->capacity);
+    }
+    lst->array[lst->len] = elem;
+    lst->len++;
 }

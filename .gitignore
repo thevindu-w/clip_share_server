@@ -13,6 +13,8 @@ clip_share_web
 *.tar
 *.exe
 *.res
+*.conf
+allowed_clients.txt
 server_err.log
 TODO
 dist/

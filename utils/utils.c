@@ -98,7 +98,7 @@ int put_clipboard_text(char *data, size_t len)
     if (xclip_util(0, NULL, (size_t *)&len, &data) != EXIT_SUCCESS)
     {
 #ifdef DEBUG_MODE
-        fputs("Failed to write to clip", stderr);
+        fputs("Failed to write to clipboard", stderr);
 #endif
         return EXIT_FAILURE;
     }
@@ -217,14 +217,13 @@ list2 *get_copied_files()
         free(fnames);
         return NULL;
     }
-    char **arr = (char **)lst->array;
     char *fname = file_path + 1;
     for (size_t i = 0; i < file_cnt; i++)
     {
         size_t off = strlen(fname) + 1;
         if (url_decode(fname) == EXIT_FAILURE)
             break;
-        arr[i] = strdup(fname);
+        append(lst, strdup(fname));
         fname += off;
     }
     free(fnames);
@@ -313,13 +312,12 @@ list2 *get_copied_files()
     if (!lst)
         return NULL;
 
-    char **arr = (char **)lst->array;
     char fileName[MAX_PATH + 1];
     for (size_t i = 0; i < file_cnt; i++)
     {
         fileName[0] = '\0';
         DragQueryFile(hDrop, i, fileName, MAX_PATH);
-        arr[i] = strdup(fileName);
+        append(lst, strdup(fileName));
     }
     GlobalUnlock(hGlobal);
     CloseClipboard();

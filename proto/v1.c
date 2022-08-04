@@ -32,7 +32,7 @@
 #define METHOD_GET_FILE 3
 #define METHOD_SEND_FILE 4
 #define METHOD_GET_IMAGE 5
-#define METHOD_INFO 253
+#define METHOD_INFO 125
 
 // status codes
 #define STATUS_OK 1
@@ -42,13 +42,7 @@
 
 #define FILE_BUF_SZ 65536
 
-#ifdef __linux__
-#define PATH_SEP '/'
-#elif _WIN32
-#define PATH_SEP '\\'
-#endif
-
-static int get_files_fn(sock_t socket, list2 *file_list)
+static int get_files_fn(socket_t *socket, list2 *file_list)
 {
     size_t file_cnt = file_list->len;
     char **files = (char **)file_list->array;
@@ -125,7 +119,7 @@ static int get_files_fn(sock_t socket, list2 *file_list)
     return status;
 }
 
-int version_1(sock_t socket)
+int version_1(socket_t *socket)
 {
     unsigned char method;
     if (read_sock(socket, (char *)&method, 1) == EXIT_FAILURE)
@@ -327,6 +321,8 @@ int version_1(sock_t socket)
     }
     case METHOD_INFO:
     {
+        if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
+            return EXIT_FAILURE;
         size_t len = strlen(INFO_NAME);
         if (send_size(socket, len) == EXIT_FAILURE)
         {
@@ -346,6 +342,9 @@ int version_1(sock_t socket)
     }
     default: // unknown method
     {
+#ifdef DEBUG_MODE
+        fprintf(stderr, "Unknown method\n");
+#endif
         write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
         return EXIT_FAILURE;
         break;
