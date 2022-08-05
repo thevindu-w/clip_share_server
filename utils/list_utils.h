@@ -29,19 +29,18 @@ typedef struct _list
 } list2;
 
 /**
- * initializes a list2
+ * Initialize a list2
  * returns NULL on error
  */
 extern list2 *init_list(size_t);
 
 /**
- * free memory allocated to a list2
- * returns NULL on error
+ * Free the memory allocated to a list2
  */
 extern void free_list(list2 *);
 
 /**
- * appends an element to a list
+ * Appends an element to a list.
  * allocates space if insufficient
  */
 extern void append(list2 *, void *);

@@ -111,7 +111,7 @@ static void parse_line(char *line, config *cfg)
     trim(value);
 
 #ifdef DEBUG_MODE
-        printf("Key=%s : Value=%s\n", key, value);
+    printf("Key=%s : Value=%s\n", key, value);
 #endif
 
     if (!strcmp("app_port", key))

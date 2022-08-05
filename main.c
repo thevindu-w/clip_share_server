@@ -18,20 +18,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#ifdef __linux__
-#include <sys/wait.h>
-#endif
-#include <sys/stat.h>
 #include <string.h>
-#include <ctype.h>
-#include <dirent.h>
 
 #include "config.h"
 #include "servers.h"
 #include "utils/utils.h"
 #include "utils/net_utils.h"
-#ifdef _WIN32
+
+#ifdef __linux__
+#include <unistd.h>
+#include <sys/wait.h>
+#include <dirent.h>
+#include <ctype.h>
+#elif _WIN32
 #include "win_getopt/getopt.h"
 #endif
 
@@ -130,7 +129,8 @@ static void kill_other_processes(const char *prog_name)
 
 #elif _WIN32
 
-static void kill_other_processes(const char *prog_name){
+static void kill_other_processes(const char *prog_name)
+{
     char cmd[2048];
     sprintf(cmd, "taskkill /IM \"%s\" /F", prog_name);
     system(cmd);
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
         prog_name++; // don't want the '/' before the program name
     }
 #ifdef DEBUG_MODE
-        printf("prog_name=%s\n", prog_name);
+    printf("prog_name=%s\n", prog_name);
 #endif
 
     config cfg = parse_conf("clipshare.conf");
@@ -283,7 +283,7 @@ int main(int argc, char **argv)
 
 #ifdef __linux__
 
-pid_t p_clip = fork();
+    pid_t p_clip = fork();
     if (p_clip == 0)
     {
         return clip_share(app_port, 0, cfg);

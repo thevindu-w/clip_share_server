@@ -56,14 +56,65 @@ typedef struct _listener_socket_t
     SSL_CTX *ctx;
 } listener_t;
 
-extern listener_t open_listener_socket(const int, const char *, const char *, const char *);
-extern int bind_port(listener_t, int);
-extern socket_t get_connection(listener_t, list2 *);
-extern void close_socket(socket_t *);
-extern int read_sock(socket_t *, char *, size_t);
-extern int read_sock_no_wait(socket_t *, char *, size_t);
-extern int write_sock(socket_t *, void *, size_t);
-extern int send_size(socket_t *, ssize_t);
-extern ssize_t read_size(socket_t *);
+/**
+ * Opens a socket for listening.
+ * If ssl_enabled is 0, SSL context is not initialized. private_key, server_certificate and ca_certificate are not required in that case.
+ * Otherwise, SSL context is initialized with the provided private_key, server_certificate and ca_certificate.
+ */
+extern listener_t open_listener_socket(const int ssl_enabled, const char *private_key, const char *server_certificate, const char *ca_certificate);
+
+/**
+ * Binds a listener socket to a port.
+ */
+extern int bind_port(listener_t listener, int port);
+
+/**
+ * Accepts a TCP connection.
+ * If SSL is enabled, Initialize SSL and authenticates the client,
+ * allowed_clients is a list of Common Names of allowed clients.
+ */
+extern socket_t get_connection(listener_t listener, list2 *allowed_clients);
+
+/**
+ * Closes a socket.
+ */
+extern void close_socket(socket_t *socket);
+
+/**
+ * Reads num bytes from the socket into buf.
+ * buf should be writable and should have a capacitiy of at least num bytes.
+ * Waits until all the bytes are read. If reading failed before num bytes, returns EXIT_FAILURE
+ * Otherwise, returns EXIT_SUCCESS.
+ */
+extern int read_sock(socket_t *socket, char *buf, size_t num);
+
+/**
+ * Reads num bytes from the socket into buf.
+ * buf should be writable and should have a capacitiy of at least num bytes.
+ * returns the number of bytes read.
+ * Do not wait for all the bytes to be read. Therefore the number of bytes read may be less than num.
+ * returns -1 on error.
+ */
+extern int read_sock_no_wait(socket_t *socket, char *buf, size_t num);
+
+/**
+ * Writes num bytes from buf to the socket.
+ * At least num bytes of the buf should be readable.
+ * Waits until all the bytes are written. If writing failed before num bytes, returns EXIT_FAILURE
+ * Otherwise, returns EXIT_SUCCESS.
+ */
+extern int write_sock(socket_t *socket, const char *buf, size_t num);
+
+/**
+ * Sends a 64-bit signed integer num to socket as big-endian encoded 8 bytes.
+ * returns EXIT_SUCCESS on success. Otherwise, returns EXIT_FAILURE on error.
+ */
+extern int send_size(socket_t *socket, ssize_t num);
+
+/**
+ * Reads a 64-bit signed integer from socket as big-endian encoded 8 bytes.
+ * returns the read value on success. Otherwise, returns -1 on error.
+ */
+extern ssize_t read_size(socket_t *socket);
 
 #endif

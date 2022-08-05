@@ -55,11 +55,11 @@ static void receiver_web(socket_t *sock)
             if (read_sock(sock, method + ind, 1) != EXIT_SUCCESS)
                 return;
             ind++;
-        } while (method[ind - 1]!=' ');
-        method[ind-1] = 0;
+        } while (method[ind - 1] != ' ');
+        method[ind - 1] = 0;
     }
 #ifdef DEBUG_MODE
-            puts(method);
+    puts(method);
 #endif
 
     char path[2049];
@@ -70,11 +70,11 @@ static void receiver_web(socket_t *sock)
             if (read_sock(sock, path + ind, 1) != EXIT_SUCCESS)
                 return;
             ind++;
-        } while (path[ind - 1]!=' ');
-        path[ind-1] = 0;
+        } while (path[ind - 1] != ' ');
+        path[ind - 1] = 0;
     }
 #ifdef DEBUG_MODE
-            puts(path);
+    puts(path);
 #endif
 
     if (!strcmp(method, "GET"))
@@ -189,7 +189,8 @@ static void receiver_web(socket_t *sock)
                 return;
             }
             data_len = strtoul(cont_len_header + 16, NULL, 10);
-            if (data_len <= 0 || 1048576 < data_len){
+            if (data_len <= 0 || 1048576 < data_len)
+            {
                 free(headers);
                 return;
             }
@@ -229,8 +230,8 @@ static void receiver_web(socket_t *sock)
             }
         }
 
-        if(say("HTTP/1.0 204 No Content\r\n\r\n", sock) != EXIT_SUCCESS)
-                return;
+        if (say("HTTP/1.0 204 No Content\r\n\r\n", sock) != EXIT_SUCCESS)
+            return;
         put_clipboard_text(data, data_len);
         free(headers);
         return;
@@ -251,6 +252,13 @@ static DWORD WINAPI webServerThreadFn(void *arg)
 
 int web_server(const int port, config cfg)
 {
+    if (cfg.allowed_clients == NULL || cfg.allowed_clients->len <= 0 || cfg.web_port <= 0)
+    {
+#ifdef DEBUG_MODE
+        puts("Invalid config for secure mode");
+#endif
+        return EXIT_FAILURE;
+    }
 #ifdef __linux__
     signal(SIGCHLD, SIG_IGN);
 #endif
@@ -259,12 +267,13 @@ int web_server(const int port, config cfg)
     if (listen(listener.socket, 10) == -1)
     {
         error("Can\'t listen");
-        return 1;
+        return EXIT_FAILURE;
     }
     while (1)
     {
         socket_t connect_sock = get_connection(listener, cfg.allowed_clients);
-        if (connect_sock.type == NULL_SOCK){
+        if (connect_sock.type == NULL_SOCK)
+        {
             close_socket(&connect_sock);
             continue;
         }
@@ -300,6 +309,6 @@ int web_server(const int port, config cfg)
 #endif
 #endif
     }
-    return 0;
+    return EXIT_SUCCESS;
 }
 #endif

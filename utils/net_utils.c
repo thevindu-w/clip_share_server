@@ -266,12 +266,14 @@ socket_t get_connection(listener_t listener, list2 *allowed_clients)
             // ERR_print_errors_fp(stdout);
             // goto END;
         }
-        if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) /* get any certificates */
-        {
-            return sock;
-        }
         sock.ssl = ssl;
         sock.type = SSL_SOCK;
+        if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) /* get any certificates */
+        {
+            close_socket(&sock);
+            sock.type = NULL_SOCK;
+            return sock;
+        }
         break;
     }
 
@@ -298,7 +300,7 @@ void close_socket(socket_t *socket)
     case SSL_SOCK:
     {
         sock_t sd = SSL_get_fd(socket->ssl); /* get socket connection */
-        SSL_free(socket->ssl);            /* release SSL state */
+        SSL_free(socket->ssl);               /* release SSL state */
 #ifdef __linux__
         close(sd);
 #elif _WIN32
@@ -382,11 +384,11 @@ int read_sock_no_wait(socket_t *socket, char *buf, size_t size)
     return 0;
 }
 
-int write_sock(socket_t *socket, void *buf, size_t size)
+int write_sock(socket_t *socket, const char *buf, size_t size)
 {
     int cnt = 0;
     size_t written = 0;
-    char *ptr = buf;
+    const char *ptr = buf;
     while (written < size)
     {
         ssize_t r;
@@ -435,14 +437,9 @@ int write_sock(socket_t *socket, void *buf, size_t size)
     return EXIT_SUCCESS;
 }
 
-/**
- * Sends a 64-bit signed integer
- * encodes into big-endian byte order
- * returns -1 if an error occured
- */
 int send_size(socket_t *socket, ssize_t size)
 {
-    unsigned char sz_buf[8];
+    char sz_buf[8];
     {
         ssize_t sz = (ssize_t)size;
         for (int i = sizeof(sz_buf) - 1; i >= 0; i--)
@@ -454,11 +451,6 @@ int send_size(socket_t *socket, ssize_t size)
     return write_sock(socket, sz_buf, sizeof(sz_buf));
 }
 
-/**
- * Reads a 64-bit signed integer from the socket connection
- * decodes it from big-endian byte order
- * returns -1 if an error occured
- */
 ssize_t read_size(socket_t *socket)
 {
     unsigned char sz_buf[8];

@@ -34,6 +34,8 @@ typedef int socklen_t;
 
 void udp_server(const int port)
 {
+    if (port <= 0)
+        return;
     sock_t sockfd;
     struct sockaddr_in servaddr, cliaddr;
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
