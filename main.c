@@ -154,6 +154,15 @@ static DWORD WINAPI appThreadFn(void *arg)
     return EXIT_SUCCESS;
 }
 
+static DWORD WINAPI appSecureThreadFn(void *arg)
+{
+    config cfg;
+    memcpy(&cfg, arg, sizeof(config));
+    free(arg);
+    clip_share(cfg.app_port_secure, 1, cfg);
+    return EXIT_SUCCESS;
+}
+
 #ifndef NO_WEB
 static DWORD WINAPI webThreadFn(void *arg)
 {
@@ -316,13 +325,24 @@ int main(int argc, char **argv)
         error("failed WSAStartup");
         return EXIT_FAILURE;
     }
+
     config *cfg_insec_ptr = malloc(sizeof(config));
     memcpy(cfg_insec_ptr, &cfg, sizeof(config));
-    HANDLE insecThread = CreateThread(NULL, 0, appThreadFn, (void *)cfg_insec_ptr, 0, NULL);
-    if (insecThread == NULL)
+    HANDLE insecureThread = CreateThread(NULL, 0, appThreadFn, (void *)cfg_insec_ptr, 0, NULL);
+    if (insecureThread == NULL)
     {
 #ifdef DEBUG_MODE
         error("App thread creation failed");
+#endif
+    }
+
+    config *cfg_sec_ptr = malloc(sizeof(config));
+    memcpy(cfg_sec_ptr, &cfg, sizeof(config));
+    HANDLE secureThread = CreateThread(NULL, 0, appSecureThreadFn, (void *)cfg_sec_ptr, 0, NULL);
+    if (secureThread == NULL)
+    {
+#ifdef DEBUG_MODE
+        error("App Secure thread creation failed");
 #endif
     }
 
@@ -348,7 +368,8 @@ int main(int argc, char **argv)
 #endif
     }
 
-    clip_share(app_port_secure, 1, cfg);
+    if (insecureThread!=NULL) WaitForSingleObject(insecureThread, INFINITE);
+    if (secureThread!=NULL) WaitForSingleObject(secureThread, INFINITE);
 
 #endif
     return EXIT_SUCCESS;
