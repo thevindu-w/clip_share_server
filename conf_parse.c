@@ -140,7 +140,7 @@ static void parse_line(char *line, config *cfg)
     }
     else if (!strcmp("server_key", key))
     {
-        FILE *f = fopen(value, "r");
+        FILE *f = fopen(value, "rb");
         if (!f)
             return;
         char *buf = load_file(f);
@@ -148,7 +148,7 @@ static void parse_line(char *line, config *cfg)
     }
     else if (!strcmp("server_cert", key))
     {
-        FILE *f = fopen(value, "r");
+        FILE *f = fopen(value, "rb");
         if (!f)
             return;
         char *buf = load_file(f);
@@ -156,7 +156,7 @@ static void parse_line(char *line, config *cfg)
     }
     else if (!strcmp("ca_cert", key))
     {
-        FILE *f = fopen(value, "r");
+        FILE *f = fopen(value, "rb");
         if (!f)
             return;
         char *buf = load_file(f);
