@@ -32,7 +32,7 @@
 typedef int socklen_t;
 #endif
 
-void udp_server(const int port)
+void udp_server(const unsigned short port)
 {
     if (port <= 0)
         return;
@@ -58,7 +58,7 @@ void udp_server(const int port)
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
     {
         char errmsg[32];
-        sprintf(errmsg, "Can\'t bind to port %i UDP", port);
+        sprintf(errmsg, "Can\'t bind to port %hu UDP", port);
         error(errmsg);
         return;
     }

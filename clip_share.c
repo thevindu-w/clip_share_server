@@ -44,7 +44,7 @@ static DWORD WINAPI serverThreadFn(void *arg)
 }
 #endif
 
-int clip_share(const int port, const int secure, config cfg)
+int clip_share(const int secure, config cfg)
 {
     if (secure)
     {
@@ -58,16 +58,16 @@ int clip_share(const int port, const int secure, config cfg)
     }
     else
     {
-        if (cfg.app_port < 1)
+        if (cfg.app_port <= 0)
         {
 #ifdef DEBUG_MODE
-            puts("Invalid config for secure mode");
+            puts("Invalid port for insecure mode");
 #endif
             return EXIT_FAILURE;
         }
     }
     listener_t listener = open_listener_socket(secure, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
-    if (bind_port(listener, port) != EXIT_SUCCESS)
+    if (bind_port(listener, cfg.app_port) != EXIT_SUCCESS)
     {
         return EXIT_FAILURE;
     }
