@@ -24,16 +24,16 @@
 /**
  * start TCP application server
  */
-extern int clip_share(const int, const int, config);
+extern int clip_share(const int, config);
 
 /**
  * start TCP web server
  */
-extern int web_server(const int, config);
+extern int web_server(config);
 
 /**
  * start UDP server listening for broadcast packets
  */
-extern void udp_server(const int);
+extern void udp_server(const unsigned short);
 
 #endif

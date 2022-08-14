@@ -150,7 +150,7 @@ static DWORD WINAPI appThreadFn(void *arg)
     config cfg;
     memcpy(&cfg, arg, sizeof(config));
     free(arg);
-    clip_share(cfg.app_port, 0, cfg);
+    clip_share(0, cfg);
     return EXIT_SUCCESS;
 }
 
@@ -159,7 +159,7 @@ static DWORD WINAPI appSecureThreadFn(void *arg)
     config cfg;
     memcpy(&cfg, arg, sizeof(config));
     free(arg);
-    clip_share(cfg.app_port_secure, 1, cfg);
+    clip_share(1, cfg);
     return EXIT_SUCCESS;
 }
 
@@ -169,7 +169,7 @@ static DWORD WINAPI webThreadFn(void *arg)
     config cfg;
     memcpy(&cfg, arg, sizeof(config));
     free(arg);
-    web_server(cfg.web_port, cfg);
+    web_server(cfg);
     return EXIT_SUCCESS;
 }
 #endif
@@ -197,10 +197,10 @@ int main(int argc, char **argv)
     // Parse args
     int stop = 0;
     int restart = 0;
-    int app_port = cfg.app_port > 0 ? cfg.app_port : APP_PORT;
-    int app_port_secure = cfg.app_port_secure > 0 ? cfg.app_port_secure : APP_PORT_SECURE;
+    unsigned short app_port = cfg.app_port > 0 ? cfg.app_port : APP_PORT;
+    unsigned short app_port_secure = cfg.app_port_secure > 0 ? cfg.app_port_secure : APP_PORT_SECURE;
 #ifndef NO_WEB
-    int web_port;
+    unsigned short web_port;
 #ifdef __linux__
     web_port = geteuid() ? WEB_PORT_NO_ROOT : WEB_PORT;
 #elif _WIN32
@@ -295,18 +295,18 @@ int main(int argc, char **argv)
     pid_t p_clip = fork();
     if (p_clip == 0)
     {
-        return clip_share(app_port, 0, cfg);
+        return clip_share(0, cfg);
     }
     pid_t p_clip_ssl = fork();
     if (p_clip_ssl == 0)
     {
-        return clip_share(app_port_secure, 1, cfg);
+        return clip_share(1, cfg);
     }
 #ifndef NO_WEB
     pid_t p_web = fork();
     if (p_web == 0)
     {
-        return web_server(web_port, cfg);
+        return web_server(cfg);
     }
 #endif
     puts("Server Started");

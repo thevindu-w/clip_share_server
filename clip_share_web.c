@@ -250,12 +250,12 @@ static DWORD WINAPI webServerThreadFn(void *arg)
 }
 #endif
 
-int web_server(const int port, config cfg)
+int web_server(config cfg)
 {
     if (cfg.allowed_clients == NULL || cfg.allowed_clients->len <= 0 || cfg.web_port <= 0)
     {
 #ifdef DEBUG_MODE
-        puts("Invalid config for secure mode");
+        puts("Invalid config for web server");
 #endif
         return EXIT_FAILURE;
     }
@@ -263,7 +263,7 @@ int web_server(const int port, config cfg)
     signal(SIGCHLD, SIG_IGN);
 #endif
     listener_t listener = open_listener_socket(1, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
-    bind_port(listener, port);
+    bind_port(listener, cfg.web_port);
     if (listen(listener.socket, 10) == -1)
     {
         error("Can\'t listen");
