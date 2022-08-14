@@ -17,7 +17,7 @@ The following development libraries are required.
 * libx11
 * libxmu
 * libpng
-* libssl (Optional. This is only needed for building with the web server enabled.)
+* libssl
 
 They can be installed with the following command:
 
@@ -38,6 +38,12 @@ The following development libraries are required.
 * libz
 * libpng16
 * libssl (provided by openssl)
+
+### SSL/TLS certificate and key files
+The following files should be created and placed in cert_keys/ directory.
+* ``server.key`` &ensp; : &nbsp; SSL/TLS key file for the server
+* ``server.crt`` &ensp; : &nbsp; SSL/TLS certificate file of the server
+* ``ca.crt`` &emsp;&emsp;&ensp; : &nbsp; SSL/TLS certificate of the CA which signed the server.crt
 
 ### Compiling
 Run the following command to make the executable file.
@@ -98,6 +104,6 @@ You may ommit some lines if they need to get their default values.
 * ``server.key`` is the SSL private key file of server.
 * ``server.crt`` is the SSL certificate file of server.
 * ``ca.crt`` is the SSL certificate file of the CA which signed the certificate of the server.
-* ``allowed_clients`` is a text file containing a list of allowd clients (Common Name of client certificate) one name per each line
+* ``allowed_clients.txt`` is a text file containing a list of allowd clients (Common Name of client certificate) one name per each line
 
 You may change those values. But it is recommended to keep the port numbers unchanged.

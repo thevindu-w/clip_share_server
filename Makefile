@@ -43,7 +43,7 @@ endif
 ifeq ($(detected_OS),Windows)
 	OBJS+= utils/win_image.o win_getopt/getopt.o
 	SRC_FILES+= utils/win_image.c win_getopt/getopt.c
-	LDLIBS=-l:libssl.a -l:libcrypto.a -lws2_32 -lgdi32 -lpng16 -lz
+	LDLIBS=-l:libssl.a -l:libcrypto.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
 	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB).exe
