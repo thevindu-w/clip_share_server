@@ -150,7 +150,7 @@ static DWORD WINAPI appThreadFn(void *arg)
     config cfg;
     memcpy(&cfg, arg, sizeof(config));
     free(arg);
-    clip_share(0, cfg);
+    clip_share(INSECURE, cfg);
     return EXIT_SUCCESS;
 }
 
@@ -159,7 +159,7 @@ static DWORD WINAPI appSecureThreadFn(void *arg)
     config cfg;
     memcpy(&cfg, arg, sizeof(config));
     free(arg);
-    clip_share(1, cfg);
+    clip_share(SECURE, cfg);
     return EXIT_SUCCESS;
 }
 
@@ -295,12 +295,12 @@ int main(int argc, char **argv)
     pid_t p_clip = fork();
     if (p_clip == 0)
     {
-        return clip_share(0, cfg);
+        return clip_share(INSECURE, cfg);
     }
     pid_t p_clip_ssl = fork();
     if (p_clip_ssl == 0)
     {
-        return clip_share(1, cfg);
+        return clip_share(SECURE, cfg);
     }
 #ifndef NO_WEB
     pid_t p_web = fork();

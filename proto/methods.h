@@ -1,5 +1,5 @@
 /*
- *  servers.h - header defining supported servers
+ *  proto/methods.h - declarations of methods
  *  Copyright (C) 2022 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,27 +16,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _SERVERS_
-#define _SERVERS_
+#include "../utils/net_utils.h"
 
-#include "config.h"
+// Version 1 methods
 
-#define INSECURE 0
-#define SECURE 1
-
-/**
- * start TCP application server
- */
-extern int clip_share(const int, config);
-
-/**
- * start TCP web server
- */
-extern int web_server(config);
-
-/**
- * start UDP server listening for broadcast packets
- */
-extern void udp_server(const unsigned short);
-
-#endif
+extern int get_text_v1(socket_t *socket);
+extern int send_text_v1(socket_t *socket);
+extern int get_files_v1(socket_t *socket);
+extern int send_file_v1(socket_t *socket);
+extern int get_image_v1(socket_t *socket);
+extern int info_v1(socket_t *socket);

@@ -110,7 +110,7 @@ int get_image(char **buf_ptr, size_t *len_ptr)
     if (xclip_util(1, "image/png", len_ptr, buf_ptr) || *len_ptr == 0) // do not change the order
     {
 #ifdef DEBUG_MODE
-        printf("xclip failed to get image/png. len = %zu\n", *len_ptr);
+        printf("xclip failed to get image/png. len = %zu\nCapturing screenshot ...\n", *len_ptr);
 #endif
         *len_ptr = 0;
         if (screenshot_util(len_ptr, buf_ptr) || *len_ptr == 0) // do not change the order

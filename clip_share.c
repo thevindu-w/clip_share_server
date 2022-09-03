@@ -46,7 +46,7 @@ static DWORD WINAPI serverThreadFn(void *arg)
 
 int clip_share(const int secure, config cfg)
 {
-    if (secure)
+    if (secure == SECURE)
     {
         if (cfg.allowed_clients == NULL || cfg.allowed_clients->len <= 0 || cfg.app_port_secure <= 0)
         {

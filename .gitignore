@@ -20,6 +20,6 @@ TODO
 dist/
 no_web/
 cert_keys/
-test/
+test
 .vscode/
 .trash/
