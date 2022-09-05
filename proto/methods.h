@@ -26,3 +26,8 @@ extern int get_files_v1(socket_t *socket);
 extern int send_file_v1(socket_t *socket);
 extern int get_image_v1(socket_t *socket);
 extern int info_v1(socket_t *socket);
+
+// Version 2 methods
+
+extern int get_files_v2(socket_t *socket);
+extern int send_files_v2(socket_t *socket);

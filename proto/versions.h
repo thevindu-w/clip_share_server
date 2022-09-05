@@ -20,8 +20,12 @@
 
 #include "../utils/net_utils.h"
 
-#ifdef PROTO_V1
+#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
 extern int version_1(socket_t *);
+#endif
+
+#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
+extern int version_2(socket_t *);
 #endif
 
 #endif

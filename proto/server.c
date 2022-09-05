@@ -91,6 +91,11 @@ void server(socket_t *socket)
         version_1(socket);
         break;
     }
+    case 2:
+    {
+        version_2(socket);
+        break;
+    }
     default: // invalid or unknown version
         break;
     }

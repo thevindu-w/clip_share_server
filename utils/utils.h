@@ -29,6 +29,11 @@
 #define PATH_SEP '\\'
 #endif
 
+typedef struct _dir_files{
+    size_t path_len;
+    list2 *lst;
+} dir_files;
+
 extern void error(const char *);
 
 extern int get_clipboard_text(char **, size_t *);
@@ -37,5 +42,7 @@ extern int get_image(char **, size_t *);
 extern list2 *get_copied_files(void);
 extern ssize_t get_file_size(FILE *);
 extern int file_exists(const char *);
+
+extern dir_files get_copied_dirs_files(void);
 
 #endif

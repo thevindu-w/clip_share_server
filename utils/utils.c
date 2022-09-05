@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #ifdef __linux__
 #include <sys/socket.h>
+#include <dirent.h>
 #elif _WIN32
 #include <windows.h>
 #include "win_image.h"
@@ -34,6 +35,7 @@
 #include "../xscreenshot/screenshot.h"
 
 #define ERROR_LOG_FILE "server_err.log"
+#define RECURSE_DEPTH_MAX 256
 
 void error(const char *msg)
 {
@@ -223,11 +225,174 @@ list2 *get_copied_files()
         size_t off = strlen(fname) + 1;
         if (url_decode(fname) == EXIT_FAILURE)
             break;
+
+        struct stat statbuf;
+        if (stat(fname, &statbuf))
+        {
+#ifdef DEBUG_MODE
+            printf("stat failed\n");
+#endif
+            fname += off;
+            continue;
+        }
+        if (!S_ISREG(statbuf.st_mode))
+        {
+#ifdef DEBUG_MODE
+            printf("not a file : %s\n", fname);
+#endif
+            fname += off;
+            continue;
+        }
         append(lst, strdup(fname));
         fname += off;
     }
     free(fnames);
     return lst;
+}
+
+/*
+ * Recursively append all file paths in the directory and its subdirectories
+ * to the list.
+ * maximum recursion depth is limited to RECURSE_DEPTH_MAX
+ */
+static void recurse_dir(char *path, list2 *lst, int depth)
+{
+    if (depth > RECURSE_DEPTH_MAX)
+        return;
+    DIR *d = opendir(path);
+    if (d)
+    {
+        path = strdup(path);
+        size_t p_len = strlen(path);
+        if (path[p_len - 1] != PATH_SEP)
+        {
+            path = (char *)realloc(path, p_len + 2);
+            path[p_len++] = PATH_SEP;
+            path[p_len] = '\0';
+        }
+        struct dirent *dir;
+        while ((dir = readdir(d)) != NULL)
+        {
+            char *filename = dir->d_name;
+            if (!(strcmp(filename, ".") && strcmp(filename, "..")))
+                continue;
+            char *pathname = (char *)malloc(strlen(filename) + p_len + 1);
+            strcpy(pathname, path);
+            strcpy(pathname + p_len, filename);
+            struct stat sb;
+            if (lstat(pathname, &sb) == 0)
+            {
+                if (S_ISDIR(sb.st_mode))
+                {
+                    recurse_dir(pathname, lst, depth + 1);
+                }
+                else if (S_ISREG(sb.st_mode))
+                {
+                    append(lst, strdup(pathname));
+                }
+            }
+            free(pathname);
+        }
+        free(path);
+    }
+#ifdef DEBUG_MODE
+    else
+    {
+        puts("Error opening directory");
+    }
+#endif
+}
+
+dir_files get_copied_dirs_files()
+{
+    char *fnames;
+    size_t fname_len;
+    dir_files ret;
+    ret.lst = NULL;
+    ret.path_len = 0;
+    if (xclip_util(1, "x-special/gnome-copied-files", &fname_len, &fnames) || fname_len == 0) // do not change the order
+    {
+#ifdef DEBUG_MODE
+        printf("xclip read copied files. len = %zu\n", fname_len);
+#endif
+        return ret;
+    }
+    fnames[fname_len] = 0;
+
+    char *file_path = strchr(fnames, '\n');
+    if (!file_path)
+    {
+        free(fnames);
+        return ret;
+    }
+    *file_path = 0;
+    if (strcmp(fnames, "copy") && strcmp(fnames, "cut"))
+    {
+        free(fnames);
+        return ret;
+    }
+
+    size_t file_cnt = 1;
+    for (char *ptr = file_path + 1; *ptr; ptr++)
+    {
+        if (*ptr == '\n')
+        {
+            file_cnt++;
+            *ptr = 0;
+        }
+    }
+
+    list2 *lst = init_list(file_cnt);
+    if (!lst)
+    {
+        free(fnames);
+        return ret;
+    }
+    ret.lst = lst;
+    char *fname = file_path + 1;
+    for (size_t i = 0; i < file_cnt; i++)
+    {
+        size_t off = strlen(fname) + 1;
+        if (url_decode(fname) == EXIT_FAILURE)
+            break;
+
+        if (i == 0)
+        {
+            char *sep_ptr = strrchr(fname, PATH_SEP);
+            if (sep_ptr > fname)
+            {
+                ret.path_len = sep_ptr - fname + 1;
+            }
+        }
+
+        struct stat statbuf;
+        if (stat(fname, &statbuf))
+        {
+#ifdef DEBUG_MODE
+            printf("stat failed\n");
+#endif
+            fname += off;
+            continue;
+        }
+        if (S_ISDIR(statbuf.st_mode))
+        {
+            recurse_dir(fname, lst, 1);
+            fname += off;
+            continue;
+        }
+        if (!S_ISREG(statbuf.st_mode))
+        {
+#ifdef DEBUG_MODE
+            printf("not a file : %s\n", fname);
+#endif
+            fname += off;
+            continue;
+        }
+        append(lst, strdup(fname));
+        fname += off;
+    }
+    free(fnames);
+    return ret;
 }
 
 #elif _WIN32

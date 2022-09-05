@@ -32,7 +32,7 @@ OBJS=main.o clip_share.o udp_serve.o proto/server.o proto/versions.o proto/metho
 WEB_OBJS=clip_share_web.o page_blob.o
 SRC_FILES=main.c clip_share.c udp_serve.c proto/server.c proto/versions.c proto/methods.c utils/utils.c utils/net_utils.c utils/list_utils.c conf_parse.c cert_blob.S key_blob.S ca_cert_blob.S
 WEB_SRC=clip_share_web.c page_blob.S
-CFLAGS=-pipe -Wall -Wextra -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=1 -DPROTO_V1
+CFLAGS=-pipe -Wall -Wextra -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=2
 CFLAGS_DEBUG=-g -c -DDEBUG_MODE
 
 ifeq ($(detected_OS),Linux)

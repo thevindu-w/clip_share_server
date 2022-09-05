@@ -16,8 +16,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifdef PROTO_V1
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,7 +36,7 @@
 #define STATUS_UNKNOWN_METHOD 3
 #define STATUS_METHOD_NOT IMPLEMENTED 4
 
-#define FILE_BUF_SZ 65536
+#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
 
 int version_1(socket_t *socket)
 {
@@ -63,6 +61,62 @@ int version_1(socket_t *socket)
     case METHOD_GET_FILE:
     {
         return get_files_v1(socket);
+        break;
+    }
+    case METHOD_SEND_FILE:
+    {
+        return send_file_v1(socket);
+        break;
+    }
+    case METHOD_GET_IMAGE:
+    {
+        return get_image_v1(socket);
+        break;
+    }
+    case METHOD_INFO:
+    {
+        return info_v1(socket);
+        break;
+    }
+    default: // unknown method
+    {
+#ifdef DEBUG_MODE
+        fprintf(stderr, "Unknown method\n");
+#endif
+        write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
+        return EXIT_FAILURE;
+        break;
+    }
+    }
+    return EXIT_SUCCESS;
+}
+#endif
+
+#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
+
+int version_2(socket_t *socket)
+{
+    unsigned char method;
+    if (read_sock(socket, (char *)&method, 1) == EXIT_FAILURE)
+    {
+        return EXIT_FAILURE;
+    }
+
+    switch (method)
+    {
+    case METHOD_GET_TEXT:
+    {
+        return get_text_v1(socket);
+        break;
+    }
+    case METHOD_SEND_TEXT:
+    {
+        return send_text_v1(socket);
+        break;
+    }
+    case METHOD_GET_FILE:
+    {
+        return get_files_v2(socket);
         break;
     }
     case METHOD_SEND_FILE:
