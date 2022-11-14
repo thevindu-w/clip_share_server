@@ -1,15 +1,10 @@
 *.o
-utils/*.o
-xclip/*.o
-xclip/xclip
-screenshot/*.o
 screenshot/screenshot
 test.c
 clip_share
 clip_share_static
 clip_share_web
-*.tar.xz
-*.tar.gz
+*.tar.*
 *.tar
 *.exe
 *.res
