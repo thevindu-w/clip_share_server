@@ -53,7 +53,7 @@ void error(const char *msg)
 
 int file_exists(const char *file_name)
 {
-    return access(file_name, F_OK);
+    return access(file_name, F_OK) == 0;
 }
 
 ssize_t get_file_size(FILE *fp)
@@ -77,6 +77,35 @@ ssize_t get_file_size(FILE *fp)
     ssize_t file_size = ftell(fp);
     rewind(fp);
     return file_size;
+}
+
+int mkdirs(char *path)
+{
+    if (file_exists(path))
+        return EXIT_SUCCESS;
+    size_t len = strlen(path);
+    for (size_t i = 0; i <= len; i++)
+    {
+        if (path[i] == PATH_SEP || path[i] == 0)
+        {
+            path[i] = 0;
+#ifdef __linux__
+            if (!file_exists(path) && mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))
+            {
+#ifdef DEBUG_MODE
+                printf("Error creating directory %s\n", path);
+#endif
+                path[i] = PATH_SEP;
+                return EXIT_FAILURE;
+            }
+#elif _WIN32 // TODO: Implement for Windows
+            error("mkdirs not implemented for windows");
+#endif
+            if (i < len)
+                path[i] = PATH_SEP;
+        }
+    }
+    return EXIT_SUCCESS;
 }
 
 #ifdef __linux__
@@ -393,6 +422,33 @@ dir_files get_copied_dirs_files()
     }
     free(fnames);
     return ret;
+}
+
+list2 *list_dir(const char *dirname)
+{
+    DIR *d = opendir(dirname);
+    if (d)
+    {
+        list2 *lst = init_list(2);
+        if (!lst)
+            return NULL;
+        struct dirent *dir;
+        while ((dir = readdir(d)) != NULL)
+        {
+            char *filename = dir->d_name;
+            if (!(strcmp(filename, ".") && strcmp(filename, "..")))
+                continue;
+            append(lst, strdup(filename));
+        }
+        return lst;
+    }
+#ifdef DEBUG_MODE
+    else
+    {
+        puts("Error opening directory");
+    }
+#endif
+    return NULL;
 }
 
 #elif _WIN32

@@ -121,7 +121,7 @@ int version_2(socket_t *socket)
     }
     case METHOD_SEND_FILE:
     {
-        return send_file_v1(socket);
+        return send_files_v2(socket);
         break;
     }
     case METHOD_GET_IMAGE:

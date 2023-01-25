@@ -103,6 +103,6 @@ web: $(SRC_FILES) $(WEB_SRC) winres/app.res
 endif
 
 clean:
-	rm -f $(OBJS) $(WEB_OBJS)
-	rm -f $(PROGRAM_NAME)
-	rm -f $(PROGRAM_NAME_WEB)
+	$(RM) $(OBJS) $(WEB_OBJS)
+	$(RM) $(PROGRAM_NAME)
+	$(RM) $(PROGRAM_NAME_WEB)

@@ -42,7 +42,8 @@ extern int get_image(char **, size_t *);
 extern list2 *get_copied_files(void);
 extern ssize_t get_file_size(FILE *);
 extern int file_exists(const char *);
-
+extern int mkdirs(char *);
+extern list2 *list_dir(const char *);
 extern dir_files get_copied_dirs_files(void);
 
 #endif

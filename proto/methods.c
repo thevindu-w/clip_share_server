@@ -212,7 +212,7 @@ int send_file_v1(socket_t *socket)
 #ifdef DEBUG_MODE
     printf("name_len = %zi\n", name_length);
 #endif
-    if (name_length < 0)
+    if (name_length <= 0 || name_length > 1024) // limit file name length to 1024 chars
     {
         return EXIT_FAILURE;
     }
@@ -228,12 +228,14 @@ int send_file_v1(socket_t *socket)
     file_name[name_length] = 0;
     // get only the base name
     {
-        char *base_name = strrchr(file_name, PATH_SEP);
+        char *base_name = strrchr(file_name, '/'); // path separator is / when communicating with the client
         if (base_name)
         {
             base_name++;                                          // don't want the '/' before the file name
             memmove(file_name, base_name, strlen(base_name) + 1); // overlapping memory area
         }
+        if (PATH_SEP != '/' && strchr(file_name, PATH_SEP)) // file name can't contain PATH_SEP
+            return EXIT_FAILURE;
     }
 
     ssize_t length = read_size(socket);
@@ -248,7 +250,7 @@ int send_file_v1(socket_t *socket)
         char tmp_fname[name_length + 16];
         strcpy(tmp_fname, file_name);
         int n = 1;
-        while (file_exists(tmp_fname) == 0)
+        while (file_exists(tmp_fname))
         {
             sprintf(tmp_fname, "%i_%s", n++, file_name);
         }
@@ -405,6 +407,17 @@ int get_files_v2(socket_t *socket)
                 status = EXIT_FAILURE;
                 goto END;
             }
+
+            // path separator is always / when communicating with the client
+            if (PATH_SEP != '/')
+            {
+                for (size_t ind = 0; ind < fname_len; ind++)
+                {
+                    if (filename[ind] == PATH_SEP)
+                        filename[ind] = '/';
+                }
+            }
+
             if (write_sock(socket, filename, fname_len) == EXIT_FAILURE)
             {
                 status = EXIT_FAILURE;
@@ -436,5 +449,175 @@ int get_files_v2(socket_t *socket)
     }
 END:
     free_list(file_list);
+    return status;
+}
+
+static int save_file(socket_t *socket, const char *dirname)
+{
+    ssize_t name_length = read_size(socket);
+#ifdef DEBUG_MODE
+    printf("name_len = %zi\n", name_length);
+#endif
+    if (name_length < 0 || name_length > 1024) // limit file name length to 1024 chars
+    {
+        return EXIT_FAILURE;
+    }
+
+    char file_name[name_length + 1];
+    if (read_sock(socket, file_name, name_length) == EXIT_FAILURE)
+    {
+#ifdef DEBUG_MODE
+        fputs("Read file name failed\n", stderr);
+#endif
+        return EXIT_FAILURE;
+    }
+
+    file_name[name_length] = 0;
+
+    // replace '/' with PATH_SEP
+    if (PATH_SEP != '/')
+    {
+        for (ssize_t ind = 0; ind < name_length; ind++)
+        {
+            if (file_name[ind] == '/')
+                file_name[ind] = PATH_SEP;
+        }
+    }
+
+    char new_path[name_length + 20];
+    if (file_name[0] == PATH_SEP)
+    {
+        sprintf(new_path, "%s%s", dirname, file_name);
+    }
+    else
+    {
+        sprintf(new_path, "%s%c%s", dirname, PATH_SEP, file_name);
+    }
+
+    // path must not contain /../ (goto parent dir)
+    {
+        char bad_path[] = "/../";
+        bad_path[0] = PATH_SEP;
+        bad_path[3] = PATH_SEP;
+        char *ptr = strstr(new_path, bad_path);
+        if (ptr)
+        {
+            return EXIT_FAILURE;
+        }
+    }
+
+    // make directories
+    {
+        char *base_name = strrchr(new_path, PATH_SEP);
+        if (!base_name)
+            return EXIT_FAILURE;
+        *base_name = 0;
+        if (mkdirs(new_path) != EXIT_SUCCESS)
+        {
+            return EXIT_FAILURE;
+        }
+        *base_name = PATH_SEP;
+    }
+
+    ssize_t length = read_size(socket);
+#ifdef DEBUG_MODE
+    printf("data len = %zi\n", length);
+#endif
+    if (length < 0)
+        return EXIT_FAILURE;
+
+    FILE *file = fopen(new_path, "wb");
+    if (!file)
+        return EXIT_FAILURE;
+    char data[FILE_BUF_SZ];
+    while (length)
+    {
+        size_t read_len = length < FILE_BUF_SZ ? length : FILE_BUF_SZ;
+        if (read_sock(socket, data, read_len) == EXIT_FAILURE)
+        {
+#ifdef DEBUG_MODE
+            puts("recieve error");
+#endif
+            fclose(file);
+            remove(file_name);
+            return EXIT_FAILURE;
+        }
+        if (fwrite(data, 1, read_len, file) < read_len)
+        {
+            fclose(file);
+            remove(file_name);
+            return EXIT_FAILURE;
+        }
+        length -= read_len;
+    }
+
+    fclose(file);
+
+#ifdef DEBUG_MODE
+    printf("file saved : %s\n", new_path);
+#endif
+    return EXIT_SUCCESS;
+}
+
+int send_files_v2(socket_t *socket)
+{
+    if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
+        return EXIT_FAILURE;
+    ssize_t cnt = read_size(socket);
+    if (cnt <= 0)
+        return EXIT_FAILURE;
+    unsigned id;
+    char dirname[17];
+    do
+    {
+        id = (unsigned)rand();
+        sprintf(dirname, "%x", id);
+    } while (file_exists(dirname));
+
+    if (mkdirs(dirname) != EXIT_SUCCESS)
+        return EXIT_FAILURE;
+
+    for (ssize_t file_num = 0; file_num < cnt; file_num++)
+    {
+        if (save_file(socket, dirname) != EXIT_SUCCESS)
+        {
+            return EXIT_FAILURE;
+        }
+    }
+    list2 *files = list_dir(dirname);
+    if (!files)
+        return EXIT_FAILURE;
+    int status = EXIT_SUCCESS;
+    for (size_t i = 0; i < files->len; i++)
+    {
+        char *filename = files->array[i];
+        size_t name_len = strlen(filename);
+        char old_path[name_len + 20];
+        sprintf(old_path, "%s%c%s", dirname, PATH_SEP, filename);
+        char new_path[name_len + 20];
+        sprintf(new_path, ".%c%s", PATH_SEP, filename); // "./" is important to prevent file names like "C:\path"
+
+        // if new_path already exists, use a different file name
+        if (file_exists(new_path))
+        {
+            int n = 1;
+            do
+            {
+                sprintf(new_path, ".%c%i_%s", PATH_SEP, n, filename);
+                n++;
+            } while (file_exists(new_path));
+        }
+
+        if (rename(old_path, new_path))
+        {
+            status = EXIT_FAILURE;
+#ifdef DEBUG_MODE
+            printf("Rename failed : %s\n", new_path);
+#endif
+        }
+    }
+    free_list(files);
+    if (status == EXIT_SUCCESS && remove(dirname))
+        status = EXIT_FAILURE;
     return status;
 }
