@@ -29,6 +29,7 @@
 #define STATUS_NO_DATA 2
 
 #define FILE_BUF_SZ 65536
+#define MAX_FILE_SIZE 68719476736l
 
 int get_text_v1(socket_t *socket)
 {
@@ -242,7 +243,7 @@ int send_file_v1(socket_t *socket)
 #ifdef DEBUG_MODE
     printf("data len = %zi\n", length);
 #endif
-    if (length < 0)
+    if (length < 0 || length > MAX_FILE_SIZE)
         return EXIT_FAILURE;
 
     // if file already exists, use a different file name
@@ -464,7 +465,7 @@ static int save_file(socket_t *socket, const char *dirname)
     }
 
     char file_name[name_length + 1];
-    if (read_sock(socket, file_name, name_length) == EXIT_FAILURE)
+    if (read_sock(socket, file_name, name_length) != EXIT_SUCCESS)
     {
 #ifdef DEBUG_MODE
         fputs("Read file name failed\n", stderr);
@@ -523,7 +524,7 @@ static int save_file(socket_t *socket, const char *dirname)
 #ifdef DEBUG_MODE
     printf("data len = %zi\n", length);
 #endif
-    if (length < 0)
+    if (length < 0 || length > MAX_FILE_SIZE)
         return EXIT_FAILURE;
 
     FILE *file = fopen(new_path, "wb");

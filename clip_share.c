@@ -46,6 +46,7 @@ static DWORD WINAPI serverThreadFn(void *arg)
 
 int clip_share(const int secure, config cfg)
 {
+    int port = 0;
     if (secure == SECURE)
     {
         if (cfg.allowed_clients == NULL || cfg.allowed_clients->len <= 0 || cfg.app_port_secure <= 0)
@@ -55,6 +56,7 @@ int clip_share(const int secure, config cfg)
 #endif
             return EXIT_FAILURE;
         }
+        port = cfg.app_port_secure;
     }
     else
     {
@@ -65,9 +67,10 @@ int clip_share(const int secure, config cfg)
 #endif
             return EXIT_FAILURE;
         }
+        port = cfg.app_port;
     }
     listener_t listener = open_listener_socket(secure, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
-    if (bind_port(listener, cfg.app_port) != EXIT_SUCCESS)
+    if (bind_port(listener, port) != EXIT_SUCCESS)
     {
         return EXIT_FAILURE;
     }
