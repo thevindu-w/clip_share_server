@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "../utils/utils.h"
 #include "../utils/net_utils.h"
@@ -567,12 +569,12 @@ int send_files_v2(socket_t *socket)
     ssize_t cnt = read_size(socket);
     if (cnt <= 0)
         return EXIT_FAILURE;
-    unsigned id;
     char dirname[17];
+    unsigned id = (unsigned) time(NULL);
     do
     {
-        id = (unsigned)rand();
         sprintf(dirname, "%x", id);
+        id = (unsigned)rand();
     } while (file_exists(dirname));
 
     if (mkdirs(dirname) != EXIT_SUCCESS)
@@ -618,7 +620,7 @@ int send_files_v2(socket_t *socket)
         }
     }
     free_list(files);
-    if (status == EXIT_SUCCESS && remove(dirname))
+    if (status == EXIT_SUCCESS && rmdir(dirname))
         status = EXIT_FAILURE;
     return status;
 }

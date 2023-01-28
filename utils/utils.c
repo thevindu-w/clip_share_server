@@ -20,9 +20,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <dirent.h>
 #ifdef __linux__
 #include <sys/socket.h>
-#include <dirent.h>
 #elif _WIN32
 #include <windows.h>
 #include "win_image.h"
@@ -89,23 +89,111 @@ int mkdirs(char *path)
         if (path[i] == PATH_SEP || path[i] == 0)
         {
             path[i] = 0;
-#ifdef __linux__
-            if (!file_exists(path) && mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))
+            if (!file_exists(path))
             {
+#ifdef __linux__
+                if (mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))
+#elif _WIN32
+                if (mkdir(path))
+#endif
+                {
 #ifdef DEBUG_MODE
-                printf("Error creating directory %s\n", path);
+                    printf("Error creating directory %s\n", path);
 #endif
-                path[i] = PATH_SEP;
-                return EXIT_FAILURE;
+                    path[i] = PATH_SEP;
+                    return EXIT_FAILURE;
+                }
             }
-#elif _WIN32 // TODO: Implement for Windows
-            error("mkdirs not implemented for windows");
-#endif
             if (i < len)
                 path[i] = PATH_SEP;
         }
     }
     return EXIT_SUCCESS;
+}
+
+list2 *list_dir(const char *dirname)
+{
+    DIR *d = opendir(dirname);
+    if (d)
+    {
+        list2 *lst = init_list(2);
+        if (!lst)
+            return NULL;
+        struct dirent *dir;
+        while ((dir = readdir(d)) != NULL)
+        {
+            char *filename = dir->d_name;
+            if (!(strcmp(filename, ".") && strcmp(filename, "..")))
+                continue;
+            append(lst, strdup(filename));
+        }
+        (void)closedir(d);
+        return lst;
+    }
+#ifdef DEBUG_MODE
+    else
+    {
+        puts("Error opening directory");
+    }
+#endif
+    return NULL;
+}
+
+/*
+ * Recursively append all file paths in the directory and its subdirectories
+ * to the list.
+ * maximum recursion depth is limited to RECURSE_DEPTH_MAX
+ */
+static void recurse_dir(char *path, list2 *lst, int depth)
+{
+    if (depth > RECURSE_DEPTH_MAX)
+        return;
+    DIR *d = opendir(path);
+    if (d)
+    {
+        path = strdup(path);
+        size_t p_len = strlen(path);
+        if (path[p_len - 1] != PATH_SEP)
+        {
+            path = (char *)realloc(path, p_len + 2);
+            path[p_len++] = PATH_SEP;
+            path[p_len] = '\0';
+        }
+        struct dirent *dir;
+        while ((dir = readdir(d)) != NULL)
+        {
+            char *filename = dir->d_name;
+            if (!(strcmp(filename, ".") && strcmp(filename, "..")))
+                continue;
+            char *pathname = (char *)malloc(strlen(filename) + p_len + 1);
+            strcpy(pathname, path);
+            strcpy(pathname + p_len, filename);
+            struct stat sb;
+#ifdef __linux__
+            if (lstat(pathname, &sb) == 0)
+#elif _WIN32
+            if (stat(pathname, &sb) == 0)
+#endif
+            {
+                if (S_ISDIR(sb.st_mode))
+                {
+                    recurse_dir(pathname, lst, depth + 1);
+                }
+                else if (S_ISREG(sb.st_mode))
+                {
+                    append(lst, strdup(pathname));
+                }
+            }
+            free(pathname);
+        }
+        free(path);
+    }
+#ifdef DEBUG_MODE
+    else
+    {
+        puts("Error opening directory");
+    }
+#endif
 }
 
 #ifdef __linux__
@@ -279,59 +367,6 @@ list2 *get_copied_files()
     return lst;
 }
 
-/*
- * Recursively append all file paths in the directory and its subdirectories
- * to the list.
- * maximum recursion depth is limited to RECURSE_DEPTH_MAX
- */
-static void recurse_dir(char *path, list2 *lst, int depth)
-{
-    if (depth > RECURSE_DEPTH_MAX)
-        return;
-    DIR *d = opendir(path);
-    if (d)
-    {
-        path = strdup(path);
-        size_t p_len = strlen(path);
-        if (path[p_len - 1] != PATH_SEP)
-        {
-            path = (char *)realloc(path, p_len + 2);
-            path[p_len++] = PATH_SEP;
-            path[p_len] = '\0';
-        }
-        struct dirent *dir;
-        while ((dir = readdir(d)) != NULL)
-        {
-            char *filename = dir->d_name;
-            if (!(strcmp(filename, ".") && strcmp(filename, "..")))
-                continue;
-            char *pathname = (char *)malloc(strlen(filename) + p_len + 1);
-            strcpy(pathname, path);
-            strcpy(pathname + p_len, filename);
-            struct stat sb;
-            if (lstat(pathname, &sb) == 0)
-            {
-                if (S_ISDIR(sb.st_mode))
-                {
-                    recurse_dir(pathname, lst, depth + 1);
-                }
-                else if (S_ISREG(sb.st_mode))
-                {
-                    append(lst, strdup(pathname));
-                }
-            }
-            free(pathname);
-        }
-        free(path);
-    }
-#ifdef DEBUG_MODE
-    else
-    {
-        puts("Error opening directory");
-    }
-#endif
-}
-
 dir_files get_copied_dirs_files()
 {
     char *fnames;
@@ -424,33 +459,6 @@ dir_files get_copied_dirs_files()
     return ret;
 }
 
-list2 *list_dir(const char *dirname)
-{
-    DIR *d = opendir(dirname);
-    if (d)
-    {
-        list2 *lst = init_list(2);
-        if (!lst)
-            return NULL;
-        struct dirent *dir;
-        while ((dir = readdir(d)) != NULL)
-        {
-            char *filename = dir->d_name;
-            if (!(strcmp(filename, ".") && strcmp(filename, "..")))
-                continue;
-            append(lst, strdup(filename));
-        }
-        return lst;
-    }
-#ifdef DEBUG_MODE
-    else
-    {
-        puts("Error opening directory");
-    }
-#endif
-    return NULL;
-}
-
 #elif _WIN32
 
 int get_clipboard_text(char **bufptr, size_t *lenptr)
@@ -528,21 +536,116 @@ list2 *get_copied_files()
     size_t file_cnt = DragQueryFile(hDrop, -1, NULL, MAX_PATH);
 
     if (file_cnt <= 0)
+    {
+        GlobalUnlock(hGlobal);
+        CloseClipboard();
         return NULL;
+    }
     list2 *lst = init_list(file_cnt);
     if (!lst)
+    {
+        GlobalUnlock(hGlobal);
+        CloseClipboard();
         return NULL;
+    }
 
     char fileName[MAX_PATH + 1];
     for (size_t i = 0; i < file_cnt; i++)
     {
         fileName[0] = '\0';
         DragQueryFile(hDrop, i, fileName, MAX_PATH);
+        DWORD attr = GetFileAttributes(fileName);
+        DWORD dontWant = FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_DEVICE | FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_OFFLINE;
+        if (attr & dontWant)
+        {
+#ifdef DEBUG_MODE
+            printf("not a file : %s\n", fileName);
+#endif
+            continue;
+        }
         append(lst, strdup(fileName));
     }
     GlobalUnlock(hGlobal);
     CloseClipboard();
     return lst;
+}
+
+dir_files get_copied_dirs_files()
+{
+    dir_files ret;
+    ret.lst = NULL;
+    ret.path_len = 0;
+
+    if (!OpenClipboard(0))
+        return ret;
+    if (!IsClipboardFormatAvailable(CF_HDROP))
+    {
+        CloseClipboard();
+        return ret;
+    }
+    HGLOBAL hGlobal = (HGLOBAL)GetClipboardData(CF_HDROP);
+    if (!hGlobal)
+    {
+        CloseClipboard();
+        return ret;
+    }
+    HDROP hDrop = (HDROP)GlobalLock(hGlobal);
+    if (!hDrop)
+    {
+        CloseClipboard();
+        return ret;
+    }
+
+    size_t file_cnt = DragQueryFile(hDrop, -1, NULL, MAX_PATH);
+
+    if (file_cnt <= 0)
+    {
+        GlobalUnlock(hGlobal);
+        CloseClipboard();
+        return ret;
+    }
+    list2 *lst = init_list(file_cnt);
+    if (!lst)
+    {
+        GlobalUnlock(hGlobal);
+        CloseClipboard();
+        return ret;
+    }
+    ret.lst = lst;
+    char fileName[MAX_PATH + 1];
+    for (size_t i = 0; i < file_cnt; i++)
+    {
+        fileName[0] = '\0';
+        DragQueryFile(hDrop, i, fileName, MAX_PATH);
+        DWORD attr = GetFileAttributes(fileName);
+        DWORD dontWant = FILE_ATTRIBUTE_DEVICE | FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_OFFLINE;
+        if (attr & dontWant)
+        {
+#ifdef DEBUG_MODE
+            printf("not a file or dir : %s\n", fileName);
+#endif
+            continue;
+        }
+        if (i == 0)
+        {
+            char *sep_ptr = strrchr(fileName, PATH_SEP);
+            if (sep_ptr > fileName)
+            {
+                ret.path_len = sep_ptr - fileName + 1;
+            }
+        }
+        if (attr & FILE_ATTRIBUTE_DIRECTORY)
+        {
+            recurse_dir(fileName, lst, 1);
+        }
+        else
+        { // regular file
+            append(lst, strdup(fileName));
+        }
+    }
+    GlobalUnlock(hGlobal);
+    CloseClipboard();
+    return ret;
 }
 
 #endif
