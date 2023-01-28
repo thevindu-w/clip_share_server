@@ -115,92 +115,90 @@ int get_files_v1(socket_t *socket)
     }
 
     int status = EXIT_FAILURE;
+    size_t file_cnt = file_list->len;
+    char **files = (char **)file_list->array;
+#ifdef DEBUG_MODE
+    printf("%zu file(s)\n", file_cnt);
+#endif
+    if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
+        goto END;
+
+    if (send_size(socket, file_cnt) == EXIT_FAILURE)
+        goto END;
+
+    status = EXIT_SUCCESS;
+    for (size_t i = 0; i < file_cnt; i++)
     {
-        size_t file_cnt = file_list->len;
-        char **files = (char **)file_list->array;
+        char *file_path = files[i];
 #ifdef DEBUG_MODE
-        printf("%zu file(s)\n", file_cnt);
+        printf("file name = %s\n", file_path);
 #endif
-        if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
-            goto END;
 
-        if (send_size(socket, file_cnt) == EXIT_FAILURE)
-            goto END;
-
-        status = EXIT_SUCCESS;
-        for (size_t i = 0; i < file_cnt; i++)
+        char *tmp_fname = strrchr(file_path, PATH_SEP);
+        if (tmp_fname == NULL)
         {
-            char *file_path = files[i];
-#ifdef DEBUG_MODE
-            printf("file name = %s\n", file_path);
-#endif
-
-            char *tmp_fname = strrchr(file_path, PATH_SEP);
-            if (tmp_fname == NULL)
-            {
-                tmp_fname = file_path;
-            }
-            else
-            {
-                tmp_fname++; // remove '/'
-            }
-            char filename[strlen(tmp_fname) + 1];
-            strcpy(filename, tmp_fname);
-
-            FILE *fp = fopen(file_path, "rb");
-            if (!fp)
-            {
-#ifdef DEBUG_MODE
-                printf("File open failed\n");
-#endif
-                status = EXIT_FAILURE;
-                continue;
-            }
-            ssize_t file_size = get_file_size(fp);
-            if (file_size < 0)
-            {
-#ifdef DEBUG_MODE
-                printf("file size < 0\n");
-#endif
-                fclose(fp);
-                status = EXIT_FAILURE;
-                continue;
-            }
-
-            size_t fname_len = strlen(filename);
-            if (send_size(socket, fname_len) == EXIT_FAILURE)
-            {
-                status = EXIT_FAILURE;
-                goto END;
-            }
-            if (write_sock(socket, filename, fname_len) == EXIT_FAILURE)
-            {
-                status = EXIT_FAILURE;
-                goto END;
-            }
-            if (send_size(socket, file_size) == EXIT_FAILURE)
-            {
-                status = EXIT_FAILURE;
-                goto END;
-            }
-
-            char data[FILE_BUF_SZ];
-            while (file_size > 0)
-            {
-                size_t read = fread(data, 1, FILE_BUF_SZ, fp);
-                if (read)
-                {
-                    if (write_sock(socket, data, read) == EXIT_FAILURE)
-                    {
-                        fclose(fp);
-                        status = EXIT_FAILURE;
-                        goto END;
-                    }
-                    file_size -= read;
-                }
-            }
-            fclose(fp);
+            tmp_fname = file_path;
         }
+        else
+        {
+            tmp_fname++; // remove '/'
+        }
+        char filename[strlen(tmp_fname) + 1];
+        strcpy(filename, tmp_fname);
+
+        FILE *fp = fopen(file_path, "rb");
+        if (!fp)
+        {
+#ifdef DEBUG_MODE
+            printf("File open failed\n");
+#endif
+            status = EXIT_FAILURE;
+            continue;
+        }
+        ssize_t file_size = get_file_size(fp);
+        if (file_size < 0)
+        {
+#ifdef DEBUG_MODE
+            printf("file size < 0\n");
+#endif
+            fclose(fp);
+            status = EXIT_FAILURE;
+            continue;
+        }
+
+        size_t fname_len = strlen(filename);
+        if (send_size(socket, fname_len) == EXIT_FAILURE)
+        {
+            status = EXIT_FAILURE;
+            goto END;
+        }
+        if (write_sock(socket, filename, fname_len) == EXIT_FAILURE)
+        {
+            status = EXIT_FAILURE;
+            goto END;
+        }
+        if (send_size(socket, file_size) == EXIT_FAILURE)
+        {
+            status = EXIT_FAILURE;
+            goto END;
+        }
+
+        char data[FILE_BUF_SZ];
+        while (file_size > 0)
+        {
+            size_t read = fread(data, 1, FILE_BUF_SZ, fp);
+            if (read)
+            {
+                if (write_sock(socket, data, read) == EXIT_FAILURE)
+                {
+                    fclose(fp);
+                    status = EXIT_FAILURE;
+                    goto END;
+                }
+                file_size -= read;
+            }
+        }
+        fclose(fp);
     }
 END:
     free_list(file_list);
@@ -350,9 +348,9 @@ int info_v1(socket_t *socket)
 
 int get_files_v2(socket_t *socket)
 {
-    dir_files files = get_copied_dirs_files();
-    list2 *file_list = files.lst;
-    size_t path_len = files.path_len;
+    dir_files copied_dir_files = get_copied_dirs_files();
+    list2 *file_list = copied_dir_files.lst;
+    size_t path_len = copied_dir_files.path_len;
     if (!file_list)
     {
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
@@ -360,95 +358,93 @@ int get_files_v2(socket_t *socket)
     }
 
     int status = EXIT_FAILURE;
+    size_t file_cnt = file_list->len;
+    char **files = (char **)file_list->array;
+#ifdef DEBUG_MODE
+    printf("%zu file(s)\n", file_cnt);
+#endif
+    if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
+        goto END;
+
+    if (send_size(socket, file_cnt) == EXIT_FAILURE)
+        goto END;
+
+    status = EXIT_SUCCESS;
+    for (size_t i = 0; i < file_cnt; i++)
     {
-        size_t file_cnt = file_list->len;
-        char **files = (char **)file_list->array;
+        char *file_path = files[i];
 #ifdef DEBUG_MODE
-        printf("%zu file(s)\n", file_cnt);
+        printf("file name = %s\n", file_path);
 #endif
-        if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
-            goto END;
 
-        if (send_size(socket, file_cnt) == EXIT_FAILURE)
-            goto END;
+        char *tmp_fname = file_path + path_len;
+        char filename[strlen(tmp_fname) + 1];
+        strcpy(filename, tmp_fname);
 
-        status = EXIT_SUCCESS;
-        for (size_t i = 0; i < file_cnt; i++)
+        FILE *fp = fopen(file_path, "rb");
+        if (!fp)
         {
-            char *file_path = files[i];
 #ifdef DEBUG_MODE
-            printf("file name = %s\n", file_path);
+            printf("File open failed\n");
 #endif
-
-            char *tmp_fname = file_path + path_len;
-            char filename[strlen(tmp_fname) + 1];
-            strcpy(filename, tmp_fname);
-
-            FILE *fp = fopen(file_path, "rb");
-            if (!fp)
-            {
-#ifdef DEBUG_MODE
-                printf("File open failed\n");
-#endif
-                status = EXIT_FAILURE;
-                continue;
-            }
-            ssize_t file_size = get_file_size(fp);
-            if (file_size < 0)
-            {
-#ifdef DEBUG_MODE
-                printf("file size < 0\n");
-#endif
-                fclose(fp);
-                status = EXIT_FAILURE;
-                continue;
-            }
-
-            size_t fname_len = strlen(filename);
-            if (send_size(socket, fname_len) == EXIT_FAILURE)
-            {
-                status = EXIT_FAILURE;
-                goto END;
-            }
-
-            // path separator is always / when communicating with the client
-            if (PATH_SEP != '/')
-            {
-                for (size_t ind = 0; ind < fname_len; ind++)
-                {
-                    if (filename[ind] == PATH_SEP)
-                        filename[ind] = '/';
-                }
-            }
-
-            if (write_sock(socket, filename, fname_len) == EXIT_FAILURE)
-            {
-                status = EXIT_FAILURE;
-                goto END;
-            }
-            if (send_size(socket, file_size) == EXIT_FAILURE)
-            {
-                status = EXIT_FAILURE;
-                goto END;
-            }
-
-            char data[FILE_BUF_SZ];
-            while (file_size > 0)
-            {
-                size_t read = fread(data, 1, FILE_BUF_SZ, fp);
-                if (read)
-                {
-                    if (write_sock(socket, data, read) == EXIT_FAILURE)
-                    {
-                        fclose(fp);
-                        status = EXIT_FAILURE;
-                        goto END;
-                    }
-                    file_size -= read;
-                }
-            }
-            fclose(fp);
+            status = EXIT_FAILURE;
+            continue;
         }
+        ssize_t file_size = get_file_size(fp);
+        if (file_size < 0)
+        {
+#ifdef DEBUG_MODE
+            printf("file size < 0\n");
+#endif
+            fclose(fp);
+            status = EXIT_FAILURE;
+            continue;
+        }
+
+        size_t fname_len = strlen(filename);
+        if (send_size(socket, fname_len) == EXIT_FAILURE)
+        {
+            status = EXIT_FAILURE;
+            goto END;
+        }
+
+        // path separator is always / when communicating with the client
+        if (PATH_SEP != '/')
+        {
+            for (size_t ind = 0; ind < fname_len; ind++)
+            {
+                if (filename[ind] == PATH_SEP)
+                    filename[ind] = '/';
+            }
+        }
+
+        if (write_sock(socket, filename, fname_len) == EXIT_FAILURE)
+        {
+            status = EXIT_FAILURE;
+            goto END;
+        }
+        if (send_size(socket, file_size) == EXIT_FAILURE)
+        {
+            status = EXIT_FAILURE;
+            goto END;
+        }
+
+        char data[FILE_BUF_SZ];
+        while (file_size > 0)
+        {
+            size_t read = fread(data, 1, FILE_BUF_SZ, fp);
+            if (read)
+            {
+                if (write_sock(socket, data, read) == EXIT_FAILURE)
+                {
+                    fclose(fp);
+                    status = EXIT_FAILURE;
+                    goto END;
+                }
+                file_size -= read;
+            }
+        }
+        fclose(fp);
     }
 END:
     free_list(file_list);
@@ -570,7 +566,7 @@ int send_files_v2(socket_t *socket)
     if (cnt <= 0)
         return EXIT_FAILURE;
     char dirname[17];
-    unsigned id = (unsigned) time(NULL);
+    unsigned id = (unsigned)time(NULL);
     do
     {
         sprintf(dirname, "%x", id);
