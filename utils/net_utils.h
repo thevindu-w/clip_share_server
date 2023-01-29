@@ -56,31 +56,31 @@ typedef struct _listener_socket_t
     SSL_CTX *ctx;
 } listener_t;
 
-/**
+/*
  * Opens a socket for listening.
  * If ssl_enabled is 0, SSL context is not initialized. private_key, server_certificate and ca_certificate are not required in that case.
  * Otherwise, SSL context is initialized with the provided private_key, server_certificate and ca_certificate.
  */
 extern listener_t open_listener_socket(const int ssl_enabled, const char *private_key, const char *server_certificate, const char *ca_certificate);
 
-/**
+/*
  * Binds a listener socket to a port.
  */
 extern int bind_port(listener_t listener, int port);
 
-/**
+/*
  * Accepts a TCP connection.
  * If SSL is enabled, Initialize SSL and authenticates the client,
  * allowed_clients is a list of Common Names of allowed clients.
  */
 extern socket_t get_connection(listener_t listener, list2 *allowed_clients);
 
-/**
+/*
  * Closes a socket.
  */
 extern void close_socket(socket_t *socket);
 
-/**
+/*
  * Reads num bytes from the socket into buf.
  * buf should be writable and should have a capacitiy of at least num bytes.
  * Waits until all the bytes are read. If reading failed before num bytes, returns EXIT_FAILURE
@@ -88,7 +88,7 @@ extern void close_socket(socket_t *socket);
  */
 extern int read_sock(socket_t *socket, char *buf, size_t num);
 
-/**
+/*
  * Reads num bytes from the socket into buf.
  * buf should be writable and should have a capacitiy of at least num bytes.
  * returns the number of bytes read.
@@ -97,7 +97,7 @@ extern int read_sock(socket_t *socket, char *buf, size_t num);
  */
 extern int read_sock_no_wait(socket_t *socket, char *buf, size_t num);
 
-/**
+/*
  * Writes num bytes from buf to the socket.
  * At least num bytes of the buf should be readable.
  * Waits until all the bytes are written. If writing failed before num bytes, returns EXIT_FAILURE
@@ -105,13 +105,13 @@ extern int read_sock_no_wait(socket_t *socket, char *buf, size_t num);
  */
 extern int write_sock(socket_t *socket, const char *buf, size_t num);
 
-/**
+/*
  * Sends a 64-bit signed integer num to socket as big-endian encoded 8 bytes.
  * returns EXIT_SUCCESS on success. Otherwise, returns EXIT_FAILURE on error.
  */
 extern int send_size(socket_t *socket, ssize_t num);
 
-/**
+/*
  * Reads a 64-bit signed integer from socket as big-endian encoded 8 bytes.
  * returns the read value on success. Otherwise, returns -1 on error.
  */

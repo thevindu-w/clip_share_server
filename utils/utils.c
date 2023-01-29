@@ -212,9 +212,9 @@ int get_clipboard_text(char **bufptr, size_t *lenptr)
     return EXIT_SUCCESS;
 }
 
-int put_clipboard_text(char *data, size_t len)
+int put_clipboard_text(const char *data, const size_t len)
 {
-    if (xclip_util(0, NULL, (size_t *)&len, &data) != EXIT_SUCCESS)
+    if (xclip_util(0, NULL, (size_t *)&len, (char **)&data) != EXIT_SUCCESS)
     {
 #ifdef DEBUG_MODE
         fputs("Failed to write to clipboard", stderr);
@@ -487,7 +487,7 @@ int get_clipboard_text(char **bufptr, size_t *lenptr)
     return EXIT_SUCCESS;
 }
 
-int put_clipboard_text(char *data, size_t len)
+int put_clipboard_text(const char *data, const size_t len)
 {
     HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len + 1);
     memcpy(GlobalLock(hMem), data, len + 1);

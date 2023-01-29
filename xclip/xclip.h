@@ -1,7 +1,7 @@
 #ifndef _XCLIP_
 #define _XCLIP_
 
-/**
+/*
  * Get or set clipboard data
  * this will allocate a memory buffer and set the pointer in get mode
  * this will read data from the provided memory buffer in set mode

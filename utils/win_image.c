@@ -212,7 +212,7 @@ static int write_png_to_mem(RGBBitmap *bitmap, char **buf_ptr, size_t *len_ptr)
   for (y = 0; y < bitmap->height; ++y)
   {
     uint8_t *row = (uint8_t *)malloc(bitmap->bytes_per_pixel * bitmap->width); // png_malloc(png_ptr, sizeof(uint8_t)* bitmap->bytes_per_pixel);
-    row_pointers[y] = (png_byte *)row;                                         /************* MARKED LINE ***************/
+    row_pointers[y] = (png_byte *)row;
     for (x = 0; x < bitmap->width; ++x)
     {
       RGBPixel color = *(RGBPixel *)(((uint8_t *)(bitmap->pixels)) + ((bitmap->bytewidth) * y) + (bitmap->bytes_per_pixel) * x); // RGBPixelAtPoint(bitmap, x, y);

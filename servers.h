@@ -24,17 +24,17 @@
 #define INSECURE 0
 #define SECURE 1
 
-/**
+/*
  * start TCP application server
  */
 extern int clip_share(const int, config);
 
-/**
+/*
  * start TCP web server
  */
 extern int web_server(config);
 
-/**
+/*
  * start UDP server listening for broadcast packets
  */
 extern void udp_server(const unsigned short);

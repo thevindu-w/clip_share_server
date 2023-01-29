@@ -28,21 +28,21 @@ typedef struct _list
     void **array;
 } list2;
 
-/**
- * Initialize a list2
+/*
+ * Initialize a list2 with initial size len
  * returns NULL on error
  */
-extern list2 *init_list(size_t);
+extern list2 *init_list(size_t len);
 
-/**
- * Free the memory allocated to a list2
+/*
+ * Free the memory allocated to a list2 *lst
  */
-extern void free_list(list2 *);
+extern void free_list(list2 *lst);
 
-/**
- * Appends an element to a list.
- * allocates space if insufficient
+/*
+ * Appends the element elem to the list lst.
+ * Allocates more space if needed.
  */
-extern void append(list2 *, void *);
+extern void append(list2 *lst, void *elem);
 
 #endif
