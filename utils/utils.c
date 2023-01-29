@@ -53,6 +53,8 @@ void error(const char *msg)
 
 int file_exists(const char *file_name)
 {
+    if (file_name[0] == 0)
+        return 0; // empty path
     return access(file_name, F_OK) == 0;
 }
 
@@ -79,17 +81,58 @@ ssize_t get_file_size(FILE *fp)
     return file_size;
 }
 
+/*
+ * Check if the file at path is a directory.
+ * returns 1 if its a directory or 0 otherwise
+ */
+static int is_directory(const char *path)
+{
+    if (path[0] == 0)
+        return 0; // empty path
+    struct stat sb;
+#ifdef __linux__
+    if (lstat(path, &sb) == 0)
+#elif _WIN32
+    if (stat(path, &sb) == 0)
+#endif
+    {
+        if (S_ISDIR(sb.st_mode))
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    return 0;
+}
+
 int mkdirs(char *path)
 {
+    if (path[0] != '.')
+        return EXIT_FAILURE; // path must be relative and start with .
+
     if (file_exists(path))
-        return EXIT_SUCCESS;
+    {
+        if (is_directory(path))
+            return EXIT_SUCCESS;
+        else
+            return EXIT_FAILURE;
+    }
+
     size_t len = strlen(path);
     for (size_t i = 0; i <= len; i++)
     {
         if (path[i] == PATH_SEP || path[i] == 0)
         {
             path[i] = 0;
-            if (!file_exists(path))
+            if (file_exists(path))
+            {
+                if (!is_directory(path))
+                    return EXIT_FAILURE;
+            }
+            else
             {
 #ifdef __linux__
                 if (mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))

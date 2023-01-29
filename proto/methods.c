@@ -479,7 +479,11 @@ static int save_file(socket_t *socket, const char *dirname)
         for (ssize_t ind = 0; ind < name_length; ind++)
         {
             if (file_name[ind] == '/')
+            {
                 file_name[ind] = PATH_SEP;
+                if (ind > 0 && file_name[ind - 1] == PATH_SEP)
+                    return EXIT_FAILURE; // "//" in path not allowed
+            }
         }
     }
 
@@ -517,6 +521,9 @@ static int save_file(socket_t *socket, const char *dirname)
         }
         *base_name = PATH_SEP;
     }
+
+    if (file_exists(new_path))
+        return EXIT_FAILURE;
 
     ssize_t length = read_size(socket);
 #ifdef DEBUG_MODE
@@ -569,7 +576,7 @@ int send_files_v2(socket_t *socket)
     unsigned id = (unsigned)time(NULL);
     do
     {
-        sprintf(dirname, "%x", id);
+        sprintf(dirname, "./%x", id);
         id = (unsigned)rand();
     } while (file_exists(dirname));
 
