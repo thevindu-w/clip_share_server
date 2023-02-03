@@ -322,12 +322,12 @@ int main(int argc, char **argv)
         error("failed WSAStartup");
         return EXIT_FAILURE;
     }
-
+    HANDLE insecureThread = NULL, secureThread = NULL;
     if (cfg.insecure_mode_enabled)
     {
         config *cfg_insec_ptr = malloc(sizeof(config));
         memcpy(cfg_insec_ptr, &cfg, sizeof(config));
-        HANDLE insecureThread = CreateThread(NULL, 0, appThreadFn, (void *)cfg_insec_ptr, 0, NULL);
+        insecureThread = CreateThread(NULL, 0, appThreadFn, (void *)cfg_insec_ptr, 0, NULL);
 #ifdef DEBUG_MODE
         if (insecureThread == NULL)
         {
@@ -340,7 +340,7 @@ int main(int argc, char **argv)
     {
         config *cfg_sec_ptr = malloc(sizeof(config));
         memcpy(cfg_sec_ptr, &cfg, sizeof(config));
-        HANDLE secureThread = CreateThread(NULL, 0, appSecureThreadFn, (void *)cfg_sec_ptr, 0, NULL);
+        secureThread = CreateThread(NULL, 0, appSecureThreadFn, (void *)cfg_sec_ptr, 0, NULL);
 #ifdef DEBUG_MODE
         if (secureThread == NULL)
         {
