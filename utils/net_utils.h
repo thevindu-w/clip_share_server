@@ -66,7 +66,7 @@ extern listener_t open_listener_socket(const int ssl_enabled, const char *privat
 /*
  * Binds a listener socket to a port.
  */
-extern int bind_port(listener_t listener, int port);
+extern int bind_port(listener_t listener, unsigned short port);
 
 /*
  * Accepts a TCP connection.

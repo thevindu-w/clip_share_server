@@ -25,7 +25,12 @@ typedef struct _config
 {
     unsigned short app_port;
     unsigned short app_port_secure;
+    char insecure_mode_enabled;
+    char secure_mode_enabled;
+#ifndef NO_WEB
     unsigned short web_port;
+    char web_mode_enabled;
+#endif
     char *priv_key;
     char *server_cert;
     char *ca_cert;

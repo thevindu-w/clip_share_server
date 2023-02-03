@@ -94,6 +94,9 @@ You may need to allow incoming connections to the above ports for the client to 
       app_port=4337
       app_port_secure=4338
       web_port=4339
+      insecure_mode_enabled=true
+      secure_mode_enabled=true
+      web_mode_enabled=true
       server_key=cert_keys/server.key
       server_cert=cert_keys/server.crt
       ca_cert=cert_keys/ca.crt
@@ -104,6 +107,6 @@ You may ommit some lines if they need to get their default values.
 * ``server.key`` is the SSL private key file of server.
 * ``server.crt`` is the SSL certificate file of server.
 * ``ca.crt`` is the SSL certificate file of the CA which signed the certificate of the server.
-* ``allowed_clients.txt`` is a text file containing a list of allowd clients (Common Name of client certificate) one name per each line
+* ``allowed_clients.txt`` is a text file containing a list of allowd clients (Common Name of client certificate), one name per each line
 
 You may change those values. But it is recommended to keep the port numbers unchanged.

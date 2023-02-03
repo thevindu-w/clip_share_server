@@ -122,6 +122,17 @@ static void parse_line(char *line, config *cfg)
             cfg->app_port = (unsigned short)port;
         }
     }
+    else if (!strcmp("insecure_mode_enabled", key))
+    {
+        if (!strcasecmp("true",value) || !strcmp("1",value))
+        {
+            cfg->insecure_mode_enabled = 1;
+        }
+        else if (!strcasecmp("false",value) || !strcmp("0",value))
+        {
+            cfg->insecure_mode_enabled = 0;
+        }
+    }
     else if (!strcmp("app_port_secure", key))
     {
         long port = strtol(value, NULL, 10);
@@ -130,6 +141,18 @@ static void parse_line(char *line, config *cfg)
             cfg->app_port_secure = (unsigned short)port;
         }
     }
+    else if (!strcmp("secure_mode_enabled", key))
+    {
+        if (!strcasecmp("true",value) || !strcmp("1",value))
+        {
+            cfg->secure_mode_enabled = 1;
+        }
+        else if (!strcasecmp("false",value) || !strcmp("0",value))
+        {
+            cfg->secure_mode_enabled = 0;
+        }
+    }
+#ifndef NO_WEB
     else if (!strcmp("web_port", key))
     {
         long port = strtol(value, NULL, 10);
@@ -138,6 +161,18 @@ static void parse_line(char *line, config *cfg)
             cfg->web_port = (unsigned short)port;
         }
     }
+    else if (!strcmp("web_mode_enabled", key))
+    {
+        if (!strcasecmp("true",value) || !strcmp("1",value))
+        {
+            cfg->web_mode_enabled = 1;
+        }
+        else if (!strcasecmp("false",value) || !strcmp("0",value))
+        {
+            cfg->web_mode_enabled = 0;
+        }
+    }
+#endif
     else if (!strcmp("server_key", key))
     {
         FILE *f = fopen(value, "rb");
@@ -174,8 +209,16 @@ config parse_conf(const char *conf_file)
 {
     config cfg;
     cfg.app_port = 0;
+    cfg.insecure_mode_enabled = -1;
+
     cfg.app_port_secure = 0;
+    cfg.secure_mode_enabled = -1;
+
+#ifndef NO_WEB
     cfg.web_port = 0;
+    cfg.web_mode_enabled = -1;
+#endif
+
     cfg.priv_key = NULL;
     cfg.server_cert = NULL;
     cfg.ca_cert = NULL;

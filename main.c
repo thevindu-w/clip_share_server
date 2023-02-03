@@ -39,9 +39,7 @@
 // tcp
 #define APP_PORT_SECURE 4338
 // tcp
-#define WEB_PORT 443
-// tcp
-#define WEB_PORT_NO_ROOT 4339
+#define WEB_PORT 4339
 
 extern char blob_cert[];
 extern char blob_key[];
@@ -200,16 +198,7 @@ int main(int argc, char **argv)
     unsigned short app_port = cfg.app_port > 0 ? cfg.app_port : APP_PORT;
     unsigned short app_port_secure = cfg.app_port_secure > 0 ? cfg.app_port_secure : APP_PORT_SECURE;
 #ifndef NO_WEB
-    unsigned short web_port;
-#ifdef __linux__
-    web_port = geteuid() ? WEB_PORT_NO_ROOT : WEB_PORT;
-#elif _WIN32
-    web_port = WEB_PORT_NO_ROOT;
-#endif
-    if (cfg.web_port > 0)
-    {
-        web_port = cfg.web_port;
-    }
+    unsigned short web_port = cfg.web_port > 0 ? cfg.web_port : WEB_PORT;
 #endif
 
     {
@@ -279,34 +268,42 @@ int main(int argc, char **argv)
     }
 
     cfg.app_port = app_port;
+    cfg.insecure_mode_enabled = cfg.insecure_mode_enabled >= 0 ? cfg.insecure_mode_enabled : 1;
     cfg.app_port_secure = app_port_secure;
+    cfg.secure_mode_enabled = cfg.secure_mode_enabled >= 0 ? cfg.secure_mode_enabled : 1;
 #ifndef NO_WEB
     cfg.web_port = web_port;
+    cfg.web_mode_enabled = cfg.web_mode_enabled >= 0 ? cfg.web_mode_enabled : 1;
 #endif
-    char *priv_key = cfg.priv_key ? cfg.priv_key : blob_key;
-    cfg.priv_key = priv_key;
-    char *server_cert = cfg.server_cert ? cfg.server_cert : blob_cert;
-    cfg.server_cert = server_cert;
-    char *ca_cert = cfg.ca_cert ? cfg.ca_cert : blob_ca_cert;
-    cfg.ca_cert = ca_cert;
+    cfg.priv_key = cfg.priv_key ? cfg.priv_key : blob_key;
+    cfg.server_cert = cfg.server_cert ? cfg.server_cert : blob_cert;
+    cfg.ca_cert = cfg.ca_cert ? cfg.ca_cert : blob_ca_cert;
 
 #ifdef __linux__
-
-    pid_t p_clip = fork();
-    if (p_clip == 0)
+    if (cfg.insecure_mode_enabled)
     {
-        return clip_share(INSECURE, cfg);
+        pid_t p_clip = fork();
+        if (p_clip == 0)
+        {
+            return clip_share(INSECURE, cfg);
+        }
     }
-    pid_t p_clip_ssl = fork();
-    if (p_clip_ssl == 0)
+    if (cfg.secure_mode_enabled)
     {
-        return clip_share(SECURE, cfg);
+        pid_t p_clip_ssl = fork();
+        if (p_clip_ssl == 0)
+        {
+            return clip_share(SECURE, cfg);
+        }
     }
 #ifndef NO_WEB
-    pid_t p_web = fork();
-    if (p_web == 0)
+    if (cfg.web_mode_enabled)
     {
-        return web_server(cfg);
+        pid_t p_web = fork();
+        if (p_web == 0)
+        {
+            return web_server(cfg);
+        }
     }
 #endif
     puts("Server Started");
@@ -326,34 +323,43 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    config *cfg_insec_ptr = malloc(sizeof(config));
-    memcpy(cfg_insec_ptr, &cfg, sizeof(config));
-    HANDLE insecureThread = CreateThread(NULL, 0, appThreadFn, (void *)cfg_insec_ptr, 0, NULL);
-    if (insecureThread == NULL)
+    if (cfg.insecure_mode_enabled)
     {
+        config *cfg_insec_ptr = malloc(sizeof(config));
+        memcpy(cfg_insec_ptr, &cfg, sizeof(config));
+        HANDLE insecureThread = CreateThread(NULL, 0, appThreadFn, (void *)cfg_insec_ptr, 0, NULL);
 #ifdef DEBUG_MODE
-        error("App thread creation failed");
+        if (insecureThread == NULL)
+        {
+            error("App thread creation failed");
+        }
 #endif
     }
 
-    config *cfg_sec_ptr = malloc(sizeof(config));
-    memcpy(cfg_sec_ptr, &cfg, sizeof(config));
-    HANDLE secureThread = CreateThread(NULL, 0, appSecureThreadFn, (void *)cfg_sec_ptr, 0, NULL);
-    if (secureThread == NULL)
+    if (cfg.secure_mode_enabled)
     {
+        config *cfg_sec_ptr = malloc(sizeof(config));
+        memcpy(cfg_sec_ptr, &cfg, sizeof(config));
+        HANDLE secureThread = CreateThread(NULL, 0, appSecureThreadFn, (void *)cfg_sec_ptr, 0, NULL);
 #ifdef DEBUG_MODE
-        error("App Secure thread creation failed");
+        if (secureThread == NULL)
+        {
+            error("App Secure thread creation failed");
+        }
 #endif
     }
 
 #ifndef NO_WEB
-    config *cfg_web_ptr = malloc(sizeof(config));
-    memcpy(cfg_web_ptr, &cfg, sizeof(config));
-    HANDLE webThread = CreateThread(NULL, 0, webThreadFn, (void *)cfg_web_ptr, 0, NULL);
-    if (webThread == NULL)
+    if (cfg.web_mode_enabled)
     {
+        config *cfg_web_ptr = malloc(sizeof(config));
+        memcpy(cfg_web_ptr, &cfg, sizeof(config));
+        HANDLE webThread = CreateThread(NULL, 0, webThreadFn, (void *)cfg_web_ptr, 0, NULL);
 #ifdef DEBUG_MODE
-        error("Web thread creation failed");
+        if (webThread == NULL)
+        {
+            error("Web thread creation failed");
+        }
 #endif
     }
 #endif
@@ -368,8 +374,10 @@ int main(int argc, char **argv)
 #endif
     }
 
-    if (insecureThread!=NULL) WaitForSingleObject(insecureThread, INFINITE);
-    if (secureThread!=NULL) WaitForSingleObject(secureThread, INFINITE);
+    if (insecureThread != NULL)
+        WaitForSingleObject(insecureThread, INFINITE);
+    if (secureThread != NULL)
+        WaitForSingleObject(secureThread, INFINITE);
 
 #endif
     return EXIT_SUCCESS;

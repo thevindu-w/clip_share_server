@@ -170,7 +170,7 @@ listener_t open_listener_socket(const int ssl_enabled, const char *priv_key, con
     return listener;
 }
 
-int bind_port(listener_t listener, int port)
+int bind_port(listener_t listener, unsigned short port)
 {
     if (listener.type == NULL_SOCK)
         return EXIT_FAILURE;
@@ -189,7 +189,7 @@ int bind_port(listener_t listener, int port)
     if (c == -1)
     {
         char errmsg[32];
-        sprintf(errmsg, "Can\'t bind to port %i TCP", port);
+        sprintf(errmsg, "Can\'t bind to port %hu TCP", port);
         error(errmsg);
         return EXIT_FAILURE;
     }

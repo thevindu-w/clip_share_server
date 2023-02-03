@@ -29,10 +29,12 @@
  */
 extern int clip_share(const int, config);
 
+#ifndef NO_WEB
 /*
  * start TCP web server
  */
 extern int web_server(config);
+#endif
 
 /*
  * start UDP server listening for broadcast packets
