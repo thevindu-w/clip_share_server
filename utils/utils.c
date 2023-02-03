@@ -1,6 +1,6 @@
 /*
  *  utils/utils.c - platform specific implementation for utils
- *  Copyright (C) 2022 H. Thevindu J. Wijesekera
+ *  Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,13 +21,12 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#ifdef __linux__
-#include <sys/socket.h>
-#elif _WIN32
+#include <unistd.h>
+
+#ifdef _WIN32
 #include <windows.h>
 #include "win_image.h"
 #endif
-#include <unistd.h>
 
 #include "utils.h"
 #include "list_utils.h"

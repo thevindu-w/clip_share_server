@@ -1,6 +1,6 @@
 /*
  *  proto/methods.c - platform independent implementation of methods
- *  Copyright (C) 2022 H. Thevindu J. Wijesekera
+ *  Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
