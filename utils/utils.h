@@ -97,7 +97,7 @@ extern int file_exists(const char *file_name);
  * Will not delete any existing files or directories.
  * returns EXIT_SUCCESS on success and EXIT_FAILURE on failure.
  */
-extern int mkdirs(char *path);
+extern int mkdirs(const char *path);
 
 /*
  * Get a list of files in the directory at the path given by dirname.

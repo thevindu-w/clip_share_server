@@ -107,20 +107,23 @@ static int is_directory(const char *path)
     return 0;
 }
 
-int mkdirs(char *path)
+int mkdirs(const char *dir_path)
 {
-    if (path[0] != '.')
+    if (dir_path[0] != '.')
         return EXIT_FAILURE; // path must be relative and start with .
 
-    if (file_exists(path))
+    if (file_exists(dir_path))
     {
-        if (is_directory(path))
+        if (is_directory(dir_path))
             return EXIT_SUCCESS;
         else
             return EXIT_FAILURE;
     }
 
-    size_t len = strlen(path);
+    size_t len = strlen(dir_path);
+    char path[len+1];
+    strcpy(path, dir_path);
+
     for (size_t i = 0; i <= len; i++)
     {
         if (path[i] == PATH_SEP || path[i] == 0)

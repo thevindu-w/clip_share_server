@@ -80,7 +80,7 @@ int send_text_v1(socket_t *socket)
 #ifdef DEBUG_MODE
     printf("Len = %zi\n", length);
 #endif
-    if (length <= 0)
+    if (length <= 0 || length > 4194304) // limit maximum length to 4 MiB
     {
         return EXIT_FAILURE;
     }
@@ -108,7 +108,7 @@ int send_text_v1(socket_t *socket)
 int get_files_v1(socket_t *socket)
 {
     list2 *file_list = get_copied_files();
-    if (!file_list)
+    if (!file_list || file_list->len == 0)
     {
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         return EXIT_SUCCESS;
@@ -239,11 +239,11 @@ int send_file_v1(socket_t *socket)
             return EXIT_FAILURE;
     }
 
-    ssize_t length = read_size(socket);
+    ssize_t file_size = read_size(socket);
 #ifdef DEBUG_MODE
-    printf("data len = %zi\n", length);
+    printf("data len = %zi\n", file_size);
 #endif
-    if (length < 0 || length > MAX_FILE_SIZE)
+    if (file_size < 0 || file_size > MAX_FILE_SIZE)
         return EXIT_FAILURE;
 
     // if file already exists, use a different file name
@@ -262,9 +262,9 @@ int send_file_v1(socket_t *socket)
     if (!file)
         return EXIT_FAILURE;
     char data[FILE_BUF_SZ];
-    while (length)
+    while (file_size)
     {
-        size_t read_len = length < FILE_BUF_SZ ? length : FILE_BUF_SZ;
+        size_t read_len = file_size < FILE_BUF_SZ ? file_size : FILE_BUF_SZ;
         if (read_sock(socket, data, read_len) == EXIT_FAILURE)
         {
 #ifdef DEBUG_MODE
@@ -280,7 +280,7 @@ int send_file_v1(socket_t *socket)
             remove(file_name);
             return EXIT_FAILURE;
         }
-        length -= read_len;
+        file_size -= read_len;
     }
 
     fclose(file);
@@ -525,20 +525,20 @@ static int save_file(socket_t *socket, const char *dirname)
     if (file_exists(new_path))
         return EXIT_FAILURE;
 
-    ssize_t length = read_size(socket);
+    ssize_t file_size = read_size(socket);
 #ifdef DEBUG_MODE
-    printf("data len = %zi\n", length);
+    printf("data len = %zi\n", file_size);
 #endif
-    if (length < 0 || length > MAX_FILE_SIZE)
+    if (file_size < 0 || file_size > MAX_FILE_SIZE)
         return EXIT_FAILURE;
 
     FILE *file = fopen(new_path, "wb");
     if (!file)
         return EXIT_FAILURE;
     char data[FILE_BUF_SZ];
-    while (length)
+    while (file_size)
     {
-        size_t read_len = length < FILE_BUF_SZ ? length : FILE_BUF_SZ;
+        size_t read_len = file_size < FILE_BUF_SZ ? file_size : FILE_BUF_SZ;
         if (read_sock(socket, data, read_len) == EXIT_FAILURE)
         {
 #ifdef DEBUG_MODE
@@ -554,7 +554,7 @@ static int save_file(socket_t *socket, const char *dirname)
             remove(file_name);
             return EXIT_FAILURE;
         }
-        length -= read_len;
+        file_size -= read_len;
     }
 
     fclose(file);
