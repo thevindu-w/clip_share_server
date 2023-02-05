@@ -263,7 +263,10 @@ int web_server(config cfg)
     signal(SIGCHLD, SIG_IGN);
 #endif
     listener_t listener = open_listener_socket(1, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
-    bind_port(listener, cfg.web_port);
+    if (bind_port(listener, cfg.web_port) != EXIT_SUCCESS)
+    {
+        return EXIT_FAILURE;
+    }
     if (listen(listener.socket, 10) == -1)
     {
         error("Can\'t listen");
