@@ -239,6 +239,10 @@ int send_file_v1(socket_t *socket)
             return EXIT_FAILURE;
     }
 
+    // PATH_SEP is not allowed in file name
+    if (strchr(file_name, PATH_SEP))
+        return EXIT_FAILURE;
+
     ssize_t file_size = read_size(socket);
 #ifdef DEBUG_MODE
     printf("data len = %zi\n", file_size);
@@ -249,11 +253,13 @@ int send_file_v1(socket_t *socket)
     // if file already exists, use a different file name
     {
         char tmp_fname[name_length + 16];
-        strcpy(tmp_fname, file_name);
+        sprintf(tmp_fname, "./%s", file_name);
+        tmp_fname[1] = PATH_SEP;
         int n = 1;
         while (file_exists(tmp_fname))
         {
-            sprintf(tmp_fname, "%i_%s", n++, file_name);
+            sprintf(tmp_fname, "./%i_%s", n++, file_name);
+            tmp_fname[1] = PATH_SEP;
         }
         strcpy(file_name, tmp_fname);
     }
