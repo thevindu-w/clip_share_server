@@ -84,7 +84,7 @@ winres/app.res: winres/app.rc
 
 endif
 
-.PHONY: clean debug web
+.PHONY: clean debug web test
 
 debug: $(OBJS) $(WEB_OBJS)
 	gcc -g $(CFLAGS) $^ $(LDLIBS) -o $(PROGRAM_NAME)
@@ -93,6 +93,9 @@ ifeq ($(detected_OS),Linux)
 
 web: $(SRC_FILES) $(WEB_SRC)
 	gcc -Os $(CFLAGS) -fno-pie $^ -no-pie $(LDLIBS) -o $(PROGRAM_NAME_WEB)
+
+test: $(PROGRAM_NAME)
+	@chmod +x tests/run.sh && cd tests && ./run.sh $(PROGRAM_NAME)
 
 endif
 ifeq ($(detected_OS),Windows)
