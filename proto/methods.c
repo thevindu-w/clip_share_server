@@ -239,6 +239,10 @@ int send_file_v1(socket_t *socket)
             return EXIT_FAILURE;
     }
 
+    // PATH_SEP is not allowed in file name
+    if (strchr(file_name, PATH_SEP))
+        return EXIT_FAILURE;
+
     ssize_t file_size = read_size(socket);
 #ifdef DEBUG_MODE
     printf("data len = %zi\n", file_size);
@@ -249,11 +253,20 @@ int send_file_v1(socket_t *socket)
     // if file already exists, use a different file name
     {
         char tmp_fname[name_length + 16];
-        strcpy(tmp_fname, file_name);
+        if (strcmp(file_name, "clipshare.conf"))
+        {
+            sprintf(tmp_fname, ".%c%s", PATH_SEP, file_name);
+        }
+        else
+        {
+            sprintf(tmp_fname, ".%c1_%s", PATH_SEP, file_name); // do not create file named clipshare.conf
+        }
         int n = 1;
         while (file_exists(tmp_fname))
         {
-            sprintf(tmp_fname, "%i_%s", n++, file_name);
+            if (n > 999999999)
+                return EXIT_FAILURE;
+            sprintf(tmp_fname, ".%c%i_%s", PATH_SEP, n++, file_name);
         }
         strcpy(file_name, tmp_fname);
     }
@@ -601,17 +614,22 @@ int send_files_v2(socket_t *socket)
         char old_path[name_len + 20];
         sprintf(old_path, "%s%c%s", dirname, PATH_SEP, filename);
         char new_path[name_len + 20];
-        sprintf(new_path, ".%c%s", PATH_SEP, filename); // "./" is important to prevent file names like "C:\path"
+        if (strcmp(filename, "clipshare.conf"))
+        {
+            sprintf(new_path, ".%c%s", PATH_SEP, filename); // "./" is important to prevent file names like "C:\path"
+        }
+        else
+        {
+            sprintf(new_path, ".%c1_%s", PATH_SEP, filename); // do not create file named clipshare.conf
+        }
 
         // if new_path already exists, use a different file name
-        if (file_exists(new_path))
+        int n = 1;
+        while (file_exists(new_path))
         {
-            int n = 1;
-            do
-            {
-                sprintf(new_path, ".%c%i_%s", PATH_SEP, n, filename);
-                n++;
-            } while (file_exists(new_path));
+            if (n > 999999999)
+                return EXIT_FAILURE;
+            sprintf(new_path, ".%c%i_%s", PATH_SEP, n++, filename);
         }
 
         if (rename(old_path, new_path))

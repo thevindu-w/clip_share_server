@@ -1,6 +1,6 @@
 *.o
 screenshot/screenshot
-test.c
+./test.c
 clip_share
 clip_share_static
 clip_share_web
