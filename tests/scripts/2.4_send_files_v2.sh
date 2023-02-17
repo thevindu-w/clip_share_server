@@ -52,7 +52,7 @@ proto=$(printf "\x02" | xxd -p)
 method=$(printf "\x04" | xxd -p)
 fileCount=$(printf "%016x" $(printf "${#files[@]}"))
 
-responseDump=$(printf "${proto}${method}${fileCount}${chunks}" | xxd -r -p | nc 127.0.0.1 4337 | xxd -p | tr -d '\n')
+responseDump=$(printf "${proto}${method}${fileCount}${chunks}" | xxd -r -p | nc -w 1 127.0.0.1 4337 | xxd -p | tr -d '\n')
 
 protoAck=$(printf "\x01" | xxd -p)
 methodAck=$(printf "\x01" | xxd -p)

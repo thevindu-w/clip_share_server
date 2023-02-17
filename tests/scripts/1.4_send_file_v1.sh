@@ -22,7 +22,7 @@ mkdir -p copy && cd copy
 proto=$(printf "\x01" | xxd -p)
 method=$(printf "\x04" | xxd -p)
 
-responseDump=$(printf "${proto}${method}${body}" | xxd -r -p | nc 127.0.0.1 4337 | xxd -p | tr -d '\n')
+responseDump=$(printf "${proto}${method}${body}" | xxd -r -p | nc -w 1 127.0.0.1 4337 | xxd -p | tr -d '\n')
 
 protoAck=$(printf "\x01" | xxd -p)
 methodAck=$(printf "\x01" | xxd -p)
