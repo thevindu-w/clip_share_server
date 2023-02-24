@@ -43,16 +43,21 @@ for f in *; do
 done
 
 cd ..
-mkdir -p copies && cd copies
+mkdir -p copies
+mv clipshare.conf copies/
+cd copies
 
 # restart the server in new directory
 "../../../$1" -r &> /dev/null
+
+# remove the conf file
+rm -f clipshare.conf
 
 proto=$(printf "\x02" | xxd -p)
 method=$(printf "\x04" | xxd -p)
 fileCount=$(printf "%016x" $(printf "${#files[@]}"))
 
-responseDump=$(printf "${proto}${method}${fileCount}${chunks}" | xxd -r -p | nc -w 1 127.0.0.1 4337 | xxd -p | tr -d '\n')
+responseDump=$(printf "${proto}${method}${fileCount}${chunks}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
 
 protoAck=$(printf "\x01" | xxd -p)
 methodAck=$(printf "\x01" | xxd -p)

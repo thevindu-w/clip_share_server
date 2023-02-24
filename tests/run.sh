@@ -7,6 +7,11 @@ if ! type nc &> /dev/null; then
     exit 1
 fi
 
+if ! type openssl &> /dev/null; then
+    echo \"nc\" not found
+    exit 1
+fi
+
 if ! type "../${program}" &> /dev/null; then
     echo "\"../${program}\" not found"
     exit 1

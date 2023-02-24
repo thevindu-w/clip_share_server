@@ -14,15 +14,20 @@ content=$(cat "${fileName}" | xxd -p | tr -d '\n')
 body="${nameLength}$(printf "${fileName}" | xxd -p)${fileSize}${content}"
 
 cd ..
-mkdir -p copy && cd copy
+mkdir -p copy
+mv clipshare.conf copy/
+cd copy
 
 # restart the server in new directory
 "../../../$1" -r &> /dev/null
 
+# remove the conf file
+rm -f clipshare.conf
+
 proto=$(printf "\x01" | xxd -p)
 method=$(printf "\x04" | xxd -p)
 
-responseDump=$(printf "${proto}${method}${body}" | xxd -r -p | nc -w 1 127.0.0.1 4337 | xxd -p | tr -d '\n')
+responseDump=$(printf "${proto}${method}${body}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
 
 protoAck=$(printf "\x01" | xxd -p)
 methodAck=$(printf "\x01" | xxd -p)

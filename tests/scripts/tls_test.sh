@@ -1,8 +1,10 @@
 #!/bin/bash
 
+export SECURE=1
+
 . init.sh
 
-sample="This is a sample text"
+sample="This is a sample text for secure mode"
 
 printf "${sample}" | xclip -in -sel clip
 

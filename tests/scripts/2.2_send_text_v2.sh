@@ -9,7 +9,7 @@ method=$(printf "\x02" | xxd -p)
 length=$(printf "%016x" $(printf "${sample}" | wc -c))
 sampleDump=$(printf "${sample}" | xxd -c 256 -p)
 
-response=$(printf "${proto}${method}${length}${sampleDump}" | xxd -r -p | nc -w 1 127.0.0.1 4337 | xxd -p | tr -d '\n')
+response=$(printf "${proto}${method}${length}${sampleDump}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
 
 protoAck=$(printf "\x01" | xxd -p)
 methodAck=$(printf "\x01" | xxd -p)

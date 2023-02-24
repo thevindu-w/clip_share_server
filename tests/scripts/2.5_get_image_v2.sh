@@ -11,7 +11,7 @@ printf "${imgSample}" | xxd -r -p | xclip -in -sel clip -t image/png
 proto=$(printf "\x01" | xxd -p)
 method=$(printf "\x05" | xxd -p)
 
-responseDump=$(printf "${proto}${method}" | xxd -r -p | nc -w 1 127.0.0.1 4337 | xxd -p | tr -d '\n')
+responseDump=$(printf "${proto}${method}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
 
 protoAck=$(printf "\x01" | xxd -p)
 methodAck=$(printf "\x01" | xxd -p)
