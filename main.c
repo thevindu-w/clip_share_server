@@ -41,10 +41,6 @@
 // tcp
 #define WEB_PORT 4339
 
-extern char blob_cert[];
-extern char blob_key[];
-extern char blob_ca_cert[];
-
 static void print_usage(const char *);
 static void kill_other_processes(const char *);
 
@@ -275,9 +271,6 @@ int main(int argc, char **argv)
     cfg.web_port = web_port;
     cfg.web_mode_enabled = cfg.web_mode_enabled >= 0 ? cfg.web_mode_enabled : 1;
 #endif
-    cfg.priv_key = cfg.priv_key ? cfg.priv_key : blob_key;
-    cfg.server_cert = cfg.server_cert ? cfg.server_cert : blob_cert;
-    cfg.ca_cert = cfg.ca_cert ? cfg.ca_cert : blob_ca_cert;
 
 #ifdef __linux__
     if (cfg.insecure_mode_enabled)

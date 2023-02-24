@@ -262,7 +262,9 @@ int web_server(config cfg)
 #ifdef __linux__
     signal(SIGCHLD, SIG_IGN);
 #endif
-    listener_t listener = open_listener_socket(1, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
+    // Use TLS if keys and certs are provided. Otherwise connect without TLS.
+    int secure = (cfg.priv_key != NULL && cfg.server_cert != NULL && cfg.ca_cert != NULL);
+    listener_t listener = open_listener_socket(secure, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
     if (bind_port(listener, cfg.web_port) != EXIT_SUCCESS)
     {
         return EXIT_FAILURE;

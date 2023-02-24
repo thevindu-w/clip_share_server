@@ -49,7 +49,7 @@ int clip_share(const int secure, config cfg)
     unsigned short port = 0;
     if (secure == SECURE)
     {
-        if (cfg.allowed_clients == NULL || cfg.allowed_clients->len <= 0 || cfg.app_port_secure <= 0)
+        if (cfg.allowed_clients == NULL || cfg.allowed_clients->len <= 0 || cfg.app_port_secure <= 0 || cfg.priv_key == NULL || cfg.server_cert == NULL || cfg.ca_cert == NULL)
         {
 #ifdef DEBUG_MODE
             puts("Invalid config for secure mode");
