@@ -17,14 +17,10 @@ showStatus () {
 program=$1
 shopt -s expand_aliases
 if [[ "${SECURE}" == "1" ]]; then
-    # echo "Setting secure alias"
     alias client_tool='openssl s_client -tls1_3 -quiet -verify_quiet -noservername -connect 127.0.0.1:4338 -CAfile testCA.crt -cert testClient_cert.pem -key testClient_key.pem'
 else
-    # echo "Setting insecure alias"
     alias client_tool='nc -w 1 127.0.0.1 4337'
 fi
-# alias client_tool='nc -w 1 127.0.0.1 4337'
-# client_tool
 
 rm -rf tmp
 cp -r config tmp

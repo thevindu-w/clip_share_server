@@ -70,8 +70,8 @@ static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *
     }
 
     BIO *kbio = BIO_new_mem_buf((void *)priv_key_buf, -1);
-    RSA *rsa = PEM_read_bio_RSAPrivateKey(kbio, NULL, 0, NULL);
-    if (SSL_CTX_use_RSAPrivateKey(ctx, rsa) <= 0)
+    EVP_PKEY *key = PEM_read_bio_PrivateKey(kbio, NULL, 0, NULL);
+    if (SSL_CTX_use_PrivateKey(ctx, key) <= 0)
     {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
@@ -100,6 +100,7 @@ static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *
     }
 
     SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
+    SSL_CTX_set_verify_depth(ctx, 1);
     return EXIT_SUCCESS;
 }
 
@@ -163,6 +164,9 @@ listener_t open_listener_socket(const int ssl_enabled, const char *priv_key, con
     /* load certs and keys */
     if (LoadCertificates(ctx, priv_key, server_cert, ca_cert) != EXIT_SUCCESS)
     {
+#ifdef DEBUG_MODE
+    fputs("Loading certificates failed\n", stderr);
+#endif
         return listener;
     }
     listener.ctx = ctx;
@@ -263,8 +267,6 @@ socket_t get_connection(listener_t listener, list2 *allowed_clients)
                 return sock;
             }
             }
-            // ERR_print_errors_fp(stdout);
-            // goto END;
         }
         sock.ssl = ssl;
         sock.type = SSL_SOCK;
