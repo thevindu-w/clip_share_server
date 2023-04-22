@@ -22,7 +22,7 @@ INFO_NAME=clip_share
 PROGRAM_NAME=clip_share
 PROGRAM_NAME_WEB=clip_share_web
 
-ifeq ($(OS),Windows_NT) 
+ifeq ($(OS),Windows_NT)
     detected_OS := Windows
 else
     detected_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
@@ -68,10 +68,10 @@ $(PROGRAM_NAME): $(SRC_FILES) winres/app.res
 
 endif
 
-$(filter %.o,$(OBJS) $(WEB_OBJS_C)): %.o: %.c
+$(OBJS) $(WEB_OBJS_C): %.o: %.c
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $< -o $@
 
-$(filter %.o,$(WEB_OBJS_S)): %.o: %.S
+$(WEB_OBJS_S): %.o: %.S
 	gcc $(CFLAGS_DEBUG) $(CFLAGS) $< -o $@
 
 ifeq ($(detected_OS),Windows)
