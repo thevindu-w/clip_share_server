@@ -124,11 +124,11 @@ static void parse_line(char *line, config *cfg)
     }
     else if (!strcmp("insecure_mode_enabled", key))
     {
-        if (!strcasecmp("true",value) || !strcmp("1",value))
+        if (!strcasecmp("true", value) || !strcmp("1", value))
         {
             cfg->insecure_mode_enabled = 1;
         }
-        else if (!strcasecmp("false",value) || !strcmp("0",value))
+        else if (!strcasecmp("false", value) || !strcmp("0", value))
         {
             cfg->insecure_mode_enabled = 0;
         }
@@ -143,11 +143,11 @@ static void parse_line(char *line, config *cfg)
     }
     else if (!strcmp("secure_mode_enabled", key))
     {
-        if (!strcasecmp("true",value) || !strcmp("1",value))
+        if (!strcasecmp("true", value) || !strcmp("1", value))
         {
             cfg->secure_mode_enabled = 1;
         }
-        else if (!strcasecmp("false",value) || !strcmp("0",value))
+        else if (!strcasecmp("false", value) || !strcmp("0", value))
         {
             cfg->secure_mode_enabled = 0;
         }
@@ -163,11 +163,11 @@ static void parse_line(char *line, config *cfg)
     }
     else if (!strcmp("web_mode_enabled", key))
     {
-        if (!strcasecmp("true",value) || !strcmp("1",value))
+        if (!strcasecmp("true", value) || !strcmp("1", value))
         {
             cfg->web_mode_enabled = 1;
         }
-        else if (!strcasecmp("false",value) || !strcmp("0",value))
+        else if (!strcasecmp("false", value) || !strcmp("0", value))
         {
             cfg->web_mode_enabled = 0;
         }
@@ -203,6 +203,11 @@ static void parse_line(char *line, config *cfg)
         if (client_list)
             cfg->allowed_clients = client_list;
     }
+    else if (!strcmp("working_dir", key))
+    {
+        if (strlen(value) > 0)
+            cfg->working_dir = strdup(value);
+    }
 }
 
 config parse_conf(const char *conf_file)
@@ -224,6 +229,8 @@ config parse_conf(const char *conf_file)
     cfg.ca_cert = NULL;
     cfg.allowed_clients = NULL;
 
+    cfg.working_dir = NULL;
+
     FILE *f = fopen(conf_file, "r");
     if (!f)
     {
@@ -234,6 +241,7 @@ config parse_conf(const char *conf_file)
     }
 
     char line[2048];
+    line[2047] = 0;
     while (fscanf(f, "%2047[^\n]%*c", line) != EOF)
     {
         parse_line(line, &cfg);

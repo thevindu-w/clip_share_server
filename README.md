@@ -40,7 +40,9 @@ The following development libraries are required.
 * libssl (provided by openssl)
 
 ### SSL/TLS certificate and key files
-The following files should be created and placed in cert_keys/ directory.
+**Note** : This section is optional if you do not need the TLS encrypted mode and the web mode.
+<br>
+The following files should be created and placed in the `cert_keys/` directory and specified in the configuration file `clipshare.conf`. You may use different file names and paths to store the keys and certificates.
 * ``server.key`` &ensp; : &nbsp; SSL/TLS key file for the server
 * ``server.crt`` &ensp; : &nbsp; SSL/TLS certificate file of the server
 * ``ca.crt`` &emsp;&emsp;&ensp; : &nbsp; SSL/TLS certificate of the CA which signed the server.crt
@@ -61,7 +63,7 @@ This will generate the web server enabled executable which is named clip_share_w
 <br>
 
 ## Allow through firewall
-This server listens on ports,
+This server listens on the following ports (unless different ports are assigned from the configuration),
 
 * ``4337`` &nbsp;&nbsp; ``TCP`` &nbsp;&nbsp; : &nbsp;&nbsp; For application traffic (not encrypted)
 * ``4337`` &nbsp;&nbsp; ``UDP`` &nbsp;&nbsp; : &nbsp;&nbsp; For network scanning
@@ -101,12 +103,20 @@ You may need to allow incoming connections to the above ports for the client to 
       server_cert=cert_keys/server.crt
       ca_cert=cert_keys/ca.crt
       allowed_clients=allowed_clients.txt
+      working_dir=./path/to/work_dir
 
-You may ommit some lines if they need to get their default values.
+Note that all the lines in the configuration file are optional. You may omit some lines if they need to get their default values.
 
-* ``server.key`` is the SSL private key file of server.
-* ``server.crt`` is the SSL certificate file of server.
-* ``ca.crt`` is the SSL certificate file of the CA which signed the certificate of the server.
-* ``allowed_clients.txt`` is a text file containing a list of allowd clients (Common Name of client certificate), one name per each line
+* `insecure_mode_enabled`: Whether or not the application listens for unencrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. The default value is `1`.
+* `app_port`: The port on which the application listens for unencrypted TCP connections. The application listens on the same port for UDP for network scanning. The default value is `4337`
+* `secure_mode_enabled`: Whether or not the application listens for TLS-encrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. The default value is `1`.
+* `app_port_secure`: The TCP port on which the application listens for TLS-encrypted connections. The default value is `4338`
+* `web_mode_enabled`: Whether or not the application listens for TLS-encrypted connections from web clients if the web mode is available. The values `true` or `1` will enable it, while `false` or `0` will disable it. The default value is `1`.
+* `web_port`: The TCP port on which the application listens for TLS-encrypted connections for web clients. This setting is used only if web mode is available. The default value is `4339`
+* `server_key`: The TLS private key file of the server. If this is not specified, secure mode will be disabled.
+* `server_cert`: The TLS certificate file of the server. If this is not specified, secure mode will be disabled.
+* `ca_cert`: The TLS certificate file of the CA that signed the TLS certificate of the server. If this is not specified, secure mode will be disabled.
+* `allowed_clients`: The text file containing a list of allowed clients (Common Name of client certificate), one name per each line. If this is not specified, secure mode will be disabled.
+* `working_dir`: The working directory where the application should run. All the files, that are sent from a client, will be saved in this directory. This path can be an absolute or a relative path to an existing directory. It will follow symlinks. The default value is the current directory.
 
-You may change those values. But it is recommended to keep the port numbers unchanged.
+You may change those values. But it is recommended to keep the port numbers unchanged. If the port numbers are changed, client application configurations may also need to be changed as appropriate to connect to the server.

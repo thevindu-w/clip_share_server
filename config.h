@@ -35,6 +35,7 @@ typedef struct _config
     char *server_cert;
     char *ca_cert;
     list2 *allowed_clients;
+    char *working_dir;
 } config;
 
 extern config parse_conf(const char *);

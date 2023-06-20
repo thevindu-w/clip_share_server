@@ -93,6 +93,12 @@ extern ssize_t get_file_size(FILE *fp);
 extern int file_exists(const char *file_name);
 
 /*
+ * Check if the file at path is a directory.
+ * returns 1 if its a directory or 0 otherwise
+ */
+extern int is_directory(const char *path, int follow_symlinks);
+
+/*
  * Creates the directory given by the path and all its parent directories if missing.
  * Will not delete any existing files or directories.
  * returns EXIT_SUCCESS on success and EXIT_FAILURE on failure.

@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include "config.h"
 #include "servers.h"
@@ -271,6 +272,26 @@ int main(int argc, char **argv)
     cfg.web_port = web_port;
     cfg.web_mode_enabled = cfg.web_mode_enabled >= 0 ? cfg.web_mode_enabled : 1;
 #endif
+
+    if (cfg.working_dir)
+    {
+        if (!is_directory(cfg.working_dir, 1))
+        {
+            char err[3072];
+            sprintf(err, "Working directory \'%s\' does not exist", cfg.working_dir);
+            fprintf(stderr, "%s\n", err);
+            error(err);
+            exit(1);
+        }
+        if (chdir(cfg.working_dir))
+        {
+            char err[3072];
+            sprintf(err, "Changing working directory to \'%s\' failed", cfg.working_dir);
+            fprintf(stderr, "%s\n", err);
+            error(err);
+            exit(1);
+        }
+    }
 
 #ifdef __linux__
     if (cfg.insecure_mode_enabled)

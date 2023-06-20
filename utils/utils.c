@@ -80,18 +80,16 @@ ssize_t get_file_size(FILE *fp)
     return file_size;
 }
 
-/*
- * Check if the file at path is a directory.
- * returns 1 if its a directory or 0 otherwise
- */
-static int is_directory(const char *path)
+int is_directory(const char *path, int follow_symlinks)
 {
     if (path[0] == 0)
         return 0; // empty path
     struct stat sb;
 #ifdef __linux__
-    if (lstat(path, &sb) == 0)
+    int (*stat_fn)(const char *__restrict__, struct stat *__restrict__) = follow_symlinks ? stat : lstat;
+    if (stat_fn(path, &sb) == 0)
 #elif _WIN32
+    (void)follow_symlinks;
     if (stat(path, &sb) == 0)
 #endif
     {
@@ -114,14 +112,14 @@ int mkdirs(const char *dir_path)
 
     if (file_exists(dir_path))
     {
-        if (is_directory(dir_path))
+        if (is_directory(dir_path, 0))
             return EXIT_SUCCESS;
         else
             return EXIT_FAILURE;
     }
 
     size_t len = strlen(dir_path);
-    char path[len+1];
+    char path[len + 1];
     strcpy(path, dir_path);
 
     for (size_t i = 0; i <= len; i++)
@@ -131,7 +129,7 @@ int mkdirs(const char *dir_path)
             path[i] = 0;
             if (file_exists(path))
             {
-                if (!is_directory(path))
+                if (!is_directory(path, 0))
                     return EXIT_FAILURE;
             }
             else
