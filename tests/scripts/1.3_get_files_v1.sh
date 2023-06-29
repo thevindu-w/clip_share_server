@@ -26,7 +26,7 @@ cd ..
 urls=""
 for f in original/*; do
     absPath=$(realpath "${f}")
-    fPathUrl=$(python -c "import urllib;print urllib.quote(raw_input())" <<< "${absPath}")
+    fPathUrl=$(python2 -c "import urllib;print urllib.quote(raw_input())" <<< "${absPath}")
     urls+=$'\n'"file://${fPathUrl}"
 done
 

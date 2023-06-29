@@ -22,8 +22,8 @@ if ! type xclip &> /dev/null; then
     exit 1
 fi
 
-if ! type python &> /dev/null; then
-    echo \"python\" not found
+if ! type python2 &> /dev/null; then
+    echo \"python2\" not found
     exit 1
 fi
 
