@@ -1,10 +1,12 @@
 name: Build and Test clip_share_server
-run-name: building and testing clip_share_server
+run-name: Build and Test on ${{ github.sha }}
 on:
   push:
     branches:
       - master
-      - github_workflow
+  pull_request:
+    branches:
+      - master
 jobs:
   Build-and-Test:
     runs-on:  ubuntu-20.04
@@ -26,4 +28,4 @@ jobs:
           echo "Testing..."
           sudo Xvfb :0 -screen 0 1280x720x30 > /dev/null 2>&1 &
           make test
-          echo "Passed test"
+          echo "Passed Test"
