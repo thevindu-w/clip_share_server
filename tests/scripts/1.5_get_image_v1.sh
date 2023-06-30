@@ -19,7 +19,7 @@ length=$(printf "%016x" $(($(printf "${imgSample}" | wc -c)/2)))
 
 expected="${protoAck}${methodAck}${length}${imgSample}"
 
-if [[ "${responseDump}" != "${expected}" ]]; then
+if [ "${responseDump}" != "${expected}" ]; then
     showStatus fail "Incorrect server response."
     exit 1
 fi

@@ -11,7 +11,7 @@ printf "${sample}" | xclip -in -sel clip
 proto=$(printf "\x02" | xxd -p)
 method=$(printf "\x01" | xxd -p)
 
-responseDump=$(printf "${proto}${method}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
+responseDump=$(printf "${proto}${method}" | xxd -r -p | client_tool 2> /dev/null | xxd -p | tr -d '\n')
 
 protoAck=$(printf "\x01" | xxd -p)
 methodAck=$(printf "\x01" | xxd -p)
@@ -20,7 +20,7 @@ sampleDump=$(printf "${sample}" | xxd -p | tr -d '\n')
 
 expected="${protoAck}${methodAck}${length}${sampleDump}"
 
-if [[ "${responseDump}" != "${expected}" ]]; then
+if [ "${responseDump}" != "${expected}" ]; then
     showStatus fail "Incorrect server response."
     exit 1
 fi

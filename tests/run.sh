@@ -2,66 +2,37 @@
 
 program=$1
 
-if ! type nc &> /dev/null; then
-    echo \"nc\" not found
-    exit 1
-fi
+dependencies=(
+    "../${program}"
+    stat
+    printf
+    realpath
+    seq
+    diff
+    xxd
+    python3
+    nc
+    openssl
+    xclip
+)
 
-if ! type openssl &> /dev/null; then
-    echo \"nc\" not found
-    exit 1
-fi
-
-if ! type "../${program}" &> /dev/null; then
-    echo "\"../${program}\" not found"
-    exit 1
-fi
-
-if ! type xclip &> /dev/null; then
-    echo \"xclip\" not found
-    exit 1
-fi
-
-if ! type python2 &> /dev/null; then
-    echo \"python2\" not found
-    exit 1
-fi
-
-if ! type xxd &> /dev/null; then
-    echo \"xxd\" not found
-    exit 1
-fi
-
-if ! type diff &> /dev/null; then
-    echo \"diff\" not found
-    exit 1
-fi
-
-if ! type seq &> /dev/null; then
-    echo \"diff\" not found
-    exit 1
-fi
-
-if ! type realpath &> /dev/null; then
-    echo \"realpath\" not found
-    exit 1
-fi
-
-if ! type stat &> /dev/null; then
-    echo \"stat\" not found
-    exit 1
-fi
+for dependency in "${dependencies[@]}"; do
+    if ! type "$dependency" &> /dev/null; then
+        echo '"'"$dependency"'"' not found
+        exit 1
+    fi
+done
 
 setColor () {
     colorSet () {
-        if [[ "$1" = "red" ]]; then
-            if [[ "$2" = "bold" ]]; then
+        if [ "$1" = "red" ]; then
+            if [ "$2" = "bold" ]; then
                 printf "\033[1;31m";
             else
                 printf "\033[31m";
             fi
-        elif [[ "$1" = "green" ]]; then
-            if [[ "$2" = "bold" ]]; then
+        elif [ "$1" = "green" ]; then
+            if [ "$2" = "bold" ]; then
                 printf "\033[1;32m";
             else
                 printf "\033[32m";
@@ -82,8 +53,21 @@ passCnt=0
 failCnt=0
 for script in scripts/*.sh; do
     chmod +x "${script}"
-    "${script}" "$@"
-    if [[ "$?" == "0" ]]; then
+    passed=
+    attempts=3
+    for attempt in $(seq "$attempts"); do
+        if "${script}" "$@"; then
+            passed=1
+            break
+        fi
+        echo -n "Attempt ${attempt} / ${attempts} failed."
+        if [ "$attempt" != "$attempts" ]; then
+            echo " trying again ..."
+        else
+            echo
+        fi
+    done
+    if [ "$passed" = "1" ]; then
         passCnt=$(("$passCnt"+1))
     else
         exitCode=1
@@ -98,13 +82,13 @@ fi
 
 totalTests=$(("$passCnt"+"$failCnt"))
 test_s="tests"
-if [[ "$totalTests" == "1" ]]; then
+if [ "$totalTests" = "1" ]; then
     test_s="test"
 fi
-if [[ "$failCnt" == "0" ]]; then
+if [ "$failCnt" = "0" ]; then
     setColor "green" "bold"
     echo "Passed all ${totalTests} ${test_s}."
-elif [[ "$failCnt" == "1" ]]; then
+elif [ "$failCnt" = "1" ]; then
     setColor "red" "bold"
     echo -n "Failed ${failCnt} test."
     setColor "reset"

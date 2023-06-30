@@ -15,7 +15,7 @@ jobs:
       - name: Install required packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc make xvfb openssl xclip python2.7 xxd diffutils coreutils netcat libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev
+          sudo apt-get install -y gcc make xvfb openssl xclip python3.8-minimal xxd diffutils coreutils netcat libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Build and Test

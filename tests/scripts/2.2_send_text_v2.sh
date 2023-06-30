@@ -16,14 +16,14 @@ methodAck=$(printf "\x01" | xxd -p)
 
 expected="${protoAck}${methodAck}"
 
-if [[ "${response}" != "${expected}" ]]; then
+if [ "${response}" != "${expected}" ]; then
     showStatus fail "Incorrect server response."
     exit 1
 fi
 
 clip=$(xclip -out -sel clip)
 
-if [[ "${clip}" != "${sample}" ]]; then
+if [ "${clip}" != "${sample}" ]; then
     showStatus fail "Clipcoard content not matching."
     exit 1
 fi

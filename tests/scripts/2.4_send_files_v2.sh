@@ -64,7 +64,7 @@ methodAck=$(printf "\x01" | xxd -p)
 
 expected="${protoAck}${methodAck}"
 
-if [[ "${responseDump}" != "${expected}" ]]; then
+if [ "${responseDump}" != "${expected}" ]; then
     showStatus fail "Incorrect response."
     exit 1
 fi

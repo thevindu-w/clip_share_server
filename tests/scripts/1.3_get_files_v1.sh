@@ -26,7 +26,7 @@ cd ..
 urls=""
 for f in original/*; do
     absPath=$(realpath "${f}")
-    fPathUrl=$(python2 -c "import urllib;print urllib.quote(raw_input())" <<< "${absPath}")
+    fPathUrl=$(python3 -c 'from urllib import parse;print(parse.quote(input()))' <<< "${absPath}")
     urls+=$'\n'"file://${fPathUrl}"
 done
 
@@ -43,7 +43,7 @@ fileCount=$(printf "%016x" $(printf "${#files[@]}"))
 
 expected="${protoAck}${methodAck}${fileCount}${chunks}"
 
-if [[ "${responseDump}" != "${expected}" ]]; then
+if [ "${responseDump}" != "${expected}" ]; then
     showStatus fail "Incorrect server response."
     exit 1
 fi
