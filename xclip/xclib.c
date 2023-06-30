@@ -455,7 +455,7 @@ int xcin(Display *dpy,
 		chunk_len = chunk_size;
 
 		/* if a chunk length of maximum size would extend
-		 * beyond the end ot txt, set the length to be the
+		 * beyond the end of txt, set the length to be the
 		 * remaining length of txt
 		 */
 		if ((*pos + chunk_len) > len)

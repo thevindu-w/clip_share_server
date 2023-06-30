@@ -63,7 +63,7 @@ int tempi = 0;
 static int
 doIn(Window win, unsigned long len, const char *buf)
 {
-	unsigned char *sel_buf;		 /* buffer for selection data */
+	unsigned char *sel_buf = NULL;		 /* buffer for selection data */
 	unsigned long sel_len = len; /* length of sel_buf */
 	XEvent evt;					 /* X Event Structures */
 	int dloop = 0;				 /* done loops counter */
@@ -130,7 +130,7 @@ static int
 doOut(Window win, unsigned long *length, char **buf)
 {
 	Atom sel_type = None;
-	unsigned char *sel_buf;	   /* buffer for selection data */
+	unsigned char *sel_buf = NULL;	   /* buffer for selection data */
 	unsigned long sel_len = 0; /* length of sel_buf */
 	XEvent evt;				   /* X Event Structures */
 	unsigned int context = XCLIB_XCOUT_NONE;
