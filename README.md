@@ -22,16 +22,19 @@ The following development libraries are required.
 They can be installed with the following command:
 
 * on Debian or Ubuntu based distros,
-
-      sudo apt-get install libx11-dev libxmu-dev libpng-dev libssl-dev
+```bash
+sudo apt-get install libx11-dev libxmu-dev libpng-dev libssl-dev
+```
 
 * on Redhat or Fedora based distros,
-
-      sudo yum install libX11-devel libXmu-devel libpng-devel openssl-devel
+```bash
+sudo yum install libX11-devel libXmu-devel libpng-devel openssl-devel
+```
 
 * on Arch based distros,
-
-      sudo pacman -S libx11 libxmu libpng openssl
+```bash
+sudo pacman -S libx11 libxmu libpng openssl
+```
 
 #### Windows
 The following development libraries are required.
@@ -49,15 +52,15 @@ The following files should be created and placed in the `cert_keys/` directory a
 
 ### Compiling
 Run the following command to make the executable file.
-
-    make
-
+```bash
+make
+```
 This will generate the executable which is named clip_share (or clip_share.exe on Windows).
 
 To compile with the web server enabled, (Currently, this is supported only on Linux)
-
-    make web
-
+```bash
+make web
+```
 This will generate the web server enabled executable which is named clip_share_web.
 
 <br>
@@ -75,35 +78,37 @@ You may need to allow incoming connections to the above ports for the client to 
 <br>
 
 ## How to use
-* Run the server
+### Run the server
 
-    When the server is started, it will not open any window. Instead, it will run in the background.
-    If the program is started from the terminal, it should return immediately (server will continue to run in the background).
-    If something goes wrong, a server_err.log file will be created and it will contain what went wrong.
+When the server is started, it will not open any window. Instead, it will run in the background.
+If the program is started from the terminal, it should return immediately (server will continue to run in the background).
+If something goes wrong, a server_err.log file will be created and it will contain what went wrong.
 
-* Connect the client application
+### Connect the client application
 
-    Open the client application on any other device on the same network.
-    If the client supports network scanning, the server can be easily found. Otherwise, enter the server's IPv4 address to the client.
-    Now the client should be able to share clipboard data, files, and get images from the server.
-    Note that the client should be allowed through the firewall as mentioned in the above section.
+Open the client application on any other device on the same network.
+If the client supports network scanning, the server can be easily found. Otherwise, enter the server's IPv4 address to the client.
+Now the client should be able to share clipboard data, files, and get images from the server.
+Note that the client should be allowed through the firewall as mentioned in the above section.
 
 <br>
 
 ## Configuration
-* Create a file named &nbsp; ``clipshare.conf`` &nbsp; and add the following lines into that configuration file
+Create a file named &nbsp; ``clipshare.conf`` &nbsp; and add the following lines into that configuration file
 
-      app_port=4337
-      app_port_secure=4338
-      web_port=4339
-      insecure_mode_enabled=true
-      secure_mode_enabled=true
-      web_mode_enabled=true
-      server_key=cert_keys/server.key
-      server_cert=cert_keys/server.crt
-      ca_cert=cert_keys/ca.crt
-      allowed_clients=allowed_clients.txt
-      working_dir=./path/to/work_dir
+```properties
+app_port=4337
+app_port_secure=4338
+web_port=4339
+insecure_mode_enabled=true
+secure_mode_enabled=true
+web_mode_enabled=true
+server_key=cert_keys/server.key
+server_cert=cert_keys/server.crt
+ca_cert=cert_keys/ca.crt
+allowed_clients=allowed_clients.txt
+working_dir=./path/to/work_dir
+```
 
 Note that all the lines in the configuration file are optional. You may omit some lines if they need to get their default values.
 

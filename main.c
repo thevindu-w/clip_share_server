@@ -337,6 +337,9 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
     HANDLE insecureThread = NULL, secureThread = NULL;
+#ifndef NO_WEB
+    HANDLE webThread = NULL;
+#endif
     if (cfg.insecure_mode_enabled)
     {
         config *cfg_insec_ptr = malloc(sizeof(config));
@@ -368,7 +371,7 @@ int main(int argc, char **argv)
     {
         config *cfg_web_ptr = malloc(sizeof(config));
         memcpy(cfg_web_ptr, &cfg, sizeof(config));
-        HANDLE webThread = CreateThread(NULL, 0, webThreadFn, (void *)cfg_web_ptr, 0, NULL);
+        webThread = CreateThread(NULL, 0, webThreadFn, (void *)cfg_web_ptr, 0, NULL);
 #ifdef DEBUG_MODE
         if (webThread == NULL)
         {
@@ -392,7 +395,10 @@ int main(int argc, char **argv)
         WaitForSingleObject(insecureThread, INFINITE);
     if (secureThread != NULL)
         WaitForSingleObject(secureThread, INFINITE);
-
+#ifndef NO_WEB
+    if (webThread != NULL)
+        WaitForSingleObject(webThread, INFINITE);
+#endif
 #endif
     return EXIT_SUCCESS;
 }
