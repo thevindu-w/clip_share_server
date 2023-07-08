@@ -37,6 +37,8 @@
 extern char blob_page[];
 extern int blob_size_page;
 
+config configuration;
+
 static int say(char *, socket_t *);
 static void receiver_web(socket_t *);
 
@@ -250,9 +252,9 @@ static DWORD WINAPI webServerThreadFn(void *arg)
 }
 #endif
 
-int web_server(config cfg)
+int web_server()
 {
-    if (cfg.allowed_clients == NULL || cfg.allowed_clients->len <= 0 || cfg.web_port <= 0)
+    if (configuration.allowed_clients == NULL || configuration.allowed_clients->len <= 0 || configuration.web_port <= 0)
     {
 #ifdef DEBUG_MODE
         puts("Invalid config for web server");
@@ -263,9 +265,9 @@ int web_server(config cfg)
     signal(SIGCHLD, SIG_IGN);
 #endif
     // Use TLS if keys and certs are provided. Otherwise connect without TLS.
-    int secure = (cfg.priv_key != NULL && cfg.server_cert != NULL && cfg.ca_cert != NULL);
-    listener_t listener = open_listener_socket(secure, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
-    if (bind_port(listener, cfg.web_port) != EXIT_SUCCESS)
+    int secure = (configuration.priv_key != NULL && configuration.server_cert != NULL && configuration.ca_cert != NULL);
+    listener_t listener = open_listener_socket(secure, configuration.priv_key, configuration.server_cert, configuration.ca_cert);
+    if (bind_port(listener, configuration.web_port) != EXIT_SUCCESS)
     {
         return EXIT_FAILURE;
     }
@@ -276,7 +278,7 @@ int web_server(config cfg)
     }
     while (1)
     {
-        socket_t connect_sock = get_connection(listener, cfg.allowed_clients);
+        socket_t connect_sock = get_connection(listener, configuration.allowed_clients);
         if (connect_sock.type == NULL_SOCK)
         {
             close_socket(&connect_sock);

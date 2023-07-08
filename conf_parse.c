@@ -237,6 +237,7 @@ config parse_conf(const char *conf_file)
 #ifdef DEBUG_MODE
         printf("Error opening conf file\n");
 #endif
+        puts("Using default configurations");
         return cfg;
     }
 

@@ -21,6 +21,7 @@
 #include "proto/server.h"
 #include "servers.h"
 #include "config.h"
+#include "globals.h"
 
 #include <stdlib.h>
 #ifdef __linux__
@@ -31,6 +32,8 @@
 #include <io.h>
 #include <windows.h>
 #endif
+
+config configuration;
 
 #ifdef _WIN32
 static DWORD WINAPI serverThreadFn(void *arg)
@@ -44,32 +47,32 @@ static DWORD WINAPI serverThreadFn(void *arg)
 }
 #endif
 
-int clip_share(const int secure, config cfg)
+int clip_share(const int is_secure)
 {
     unsigned short port = 0;
-    if (secure == SECURE)
+    if (is_secure == SECURE)
     {
-        if (cfg.allowed_clients == NULL || cfg.allowed_clients->len <= 0 || cfg.app_port_secure <= 0 || cfg.priv_key == NULL || cfg.server_cert == NULL || cfg.ca_cert == NULL)
+        if (configuration.allowed_clients == NULL || configuration.allowed_clients->len <= 0 || configuration.app_port_secure <= 0 || configuration.priv_key == NULL || configuration.server_cert == NULL || configuration.ca_cert == NULL)
         {
 #ifdef DEBUG_MODE
             puts("Invalid config for secure mode");
 #endif
             return EXIT_FAILURE;
         }
-        port = cfg.app_port_secure;
+        port = configuration.app_port_secure;
     }
     else
     {
-        if (cfg.app_port <= 0)
+        if (configuration.app_port <= 0)
         {
 #ifdef DEBUG_MODE
             puts("Invalid port for insecure mode");
 #endif
             return EXIT_FAILURE;
         }
-        port = cfg.app_port;
+        port = configuration.app_port;
     }
-    listener_t listener = open_listener_socket(secure, cfg.priv_key, cfg.server_cert, cfg.ca_cert);
+    listener_t listener = open_listener_socket(is_secure, configuration.priv_key, configuration.server_cert, configuration.ca_cert);
     if (bind_port(listener, port) != EXIT_SUCCESS)
     {
         return EXIT_FAILURE;
@@ -84,7 +87,7 @@ int clip_share(const int secure, config cfg)
 #endif
     while (1)
     {
-        socket_t connect_sock = get_connection(listener, cfg.allowed_clients);
+        socket_t connect_sock = get_connection(listener, configuration.allowed_clients);
         if (connect_sock.type == NULL_SOCK)
         {
             close_socket(&connect_sock);

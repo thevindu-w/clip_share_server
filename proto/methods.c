@@ -25,6 +25,7 @@
 #include "../utils/utils.h"
 #include "../utils/net_utils.h"
 #include "methods.h"
+#include "../globals.h"
 
 // status codes
 #define STATUS_OK 1
@@ -32,6 +33,8 @@
 
 #define FILE_BUF_SZ 65536
 #define MAX_FILE_SIZE 68719476736l
+
+config configuration;
 
 int get_text_v1(socket_t *socket)
 {
@@ -253,7 +256,7 @@ int send_file_v1(socket_t *socket)
     // if file already exists, use a different file name
     {
         char tmp_fname[name_length + 16];
-        if (strcmp(file_name, "clipshare.conf"))
+        if (configuration.working_dir!=NULL || strcmp(file_name, "clipshare.conf"))
         {
             sprintf(tmp_fname, ".%c%s", PATH_SEP, file_name);
         }
@@ -614,7 +617,7 @@ int send_files_v2(socket_t *socket)
         char old_path[name_len + 20];
         sprintf(old_path, "%s%c%s", dirname, PATH_SEP, filename);
         char new_path[name_len + 20];
-        if (strcmp(filename, "clipshare.conf"))
+        if (configuration.working_dir!=NULL || strcmp(filename, "clipshare.conf"))
         {
             sprintf(new_path, ".%c%s", PATH_SEP, filename); // "./" is important to prevent file names like "C:\path"
         }

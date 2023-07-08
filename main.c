@@ -22,6 +22,7 @@
 #include <fcntl.h>
 
 #include "config.h"
+#include "globals.h"
 #include "servers.h"
 #include "utils/utils.h"
 #include "utils/net_utils.h"
@@ -41,6 +42,8 @@
 #define APP_PORT_SECURE 4338
 // tcp
 #define WEB_PORT 4339
+
+config configuration;
 
 static void print_usage(const char *);
 static void kill_other_processes(const char *);
@@ -133,38 +136,30 @@ static void kill_other_processes(const char *prog_name)
 
 static DWORD WINAPI udpThreadFn(void *arg)
 {
-    config cfg;
-    memcpy(&cfg, arg, sizeof(config));
-    free(arg);
-    udp_server(cfg.app_port);
+    (void) arg;
+    udp_server(configuration.app_port);
     return EXIT_SUCCESS;
 }
 
 static DWORD WINAPI appThreadFn(void *arg)
 {
-    config cfg;
-    memcpy(&cfg, arg, sizeof(config));
-    free(arg);
-    clip_share(INSECURE, cfg);
+    (void) arg;
+    clip_share(INSECURE);
     return EXIT_SUCCESS;
 }
 
 static DWORD WINAPI appSecureThreadFn(void *arg)
 {
-    config cfg;
-    memcpy(&cfg, arg, sizeof(config));
-    free(arg);
-    clip_share(SECURE, cfg);
+    (void) arg;
+    clip_share(SECURE);
     return EXIT_SUCCESS;
 }
 
 #ifndef NO_WEB
 static DWORD WINAPI webThreadFn(void *arg)
 {
-    config cfg;
-    memcpy(&cfg, arg, sizeof(config));
-    free(arg);
-    web_server(cfg);
+    (void) arg;
+    web_server();
     return EXIT_SUCCESS;
 }
 #endif
@@ -187,15 +182,15 @@ int main(int argc, char **argv)
     printf("prog_name=%s\n", prog_name);
 #endif
 
-    config cfg = parse_conf("clipshare.conf");
+    configuration = parse_conf("clipshare.conf");
 
     // Parse args
     int stop = 0;
     int restart = 0;
-    unsigned short app_port = cfg.app_port > 0 ? cfg.app_port : APP_PORT;
-    unsigned short app_port_secure = cfg.app_port_secure > 0 ? cfg.app_port_secure : APP_PORT_SECURE;
+    unsigned short app_port = configuration.app_port > 0 ? configuration.app_port : APP_PORT;
+    unsigned short app_port_secure = configuration.app_port_secure > 0 ? configuration.app_port_secure : APP_PORT_SECURE;
 #ifndef NO_WEB
-    unsigned short web_port = cfg.web_port > 0 ? cfg.web_port : WEB_PORT;
+    unsigned short web_port = configuration.web_port > 0 ? configuration.web_port : WEB_PORT;
 #endif
 
     {
@@ -264,59 +259,73 @@ int main(int argc, char **argv)
             exit(EXIT_SUCCESS);
     }
 
-    cfg.app_port = app_port;
-    cfg.insecure_mode_enabled = cfg.insecure_mode_enabled >= 0 ? cfg.insecure_mode_enabled : 1;
-    cfg.app_port_secure = app_port_secure;
-    cfg.secure_mode_enabled = cfg.secure_mode_enabled >= 0 ? cfg.secure_mode_enabled : 1;
+    configuration.app_port = app_port;
+    configuration.insecure_mode_enabled = configuration.insecure_mode_enabled >= 0 ? configuration.insecure_mode_enabled : 1;
+    configuration.app_port_secure = app_port_secure;
+    configuration.secure_mode_enabled = configuration.secure_mode_enabled >= 0 ? configuration.secure_mode_enabled : 1;
 #ifndef NO_WEB
-    cfg.web_port = web_port;
-    cfg.web_mode_enabled = cfg.web_mode_enabled >= 0 ? cfg.web_mode_enabled : 1;
+    configuration.web_port = web_port;
+    configuration.web_mode_enabled = configuration.web_mode_enabled >= 0 ? configuration.web_mode_enabled : 1;
 #endif
 
-    if (cfg.working_dir)
+    if (configuration.working_dir)
     {
-        if (!is_directory(cfg.working_dir, 1))
+        if (!is_directory(configuration.working_dir, 1))
         {
             char err[3072];
-            sprintf(err, "Working directory \'%s\' does not exist", cfg.working_dir);
+            sprintf(err, "Working directory \'%s\' does not exist", configuration.working_dir);
             fprintf(stderr, "%s\n", err);
             error(err);
             exit(1);
         }
-        if (chdir(cfg.working_dir))
+        char *old_work_dir = getcwd(NULL, 0);
+        if (chdir(configuration.working_dir))
         {
             char err[3072];
-            sprintf(err, "Changing working directory to \'%s\' failed", cfg.working_dir);
+            sprintf(err, "Changing working directory to \'%s\' failed", configuration.working_dir);
             fprintf(stderr, "%s\n", err);
             error(err);
             exit(1);
         }
+        char *new_work_dir = getcwd(NULL, 0);
+        if (old_work_dir==NULL || new_work_dir==NULL) {
+            char *err = "Error occured during changing working directory.";
+            fprintf(stderr, "%s\n", err);
+            error(err);
+            exit(1);
+        }
+        // if the working directory did not change, set configuration.working_dir to NULL
+        if (!strcmp(old_work_dir, new_work_dir)){
+            configuration.working_dir = NULL;
+        }
+        free(old_work_dir);
+        free(new_work_dir);
     }
 
 #ifdef __linux__
-    if (cfg.insecure_mode_enabled)
+    if (configuration.insecure_mode_enabled)
     {
         pid_t p_clip = fork();
         if (p_clip == 0)
         {
-            return clip_share(INSECURE, cfg);
+            return clip_share(INSECURE);
         }
     }
-    if (cfg.secure_mode_enabled)
+    if (configuration.secure_mode_enabled)
     {
         pid_t p_clip_ssl = fork();
         if (p_clip_ssl == 0)
         {
-            return clip_share(SECURE, cfg);
+            return clip_share(SECURE);
         }
     }
 #ifndef NO_WEB
-    if (cfg.web_mode_enabled)
+    if (configuration.web_mode_enabled)
     {
         pid_t p_web = fork();
         if (p_web == 0)
         {
-            return web_server(cfg);
+            return web_server();
         }
     }
 #endif
@@ -340,11 +349,9 @@ int main(int argc, char **argv)
 #ifndef NO_WEB
     HANDLE webThread = NULL;
 #endif
-    if (cfg.insecure_mode_enabled)
+    if (configuration.insecure_mode_enabled)
     {
-        config *cfg_insec_ptr = malloc(sizeof(config));
-        memcpy(cfg_insec_ptr, &cfg, sizeof(config));
-        insecureThread = CreateThread(NULL, 0, appThreadFn, (void *)cfg_insec_ptr, 0, NULL);
+        insecureThread = CreateThread(NULL, 0, appThreadFn, NULL, 0, NULL);
 #ifdef DEBUG_MODE
         if (insecureThread == NULL)
         {
@@ -353,11 +360,9 @@ int main(int argc, char **argv)
 #endif
     }
 
-    if (cfg.secure_mode_enabled)
+    if (configuration.secure_mode_enabled)
     {
-        config *cfg_sec_ptr = malloc(sizeof(config));
-        memcpy(cfg_sec_ptr, &cfg, sizeof(config));
-        secureThread = CreateThread(NULL, 0, appSecureThreadFn, (void *)cfg_sec_ptr, 0, NULL);
+        secureThread = CreateThread(NULL, 0, appSecureThreadFn, NULL, 0, NULL);
 #ifdef DEBUG_MODE
         if (secureThread == NULL)
         {
@@ -367,11 +372,9 @@ int main(int argc, char **argv)
     }
 
 #ifndef NO_WEB
-    if (cfg.web_mode_enabled)
+    if (configuration.web_mode_enabled)
     {
-        config *cfg_web_ptr = malloc(sizeof(config));
-        memcpy(cfg_web_ptr, &cfg, sizeof(config));
-        webThread = CreateThread(NULL, 0, webThreadFn, (void *)cfg_web_ptr, 0, NULL);
+        webThread = CreateThread(NULL, 0, webThreadFn, NULL, 0, NULL);
 #ifdef DEBUG_MODE
         if (webThread == NULL)
         {
@@ -381,9 +384,7 @@ int main(int argc, char **argv)
     }
 #endif
 
-    config *cfg_udp_ptr = malloc(sizeof(config));
-    memcpy(cfg_udp_ptr, &cfg, sizeof(config));
-    HANDLE udpThread = CreateThread(NULL, 0, udpThreadFn, (void *)cfg_udp_ptr, 0, NULL);
+    HANDLE udpThread = CreateThread(NULL, 0, udpThreadFn, NULL, 0, NULL);
     if (udpThread == NULL)
     {
 #ifdef DEBUG_MODE
