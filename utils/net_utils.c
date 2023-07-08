@@ -165,7 +165,7 @@ listener_t open_listener_socket(const int ssl_enabled, const char *priv_key, con
     if (LoadCertificates(ctx, priv_key, server_cert, ca_cert) != EXIT_SUCCESS)
     {
 #ifdef DEBUG_MODE
-    fputs("Loading certificates failed\n", stderr);
+        fputs("Loading certificates failed\n", stderr);
 #endif
         return listener;
     }
@@ -232,7 +232,7 @@ socket_t get_connection(listener_t listener, list2 *allowed_clients)
     {
     case PLAIN_SOCK:
     {
-        sock.plain = connect_d;
+        sock.socket.plain = connect_d;
         sock.type = PLAIN_SOCK;
         break;
     }
@@ -268,7 +268,7 @@ socket_t get_connection(listener_t listener, list2 *allowed_clients)
             }
             }
         }
-        sock.ssl = ssl;
+        sock.socket.ssl = ssl;
         sock.type = SSL_SOCK;
         if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) /* get any certificates */
         {
@@ -292,17 +292,17 @@ void close_socket(socket_t *socket)
     case PLAIN_SOCK:
     {
 #ifdef __linux__
-        close(socket->plain);
+        close(socket->socket.plain);
 #elif _WIN32
-        closesocket(socket->plain);
+        closesocket(socket->socket.plain);
 #endif
         break;
     }
 
     case SSL_SOCK:
     {
-        sock_t sd = SSL_get_fd(socket->ssl); /* get socket connection */
-        SSL_free(socket->ssl);               /* release SSL state */
+        sock_t sd = SSL_get_fd(socket->socket.ssl); /* get socket connection */
+        SSL_free(socket->socket.ssl);               /* release SSL state */
 #ifdef __linux__
         close(sd);
 #elif _WIN32
@@ -329,13 +329,13 @@ int read_sock(socket_t *socket, char *buf, size_t size)
         {
         case PLAIN_SOCK:
         {
-            r = recv(socket->plain, ptr, size - read, 0);
+            r = recv(socket->socket.plain, ptr, size - read, 0);
             break;
         }
 
         case SSL_SOCK:
         {
-            r = SSL_read(socket->ssl, ptr, size - read);
+            r = SSL_read(socket->socket.ssl, ptr, size - read);
             break;
         }
 
@@ -369,13 +369,13 @@ int read_sock_no_wait(socket_t *socket, char *buf, size_t size)
     {
     case PLAIN_SOCK:
     {
-        return (int)recv(socket->plain, buf, size, 0);
+        return (int)recv(socket->socket.plain, buf, size, 0);
         break;
     }
 
     case SSL_SOCK:
     {
-        return (int)SSL_read(socket->ssl, buf, size);
+        return (int)SSL_read(socket->socket.ssl, buf, size);
         break;
     }
 
@@ -398,13 +398,13 @@ int write_sock(socket_t *socket, const char *buf, size_t size)
         {
         case PLAIN_SOCK:
         {
-            r = send(socket->plain, ptr, size, 0);
+            r = send(socket->socket.plain, ptr, size, 0);
             break;
         }
 
         case SSL_SOCK:
         {
-            r = SSL_write(socket->ssl, ptr, size);
+            r = SSL_write(socket->socket.ssl, ptr, size);
             break;
         }
 
