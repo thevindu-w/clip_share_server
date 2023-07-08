@@ -33,9 +33,6 @@ OBJS_C=main.o clip_share.o udp_serve.o proto/server.o proto/versions.o proto/met
 _WEB_OBJS_C=clip_share_web.o
 _WEB_OBJS_S=page_blob.o
 
-SRC_FILES=main.c clip_share.c udp_serve.c proto/server.c proto/versions.c proto/methods.c utils/utils.c utils/net_utils.c utils/list_utils.c conf_parse.c
-WEB_SRC=clip_share_web.c page_blob.S
-
 CFLAGS=-c -pipe -Wall -Wextra -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=2
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 
@@ -45,14 +42,12 @@ LINK_FLAGS_BUILD=
 ifeq ($(detected_OS),Linux)
 	OBJS_C+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 	CFLAGS_OPTIM=-Os
-	SRC_FILES+= xclip/xclip.c xclip/xclib.c xscreenshot/xscreenshot.c
 	LDLIBS=-lssl -lcrypto -lX11 -lXmu -lpng
 endif
 ifeq ($(detected_OS),Windows)
 	OBJS_C+= utils/win_image.o win_getopt/getopt.o
 	CFLAGS_OPTIM=-O3
 	OTHER_DEPENDENCIES+= winres/app.res
-	SRC_FILES+= utils/win_image.c win_getopt/getopt.c
 	LDLIBS=-l:libssl.a -l:libcrypto.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a
 	LINK_FLAGS_BUILD+= -mwindows
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
