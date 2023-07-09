@@ -37,8 +37,6 @@
 extern char blob_page[];
 extern int blob_size_page;
 
-config configuration;
-
 static int say(char *, socket_t *);
 static void receiver_web(socket_t *);
 

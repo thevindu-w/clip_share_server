@@ -34,8 +34,6 @@
 #define FILE_BUF_SZ 65536
 #define MAX_FILE_SIZE 68719476736l
 
-config configuration;
-
 int get_text_v1(socket_t *socket)
 {
     size_t length = 0;

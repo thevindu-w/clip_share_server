@@ -33,8 +33,6 @@
 #include <windows.h>
 #endif
 
-config configuration;
-
 #ifdef _WIN32
 static DWORD WINAPI serverThreadFn(void *arg)
 {
