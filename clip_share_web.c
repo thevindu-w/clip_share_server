@@ -19,6 +19,7 @@
 #include "utils/net_utils.h"
 #include "utils/utils.h"
 #include "config.h"
+#include "globals.h"
 
 #ifndef NO_WEB
 #include <stdio.h>

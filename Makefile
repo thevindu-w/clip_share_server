@@ -93,7 +93,7 @@ debug: $(DEBUG_OBJS) $(OTHER_DEPENDENCIES)
 
 web: $(PROGRAM_NAME_WEB)
 
-test: $(PROGRAM_NAME)
+test: $(PROGRAM_NAME) $(PROGRAM_NAME_WEB)
 	@chmod +x tests/run.sh && cd tests && ./run.sh $(PROGRAM_NAME)
 
 clean:
