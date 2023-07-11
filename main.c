@@ -121,7 +121,7 @@ static void kill_other_processes(const char *prog_name)
         fclose(fp);
     LOOP_END:;
     }
-    closedir(dir);
+    (void)closedir(dir);
     return;
 }
 

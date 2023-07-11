@@ -122,7 +122,7 @@ doIn(Window win, unsigned long len, const char *buf)
 
 		dloop++; /* increment loop counter */
 	}
-
+	free(sel_buf);
 	return EXIT_SUCCESS;
 }
 

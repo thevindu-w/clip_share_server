@@ -26,14 +26,7 @@
 #include <X11/Xatom.h>
 #include "xcdef.h"
 #include "xclib.h"
-
-/* check a pointer to allocater memory, print an error if it's null */
-void xcmemcheck(void *ptr)
-{
-	if (ptr == NULL)
-		exit(EXIT_FAILURE);
-	// errmalloc();
-}
+#include "../utils/utils.h"
 
 /* wrapper for malloc that checks for errors */
 void *
@@ -42,7 +35,8 @@ xcmalloc(size_t size)
 	void *mem;
 
 	mem = malloc(size);
-	xcmemcheck(mem);
+	if (!mem)
+		error("malloc failed");
 
 	return (mem);
 }
@@ -54,7 +48,8 @@ xcrealloc(void *ptr, size_t size)
 	void *mem;
 
 	mem = realloc(ptr, size);
-	xcmemcheck(mem);
+	if (!mem)
+		error("realloc failed");
 
 	return (mem);
 }

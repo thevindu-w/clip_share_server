@@ -230,6 +230,7 @@ static void recurse_dir(char *path, list2 *lst, int depth)
             free(pathname);
         }
         free(path);
+        (void)closedir(d);
     }
 #ifdef DEBUG_MODE
     else
