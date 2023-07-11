@@ -284,7 +284,6 @@ int web_server()
             continue;
         }
 #ifdef __linux__
-#ifndef DEBUG_MODE
         pid_t p1 = fork();
         if (p1)
         {
@@ -293,13 +292,10 @@ int web_server()
         else
         {
             close(listener.socket);
-#endif
             receiver_web(&connect_sock);
             close_socket(&connect_sock);
-#ifndef DEBUG_MODE
             break;
         }
-#endif
 #elif _WIN32
         socket_t *connect_ptr = malloc(sizeof(socket_t));
         memcpy(connect_ptr, &connect_sock, sizeof(socket_t));

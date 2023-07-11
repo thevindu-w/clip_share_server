@@ -49,11 +49,11 @@ static void my_png_write_data(png_structp png_ptr, png_bytep data, png_size_t le
 }
 
 /* LSBFirst: BGRA -> RGBA */
-static void convertrow_lsb(unsigned char *drow, unsigned char *srow, XImage *img)
+static void convertrow_lsb(unsigned char *drow, unsigned char *srow, int bytes_per_line)
 {
 	int sx, dx;
 
-	for (sx = 0, dx = 0; dx <= img->bytes_per_line - 3; sx += 4)
+	for (sx = 0, dx = 0; dx <= bytes_per_line - 3; sx += 4)
 	{
 		drow[dx++] = srow[sx + 2]; /* B -> R */
 		drow[dx++] = srow[sx + 1]; /* G -> G */
@@ -62,11 +62,11 @@ static void convertrow_lsb(unsigned char *drow, unsigned char *srow, XImage *img
 }
 
 /* MSBFirst: ARGB -> RGBA */
-static void convertrow_msb(unsigned char *drow, unsigned char *srow, XImage *img)
+static void convertrow_msb(unsigned char *drow, unsigned char *srow, int bytes_per_line)
 {
 	int sx, dx;
 
-	for (sx = 0, dx = 0; dx <= img->bytes_per_line - 3; sx += 4)
+	for (sx = 0, dx = 0; dx <= bytes_per_line - 3; sx += 4)
 	{
 		drow[dx++] = srow[sx + 1]; /* G -> R */
 		drow[dx++] = srow[sx + 2]; /* B -> G */
@@ -76,17 +76,23 @@ static void convertrow_msb(unsigned char *drow, unsigned char *srow, XImage *img
 
 static int png_write_buf(XImage *img, char **buf_ptr, size_t *len)
 {
-	png_structp png_struct_p;
+	png_structp png_write_p;
 	png_infop png_info_p;
-	void (*convert)(unsigned char *, unsigned char *, XImage *);
+	void (*convert)(unsigned char *, unsigned char *, int);
 	unsigned char *drow = NULL, *srow;
 	int h;
 
-	png_struct_p = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	png_info_p = png_create_info_struct(png_struct_p);
-
-	if (!png_struct_p || !png_info_p || setjmp(png_jmpbuf(png_struct_p)))
+	png_write_p = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	if (!png_write_p)
 	{
+		*len = 0;
+		return EXIT_FAILURE;
+	}
+
+	png_info_p = png_create_info_struct(png_write_p);
+	if (!png_info_p || setjmp(png_jmpbuf(png_write_p)))
+	{
+		png_destroy_write_struct(&png_write_p, NULL);
 		*len = 0;
 		return EXIT_FAILURE;
 	}
@@ -95,16 +101,17 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len)
 	fake_file.buffer = NULL;
 	fake_file.capacity = 0;
 	fake_file.size = 0;
-	png_init_io(png_struct_p, (png_FILE_p)&fake_file);
-	png_set_write_fn(png_struct_p, &fake_file, my_png_write_data, NULL);
-	png_set_IHDR(png_struct_p, png_info_p, img->width, img->height, 8, PNG_COLOR_TYPE_RGB,
+	png_init_io(png_write_p, (png_FILE_p)&fake_file);
+	png_set_write_fn(png_write_p, &fake_file, my_png_write_data, NULL);
+	png_set_IHDR(png_write_p, png_info_p, img->width, img->height, 8, PNG_COLOR_TYPE_RGB,
 				 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_BASE);
-	png_write_info(png_struct_p, png_info_p);
+	png_write_info(png_write_p, png_info_p);
 
 	srow = (unsigned char *)img->data;
 	drow = malloc(img->width * 4); /* output RGBA */
 	if (!drow)
 	{
+		png_destroy_write_struct(&png_write_p, &png_info_p);
 		*len = 0;
 		return EXIT_FAILURE;
 	}
@@ -116,18 +123,18 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len)
 
 	for (h = 0; h < img->height; h++)
 	{
-		convert(drow, srow, img);
+		convert(drow, srow, img->bytes_per_line);
 		srow += img->bytes_per_line;
-		png_write_row(png_struct_p, drow);
+		png_write_row(png_write_p, (png_const_bytep)drow);
 	}
-	png_write_end(png_struct_p, NULL);
+	png_write_end(png_write_p, NULL);
 	free(drow);
 
 	fake_file.buffer = realloc(fake_file.buffer, fake_file.size);
 	*buf_ptr = fake_file.buffer;
 	*len = fake_file.size;
-	png_free_data(png_struct_p, png_info_p, PNG_FREE_ALL, -1);
-	png_destroy_write_struct(&png_struct_p, NULL);
+	png_free_data(png_write_p, png_info_p, PNG_FREE_ALL, -1);
+	png_destroy_write_struct(&png_write_p, &png_info_p);
 	return EXIT_SUCCESS;
 }
 
