@@ -6,7 +6,7 @@ sample="Sample text for v1 send_text"
 
 proto=$(printf "\x01" | xxd -p)
 method=$(printf "\x02" | xxd -p)
-length=$(printf "%016x" $(printf "${sample}" | wc -c))
+length=$(printf "%016x" "${#sample}")
 sampleDump=$(printf "${sample}" | xxd -c 256 -p)
 
 response=$(printf "${proto}${method}${length}${sampleDump}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')

@@ -15,7 +15,7 @@ responseDump=$(printf "${proto}${method}" | xxd -r -p | client_tool | xxd -p | t
 
 protoAck=$(printf "\x01" | xxd -p)
 methodAck=$(printf "\x01" | xxd -p)
-length=$(printf "%016x" $(($(printf "${imgSample}" | wc -c)/2)))
+length=$(printf "%016x" $(("${#imgSample}"/2)))
 
 expected="${protoAck}${methodAck}${length}${imgSample}"
 

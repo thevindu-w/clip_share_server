@@ -8,7 +8,7 @@ mkdir -p original && cd original
 
 echo "abc"$'\n'"def"$'\n'"file content" > "${fileName}"
 
-nameLength=$(printf "%016x" $(printf "${fileName}" | wc -c))
+nameLength=$(printf "%016x" "${#fileName}")
 fileSize=$(printf "%016x" $(stat -c '%s' "${fileName}"))
 content=$(cat "${fileName}" | xxd -p | tr -d '\n')
 body="${nameLength}$(printf "${fileName}" | xxd -p)${fileSize}${content}"

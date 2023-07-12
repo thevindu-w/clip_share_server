@@ -15,7 +15,7 @@ done
 
 chunks=""
 for fname in *; do
-    nameLength=$(printf "%016x" $(printf "${fname}" | wc -c))
+    nameLength=$(printf "%016x" "${#fname}")
     fileSize=$(printf "%016x" $(stat -c '%s' "${fname}"))
     content=$(cat "${fname}" | xxd -p | tr -d '\n')
     chunks+="${nameLength}$(printf "${fname}" | xxd -p)${fileSize}${content}"

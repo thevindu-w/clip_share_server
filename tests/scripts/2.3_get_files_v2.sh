@@ -31,7 +31,7 @@ appendToChunks () {
             appendToChunks "${f}"
         done
     elif [ -f "${fname}" ]; then
-        nameLength=$(printf "%016x" $(printf "${fname}" | wc -c))
+        nameLength=$(printf "%016x" "${#fname}")
         fileSize=$(printf "%016x" $(stat -c '%s' "${fname}"))
         content=$(cat "${fname}" | xxd -p | tr -d '\n')
         chunks+="${nameLength}$(printf "${fname}" | xxd -p)${fileSize}${content}"
@@ -65,7 +65,7 @@ fileCount=$(printf "%016x" $(printf "${#files[@]}"))
 expectedHead="${protoAck}${methodAck}${fileCount}"
 responseHead="${responseDump::${#expectedHead}}"
 
-if [[ "${responseHead}" != "${expectedHead}" ]]; then
+if [ "${responseHead}" != "${expectedHead}" ]; then
     showStatus fail "Incorrect response header"
     exit 1
 fi
@@ -94,7 +94,7 @@ for _ in $(seq "${#files[@]}"); do
     body="${body:$((16+"$fileSize"*2))}"
 done
 
-if [[ "${body}" != "" ]]; then
+if [ "${body}" != "" ]; then
     showStatus fail "Incorrect response body"
     exit 1
 fi
