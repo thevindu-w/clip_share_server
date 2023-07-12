@@ -246,7 +246,7 @@ static int url_decode(char *);
 
 int get_clipboard_text(char **bufptr, size_t *lenptr)
 {
-    if (xclip_util(1, NULL, lenptr, bufptr) != EXIT_SUCCESS || *lenptr <= 0) // do not change the order
+    if (xclip_util(XCLIP_OUT, NULL, lenptr, bufptr) != EXIT_SUCCESS || *lenptr <= 0) // do not change the order
     {
 #ifdef DEBUG_MODE
         printf("xclip read text failed. len = %zu\n", *lenptr);
@@ -258,7 +258,7 @@ int get_clipboard_text(char **bufptr, size_t *lenptr)
 
 int put_clipboard_text(const char *data, const size_t len)
 {
-    if (xclip_util(0, NULL, (size_t *)&len, (char **)&data) != EXIT_SUCCESS)
+    if (xclip_util(XCLIP_IN, NULL, (size_t *)&len, (char **)&data) != EXIT_SUCCESS)
     {
 #ifdef DEBUG_MODE
         fputs("Failed to write to clipboard\n", stderr);
@@ -270,7 +270,7 @@ int put_clipboard_text(const char *data, const size_t len)
 
 int get_image(char **buf_ptr, size_t *len_ptr)
 {
-    if (xclip_util(1, "image/png", len_ptr, buf_ptr) || *len_ptr == 0) // do not change the order
+    if (xclip_util(XCLIP_OUT, "image/png", len_ptr, buf_ptr) || *len_ptr == 0) // do not change the order
     {
 #ifdef DEBUG_MODE
         printf("xclip failed to get image/png. len = %zu\nCapturing screenshot ...\n", *len_ptr);
@@ -342,7 +342,7 @@ list2 *get_copied_files()
 {
     char *fnames;
     size_t fname_len;
-    if (xclip_util(1, "x-special/gnome-copied-files", &fname_len, &fnames) || fname_len == 0) // do not change the order
+    if (xclip_util(XCLIP_OUT, "x-special/gnome-copied-files", &fname_len, &fnames) || fname_len == 0) // do not change the order
     {
 #ifdef DEBUG_MODE
         printf("xclip read copied files. len = %zu\n", fname_len);
@@ -418,7 +418,7 @@ dir_files get_copied_dirs_files()
     dir_files ret;
     ret.lst = NULL;
     ret.path_len = 0;
-    if (xclip_util(1, "x-special/gnome-copied-files", &fname_len, &fnames) || fname_len == 0) // do not change the order
+    if (xclip_util(XCLIP_OUT, "x-special/gnome-copied-files", &fname_len, &fnames) || fname_len == 0) // do not change the order
     {
 #ifdef DEBUG_MODE
         printf("xclip read copied files. len = %zu\n", fname_len);

@@ -1,6 +1,9 @@
 #ifndef _XCLIP_
 #define _XCLIP_
 
+#define XCLIP_IN 0
+#define XCLIP_OUT 1
+
 /*
  * Get or set clipboard data
  * this will allocate a memory buffer and set the pointer in get mode

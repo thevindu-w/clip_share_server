@@ -36,46 +36,30 @@
 #include "xclib.h"
 #include "xclip.h"
 
-/* command line option table for XrmParseCommand() */
-XrmOptionDescRec opt_tab[2];
-
-/* Options that get set on the command line */
-char *sdisp = NULL;		 /* X display to connect to */
-Atom sseln = XA_PRIMARY; /* X selection to work with */
-Atom target = XA_STRING;
-
-/* Flags for command line options */
-static int fdiri = T; /* direction is in */
-
-Display *dpy;			   /* connection to X11 display */
-XrmDatabase opt_db = NULL; /* database for options */
-
-char **fil_names;	/* names of files to read */
-int fil_number = 0; /* number of files to read */
-int fil_current = 0;
-
-/* variables to hold Xrm database record and type */
-XrmValue rec_val;
-char *rec_typ;
-
-int tempi = 0;
+typedef struct _xclip_options
+{
+	Atom sseln; /* X selection to work with */
+	Atom target;
+	int fdiri;	  /* direction is in */
+	Display *dpy; /* connection to X11 display */
+} xclip_options;
 
 static int
-doIn(Window win, unsigned long len, const char *buf)
+doIn(Window win, unsigned long len, const char *buf, xclip_options *options)
 {
-	unsigned char *sel_buf = NULL;		 /* buffer for selection data */
-	unsigned long sel_len = len; /* length of sel_buf */
-	XEvent evt;					 /* X Event Structures */
-	int dloop = 0;				 /* done loops counter */
+	unsigned char *sel_buf = NULL; /* buffer for selection data */
+	unsigned long sel_len = len;   /* length of sel_buf */
+	XEvent evt;					   /* X Event Structures */
+	int dloop = 0;				   /* done loops counter */
 
 	/* in mode */
 	sel_buf = xcmalloc(sel_len * sizeof(char));
 	memcpy(sel_buf, buf, sel_len);
 
 	/* Handle cut buffer if needed */
-	if (sseln == XA_STRING)
+	if (options->sseln == XA_STRING)
 	{
-		XStoreBuffer(dpy, (char *)sel_buf, (int)sel_len, 0);
+		XStoreBuffer(options->dpy, (char *)sel_buf, (int)sel_len, 0);
 		return EXIT_SUCCESS;
 	}
 
@@ -83,7 +67,7 @@ doIn(Window win, unsigned long len, const char *buf)
 	 * SelectionRequest events from other windows
 	 */
 	/* FIXME: Should not use CurrentTime, according to ICCCM section 2.1 */
-	XSetSelectionOwner(dpy, sseln, win, CurrentTime);
+	XSetSelectionOwner(options->dpy, options->sseln, win, CurrentTime);
 
 	/* Avoid making the current directory in use, in case it will need to be umounted */
 	if (chdir("/") == -1)
@@ -106,9 +90,9 @@ doIn(Window win, unsigned long len, const char *buf)
 			static Atom pty;
 			int finished;
 
-			XNextEvent(dpy, &evt);
+			XNextEvent(options->dpy, &evt);
 
-			finished = xcin(dpy, &cwin, evt, &pty, target, sel_buf, sel_len, &sel_pos, &context);
+			finished = xcin(options->dpy, &cwin, evt, &pty, options->target, sel_buf, sel_len, &sel_pos, &context);
 
 			if (evt.type == SelectionClear)
 				clear = 1;
@@ -127,30 +111,30 @@ doIn(Window win, unsigned long len, const char *buf)
 }
 
 static int
-doOut(Window win, unsigned long *length, char **buf)
+doOut(Window win, unsigned long *length, char **buf, xclip_options *options)
 {
 	Atom sel_type = None;
-	unsigned char *sel_buf = NULL;	   /* buffer for selection data */
-	unsigned long sel_len = 0; /* length of sel_buf */
-	XEvent evt;				   /* X Event Structures */
+	unsigned char *sel_buf = NULL; /* buffer for selection data */
+	unsigned long sel_len = 0;	   /* length of sel_buf */
+	XEvent evt;					   /* X Event Structures */
 	unsigned int context = XCLIB_XCOUT_NONE;
 
 	while (1)
 	{
 		/* only get an event if xcout() is doing something */
 		if (context != XCLIB_XCOUT_NONE)
-			XNextEvent(dpy, &evt);
+			XNextEvent(options->dpy, &evt);
 
 		/* fetch the selection, or part of it */
-		xcout(dpy, win, evt, sseln, target, &sel_type, &sel_buf, &sel_len, &context);
+		xcout(options->dpy, win, evt, options->sseln, options->target, &sel_type, &sel_buf, &sel_len, &context);
 
 		if (context == XCLIB_XCOUT_BAD_TARGET)
 		{
-			if (target == XA_UTF8_STRING(dpy))
+			if (options->target == XA_UTF8_STRING(options->dpy))
 			{
 				/* fallback is needed. set XA_STRING to target and restart the loop. */
 				context = XCLIB_XCOUT_NONE;
-				target = XA_STRING;
+				options->target = XA_STRING;
 				continue;
 			}
 			else
@@ -173,7 +157,7 @@ doOut(Window win, unsigned long *length, char **buf)
 		memcpy(*buf, sel_buf, sel_len);
 	}
 
-	if (sseln == XA_STRING)
+	if (options->sseln == XA_STRING)
 	{
 		XFree(sel_buf);
 	}
@@ -190,14 +174,13 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
 	/* Declare variables */
 	Window win; /* Window */
 	int exit_code;
+	xclip_options options;
 
-	if (io)
-	{
-		fdiri = F;
-	}
+	options.fdiri = (io == XCLIP_IN) ? T : F;
+	options.target = XA_STRING;
 
 	/* Connect to the X server. */
-	if ((dpy = XOpenDisplay(sdisp)))
+	if ((options.dpy = XOpenDisplay(NULL)))
 	{
 /* successful */
 #ifdef DEBUG_MODE
@@ -215,31 +198,31 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
 	}
 
 	/* parse selection command line option */
-	sseln = XA_CLIPBOARD(dpy); // doOptSel();
+	options.sseln = XA_CLIPBOARD(options.dpy);
 
 	/* parse noutf8 and target command line options */
 	if (atom_name == NULL)
 	{
-		target = XA_UTF8_STRING(dpy); // doOptTarget();
+		options.target = XA_UTF8_STRING(options.dpy);
 	}
 	else
 	{
-		target = XInternAtom(dpy, atom_name, False);
+		options.target = XInternAtom(options.dpy, atom_name, False);
 	}
 
 	/* Create a window to trap events */
-	win = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy), 0, 0, 1, 1, 0, 0, 0);
+	win = XCreateSimpleWindow(options.dpy, DefaultRootWindow(options.dpy), 0, 0, 1, 1, 0, 0, 0);
 
 	/* get events about property changes */
-	XSelectInput(dpy, win, PropertyChangeMask);
+	XSelectInput(options.dpy, win, PropertyChangeMask);
 
-	if (fdiri)
+	if (options.fdiri)
 	{
-		exit_code = doIn(win, *len_ptr, *buf_ptr);
+		exit_code = doIn(win, *len_ptr, *buf_ptr, &options);
 	}
 	else
 	{
-		exit_code = doOut(win, len_ptr, buf_ptr);
+		exit_code = doOut(win, len_ptr, buf_ptr, &options);
 		if (exit_code != EXIT_SUCCESS)
 		{
 			*len_ptr = 0;
@@ -257,7 +240,7 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
 	}
 
 	/* Disconnect from the X server */
-	XCloseDisplay(dpy);
+	XCloseDisplay(options.dpy);
 
 	/* exit */
 	return exit_code;
