@@ -50,7 +50,6 @@ doIn(Window win, unsigned long len, const char *buf, xclip_options *options)
 	unsigned char *sel_buf = NULL; /* buffer for selection data */
 	unsigned long sel_len = len;   /* length of sel_buf */
 	XEvent evt;					   /* X Event Structures */
-	int dloop = 0;				   /* done loops counter */
 
 	/* in mode */
 	sel_buf = xcmalloc(sel_len * sizeof(char));
@@ -60,6 +59,7 @@ doIn(Window win, unsigned long len, const char *buf, xclip_options *options)
 	if (options->sseln == XA_STRING)
 	{
 		XStoreBuffer(options->dpy, (char *)sel_buf, (int)sel_len, 0);
+		free(sel_buf);
 		return EXIT_SUCCESS;
 	}
 
@@ -72,6 +72,7 @@ doIn(Window win, unsigned long len, const char *buf, xclip_options *options)
 	/* Avoid making the current directory in use, in case it will need to be umounted */
 	if (chdir("/") == -1)
 	{
+		free(sel_buf);
 		return EXIT_FAILURE;
 	}
 
@@ -98,21 +99,24 @@ doIn(Window win, unsigned long len, const char *buf, xclip_options *options)
 				clear = 1;
 
 			if ((context == XCLIB_XCIN_NONE) && clear)
+			{
+				free(sel_buf);
 				return EXIT_SUCCESS;
+			}
 
 			if (finished)
 				break;
 		}
-
-		dloop++; /* increment loop counter */
 	}
 	free(sel_buf);
 	return EXIT_SUCCESS;
 }
 
 static int
-doOut(Window win, unsigned long *length, char **buf, xclip_options *options)
+doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_options *options)
 {
+	*len_ptr = 0;
+	*buf_ptr = NULL;
 	Atom sel_type = None;
 	unsigned char *sel_buf = NULL; /* buffer for selection data */
 	unsigned long sel_len = 0;	   /* length of sel_buf */
@@ -140,7 +144,7 @@ doOut(Window win, unsigned long *length, char **buf, xclip_options *options)
 			else
 			{
 				/* no fallback available, exit with failure */
-				*length = 0;
+				*len_ptr = 0;
 				return EXIT_FAILURE;
 			}
 		}
@@ -150,11 +154,11 @@ doOut(Window win, unsigned long *length, char **buf, xclip_options *options)
 			break;
 	}
 
-	*length = sel_len;
+	*len_ptr = sel_len;
 	if (sel_len > 0)
 	{
-		*buf = malloc(sel_len + 1);
-		memcpy(*buf, sel_buf, sel_len);
+		*buf_ptr = malloc(sel_len + 1);
+		memcpy(*buf_ptr, sel_buf, sel_len);
 	}
 
 	if (options->sseln == XA_STRING)
@@ -197,6 +201,8 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
 		return EXIT_FAILURE;
 	}
 
+	// Xmu
+
 	/* parse selection command line option */
 	options.sseln = XA_CLIPBOARD(options.dpy);
 
@@ -226,15 +232,21 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
 		if (exit_code != EXIT_SUCCESS)
 		{
 			*len_ptr = 0;
+			if (*buf_ptr)
+				free(*buf_ptr);
 		}
 		if (atom_name && !strcmp(atom_name, "image/png") && (*len_ptr < 8 || memcmp(*buf_ptr, "\x89PNG\r\n\x1a\n", 8)))
 		{ // invalid png
 			*len_ptr = 0;
+			if (*buf_ptr)
+				free(*buf_ptr);
 			exit_code = EXIT_FAILURE;
 		}
 		if (atom_name && !strcmp(atom_name, "image/jpeg") && (*len_ptr < 3 || memcmp(*buf_ptr, "\xff\xd8\xff", 3)))
 		{ // invalid jpeg
 			*len_ptr = 0;
+			if (*buf_ptr)
+				free(*buf_ptr);
 			exit_code = EXIT_FAILURE;
 		}
 	}

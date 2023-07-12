@@ -37,13 +37,15 @@
 int get_text_v1(socket_t *socket)
 {
     size_t length = 0;
-    char *buf;
+    char *buf = NULL;
     if (get_clipboard_text(&buf, &length) != EXIT_SUCCESS || length <= 0) // do not change the order
     {
 #ifdef DEBUG_MODE
         printf("clipboard read text failed. len = %zu\n", length);
 #endif
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
+        if (buf)
+            free(buf);
         return EXIT_SUCCESS;
     }
 #ifdef DEBUG_MODE
@@ -254,7 +256,7 @@ int send_file_v1(socket_t *socket)
     // if file already exists, use a different file name
     {
         char tmp_fname[name_length + 16];
-        if (configuration.working_dir!=NULL || strcmp(file_name, "clipshare.conf"))
+        if (configuration.working_dir != NULL || strcmp(file_name, "clipshare.conf"))
         {
             sprintf(tmp_fname, ".%c%s", PATH_SEP, file_name);
         }
@@ -307,13 +309,15 @@ int send_file_v1(socket_t *socket)
 int get_image_v1(socket_t *socket)
 {
     size_t length = 0;
-    char *buf;
+    char *buf = NULL;
     if (get_image(&buf, &length) == EXIT_FAILURE || length == 0) // do not change the order
     {
 #ifdef DEBUG_MODE
         printf("get image failed. len = %zu\n", length);
 #endif
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
+        if (buf)
+            free(buf);
         return EXIT_SUCCESS;
     }
 #ifdef DEBUG_MODE
@@ -615,7 +619,7 @@ int send_files_v2(socket_t *socket)
         char old_path[name_len + 20];
         sprintf(old_path, "%s%c%s", dirname, PATH_SEP, filename);
         char new_path[name_len + 20];
-        if (configuration.working_dir!=NULL || strcmp(filename, "clipshare.conf"))
+        if (configuration.working_dir != NULL || strcmp(filename, "clipshare.conf"))
         {
             sprintf(new_path, ".%c%s", PATH_SEP, filename); // "./" is important to prevent file names like "C:\path"
         }

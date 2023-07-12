@@ -244,13 +244,16 @@ static void recurse_dir(char *path, list2 *lst, int depth)
 
 static int url_decode(char *);
 
-int get_clipboard_text(char **bufptr, size_t *lenptr)
+int get_clipboard_text(char **buf_ptr, size_t *len_ptr)
 {
-    if (xclip_util(XCLIP_OUT, NULL, lenptr, bufptr) != EXIT_SUCCESS || *lenptr <= 0) // do not change the order
+    *buf_ptr = NULL;
+    if (xclip_util(XCLIP_OUT, NULL, len_ptr, buf_ptr) != EXIT_SUCCESS || *len_ptr <= 0) // do not change the order
     {
 #ifdef DEBUG_MODE
-        printf("xclip read text failed. len = %zu\n", *lenptr);
+        printf("xclip read text failed. len = %zu\n", *len_ptr);
 #endif
+        if (*buf_ptr)
+            free(*buf_ptr);
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
@@ -270,17 +273,21 @@ int put_clipboard_text(const char *data, const size_t len)
 
 int get_image(char **buf_ptr, size_t *len_ptr)
 {
+    *buf_ptr = NULL;
     if (xclip_util(XCLIP_OUT, "image/png", len_ptr, buf_ptr) || *len_ptr == 0) // do not change the order
     {
 #ifdef DEBUG_MODE
         printf("xclip failed to get image/png. len = %zu\nCapturing screenshot ...\n", *len_ptr);
 #endif
+        *buf_ptr = NULL;
         *len_ptr = 0;
         if (screenshot_util(len_ptr, buf_ptr) || *len_ptr == 0) // do not change the order
         {
 #ifdef DEBUG_MODE
             fputs("Get screenshot failed\n", stderr);
 #endif
+            if (*buf_ptr)
+                free(*buf_ptr);
             *len_ptr = 0;
             return EXIT_FAILURE;
         }
@@ -340,13 +347,15 @@ static int url_decode(char *str)
 
 list2 *get_copied_files()
 {
-    char *fnames;
+    char *fnames = NULL;
     size_t fname_len;
     if (xclip_util(XCLIP_OUT, "x-special/gnome-copied-files", &fname_len, &fnames) || fname_len == 0) // do not change the order
     {
 #ifdef DEBUG_MODE
         printf("xclip read copied files. len = %zu\n", fname_len);
 #endif
+        if (fnames)
+            free(fnames);
         return NULL;
     }
     fnames[fname_len] = 0;
@@ -413,7 +422,7 @@ list2 *get_copied_files()
 
 dir_files get_copied_dirs_files()
 {
-    char *fnames;
+    char *fnames = NULL;
     size_t fname_len;
     dir_files ret;
     ret.lst = NULL;
@@ -423,6 +432,8 @@ dir_files get_copied_dirs_files()
 #ifdef DEBUG_MODE
         printf("xclip read copied files. len = %zu\n", fname_len);
 #endif
+        if (fnames)
+            free(fnames);
         return ret;
     }
     fnames[fname_len] = 0;
