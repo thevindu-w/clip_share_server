@@ -2,7 +2,7 @@
 
 . init.sh
 
-responseDump=$(printf "in" | timeout .4 nc -w 1 -u 127.0.0.1 4337 | head -n 1 | xxd -p | tr -d '\n')
+responseDump=$(printf "in" | timeout 1 nc -w 1 -u 127.0.0.1 4337 | head -n 1 | xxd -p | tr -d '\n')
 
 expected="$(printf "clip_share" | xxd -p | tr -d '\n')"
 

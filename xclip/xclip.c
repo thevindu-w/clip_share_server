@@ -35,6 +35,7 @@
 #include "xcdef.h"
 #include "xclib.h"
 #include "xclip.h"
+#include "../utils/utils.h"
 
 typedef struct _xclip_options
 {
@@ -42,6 +43,7 @@ typedef struct _xclip_options
 	Atom target;
 	int fdiri;	  /* direction is in */
 	Display *dpy; /* connection to X11 display */
+	char is_targets;
 } xclip_options;
 
 static int
@@ -132,6 +134,41 @@ doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_options *options
 		/* fetch the selection, or part of it */
 		xcout(options->dpy, win, evt, options->sseln, options->target, &sel_type, &sel_buf, &sel_len, &context);
 
+		if (options->is_targets && sel_type == XA_ATOM)
+		{
+			Atom *atom_buf = (Atom *)sel_buf;
+			size_t atom_len = sel_len / sizeof(Atom);
+			size_t out_len = 0, out_capacity = 128;
+			char *out_buf = malloc(out_capacity);
+			if (!out_buf)
+			{
+				error("Could not malloc");
+			}
+			out_buf[0] = 0;
+			while (atom_len--)
+			{
+				char *atom_name = XGetAtomName(options->dpy, *atom_buf++);
+				const size_t atom_len = strlen(atom_name);
+				while (atom_len + out_len + 1 >= out_capacity)
+				{
+					out_capacity *= 2;
+					out_buf = realloc(out_buf, out_capacity);
+					if (!out_buf)
+					{
+						error("Could not realloc");
+					}
+				}
+				sprintf(out_buf + out_len, "%s\n", atom_name);
+				out_len += atom_len + 1;
+				XFree(atom_name);
+			}
+			*len_ptr = out_len;
+			*buf_ptr = out_buf;
+			if (sel_buf)
+				free(sel_buf);
+			return EXIT_SUCCESS;
+		}
+
 		if (context == XCLIB_XCOUT_BAD_TARGET)
 		{
 			if (options->target == XA_UTF8_STRING(options->dpy))
@@ -159,6 +196,7 @@ doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_options *options
 	{
 		*buf_ptr = malloc(sel_len + 1);
 		memcpy(*buf_ptr, sel_buf, sel_len);
+		(*buf_ptr)[sel_len] = 0;
 	}
 
 	if (options->sseln == XA_STRING)
@@ -214,6 +252,15 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
 	else
 	{
 		options.target = XInternAtom(options.dpy, atom_name, False);
+	}
+
+	if (atom_name && !strcasecmp("TARGETS", atom_name))
+	{
+		options.is_targets = 1;
+	}
+	else
+	{
+		options.is_targets = 0;
 	}
 
 	/* Create a window to trap events */

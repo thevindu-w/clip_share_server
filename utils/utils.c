@@ -63,14 +63,14 @@ ssize_t get_file_size(FILE *fp)
     if (fstat(fileno(fp), &statbuf))
     {
 #ifdef DEBUG_MODE
-        printf("fstat failed\n");
+        puts("fstat failed");
 #endif
         return -1;
     }
     if (!S_ISREG(statbuf.st_mode))
     {
 #ifdef DEBUG_MODE
-        printf("not a file\n");
+        puts("not a file");
 #endif
         return -1;
     }
@@ -243,6 +243,7 @@ static void recurse_dir(char *path, list2 *lst, int depth)
 #ifdef __linux__
 
 static int url_decode(char *);
+static char *get_copied_files_as_str();
 
 int get_clipboard_text(char **buf_ptr, size_t *len_ptr)
 {
@@ -306,6 +307,71 @@ static inline char hex2char(char h)
     return -1;
 }
 
+static char *get_copied_files_as_str()
+{
+    const char *const expected_target = "x-special/gnome-copied-files";
+    char *targets;
+    size_t targets_len;
+    if (xclip_util(XCLIP_OUT, "TARGETS", &targets_len, &targets) || targets_len <= 0) // do not change the order
+    {
+#ifdef DEBUG_MODE
+        printf("xclip read TARGETS. len = %zu\n", targets_len);
+#endif
+        if (targets)
+            free(targets);
+        return NULL;
+    }
+    {
+        char found = 0;
+        char *copy = targets;
+        char *token;
+        while ((token = strsep(&copy, "\n")))
+        {
+            if (!strcmp(token, expected_target))
+            {
+                found = 1;
+                break;
+            }
+        }
+        if (!found)
+        {
+#ifdef DEBUG_MODE
+            puts("No copied files");
+#endif
+            free(targets);
+            return NULL;
+        }
+    }
+    free(targets);
+
+    char *fnames = NULL;
+    size_t fname_len;
+    if (xclip_util(XCLIP_OUT, expected_target, &fname_len, &fnames) || fname_len <= 0) // do not change the order
+    {
+#ifdef DEBUG_MODE
+        printf("xclip read copied files. len = %zu\n", fname_len);
+#endif
+        if (fnames)
+            free(fnames);
+        return NULL;
+    }
+    fnames[fname_len] = 0;
+
+    char *file_path = strchr(fnames, '\n');
+    if (!file_path)
+    {
+        free(fnames);
+        return NULL;
+    }
+    *file_path = 0;
+    if (strcmp(fnames, "copy") && strcmp(fnames, "cut"))
+    {
+        free(fnames);
+        return NULL;
+    }
+    return fnames;
+}
+
 static int url_decode(char *str)
 {
     if (strncmp("file://", str, 7))
@@ -347,31 +413,12 @@ static int url_decode(char *str)
 
 list2 *get_copied_files()
 {
-    char *fnames = NULL;
-    size_t fname_len;
-    if (xclip_util(XCLIP_OUT, "x-special/gnome-copied-files", &fname_len, &fnames) || fname_len == 0) // do not change the order
+    char *fnames = get_copied_files_as_str();
+    if (!fnames)
     {
-#ifdef DEBUG_MODE
-        printf("xclip read copied files. len = %zu\n", fname_len);
-#endif
-        if (fnames)
-            free(fnames);
         return NULL;
     }
-    fnames[fname_len] = 0;
-
-    char *file_path = strchr(fnames, '\n');
-    if (!file_path)
-    {
-        free(fnames);
-        return NULL;
-    }
-    *file_path = 0;
-    if (strcmp(fnames, "copy") && strcmp(fnames, "cut"))
-    {
-        free(fnames);
-        return NULL;
-    }
+    char *file_path = fnames + strlen(fnames);
 
     size_t file_cnt = 1;
     for (char *ptr = file_path + 1; *ptr; ptr++)
@@ -400,7 +447,7 @@ list2 *get_copied_files()
         if (stat(fname, &statbuf))
         {
 #ifdef DEBUG_MODE
-            printf("stat failed\n");
+            puts("stat failed");
 #endif
             fname += off;
             continue;
@@ -422,34 +469,15 @@ list2 *get_copied_files()
 
 dir_files get_copied_dirs_files()
 {
-    char *fnames = NULL;
-    size_t fname_len;
     dir_files ret;
     ret.lst = NULL;
     ret.path_len = 0;
-    if (xclip_util(XCLIP_OUT, "x-special/gnome-copied-files", &fname_len, &fnames) || fname_len == 0) // do not change the order
+    char *fnames = get_copied_files_as_str();
+    if (!fnames)
     {
-#ifdef DEBUG_MODE
-        printf("xclip read copied files. len = %zu\n", fname_len);
-#endif
-        if (fnames)
-            free(fnames);
         return ret;
     }
-    fnames[fname_len] = 0;
-
-    char *file_path = strchr(fnames, '\n');
-    if (!file_path)
-    {
-        free(fnames);
-        return ret;
-    }
-    *file_path = 0;
-    if (strcmp(fnames, "copy") && strcmp(fnames, "cut"))
-    {
-        free(fnames);
-        return ret;
-    }
+    char *file_path = fnames + strlen(fnames);
 
     size_t file_cnt = 1;
     for (char *ptr = file_path + 1; *ptr; ptr++)
@@ -488,7 +516,7 @@ dir_files get_copied_dirs_files()
         if (stat(fname, &statbuf))
         {
 #ifdef DEBUG_MODE
-            printf("stat failed\n");
+            puts("stat failed");
 #endif
             fname += off;
             continue;
