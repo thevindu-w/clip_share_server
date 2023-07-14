@@ -42,14 +42,6 @@ The following development libraries are required.
 * libpng16
 * libssl (provided by openssl)
 
-### SSL/TLS certificate and key files
-**Note** : This section is optional if you do not need the TLS encrypted mode and the web mode.
-<br>
-The following files should be created and placed in the `cert_keys/` directory and specified in the configuration file `clipshare.conf`. You may use different file names and paths to store the keys and certificates.
-* ``server.key`` &ensp; : &nbsp; SSL/TLS key file for the server
-* ``server.crt`` &ensp; : &nbsp; SSL/TLS certificate file of the server
-* ``ca.crt`` &emsp;&emsp;&ensp; : &nbsp; SSL/TLS certificate of the CA which signed the server.crt
-
 ### Compiling
 Run the following command to make the executable file.
 ```bash
@@ -57,7 +49,8 @@ make
 ```
 This will generate the executable which is named clip_share (or clip_share.exe on Windows).
 
-To compile with the web server enabled, (Currently, this is supported only on Linux)
+**Note** : Web version is deprecated 
+To compile with the web server enabled, (Currently, this is tested only on Linux)
 ```bash
 make web
 ```
@@ -74,6 +67,16 @@ This server listens on the following ports (unless different ports are assigned 
 * ``4339`` &nbsp;&nbsp; ``TCP`` &nbsp;&nbsp; : &nbsp;&nbsp; For the web server (if the web server is available)
 
 You may need to allow incoming connections to the above ports for the client to connect to the server.
+
+<br>
+
+## Create SSL/TLS certificate and key files
+**Note** : This section is optional if you do not need the TLS encrypted mode and the web mode.
+<br>
+The following files should be created and placed in the `cert_keys/` directory and specified in the configuration file `clipshare.conf`. You may use different file names and paths to store the keys and certificates.
+* ``server.key`` &ensp; : &nbsp; SSL/TLS key file for the server
+* ``server.crt`` &ensp; : &nbsp; SSL/TLS certificate file of the server
+* ``ca.crt`` &emsp;&emsp;&ensp; : &nbsp; SSL/TLS certificate of the CA which signed the server.crt
 
 <br>
 
