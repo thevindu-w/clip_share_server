@@ -1,0 +1,25 @@
+FROM ubuntu:focal
+
+RUN apt-get update
+RUN apt-get install -y apt-transport-https
+RUN apt-get update
+RUN apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev
+RUN apt-get install --no-install-recommends -y openssl xclip python3.8-minimal xxd diffutils coreutils netcat
+RUN apt-get install --no-install-recommends -y xvfb
+
+ENV DISPLAY=:0
+ENV TERM=xterm-256color
+
+WORKDIR /usr/bin
+RUN ln -s python3.8 python3
+
+RUN mkdir -p /src
+wORKDIR /src
+
+COPY . .
+RUN make
+RUN make web
+
+RUN chmod +x docker/run_docker.sh
+
+CMD docker/run_docker.sh
