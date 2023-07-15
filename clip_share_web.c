@@ -253,7 +253,7 @@ static DWORD WINAPI webServerThreadFn(void *arg)
 
 int web_server()
 {
-    if (configuration.allowed_clients == NULL || configuration.allowed_clients->len <= 0 || configuration.web_port <= 0)
+    if (configuration.allowed_clients == NULL || configuration.allowed_clients->len <= 0 || configuration.web_port <= 0 || configuration.priv_key == NULL || configuration.server_cert == NULL || configuration.ca_cert == NULL)
     {
 #ifdef DEBUG_MODE
         puts("Invalid config for web server");
@@ -263,9 +263,8 @@ int web_server()
 #ifdef __linux__
     signal(SIGCHLD, SIG_IGN);
 #endif
-    // Use TLS if keys and certs are provided. Otherwise connect without TLS.
-    int secure = (configuration.priv_key != NULL && configuration.server_cert != NULL && configuration.ca_cert != NULL);
-    listener_t listener = open_listener_socket(secure, configuration.priv_key, configuration.server_cert, configuration.ca_cert);
+
+    listener_t listener = open_listener_socket(1, configuration.priv_key, configuration.server_cert, configuration.ca_cert);
     if (bind_port(listener, configuration.web_port) != EXIT_SUCCESS)
     {
         return EXIT_FAILURE;
