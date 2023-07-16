@@ -69,6 +69,13 @@ typedef struct _listener_socket_t
 extern listener_t open_listener_socket(const int ssl_enabled, const char *private_key, const char *server_certificate, const char *ca_certificate);
 
 /*
+ * Converts a ipv4 address in dotted decimal into in_addr_t.
+ * Address is interpretted as INADDR_ANY
+ * returns EXIT_SUCCESS on success and EXIT_FAILURE on failure.
+ */
+extern int ipv4_aton(const char *address_str, uint32_t *address_ptr);
+
+/*
  * Binds a listener socket to a port.
  */
 extern int bind_port(listener_t listener, unsigned short port);

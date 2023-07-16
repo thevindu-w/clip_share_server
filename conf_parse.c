@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "utils/utils.h"
+#include "utils/net_utils.h"
 #include "utils/list_utils.h"
 #include "config.h"
 
@@ -104,10 +105,11 @@ static void parse_line(char *line, config *cfg)
     }
     *eq = 0;
     char key[256];
-    sscanf(line, "%255s", key);
+    sscanf(line, "%255[^\n]", key);
     char value[2048];
     strcpy(value, eq + 1);
 
+    trim(key);
     trim(value);
 
 #ifdef DEBUG_MODE
@@ -208,6 +210,23 @@ static void parse_line(char *line, config *cfg)
         if (strlen(value) > 0)
             cfg->working_dir = strdup(value);
     }
+    else if (!strcmp("bind_address", key))
+    {
+        if (strlen(value) > 0)
+        {
+            if (ipv4_aton(value, &(cfg->bind_addr)) != EXIT_SUCCESS)
+            {
+                error("Error initializing address");
+                exit(1);
+            }
+        }
+    }
+#ifdef DEBUG_MODE
+    else
+    {
+        printf("Unknown key \"%s\"\n", key);
+    }
+#endif
 }
 
 config parse_conf(const char *conf_file)
@@ -230,6 +249,11 @@ config parse_conf(const char *conf_file)
     cfg.allowed_clients = NULL;
 
     cfg.working_dir = NULL;
+    if (ipv4_aton(NULL, &(cfg.bind_addr)) != EXIT_SUCCESS)
+    {
+        error("Error initializing address");
+        exit(1);
+    }
 
     FILE *f = fopen(conf_file, "r");
     if (!f)
@@ -248,6 +272,8 @@ config parse_conf(const char *conf_file)
         parse_line(line, &cfg);
     }
     fclose(f);
+
+    printf("%08x\n", cfg.bind_addr);
 
     return cfg;
 }

@@ -30,6 +30,7 @@
 #include <openssl/err.h>
 #include <openssl/x509_vfy.h>
 
+#include "../globals.h"
 #include "utils.h"
 #include "net_utils.h"
 #include "list_utils.h"
@@ -174,6 +175,35 @@ listener_t open_listener_socket(const int ssl_enabled, const char *priv_key, con
     return listener;
 }
 
+int ipv4_aton(const char *address_str, uint32_t *address_ptr)
+{
+    if (!address_ptr)
+        return EXIT_FAILURE;
+    if (address_str == NULL)
+    {
+        *address_ptr = htonl(INADDR_ANY);
+        return EXIT_SUCCESS;
+    }
+    unsigned int a, b, c, d;
+    if (sscanf(address_str, "%u.%u.%u.%u", &a, &b, &c, &d) != 4 || a >= 256 || b >= 256 || c >= 256 || d >= 256)
+    {
+#ifdef DEBUG_MODE
+        printf("Invalid address %s\n", address_str);
+#endif
+        return EXIT_FAILURE;
+    }
+    struct in_addr addr;
+    if (inet_aton(address_str, &addr) != 1)
+    {
+#ifdef DEBUG_MODE
+        printf("Invalid address %s\n", address_str);
+#endif
+        return EXIT_FAILURE;
+    }
+    *address_ptr = (uint32_t)addr.s_addr;
+    return EXIT_SUCCESS;
+}
+
 int bind_port(listener_t listener, unsigned short port)
 {
     if (listener.type == NULL_SOCK)
@@ -182,7 +212,7 @@ int bind_port(listener_t listener, unsigned short port)
     struct sockaddr_in name;
     name.sin_family = PF_INET;
     name.sin_port = (in_port_t)htons(port);
-    name.sin_addr.s_addr = htonl(INADDR_ANY);
+    name.sin_addr.s_addr = configuration.bind_addr;
     int reuse = 1;
     if (setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1)
     {

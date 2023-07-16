@@ -19,6 +19,7 @@
 #ifndef _CONF_PARSE_
 #define _CONF_PARSE_
 
+#include <stdint.h>
 #include "utils/list_utils.h"
 
 typedef struct _config
@@ -36,6 +37,7 @@ typedef struct _config
     char *ca_cert;
     list2 *allowed_clients;
     char *working_dir;
+    uint32_t bind_addr;
 } config;
 
 extern config parse_conf(const char *);

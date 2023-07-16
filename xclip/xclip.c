@@ -139,11 +139,7 @@ doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_options *options
 			Atom *atom_buf = (Atom *)sel_buf;
 			size_t atom_len = sel_len / sizeof(Atom);
 			size_t out_len = 0, out_capacity = 128;
-			char *out_buf = malloc(out_capacity);
-			if (!out_buf)
-			{
-				error("Could not malloc");
-			}
+			char *out_buf = xcmalloc(out_capacity);
 			out_buf[0] = 0;
 			while (atom_len--)
 			{
@@ -152,11 +148,7 @@ doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_options *options
 				while (atom_len + out_len + 1 >= out_capacity)
 				{
 					out_capacity *= 2;
-					out_buf = realloc(out_buf, out_capacity);
-					if (!out_buf)
-					{
-						error("Could not realloc");
-					}
+					out_buf = xcrealloc(out_buf, out_capacity);
 				}
 				sprintf(out_buf + out_len, "%s\n", atom_name);
 				out_len += atom_len + 1;
