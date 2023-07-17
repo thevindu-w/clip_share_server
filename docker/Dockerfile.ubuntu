@@ -7,16 +7,18 @@ RUN apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev lib
 RUN apt-get install --no-install-recommends -y openssl xclip python3.8-minimal xxd diffutils coreutils netcat
 RUN apt-get install --no-install-recommends -y xvfb
 
-ENV DISPLAY=:0
-ENV TERM=xterm-256color
-
 WORKDIR /usr/bin
 RUN ln -s python3.8 python3
+
+ENV TERM=xterm-256color
+ENV DISPLAY=:0
 
 RUN mkdir -p /src
 wORKDIR /src
 
 COPY . .
+
+RUN make clean
 RUN make
 RUN make web
 

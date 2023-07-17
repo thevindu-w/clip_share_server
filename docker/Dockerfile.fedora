@@ -13,6 +13,7 @@ wORKDIR /src
 
 COPY . .
 
+RUN make clean
 RUN make
 RUN make web
 
