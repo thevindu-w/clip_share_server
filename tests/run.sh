@@ -12,6 +12,7 @@ dependencies=(
     xxd
     python3
     nc
+    timeout
     openssl
     xclip
 )

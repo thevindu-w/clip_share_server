@@ -216,7 +216,9 @@ static void parse_line(char *line, config *cfg)
         {
             if (ipv4_aton(value, &(cfg->bind_addr)) != EXIT_SUCCESS)
             {
-                error("Error initializing address");
+                char msg[48];
+                snprintf_check(msg, 48, "Invalid bind address %s", value);
+                error(msg);
                 exit(1);
             }
         }
@@ -251,7 +253,7 @@ config parse_conf(const char *conf_file)
     cfg.working_dir = NULL;
     if (ipv4_aton(NULL, &(cfg.bind_addr)) != EXIT_SUCCESS)
     {
-        error("Error initializing address");
+        error("Error initializing bind address");
         exit(1);
     }
 
@@ -272,8 +274,6 @@ config parse_conf(const char *conf_file)
         parse_line(line, &cfg);
     }
     fclose(f);
-
-    printf("%08x\n", cfg.bind_addr);
 
     return cfg;
 }

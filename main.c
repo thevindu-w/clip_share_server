@@ -91,7 +91,13 @@ static void kill_other_processes(const char *prog_name)
                 goto LOOP_END;
             }
         }
-        sprintf(filepath, "/proc/%s/status", dir_ptr->d_name);
+        if (snprintf_check(filepath, 269, "/proc/%s/status", dir_ptr->d_name))
+        {
+#ifdef DEBUG_MODE
+            fprintf(stderr, "Error writing file name\n");
+#endif
+            continue;
+        }
         fp = fopen(filepath, "r"); // Open the file
         if (fp == NULL)
         {
@@ -130,27 +136,33 @@ static void kill_other_processes(const char *prog_name)
 static void kill_other_processes(const char *prog_name)
 {
     char cmd[2048];
-    sprintf(cmd, "taskkill /IM \"%s\" /F", prog_name);
+    if (snprintf_check(cmd, 2048, "taskkill /IM \"%s\" /F", prog_name))
+    {
+#ifdef DEBUG_MODE
+        fprintf(stderr, "Error writing taskkill command\n");
+#endif
+        return;
+    }
     system(cmd);
 }
 
 static DWORD WINAPI udpThreadFn(void *arg)
 {
-    (void) arg;
+    (void)arg;
     udp_server(configuration.app_port);
     return EXIT_SUCCESS;
 }
 
 static DWORD WINAPI appThreadFn(void *arg)
 {
-    (void) arg;
+    (void)arg;
     clip_share(INSECURE);
     return EXIT_SUCCESS;
 }
 
 static DWORD WINAPI appSecureThreadFn(void *arg)
 {
-    (void) arg;
+    (void)arg;
     clip_share(SECURE);
     return EXIT_SUCCESS;
 }
@@ -158,7 +170,7 @@ static DWORD WINAPI appSecureThreadFn(void *arg)
 #ifndef NO_WEB
 static DWORD WINAPI webThreadFn(void *arg)
 {
-    (void) arg;
+    (void)arg;
     web_server();
     return EXIT_SUCCESS;
 }
@@ -273,7 +285,7 @@ int main(int argc, char **argv)
         if (!is_directory(configuration.working_dir, 1))
         {
             char err[3072];
-            sprintf(err, "Working directory \'%s\' does not exist", configuration.working_dir);
+            snprintf_check(err, 3072, "Not existing working directory \'%s\'", configuration.working_dir);
             fprintf(stderr, "%s\n", err);
             error(err);
             exit(1);
@@ -282,20 +294,22 @@ int main(int argc, char **argv)
         if (chdir(configuration.working_dir))
         {
             char err[3072];
-            sprintf(err, "Changing working directory to \'%s\' failed", configuration.working_dir);
+            snprintf_check(err, 3072, "Failed changing working directory to \'%s\'", configuration.working_dir);
             fprintf(stderr, "%s\n", err);
             error(err);
             exit(1);
         }
         char *new_work_dir = getcwd(NULL, 0);
-        if (old_work_dir==NULL || new_work_dir==NULL) {
+        if (old_work_dir == NULL || new_work_dir == NULL)
+        {
             char *err = "Error occured during changing working directory.";
             fprintf(stderr, "%s\n", err);
             error(err);
             exit(1);
         }
         // if the working directory did not change, set configuration.working_dir to NULL
-        if (!strcmp(old_work_dir, new_work_dir)){
+        if (!strcmp(old_work_dir, new_work_dir))
+        {
             configuration.working_dir = NULL;
         }
         free(old_work_dir);

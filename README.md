@@ -160,14 +160,15 @@ server_cert=cert_keys/server.crt
 ca_cert=cert_keys/ca.crt
 allowed_clients=allowed_clients.txt
 working_dir=./path/to/work_dir
+bind_address=0.0.0.0
 ```
 
 Note that all the lines in the configuration file are optional. You may omit some lines if they need to get their default values.
 
 <br>
 
-| Property |   Description   | Accepted values | Default |
-|  :----:  | :--------       | :------------   |  :---:  |
+| Property | Description | Accepted values | Default |
+|  :----:  | :--------   | :------------   |  :---:  |
 | `insecure_mode_enabled` | Whether or not the application listens for unencrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` | `true` |
 | `app_port` | The port on which the application listens for unencrypted TCP connections. The application listens on the same port for UDP for network scanning. (Values below 1024 may require super user / admin privileges) | Any valid, unused port number (1 - 65535) | `4337` |
 | `secure_mode_enabled` | Whether or not the application listens for TLS-encrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` | `true` |
@@ -179,6 +180,7 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `ca_cert` | The TLS certificate file of the CA that signed the TLS certificate of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the TLS certificate file of the CA | \<Unspecified\> |
 | `allowed_clients` | The text file containing a list of allowed clients (Common Name of client certificate), one name per each line. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the allowed clients file | \<Unspecified\> |
 | `working_dir` | The working directory where the application should run. All the files, that are sent from a client, will be saved in this directory. It will follow symlinks if this is a path to a symlink. User running this application should have write access to the directory | Absolute or relative path to an existing directory | . (Current directory) |
+| `bind_address` | The address of the interface which the application should bind to when listening for connections. It will listen on all interfaces if this is set to `0.0.0.0` | IPv4 address of an interface in a.b.c.d format or `0.0.0.0` | `0.0.0.0` |
 
 <br>
 

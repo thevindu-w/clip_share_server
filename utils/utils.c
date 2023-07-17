@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -35,6 +36,15 @@
 
 #define ERROR_LOG_FILE "server_err.log"
 #define RECURSE_DEPTH_MAX 256
+
+int snprintf_check(char *__restrict__ dest, int size, const char *__restrict__ fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    int ret = vsnprintf(dest, size, fmt, ap);
+    va_end(ap);
+    return (ret < 0 || ret > size);
+}
 
 void error(const char *msg)
 {

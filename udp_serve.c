@@ -58,7 +58,7 @@ void udp_server(const unsigned short port)
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
     {
         char errmsg[32];
-        sprintf(errmsg, "Can\'t bind to port %hu UDP", port);
+        snprintf_check(errmsg, 32, "Can\'t bind to UDP port %hu", port);
         error(errmsg);
         return;
     }

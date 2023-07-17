@@ -87,8 +87,9 @@ static void receiver_web(socket_t *sock)
         {
             if (say("HTTP/1.0 200 OK\r\n", sock) != EXIT_SUCCESS)
                 return;
-            char tmp[96];                                                                                                              // = (char *)malloc(96);
-            sprintf(tmp, "Content-Type: text/html; charset=utf-8\r\nContent-Length: %i\r\nConnection: close\r\n\r\n", blob_size_page); // Content-Disposition: attachment; filename="filename.ext" // put this, filename parameter is optional
+            char tmp[96];                                                                                                                             // = (char *)malloc(96);
+            if (snprintf_check(tmp, 96, "Content-Type: text/html; charset=utf-8\r\nContent-Length: %i\r\nConnection: close\r\n\r\n", blob_size_page)) // Content-Disposition: attachment; filename="filename.ext" // put this, filename parameter is optional
+                return;
             if (say(tmp, sock) != EXIT_SUCCESS)
                 return;
             if (write_sock(sock, blob_page, blob_size_page) != EXIT_SUCCESS)
@@ -108,7 +109,8 @@ static void receiver_web(socket_t *sock)
             if (say("Content-Type: text/plain; charset=utf-8\r\n", sock) != EXIT_SUCCESS)
                 return;
             char tmp[64];
-            sprintf(tmp, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len);
+            if (snprintf_check(tmp, 64, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len))
+                return;
             if (say(tmp, sock) != EXIT_SUCCESS)
                 return;
             if (write_sock(sock, buf, len) != EXIT_SUCCESS)
@@ -129,7 +131,8 @@ static void receiver_web(socket_t *sock)
             if (say("Content-Type: image/png\r\nContent-Disposition: attachment; filename=\"clip.png\"\r\n", sock) != EXIT_SUCCESS)
                 return;
             char tmp[64];
-            sprintf(tmp, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len);
+            if (snprintf_check(tmp, 64, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len))
+                return;
             if (say(tmp, sock) != EXIT_SUCCESS)
                 return;
             if (write_sock(sock, buf, len) != EXIT_SUCCESS)

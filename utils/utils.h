@@ -30,6 +30,13 @@
 #endif
 
 /*
+ * A wrapper for snprintf.
+ * returns 1 if snprintf failed or truncated
+ * returns 0 otherwise
+ */
+int snprintf_check(char *__restrict__ dest, int size, const char *__restrict__ fmt, ...);
+
+/*
  * List of files and the length of the path of their parent directory
  */
 typedef struct _dir_files

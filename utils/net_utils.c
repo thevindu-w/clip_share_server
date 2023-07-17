@@ -223,7 +223,7 @@ int bind_port(listener_t listener, unsigned short port)
     if (c == -1)
     {
         char errmsg[32];
-        sprintf(errmsg, "Can\'t bind to port %hu TCP", port);
+        snprintf_check(errmsg, 32, "Can\'t bind to TCP port %hu", port);
         error(errmsg);
         return EXIT_FAILURE;
     }
