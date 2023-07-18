@@ -1,0 +1,22 @@
+FROM fedora:39
+
+RUN dnf install --setopt=install_weak_deps=False -y gcc make
+RUN dnf install --setopt=install_weak_deps=False -y glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel
+RUN dnf install --setopt=install_weak_deps=False -y xorg-x11-server-Xvfb
+RUN dnf install --setopt=install_weak_deps=False -y openssl xclip python3 xxd diffutils coreutils netcat
+
+ENV TERM=xterm-256color
+ENV DISPLAY=:0
+
+RUN mkdir -p /src
+wORKDIR /src
+
+COPY . .
+
+RUN make clean
+RUN make
+RUN make web
+
+RUN chmod +x docker/run_docker.sh
+
+CMD docker/run_docker.sh
