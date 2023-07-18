@@ -1,5 +1,6 @@
 name: Build and Test clip_share_server
 run-name: Build and Test on ${{ github.sha }}
+
 on:
   push:
     branches:
@@ -7,25 +8,46 @@ on:
   pull_request:
     branches:
       - master
+
 jobs:
-  Build-and-Test:
-    runs-on:  ubuntu-20.04
-    env:
-      TERM: xterm-256color
-      DISPLAY: :0
+  Build-and-Test-on-Ubuntu:
+    runs-on: ubuntu-latest
     steps:
-      - name: Install required packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc make xvfb openssl xclip python3.8-minimal xxd diffutils coreutils netcat libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev
-      - name: Check out repository code
-        uses: actions/checkout@v3
-      - name: Build and Test
-        run: |
-          echo "Building..."
-          make
-          echo "Build completed"
-          echo "Testing..."
-          sudo Xvfb :0 -screen 0 1280x720x30 > /dev/null 2>&1 &
-          make test
-          echo "Passed Test"
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{github.head_ref}}
+        fetch-depth: 0
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+    - name: Build
+      run: docker build -t clipshare:ubuntu -f docker/Dockerfile.ubuntu .
+    - name: Test
+      run: docker run clipshare:ubuntu
+
+  Build-and-Test-on-Fedora:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{github.head_ref}}
+        fetch-depth: 0
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+    - name: Build
+      run: docker build -t clipshare:fedora -f docker/Dockerfile.fedora .
+    - name: Test
+      run: docker run clipshare:fedora
+
+  Build-and-Test-on-Arch:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{github.head_ref}}
+        fetch-depth: 0
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+    - name: Build
+      run: docker build -t clipshare:arch -f docker/Dockerfile.arch .
+    - name: Test
+      run: docker run clipshare:arch
