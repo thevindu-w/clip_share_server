@@ -71,7 +71,7 @@ fi
 
 cd ..
 
-diffOutput=$(diff -rq original copies 2>&1)
+diffOutput=$(diff -rq original copies 2>&1 || echo failed)
 if [ ! -z "${diffOutput}" ]; then
     showStatus "fail" "Files do not match."
     exit 1

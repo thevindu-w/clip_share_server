@@ -21,7 +21,7 @@ if [ "${response}" != "${expected}" ]; then
     exit 1
 fi
 
-clip=$(xclip -out -sel clip)
+clip=$(xclip -out -sel clip || echo fail)
 
 if [ "${clip}" != "${sample}" ]; then
     showStatus fail "Clipcoard content not matching."

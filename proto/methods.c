@@ -212,7 +212,7 @@ int send_file_v1(socket_t *socket)
 {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
         return EXIT_FAILURE;
-    ssize_t name_length = read_size(socket);
+    const ssize_t name_length = read_size(socket);
 #ifdef DEBUG_MODE
     printf("name_len = %zi\n", name_length);
 #endif
@@ -221,7 +221,8 @@ int send_file_v1(socket_t *socket)
         return EXIT_FAILURE;
     }
 
-    char file_name[name_length + 16];
+    const ssize_t name_max_len = name_length + 16;
+    char file_name[name_max_len];
     if (read_sock(socket, file_name, name_length) == EXIT_FAILURE)
     {
 #ifdef DEBUG_MODE
@@ -255,15 +256,15 @@ int send_file_v1(socket_t *socket)
 
     // if file already exists, use a different file name
     {
-        char tmp_fname[name_length + 16];
+        char tmp_fname[name_max_len];
         if (configuration.working_dir != NULL || strcmp(file_name, "clipshare.conf"))
         {
-            if (snprintf_check(tmp_fname, name_length + 16, ".%c%s", PATH_SEP, file_name))
+            if (snprintf_check(tmp_fname, name_max_len, ".%c%s", PATH_SEP, file_name))
                 return EXIT_FAILURE;
         }
         else
         {
-            if (snprintf_check(tmp_fname, name_length + 16, ".%c1_%s", PATH_SEP, file_name)) // do not create file named clipshare.conf
+            if (snprintf_check(tmp_fname, name_max_len, ".%c1_%s", PATH_SEP, file_name)) // do not create file named clipshare.conf
                 return EXIT_FAILURE;
         }
         int n = 1;
@@ -271,7 +272,7 @@ int send_file_v1(socket_t *socket)
         {
             if (n > 999999999)
                 return EXIT_FAILURE;
-            if (snprintf_check(tmp_fname, name_length + 16, ".%c%i_%s", PATH_SEP, n++, file_name))
+            if (snprintf_check(tmp_fname, name_max_len, ".%c%i_%s", PATH_SEP, n++, file_name))
                 return EXIT_FAILURE;
         }
         strcpy(file_name, tmp_fname);

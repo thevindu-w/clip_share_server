@@ -2,7 +2,7 @@
 
 . init.sh
 
-sample="This is a sample text"
+sample="Sample text for v1 get_text"
 
 printf "${sample}" | xclip -in -sel clip
 

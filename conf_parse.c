@@ -104,10 +104,8 @@ static void parse_line(char *line, config *cfg)
         return;
     }
     *eq = 0;
-    char key[256];
-    sscanf(line, "%255[^\n]", key);
-    char value[2048];
-    strcpy(value, eq + 1);
+    char *key = line;
+    char *value = eq + 1;
 
     trim(key);
     trim(value);

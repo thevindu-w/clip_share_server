@@ -2,7 +2,7 @@
 
 . init.sh
 
-sample="Sample text for v1 send_text"
+sample="Sample text for v2 send_text"
 
 proto=$(printf "\x02" | xxd -p)
 method=$(printf "\x02" | xxd -p)
@@ -21,7 +21,7 @@ if [ "${response}" != "${expected}" ]; then
     exit 1
 fi
 
-clip=$(xclip -out -sel clip)
+clip=$(xclip -out -sel clip || echo failed)
 
 if [ "${clip}" != "${sample}" ]; then
     showStatus fail "Clipcoard content not matching."
