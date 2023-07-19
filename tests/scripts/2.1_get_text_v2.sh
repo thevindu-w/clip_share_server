@@ -19,8 +19,6 @@ sampleDump=$(printf "${sample}" | xxd -p | tr -d '\n')
 expected="${protoAck}${methodAck}${length}${sampleDump}"
 
 if [ "${responseDump}" != "${expected}" ]; then
-    showStatus fail "Incorrect server response."
+    showStatus info "Incorrect server response."
     exit 1
 fi
-
-showStatus pass

@@ -66,7 +66,7 @@ expectedHead="${protoAck}${methodAck}${fileCount}"
 responseHead="${responseDump::${#expectedHead}}"
 
 if [ "${responseHead}" != "${expectedHead}" ]; then
-    showStatus fail "Incorrect response header"
+    showStatus info "Incorrect response header"
     exit 1
 fi
 
@@ -76,7 +76,7 @@ body="${responseDump:${#expectedHead}}"
 for _ in $(seq "${#files[@]}"); do
     nameLength=$((0x"${body::16}"))
     if [ "$nameLength" -gt "1024" ]; then
-        showStatus fail "File name too long. Length=${nameLength}."
+        showStatus info "File name too long. Length=${nameLength}."
         exit 1
     fi
     fileName=$(echo "${body:16:$(("$nameLength"*2))}" | xxd -r -p)
@@ -84,7 +84,7 @@ for _ in $(seq "${#files[@]}"); do
 
     fileSize=$((0x"${body::16}"))
     if [ "$nameLength" -gt "1048576" ]; then
-        showStatus fail "File is too large. size=${fileSize}."
+        showStatus info "File is too large. size=${fileSize}."
         exit 1
     fi
     if [[ "$fileName" = */* ]]; then
@@ -95,7 +95,7 @@ for _ in $(seq "${#files[@]}"); do
 done
 
 if [ "${body}" != "" ]; then
-    showStatus fail "Incorrect response body"
+    showStatus info "Incorrect response body"
     exit 1
 fi
 
@@ -103,8 +103,6 @@ cd ..
 
 diffOutput=$(diff -rq original copies 2>&1 || echo failed)
 if [ ! -z "${diffOutput}" ]; then
-    showStatus "fail" "Files do not match."
+    showStatus info "Files do not match."
     exit 1
 fi
-
-showStatus pass

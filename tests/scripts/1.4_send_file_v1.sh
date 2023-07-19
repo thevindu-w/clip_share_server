@@ -35,7 +35,7 @@ methodAck=$(printf "\x01" | xxd -p)
 expected="${protoAck}${methodAck}"
 
 if [ "${responseDump}" != "${expected}" ]; then
-    showStatus fail "Incorrect response."
+    showStatus info "Incorrect response."
     exit 1
 fi
 
@@ -43,8 +43,6 @@ cd ..
 
 diffOutput=$(diff -rq original copy 2>&1 || echo failed)
 if [ ! -z "${diffOutput}" ]; then
-    showStatus fail "File does not match."
+    showStatus info "File does not match."
     exit 1
 fi
-
-showStatus pass

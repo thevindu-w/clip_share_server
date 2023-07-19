@@ -2,21 +2,15 @@
 
 . init.sh
 
-sample="Sample text for v1 get_text"
-
-printf "${sample}" | xclip -in -sel clip
-
 proto=$(printf "\x01" | xxd -p)
 method=$(printf "\x01" | xxd -p)
 
 responseDump=$(printf "${proto}${method}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
 
 protoAck=$(printf "\x01" | xxd -p)
-methodAck=$(printf "\x01" | xxd -p)
-length=$(printf "%016x" "${#sample}")
-sampleDump=$(printf "${sample}" | xxd -p | tr -d '\n')
+methodAck=$(printf "\x02" | xxd -p)
 
-expected="${protoAck}${methodAck}${length}${sampleDump}"
+expected="${protoAck}${methodAck}"
 
 if [ "${responseDump}" != "${expected}" ]; then
     showStatus info "Incorrect server response."

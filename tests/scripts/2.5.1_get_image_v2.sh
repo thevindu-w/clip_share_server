@@ -20,8 +20,6 @@ length=$(printf "%016x" $(("${#imgSample}"/2)))
 expected="${protoAck}${methodAck}${length}${imgSample}"
 
 if [ "${responseDump}" != "${expected}" ]; then
-    showStatus fail "Incorrect server response."
+    showStatus info "Incorrect server response."
     exit 1
 fi
-
-showStatus pass

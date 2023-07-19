@@ -25,21 +25,25 @@ for dependency in "${dependencies[@]}"; do
 done
 
 setColor () {
-    colorSet () {
+    getColorCode () {
         if [ "$1" = "red" ]; then
-            if [ "$2" = "bold" ]; then
-                printf "\033[1;31m";
-            else
-                printf "\033[31m";
-            fi
+            echo 31;
         elif [ "$1" = "green" ]; then
-            if [ "$2" = "bold" ]; then
-                printf "\033[1;32m";
-            else
-                printf "\033[32m";
-            fi
+            echo 32;
+        elif [ "$1" = "yellow" ]; then
+            echo 33;
+        elif [ "$1" = "blue" ]; then
+            echo 34;
         else
-            printf "\033[0m";
+            echo 0;
+        fi
+    }
+    colorSet () {
+        color_code="$(getColorCode $1)"
+        if [ "$2" = "bold" ]; then
+            printf "\033[1;${color_code}m";
+        else
+            printf "\033[${color_code}m";
         fi
     }
     case "$TERM" in
@@ -47,7 +51,32 @@ setColor () {
     esac
 }
 
-export -f setColor
+showStatus () {
+    name=$(basename -- "$1" | sed 's/\(.*\)\..*/\1/g')
+    if [ "$2" = "pass" ]; then
+        setColor "green"
+        echo "Test ${name} passed."
+        setColor reset
+    elif [ "$2" = "fail" ]; then
+        setColor "red"
+        echo -n "Test ${name} failed."
+        setColor reset
+        echo " $3"
+    elif [ "$2" = "warn" ]; then
+        setColor "yellow"
+        echo -n "Test ${name} failed."
+        setColor reset
+        echo " $3"
+    elif [ "$2" = "info" ]; then
+        setColor "blue"
+        echo "$3"
+        setColor reset
+    else
+        setColor reset
+    fi
+}
+
+export -f setColor showStatus
 
 exitCode=0
 passCnt=0
@@ -57,22 +86,23 @@ for script in scripts/*.sh; do
     passed=
     attempts=3
     for attempt in $(seq "$attempts"); do
-        if "${script}" "$@"; then
+        if timeout 3 "${script}" "$@"; then
             passed=1
+            showStatus "${script}" pass
             break
         fi
-        echo -n "Attempt ${attempt} / ${attempts} failed."
+        attemt_msg="Attempt ${attempt} / ${attempts} failed."
         if [ "$attempt" != "$attempts" ]; then
-            echo " trying again ..."
-        else
-            echo
+            attemt_msg="${attemt_msg} trying again ..."
         fi
+        showStatus "${script}" warn "$attemt_msg"
     done
     if [ "$passed" = "1" ]; then
         passCnt=$(("$passCnt"+1))
     else
         exitCode=1
         failCnt=$(("$failCnt"+1))
+        showStatus "${script}" fail
     fi
     rm -rf tmp
 done

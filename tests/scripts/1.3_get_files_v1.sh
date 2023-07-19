@@ -44,8 +44,6 @@ fileCount=$(printf "%016x" $(printf "${#files[@]}"))
 expected="${protoAck}${methodAck}${fileCount}${chunks}"
 
 if [ "${responseDump}" != "${expected}" ]; then
-    showStatus fail "Incorrect server response."
+    showStatus info "Incorrect server response."
     exit 1
 fi
-
-showStatus pass
