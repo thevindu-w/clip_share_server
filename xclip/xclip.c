@@ -246,7 +246,7 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
 		options.target = XInternAtom(options.dpy, atom_name, False);
 	}
 
-	if (atom_name && !strcasecmp("TARGETS", atom_name))
+	if (atom_name && !strcmp("TARGETS", atom_name))
 	{
 		options.is_targets = 1;
 	}

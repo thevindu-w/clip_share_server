@@ -197,18 +197,18 @@ list2 *list_dir(const char *dirname)
  * to the list.
  * maximum recursion depth is limited to RECURSE_DEPTH_MAX
  */
-static void recurse_dir(char *path, list2 *lst, int depth)
+static void recurse_dir(const char *_path, list2 *lst, int depth)
 {
     if (depth > RECURSE_DEPTH_MAX)
         return;
-    DIR *d = opendir(path);
+    DIR *d = opendir(_path);
     if (d)
     {
-        path = strdup(path);
-        size_t p_len = strlen(path);
+        size_t p_len = strlen(_path);
+        char path[p_len + 2];
+        strncpy(path, _path, p_len + 1);
         if (path[p_len - 1] != PATH_SEP)
         {
-            path = (char *)realloc(path, p_len + 2);
             path[p_len++] = PATH_SEP;
             path[p_len] = '\0';
         }
@@ -218,7 +218,7 @@ static void recurse_dir(char *path, list2 *lst, int depth)
             char *filename = dir->d_name;
             if (!(strcmp(filename, ".") && strcmp(filename, "..")))
                 continue;
-            char *pathname = (char *)malloc(strlen(filename) + p_len + 1);
+            char pathname[strlen(filename) + p_len + 1];
             strcpy(pathname, path);
             strcpy(pathname + p_len, filename);
             struct stat sb;
@@ -237,9 +237,7 @@ static void recurse_dir(char *path, list2 *lst, int depth)
                     append(lst, strdup(pathname));
                 }
             }
-            free(pathname);
         }
-        free(path);
         (void)closedir(d);
     }
 #ifdef DEBUG_MODE

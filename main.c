@@ -274,10 +274,10 @@ int main(int argc, char **argv)
     configuration.app_port = app_port;
     configuration.insecure_mode_enabled = configuration.insecure_mode_enabled >= 0 ? configuration.insecure_mode_enabled : 1;
     configuration.app_port_secure = app_port_secure;
-    configuration.secure_mode_enabled = configuration.secure_mode_enabled >= 0 ? configuration.secure_mode_enabled : 1;
+    configuration.secure_mode_enabled = configuration.secure_mode_enabled >= 0 ? configuration.secure_mode_enabled : 0;
 #ifndef NO_WEB
     configuration.web_port = web_port;
-    configuration.web_mode_enabled = configuration.web_mode_enabled >= 0 ? configuration.web_mode_enabled : 1;
+    configuration.web_mode_enabled = configuration.web_mode_enabled >= 0 ? configuration.web_mode_enabled : 0;
 #endif
 
     if (configuration.working_dir)

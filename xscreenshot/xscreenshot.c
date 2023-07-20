@@ -49,11 +49,13 @@ static void my_png_write_data(png_structp png_ptr, png_bytep data, png_size_t le
 }
 
 /* LSBFirst: BGRA -> RGBA */
-static void convertrow_lsb(unsigned char *drow, unsigned char *srow, int bytes_per_line)
+static void convertrow_lsb(unsigned char *drow, unsigned char *srow, XImage *img)
 {
+	const int bytes_per_line = img->bytes_per_line;
+	const unsigned char bytes_per_pixel = (unsigned char)(img->bits_per_pixel / 8);
 	int sx, dx;
 
-	for (sx = 0, dx = 0; dx <= bytes_per_line - 3; sx += 4)
+	for (sx = 0, dx = 0; sx <= bytes_per_line - 3; sx += bytes_per_pixel)
 	{
 		drow[dx++] = srow[sx + 2]; /* B -> R */
 		drow[dx++] = srow[sx + 1]; /* G -> G */
@@ -62,11 +64,13 @@ static void convertrow_lsb(unsigned char *drow, unsigned char *srow, int bytes_p
 }
 
 /* MSBFirst: ARGB -> RGBA */
-static void convertrow_msb(unsigned char *drow, unsigned char *srow, int bytes_per_line)
+static void convertrow_msb(unsigned char *drow, unsigned char *srow, XImage *img)
 {
+	const int bytes_per_line = img->bytes_per_line;
+	const unsigned char bytes_per_pixel = (unsigned char)(img->bits_per_pixel / 8);
 	int sx, dx;
 
-	for (sx = 0, dx = 0; dx <= bytes_per_line - 3; sx += 4)
+	for (sx = 0, dx = 0; sx <= bytes_per_line - 3; sx += bytes_per_pixel)
 	{
 		drow[dx++] = srow[sx + 1]; /* G -> R */
 		drow[dx++] = srow[sx + 2]; /* B -> G */
@@ -78,7 +82,6 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len)
 {
 	png_structp png_write_p;
 	png_infop png_info_p;
-	void (*convert)(unsigned char *, unsigned char *, int);
 	unsigned char *drow = NULL, *srow;
 	int h;
 
@@ -116,6 +119,7 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len)
 		return EXIT_FAILURE;
 	}
 
+	void (*convert)(unsigned char *, unsigned char *, XImage *);
 	if (img->byte_order == LSBFirst)
 		convert = convertrow_lsb;
 	else
@@ -123,7 +127,7 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len)
 
 	for (h = 0; h < img->height; h++)
 	{
-		convert(drow, srow, img->bytes_per_line);
+		convert(drow, srow, img);
 		srow += img->bytes_per_line;
 		png_write_row(png_write_p, (png_const_bytep)drow);
 	}

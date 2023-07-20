@@ -55,16 +55,16 @@ showStatus () {
     name=$(basename -- "$1" | sed 's/\(.*\)\..*/\1/g')
     if [ "$2" = "pass" ]; then
         setColor "green"
-        echo "Test ${name} passed."
+        echo "Test ${name} passed"
         setColor reset
     elif [ "$2" = "fail" ]; then
         setColor "red"
-        echo -n "Test ${name} failed."
+        echo -n "Test ${name} failed"
         setColor reset
         echo " $3"
     elif [ "$2" = "warn" ]; then
         setColor "yellow"
-        echo -n "Test ${name} failed."
+        echo -n "Test ${name}"
         setColor reset
         echo " $3"
     elif [ "$2" = "info" ]; then

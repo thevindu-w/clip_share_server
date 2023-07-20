@@ -3,13 +3,18 @@ FROM ubuntu:focal
 RUN apt-get update
 RUN apt-get install -y apt-transport-https
 RUN apt-get update
+
+# Install build dependencies
 RUN apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev
+
+# Install test dependencies
 RUN apt-get install --no-install-recommends -y openssl xclip python3.8-minimal xxd diffutils coreutils netcat
 RUN apt-get install --no-install-recommends -y xvfb
 
 WORKDIR /usr/bin
 RUN ln -s python3.8 python3
 
+# Set environment variables for tests
 ENV TERM=xterm-256color
 ENV DISPLAY=:0
 
@@ -18,10 +23,12 @@ wORKDIR /src
 
 COPY . .
 
+# Build
 RUN make clean
 RUN make
 RUN make web
 
+# Prepare the test environment initialization script
 RUN chmod +x docker/run_docker.sh
 
 CMD docker/run_docker.sh

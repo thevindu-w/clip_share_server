@@ -96,6 +96,19 @@ static char *load_file(FILE *f)
     return buf;
 }
 
+static inline char is_true_str(const char *str)
+{
+    if (!strcasecmp("true", str) || !strcmp("1", str))
+    {
+        return 1;
+    }
+    else if (!strcasecmp("false", str) || !strcmp("0", str))
+    {
+        return 0;
+    }
+    return -1;
+}
+
 static void parse_line(char *line, config *cfg)
 {
     char *eq = strchr(line, '=');
@@ -124,13 +137,10 @@ static void parse_line(char *line, config *cfg)
     }
     else if (!strcmp("insecure_mode_enabled", key))
     {
-        if (!strcasecmp("true", value) || !strcmp("1", value))
+        char is_true = is_true_str(value);
+        if (is_true >= 0)
         {
-            cfg->insecure_mode_enabled = 1;
-        }
-        else if (!strcasecmp("false", value) || !strcmp("0", value))
-        {
-            cfg->insecure_mode_enabled = 0;
+            cfg->insecure_mode_enabled = is_true;
         }
     }
     else if (!strcmp("app_port_secure", key))
@@ -143,13 +153,10 @@ static void parse_line(char *line, config *cfg)
     }
     else if (!strcmp("secure_mode_enabled", key))
     {
-        if (!strcasecmp("true", value) || !strcmp("1", value))
+        char is_true = is_true_str(value);
+        if (is_true >= 0)
         {
-            cfg->secure_mode_enabled = 1;
-        }
-        else if (!strcasecmp("false", value) || !strcmp("0", value))
-        {
-            cfg->secure_mode_enabled = 0;
+            cfg->secure_mode_enabled = is_true;
         }
     }
 #ifndef NO_WEB
@@ -163,13 +170,10 @@ static void parse_line(char *line, config *cfg)
     }
     else if (!strcmp("web_mode_enabled", key))
     {
-        if (!strcasecmp("true", value) || !strcmp("1", value))
+        char is_true = is_true_str(value);
+        if (is_true >= 0)
         {
-            cfg->web_mode_enabled = 1;
-        }
-        else if (!strcasecmp("false", value) || !strcmp("0", value))
-        {
-            cfg->web_mode_enabled = 0;
+            cfg->web_mode_enabled = is_true;
         }
     }
 #endif

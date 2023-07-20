@@ -17,19 +17,19 @@ This is the server that runs in the background. Cilents can connect to the serve
 
 #### Linux
 
-  On linux, they can be installed with the following command:
+  On Linux, they can be installed with the following command:
 
-* on Debian or Ubuntu based distros,
+* On Debian or Ubuntu based distros,
   ```bash
   sudo apt-get install gcc make
   ```
 
-* on Redhat or Fedora based distros,
+* On Redhat or Fedora based distros,
   ```bash
   sudo yum install gcc make
   ```
 
-* on Arch based distros,
+* On Arch based distros,
   ```bash
   sudo pacman -S gcc make
   ```
@@ -54,21 +54,23 @@ This is the server that runs in the background. Cilents can connect to the serve
 
   They can be installed with the following command:
 
-* on Debian or Ubuntu based distros,
+* On Debian or Ubuntu based distros,
   ```bash
   sudo apt-get install libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev
   ```
 
-* on Redhat or Fedora based distros,
+* On Redhat or Fedora based distros,
   ```bash
   sudo yum install glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel
   ```
 
-* on Arch based distros,
+* On Arch based distros,
   ```bash
   # glibc should already be available
   sudo pacman -S libx11 libxmu libpng openssl
   ```
+
+(You may refer to docker/Dockerfile\* to see how to install the dependencies on various Linux distros)
 
 #### Windows
 
@@ -76,7 +78,7 @@ This is the server that runs in the background. Cilents can connect to the serve
 
 * [libz](https://packages.msys2.org/package/mingw-w64-x86_64-libzip?repo=mingw64)
 * [libpng16](https://packages.msys2.org/package/mingw-w64-x86_64-libpng?repo=mingw64)
-* [libssl](https://packages.msys2.org/package/mingw-w64-x86_64-openssl?repo=mingw64) (provided by openssl)
+* [libssl](https://packages.msys2.org/package/mingw-w64-x86_64-openssl?repo=mingw64) (provided by OpenSSL)
 
 <br>
 
@@ -84,21 +86,21 @@ This is the server that runs in the background. Cilents can connect to the serve
 
 1. Open a terminal / command prompt / Powershell in the project directory
 
-    This can be done using the GUI or by the `cd` command.
+    This can be done using the GUI or the `cd` command.
 
 1. Run the following command to make the executable file
 
     ```bash
     make
     ```
-    This will generate the executable which is named clip_share (or clip_share.exe on Windows).
+    This will generate the executable named clip_share (or clip_share.exe on Windows).
 
-    **Note** : Web version is deprecated
+    **Note**: The web version is deprecated.<br>
     To compile with the web server enabled, (Currently, this is tested only on Linux)
     ```bash
     make web
     ```
-    This will generate the web server enabled executable which is named clip_share_web.
+    This will generate the web server enabled executable named clip_share_web.
 
 <br>
 <br>
@@ -107,10 +109,10 @@ This is the server that runs in the background. Cilents can connect to the serve
 
   This server listens on the following ports (unless different ports are assigned from the configuration),
 
-* `4337` &nbsp;&nbsp; `TCP` &nbsp;&nbsp; : &nbsp;&nbsp; For application traffic (not encrypted)
-* `4337` &nbsp;&nbsp; `UDP` &nbsp;&nbsp; : &nbsp;&nbsp; For network scanning
-* `4338` &nbsp;&nbsp; `TCP` &nbsp;&nbsp; : &nbsp;&nbsp; For application traffic over TLS (encrypted)
-* `4339` &nbsp;&nbsp; `TCP` &nbsp;&nbsp; : &nbsp;&nbsp; For the web server (if the web server is available)
+* `4337` / `TCP` &nbsp; - &nbsp; For application traffic (not encrypted)
+* `4337` / `UDP` &nbsp; - &nbsp; For network scanning
+* `4338` / `TCP` &nbsp; - &nbsp; For application traffic over TLS (encrypted)
+* `4339` / `TCP` &nbsp; - &nbsp; For the web server (if the web server is available)
 
 You may need to allow incoming connections to the above ports for the client to connect to the server.
 
@@ -118,7 +120,7 @@ You may need to allow incoming connections to the above ports for the client to 
 
 ## Create SSL/TLS certificate and key files
 
-**Note** : This section is optional if you do not need the TLS encrypted mode and the web mode.
+**Note**: This section is optional if you do not need the TLS encrypted mode and the web mode.
 <br>
 The following files should be created and placed in the `cert_keys/` directory and specified in the configuration file `clipshare.conf`. You may use different file names and paths to store the keys and certificates. Refer [OpenSSL manual](https://www.openssl.org/docs/manmaster/man1/openssl.html) for more information on generating keys.
 
@@ -132,21 +134,22 @@ The following files should be created and placed in the `cert_keys/` directory a
 ## How to use
 ### Run the server
 
+You can run the server from a terminal or
 When the server is started, it will not open any window. Instead, it will run in the background.
-If the program is started from the terminal, it should return immediately (server will continue to run in the background).
-If something goes wrong, a server_err.log file will be created and it will contain what went wrong.
+On Linux, if the program is started from the terminal, it should return immediately (the server will continue to run in the background).
+If something goes wrong, a server_err.log file will be created, and it will contain what went wrong.
 
 ### Connect the client application
 
 Open the client application on any other device on the same network.
 If the client supports network scanning, the server can be easily found. Otherwise, enter the server's IPv4 address to the client.
-Now the client should be able to share clipboard data, files, and get images from the server.
+Now the client should be able to share clipboard data, and files, and get images from the server.
 Note that the client should be allowed through the firewall as mentioned in the above section.
 
 <br>
 
 ## Configuration
-Create a file named &nbsp; `clipshare.conf` &nbsp; and add the following lines into that configuration file
+Create a file named &nbsp; `clipshare.conf` &nbsp; and add the following lines into that configuration file.
 
 ```properties
 app_port=4337
@@ -154,7 +157,7 @@ app_port_secure=4338
 web_port=4339
 insecure_mode_enabled=true
 secure_mode_enabled=true
-web_mode_enabled=true
+web_mode_enabled=false
 server_key=cert_keys/server.key
 server_cert=cert_keys/server.crt
 ca_cert=cert_keys/ca.crt
@@ -169,18 +172,18 @@ Note that all the lines in the configuration file are optional. You may omit som
 
 | Property | Description | Accepted values | Default |
 |  :----:  | :--------   | :------------   |  :---:  |
-| `insecure_mode_enabled` | Whether or not the application listens for unencrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` | `true` |
-| `app_port` | The port on which the application listens for unencrypted TCP connections. The application listens on the same port for UDP for network scanning. (Values below 1024 may require super user / admin privileges) | Any valid, unused port number (1 - 65535) | `4337` |
-| `secure_mode_enabled` | Whether or not the application listens for TLS-encrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` | `true` |
-| `app_port_secure` | The TCP port on which the application listens for TLS-encrypted connections. (Values below 1024 may require super user / admin privileges) | Any valid, unused port number (1 - 65535) | `4338` |
-| `web_mode_enabled` | Whether or not the application listens for TLS-encrypted connections from web clients if the web mode is available. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` | `true` |
-| `web_port` | The TCP port on which the application listens for TLS-encrypted connections for web clients. This setting is used only if web mode is available. (Values below 1024 may require super user / admin privileges) | Any valid, unused port number (1 - 65535) | `4339` |
+| `insecure_mode_enabled` | Whether or not the application listens for unencrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
+| `app_port` | The port on which the application listens for unencrypted TCP connections. The application listens on the same port for UDP for network scanning. (Values below 1024 may require superuser/admin privileges) | Any valid, unused port number (1 - 65535) | `4337` |
+| `secure_mode_enabled` | Whether or not the application listens for TLS-encrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
+| `app_port_secure` | The TCP port on which the application listens for TLS-encrypted connections. (Values below 1024 may require superuser/admin privileges) | Any valid, unused port number (1 - 65535) | `4338` |
+| `web_mode_enabled` | Whether or not the application listens for TLS-encrypted connections from web clients if the web mode is available. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
+| `web_port` | The TCP port on which the application listens for TLS-encrypted connections for web clients. This setting is used only if web mode is available. (Values below 1024 may require superuser/admin privileges) | Any valid, unused port number (1 - 65535) | `4339` |
 | `server_key` | The TLS private key file of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the private key file | \<Unspecified\> |
 | `server_cert` | The TLS certificate file of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the server's TLS certificate file | \<Unspecified\> |
 | `ca_cert` | The TLS certificate file of the CA that signed the TLS certificate of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the TLS certificate file of the CA | \<Unspecified\> |
-| `allowed_clients` | The text file containing a list of allowed clients (Common Name of client certificate), one name per each line. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the allowed clients file | \<Unspecified\> |
-| `working_dir` | The working directory where the application should run. All the files, that are sent from a client, will be saved in this directory. It will follow symlinks if this is a path to a symlink. User running this application should have write access to the directory | Absolute or relative path to an existing directory | . (Current directory) |
-| `bind_address` | The address of the interface which the application should bind to when listening for connections. It will listen on all interfaces if this is set to `0.0.0.0` | IPv4 address of an interface in a.b.c.d format or `0.0.0.0` | `0.0.0.0` |
+| `allowed_clients` | The text file containing a list of allowed clients (Common Name of client certificate), one name per each line. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the allowed-clients file | \<Unspecified\> |
+| `working_dir` | The working directory where the application should run. All the files, that are sent from a client, will be saved in this directory. It will follow symlinks if this is a path to a symlink. The user running this application should have write access to the directory | Absolute or relative path to an existing directory | . (Current directory) |
+| `bind_address` | The address of the interface to which the application should bind when listening for connections. It will listen on all interfaces if this is set to `0.0.0.0` | IPv4 address of an interface in a.b.c.d format or `0.0.0.0` | `0.0.0.0` |
 
 <br>
 

@@ -55,4 +55,3 @@ extern int xcin(
 	unsigned int *);
 extern void *xcmalloc(size_t);
 extern void *xcrealloc(void *, size_t);
-extern void *xcstrdup(const char *);
