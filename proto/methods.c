@@ -31,14 +31,17 @@
 #define STATUS_OK 1
 #define STATUS_NO_DATA 2
 
-#define FILE_BUF_SZ 65536
-#define MAX_FILE_SIZE 68719476736l
+#define FILE_BUF_SZ 65536          // 64 KiB
+#define MAX_FILE_SIZE 68719476736l // 64 GiB
+#define MAX_FILE_NAME_LENGTH 2048
+#define MAX_TEXT_LENGTH 4194304   // 4 MiB
+#define MAX_IMAGE_SIZE 1073741824 // 1 GiB
 
 int get_text_v1(socket_t *socket)
 {
     size_t length = 0;
     char *buf = NULL;
-    if (get_clipboard_text(&buf, &length) != EXIT_SUCCESS || length <= 0) // do not change the order
+    if (get_clipboard_text(&buf, &length) != EXIT_SUCCESS || length <= 0 || length > MAX_TEXT_LENGTH) // do not change the order
     {
 #ifdef DEBUG_MODE
         printf("clipboard read text failed. len = %zu\n", length);
@@ -83,7 +86,7 @@ int send_text_v1(socket_t *socket)
 #ifdef DEBUG_MODE
     printf("Len = %zi\n", length);
 #endif
-    if (length <= 0 || length > 4194304) // limit maximum length to 4 MiB
+    if (length <= 0 || length > MAX_TEXT_LENGTH) // limit maximum length to 4 MiB
     {
         return EXIT_FAILURE;
     }
@@ -148,6 +151,12 @@ int get_files_v1(socket_t *socket)
         }
         char filename[strlen(tmp_fname) + 1];
         strcpy(filename, tmp_fname);
+        size_t fname_len = strlen(filename);
+        if (fname_len > MAX_FILE_NAME_LENGTH)
+        {
+            status = EXIT_FAILURE;
+            goto END;
+        }
 
         FILE *fp = fopen(file_path, "rb");
         if (!fp)
@@ -159,29 +168,31 @@ int get_files_v1(socket_t *socket)
             continue;
         }
         ssize_t file_size = get_file_size(fp);
-        if (file_size < 0)
+        if (file_size < 0 || file_size > MAX_FILE_SIZE)
         {
 #ifdef DEBUG_MODE
-            printf("file size < 0\n");
+            printf("file size = %zi\n", file_size);
 #endif
             fclose(fp);
             status = EXIT_FAILURE;
             continue;
         }
 
-        size_t fname_len = strlen(filename);
         if (send_size(socket, fname_len) == EXIT_FAILURE)
         {
+            fclose(fp);
             status = EXIT_FAILURE;
             goto END;
         }
         if (write_sock(socket, filename, fname_len) == EXIT_FAILURE)
         {
+            fclose(fp);
             status = EXIT_FAILURE;
             goto END;
         }
         if (send_size(socket, file_size) == EXIT_FAILURE)
         {
+            fclose(fp);
             status = EXIT_FAILURE;
             goto END;
         }
@@ -216,7 +227,7 @@ int send_file_v1(socket_t *socket)
 #ifdef DEBUG_MODE
     printf("name_len = %zi\n", name_length);
 #endif
-    if (name_length <= 0 || name_length > 1024) // limit file name length to 1024 chars
+    if (name_length <= 0 || name_length > MAX_FILE_NAME_LENGTH) // limit file name length to 1024 chars
     {
         return EXIT_FAILURE;
     }
@@ -314,7 +325,7 @@ int get_image_v1(socket_t *socket)
 {
     size_t length = 0;
     char *buf = NULL;
-    if (get_image(&buf, &length) == EXIT_FAILURE || length == 0) // do not change the order
+    if (get_image(&buf, &length) == EXIT_FAILURE || length == 0 || length > MAX_IMAGE_SIZE) // do not change the order
     {
 #ifdef DEBUG_MODE
         printf("get image failed. len = %zu\n", length);
@@ -402,6 +413,12 @@ int get_files_v2(socket_t *socket)
         char *tmp_fname = file_path + path_len;
         char filename[strlen(tmp_fname) + 1];
         strcpy(filename, tmp_fname);
+        size_t fname_len = strlen(filename);
+        if (fname_len > MAX_FILE_NAME_LENGTH)
+        {
+            status = EXIT_FAILURE;
+            goto END;
+        }
 
         FILE *fp = fopen(file_path, "rb");
         if (!fp)
@@ -413,19 +430,19 @@ int get_files_v2(socket_t *socket)
             continue;
         }
         ssize_t file_size = get_file_size(fp);
-        if (file_size < 0)
+        if (file_size < 0 || file_size > MAX_FILE_SIZE)
         {
 #ifdef DEBUG_MODE
-            printf("file size < 0\n");
+            printf("file size = %zi\n", file_size);
 #endif
             fclose(fp);
             status = EXIT_FAILURE;
             continue;
         }
 
-        size_t fname_len = strlen(filename);
         if (send_size(socket, fname_len) == EXIT_FAILURE)
         {
+            fclose(fp);
             status = EXIT_FAILURE;
             goto END;
         }
@@ -442,11 +459,13 @@ int get_files_v2(socket_t *socket)
 
         if (write_sock(socket, filename, fname_len) == EXIT_FAILURE)
         {
+            fclose(fp);
             status = EXIT_FAILURE;
             goto END;
         }
         if (send_size(socket, file_size) == EXIT_FAILURE)
         {
+            fclose(fp);
             status = EXIT_FAILURE;
             goto END;
         }
@@ -479,7 +498,7 @@ static int save_file(socket_t *socket, const char *dirname)
 #ifdef DEBUG_MODE
     printf("name_len = %zi\n", name_length);
 #endif
-    if (name_length < 0 || name_length > 1024) // limit file name length to 1024 chars
+    if (name_length < 0 || name_length > MAX_FILE_NAME_LENGTH) // limit file name length to 1024 chars
     {
         return EXIT_FAILURE;
     }

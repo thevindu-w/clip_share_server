@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Protocol Version 1</title>
+</head>
+
+<body>
+    <div id="nav">
+        <span><a href="index.html">&lt Previous</a></span>
+        <span class="growx"></span>
+        <span><a href="proto_v2.html">Next &gt</a></span>
+    </div>
+    <div class="page">
+        <h1>
+            <center>Protocol Version 1</center>
+        </h1>
+        If the client and the server agrees on protocol version 1 after <a
+            href="index.html#proto-negotiation">negotiation</a>, the client starts communicating using that protocol.
+        First, the client selects the method and request it from the server. Then the server accepts the request, they
+        will continue the communication.
+
+        <h2 id="method-selection">Selecting the method</h2>
+        <ul>
+            <li>
+                Client starts by sending the <a href="#method-codes">method code</a> in a single byte (ex: if the method
+                code is 1, the client sends
+                \x01). The method code can be 1, 2, 3, 4, 5, or 125. Refer to the <a href="#supported-methods">Supported
+                    methods</a> section for more information about the methods.
+            </li>
+            <li>
+                Upon receiving the method request, the server responds with a single byte denoting the <a
+                    href="#method-status-codes">method status code</a> for that request. If the method request is
+                accepted, the server and the client will continue the communication. Refer to the <a
+                    href="#supported-methods">Supported methods</a> section for more information about the structure of
+                the remaining part of the communication.
+            </li>
+            <li>
+                If the method request is not accepted, or there is no more communications to happen, the client and the
+                server will close the connection.
+            </li>
+        </ul>
+
+        <h2 id="method-codes">Method codes</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Method code</th>
+                    <th>Method name</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td><a href="#get-text">Get Text</a></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td><a href="#send-text">Send Text</a></td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td><a href="#get-files">Get Files</a></td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td><a href="#send-file">Send File</a></td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td><a href="#get-image">Get Image/Screenshot</a></td>
+                </tr>
+                <tr>
+                    <td>125</td>
+                    <td><a href="#info">Info</a></td>
+                </tr>
+            </thead>
+        </table>
+
+        <h2 id="method-status-codes">Method status codes</h2>
+        <p>
+            When the server receive a method request from the client will respond to the client with one of the
+            following status codes. The status code will be sent to the client as a single byte. For example, if the
+            status code is 1, the server sends the byte \x01.
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th id="status-code-value">
+                        Status code value
+                    </th>
+                    <th>
+                        Status code name
+                    </th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tr>
+                <td>1</td>
+                <td>OK</td>
+                <td class="center">
+                    The method is accepted. If this method is to send data to the server, the client can now start
+                    sending data. If this method is to get data from the server, the server will now start sending data.
+                </td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>NO_DATA</td>
+                <td class="center">
+                    This status occurs only for methods that gets data from the server (ex: get_text, get_files). This
+                    status implies that the method is valid and accepted, but the server has no data to send (possibly
+                    because there is no text or files copied into the clipboard of the server device). Therefore,
+                    the communication ends at this point and the connection can be closed now.
+                </td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>UNKNOWN_METHOD</td>
+                <td class="center">
+                    This status code is sent when the client requests an invalid method request code. The request is
+                    rejected and the communication ends at this point. Therefore, the server and the client can close
+                    the connection.
+                </td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>METHOD_NOT_IMPLEMENTED</td>
+                <td class="center">
+                    This status code implies that the method request code is valid. But the server does not implement
+                    that method. Therefore, the request has to be rejected. The communication ends at this point and the
+                    connection can be closed now.
+                </td>
+            </tr>
+        </table>
+
+        <h2 id="supported-methods">Supported methods</h2>
+        <p>The following methods are supported in this protocol version.</p>
+        <p>
+            <b>Notes:</b>
+        <ul>
+            <li>All the all numeric values (ex: lengths, number of files) are sent/received as 64-bit signed integers in
+                big-endian format.</li>
+            <li>All the all lengths of strings and file sizes are measured in bytes and they are sent/received as
+                numeric values as specified above.</li>
+            <li>All the texts sent/received are UTF-8 encoded, and they do not contain a terminating null byte or any
+                other prefixes or suffixes. Length of the texts are calculated after encoding in this way.</li>
+            <li>All the files sent/received are considered binary files. Therefore the Unix/Windows style line endings
+                or any other platform specific things in the file content are not changed. Also, the file content is
+                considered a sequence of bytes, which is not modified (compressed or encoded) during transmission. Name
+                of the files are considered as text, and therefore sent/received as specified above.</li>
+        </ul>
+        </p>
+        <h3 id="get-text">Get Text</h3>
+        <p>
+            This method is used to get the copied text from the server to the client. Once the client requests this
+            method code from the server and the server acknowledges with the status OK, the server will send the length
+            of the copied text followed by the copied text to the client. Once the copied text is transmitted, the
+            communication ends and the connection can be closed. The client may copy the received text into the
+            clipboard of the client device.
+        <ul>
+            <li>The length is the number of bytes in the text sent after this. It should be less than 4MiB in size. The
+                length is encoded sent as specified above in the note.</li>
+            <li>The copied text is the text copied to the clipboard of the server device. This is encoded as specified
+                above in the note.</li>
+        </ul>
+        </p>
+        <h3 id="send-text">Send Text</h3>
+        <p>
+            This method is used to send the copied text from the client to the server. Once the client requests this
+            method code from the server and the server acknowledges with the status OK, the client will send the length
+            of the copied text followed by the copied text to the server. Once the copied text is transmitted, the
+            communication ends and the connection can be closed. The server may copy the received text into the
+            clipboard of the server device.
+        <ul>
+            <li>The length is the number of bytes in the text sent after this. It should be less than 4MiB in size. The
+                length is encoded sent as specified above in the note.</li>
+            <li>The copied text is the text copied to the clipboard of the client device. This is encoded as specified
+                above in the note.</li>
+        </ul>
+        </p>
+        <h3 id="get-files">Get Files</h3>
+        <p>
+            This method is used to get the copied files from the server to the client. This method only supports sending
+            regular files (i.e. directories, links, or other types are not supported). Once the client requests this
+            method code from the server and the server acknowledges with the status OK, the server will send the number
+            of files to be sent. After the number of files is sent, each file is sent sequentially as following.<br>
+        <ul>
+            <li>First, the length of the file name is sent. File name can have at most 1024 bytes. It is encoded as
+                specified above in the note.</li>
+            <li>Then, the file name is sent. It is a text encoded as specified above in the note.</li>
+            <li>Followed by the file name, the size of the file is sent. File size can be at most 64 GiB. It is encoded
+                as a numeric value specified above in the note.</li>
+            <li>Then, the file content is sent. It is sent as a stream of bytes as specified above in the note.</li>
+        </ul>
+        Once all the files are transmitted, the communication ends and the connection can be closed.
+        </p>
+        <h3 id="send-file">Send File</h3>
+        <p>
+            This method is used to send a file from the client to the server. This method only supports sending a single
+            regular file at a time (i.e. directories, links, or other types are not supported). Once the client requests
+            this method code from the server and the server acknowledges with the status OK, the client will send the
+            file to the server as following.<br>
+        <ul>
+            <li>First, the length of the file name is sent. File name can have at most 1024 bytes. It is encoded as
+                specified above in the note.</li>
+            <li>Then, the file name is sent. It is a text encoded as specified above in the note.</li>
+            <li>Followed by the file name, the size of the file is sent. File size can be at most 64 GiB. It is encoded
+                as a numeric value specified above in the note.</li>
+            <li>Then, the file content is sent. It is sent as a stream of bytes as specified above in the note.</li>
+        </ul>
+        Once all the file is transmitted, the communication ends and the connection can be closed.
+        </p>
+        <h3 id="get-image">Get Image/Screenshot</h3>
+        <p>
+            This method is used to get a copied image or a screenshot from the server to the client. If the server
+            device has an image copied to the clipboard, it will be sent. Otherwise, a screenshot of the server device
+            will be sent as the image. The image is encoded as a PNG image. Once the client requests this method code
+            from the server and the server acknowledges with the status OK, the server will send the image as
+            following.<br>
+        <ul>
+            <li>First, the size of the image in bytes is sent. Image can be at most 1 GiB in size. It is encoded as a
+                numeric value specified above in the note.</li>
+            <li>Then, the image is sent. It is sent as a stream of bytes as specified above in the note.</li>
+        </ul>
+        Note that there is no file name for the image. The client should create a file name if it is planning to save
+        this image as a file.
+        </p>
+        <h3 id="info">Info</h3>
+        <p>
+            This method is used to get the name of the server. Once the client requests this method code from the server
+            and the server acknowledges with the status OK, the server will send the length of the name followed by the
+            name "clip_share" to the client. Once the name is transmitted, the communication ends and the connection can
+            be closed.
+        <ul>
+            <li>The length is the number of bytes in the name sent after this. The length is encoded sent as specified
+                above in the note.</li>
+            <li>The name of the server is encoded as a text specified above in the note.</li>
+        </ul>
+        </p>
+
+        <h2 id="examples">Examples</h3>
+    </div>
+    <div id="nav">
+        <span><a href="index.html">&lt Previous</a></span>
+        <span class="growx"></span>
+        <span><a href="proto_v2.html">Next &gt</a></span>
+    </div>
+</body>
+
+</html>

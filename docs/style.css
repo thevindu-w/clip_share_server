@@ -1,0 +1,67 @@
+body {
+    padding: 10px;
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+div.page {
+    min-width: 600px;
+    width: 80vw;
+    margin: 0 auto;
+}
+
+li, p {
+    margin: 0.75em 0
+}
+
+table {
+    border: 3px solid black;
+    padding: 0;
+    border-collapse: collapse;
+    margin-bottom: 2em;
+}
+
+thead tbody {
+    margin: 0;
+}
+
+table tr {
+    margin: 0;
+}
+
+th, td {
+    border: 1px solid gray;
+    text-align: center;
+    padding: 0.4em 1ch;
+    margin: 0;
+}
+
+table th {
+    border: 1px solid black;
+    font-weight: bold;
+}
+
+td.center {
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+th#status-code-value {
+    min-width: 10ch;
+}
+
+div#nav {
+    display: flex;
+}
+
+div#nav span {
+    padding: 0 2ch;
+}
+
+span.growx{
+    flex-grow: 1;
+}
+
+h2, h3 {
+    margin-top: 1em;
+}

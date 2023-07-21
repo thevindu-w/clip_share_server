@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>ClipShare</title>
+</head>
+
+<body>
+    <div id="nav">
+        <span class="growx"></span>
+        <span><a href="proto_v1.html">Next &gt</a></span>
+    </div>
+    <div class="page">
+        <h1>
+            <center>ClipShare</center>
+        </h1>
+
+        <h2>Client-Server Communication Protocol</h2>
+        <p>
+            The client and the server communicates through a TCP connection. The server listens on TCP port 4337 for
+            unencrypted connections and 4338 for encrypted connections, which may be changed from the configuration. The
+            client connects to the server and starts communicating. The client starts the communication by selecting the
+            protocol version. To select the protocol version, the client negotiates with the server.
+        </p>
+
+        <h3 id="proto-negotiation">Protocol version negotiation</h3>
+        <ul>
+            <li>
+                Client starts by sending the protocol version in a single byte (ex: if the protocol version is 1, the
+                client sends
+                \x01). The version numbers can range from 1 to 253. Client should always send the highest protocol
+                version it supports.
+            </li>
+            <li>
+                If the server supports that version, it accepts the protocol version and acknowledges the client by
+                responding with the single byte of value \x01, which denotes protocol is supported. This will end the
+                protocol version negotiation phase. The client can now continue communicating using the selected
+                protocol version.
+            </li>
+            <li>
+                If the server do not support that protocol version, and if the requested protocol version is less than
+                the lowest version the server is supporting, the server informs this to the client by responding with
+                the single byte of value \x02, which denotes protocol is obsolete and not supported. This will be the
+                end of the communication as there can be no common protocol versions between the client and the server
+                since the highest protocol version supported by the client is less than the lowest version supported by
+                the server. Therefore, this ends both the negotiation phase and the entire communication. Now the client
+                and the server will close the connection.
+            </li>
+            <li>
+                If the server do not support that protocol version, and if the requested protocol version is higher than
+                the highest version the server is supporting, the server informs this to the client by responding with
+                the single byte of value \x03, which denotes protocol is unknown to the server and not supported. Then
+                the server sends the highest protocol version it can support in a single byte to the client to offer the
+                chance to use that protocol version if the client supports it. Negotiation continues if the client
+                accepts the offered version
+            </li>
+            <li>
+                If the client supports the protocol version offered by the server, it will acknowledge that to the
+                server by sending the accepted protocol version back to the server in a single byte. This protocol
+                version is now accepted by both the server and the client. This will end the protocol version
+                negotiation phase. The client can now continue communicating using the selected protocol version.
+            </li>
+            <li>
+                If the client do not support the offered protocol version, it rejects the offer by replying to the
+                server with the single byte \x00. This implies that there are no common versions of the protocol between
+                the server and the client. Therefore, this ends both the negotiation phase and the entire communication.
+                Now the client and the server will close the connection.
+            </li>
+        </ul>
+
+        <h3 id="proto-versions">Protocol versions</h3>
+        <p>Currently, the following protocol versions are supported by this server.</p>
+        <ul>
+            <li><a href="proto_v1.html">Version 1</a></li>
+            <li><a href="proto_v2.html">Version 2</a></li>
+        </ul>
+    </div>
+    <div id="nav">
+        <span class="growx"></span>
+        <span><a href="proto_v1.html">Next &gt</a></span>
+    </div>
+</body>
+
+</html>
