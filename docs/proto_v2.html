@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Protocol Version 2</title>
+</head>
+
+<body>
+    <div id="nav">
+        <span><a href="proto_v1.html">&lt Previous</a></span>
+        <span class="growx"></span>
+    </div>
+    <div class="page">
+        <h1>
+            <center>Protocol Version 2</center>
+        </h1>
+        If the client and the server agree on protocol version 2 after <a
+            href="index.html#proto-negotiation">negotiation</a>, the client starts communicating using that protocol.
+        First, the client selects the method and requests it from the server. Then the server accepts the request, and
+        they will continue the communication.
+
+        <h2 id="method-selection">Selecting the Method</h2>
+        Selecting the method in protocol version 2 is identical to the procedure of <a
+            href="proto_v1.html#method-selection">selecting the method in protocol version 1</a>.<br>
+        <a href="#method-codes">Method codes</a> in protocol version 2 are almost the same as the method codes in
+        version 1, except for some differences in the <a href="#get-files">Get Files</a> and <a href="#send-files">Send
+            Files</a> methods. They are described in the <a href="#supported-methods">Supported Methods</a> section.
+
+        <h2 id="method-codes">Method Codes</h2>
+        <p>Note that the method codes in Version 2 are almost the same as the <a
+                href="proto_v1.html#method-codes">method codes in Version 1</a></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Method code</th>
+                    <th>Method name</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td><a href="#get-text">Get Text</a></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td><a href="#send-text">Send Text</a></td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td><a href="#get-files">Get Files</a></td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td><a href="#send-files">Send Files</a></td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td><a href="#get-image">Get Image/Screenshot</a></td>
+                </tr>
+                <tr>
+                    <td>125</td>
+                    <td><a href="#info">Info</a></td>
+                </tr>
+            </thead>
+        </table>
+
+        <h2 id="method-status-codes">Method Status Codes</h2>
+        <p>Method status codes in protocol version 2 are identical to <a
+                href="proto_v1.html#method-status-codes">method status codes of version 1</a>.</p>
+
+        <h2 id="supported-methods">Supported Methods</h2>
+        <p>
+            Most of the supported methods are identical to those of <a href="proto_v1.html#supported-methods">Version
+                1</a> except for Get Files and Send Files methods.<br>
+            Encoding of lengths, text, file names, file contents, and images and the maximum allowed text lengths, file
+            name lengths, file sizes, and image sizes are identical to those of <a
+                href="proto_v1.html#encoding-notes">Version 1</a>.
+        </p>
+
+        <h3 id="get-text">Get Text</h3>
+        <p>
+            This method is identical to the <a href="proto_v1.html#get-text">Get Text method of Version 1</a>.
+        </p>
+        <h3 id="send-text">Send Text</h3>
+        <p>
+            This method is identical to the <a href="proto_v1.html#send-text">Send Text method of Version 1</a>.
+        </p>
+        </p>
+        <h3 id="get-files">Get Files</h3>
+        <p>
+            This method is used to get the copied files and directories from the server to the client. The only
+            difference between this method and the <a href="proto_v1.html#get-files">Get Files method of Version 1</a>
+            is that Version 1 does not support sending directories, whereas this method of Version 2 supports
+            sending directories in addition to files.</p>
+        <p>
+            Since this method supports sending directories and files inside them, this uses '/' (forward-slash) as the
+            file path separator. All the file paths are considered relative paths.</p>
+        <p>
+            Similar to the <a href="proto_v1.html#get-files">Get Files method of Version 1</a>, the server starts by
+            sending the number of files and then sends each file sequentially. Once all the files are transmitted, the
+            communication ends, and the connection can be closed.
+        </p>
+        <h3 id="send-files">Send Files</h3>
+        <p>
+            This method is similar to the <a href="#get-files">Get Files method</a> except that the client sends the
+            file count and each file sequentially to the server (i.e., the direction of communication after selecting the
+            method is reversed). All the size limits and file path constraints are the same as the <a
+                href="#get-files">Get Files method</a> described above.
+        </p>
+        <h3 id="get-image">Get Image/Screenshot</h3>
+        <p>
+            This method is identical to the <a href="proto_v1.html#get-image">Get Image method of Version 1</a>.
+        </p>
+        <h3 id="info">Info</h3>
+        <p>
+            This method is identical to the <a href="proto_v1.html#info">Info method of Version 1</a>.
+        </p>
+    </div>
+    <div id="nav">
+        <span><a href="proto_v1.html">&lt Previous</a></span>
+        <span class="growx"></span>
+    </div>
+</body>
+
+</html>
