@@ -1,7 +1,11 @@
 body {
-    padding: 10px;
+    margin: 0;
+    padding: 16px;
     text-align: justify;
     text-justify: inter-word;
+    min-height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
 }
 
 div.page {
@@ -10,7 +14,8 @@ div.page {
     margin: 0 auto;
 }
 
-li, p {
+li,
+p {
     margin: 0.75em 0
 }
 
@@ -29,39 +34,62 @@ table tr {
     margin: 0;
 }
 
-th, td {
+th,
+td {
     border: 1px solid gray;
     text-align: center;
-    padding: 0.4em 1ch;
+    padding: 0.4em 2ch;
     margin: 0;
+    width: fit-content;
 }
 
 table th {
     border: 1px solid black;
     font-weight: bold;
+    background-color: lightgrey;
+}
+
+td.justify {
+    text-align: justify;
+    text-justify: inter-word;
 }
 
 td.center {
-    text-align: justify;
-    text-justify: inter-word;
+    text-align: center;
 }
 
 th#status-code-value {
     min-width: 10ch;
 }
 
-div#nav {
-    display: flex;
-}
-
-div#nav span {
-    padding: 0 2ch;
-}
-
-span.growx{
+div#fill-page {
     flex-grow: 1;
 }
 
-h2, h3 {
-    margin-top: 1em;
+div#foot {
+    margin-top: 4vh;
+}
+
+div#nav,
+div#foot {
+    display: flex;
+    height: 4vh;
+}
+
+div#nav span,
+div#foot span {
+    padding: 0 2ch;
+}
+
+span.growx {
+    flex-grow: 1;
+}
+
+h2,
+h3 {
+    margin-top: 1.5em;
+}
+
+.left-align * {
+    text-align: left;
 }

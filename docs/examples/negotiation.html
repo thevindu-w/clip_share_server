@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../style.css">
+    <title>Protocol Version Negotiation</title>
+</head>
+
+<body>
+    <div id="nav">
+        <span><a href="index.html">&lt Previous</a></span>
+        <span class="growx"></span>
+    </div>
+    <div class="page">
+        <h1>
+            <center>Protocol Version Negotiation</center>
+        </h1>
+
+        <h2 id="obsolete">Obsolete client</h2>
+        <p>Note that all the bytes are hex-encoded.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Size (bytes)</th>
+                    <th>Client sends</th>
+                    <th>Server sends</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody class="left-align">
+                <tr>
+                    <td class="center">1</td>
+                    <td>01</td>
+                    <td></td>
+                    <td>Client requests protocol version 1</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td>02</td>
+                    <td>Server rejects the request as it is lower than the minimum supported version</td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="4">Communication ends and connection closes</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 id="unknown">Version unknown to the server</h2>
+        <p>Note that all the bytes are hex-encoded.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Size (bytes)</th>
+                    <th>Client sends</th>
+                    <th>Server sends</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody class="left-align">
+                <tr>
+                    <td class="center">1</td>
+                    <td>02</td>
+                    <td></td>
+                    <td>Client requests protocol version 2</td>
+                </tr>
+                <tr>
+                    <td class="center">2</td>
+                    <td></td>
+                    <td>03 01</td>
+                    <td>Server indicates that version 2 is unknown, and the latest supported version of the server is
+                        version 1</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td>00</td>
+                    <td></td>
+                    <td>Client rejects the offer to use version 1</td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="4">Communication ends and connection closes</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 id="success">Successful version agreement</h2>
+        <p>Note that all the bytes are hex-encoded.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Phase</th>
+                    <th>Size (bytes)</th>
+                    <th>Client sends</th>
+                    <th>Server sends</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody class="left-align">
+                <tr>
+                    <td class="center" rowspan="3">Negotiation</td>
+                    <td class="center">1</td>
+                    <td>02</td>
+                    <td></td>
+                    <td>Client requests protocol version 2</td>
+                </tr>
+                <tr>
+                    <td class="center">2</td>
+                    <td></td>
+                    <td>03 01</td>
+                    <td>Server indicates that version 2 is unknown, and the latest supported version of the server is
+                        version 1</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td>01</td>
+                    <td></td>
+                    <td>Client accepts the offer to use version 1</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="2">Method selection</td>
+                    <td class="center">1</td>
+                    <td>01</td>
+                    <td></td>
+                    <td>Client requests get text method</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td>02</td>
+                    <td>Server indicates that there is no text copied to the clipboard (No data)</td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="5">Communication ends and connection closes</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="fill-page"></div>
+    <div id="foot">
+        <span><a href="index.html">&lt Previous</a></span>
+        <span class="growx"></span>
+    </div>
+</body>
+
+</html>
