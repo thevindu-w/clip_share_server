@@ -140,7 +140,7 @@ int get_files_v1(socket_t *socket)
         printf("file name = %s\n", file_path);
 #endif
 
-        char *tmp_fname = strrchr(file_path, PATH_SEP);
+        const char *tmp_fname = strrchr(file_path, PATH_SEP);
         if (tmp_fname == NULL)
         {
             tmp_fname = file_path;
@@ -149,11 +149,11 @@ int get_files_v1(socket_t *socket)
         {
             tmp_fname++; // remove '/'
         }
-        size_t _tmp_len = strlen(tmp_fname);
+        const size_t _tmp_len = strlen(tmp_fname);
         char filename[_tmp_len + 1];
         strncpy(filename, tmp_fname, _tmp_len);
         filename[_tmp_len] = 0;
-        size_t fname_len = strlen(filename);
+        const size_t fname_len = strlen(filename);
         if (fname_len > MAX_FILE_NAME_LENGTH)
         {
             status = EXIT_FAILURE;
@@ -234,7 +234,7 @@ int send_file_v1(socket_t *socket)
         return EXIT_FAILURE;
     }
 
-    const ssize_t name_max_len = name_length + 16;
+    const int name_max_len = (int)(name_length + 16);
     char file_name[name_max_len + 1];
     if (read_sock(socket, file_name, name_length) == EXIT_FAILURE)
     {
@@ -246,14 +246,16 @@ int send_file_v1(socket_t *socket)
     file_name[name_length] = 0;
     // get only the base name
     {
-        char *base_name = strrchr(file_name, '/'); // path separator is / when communicating with the client
+        const char *base_name = strrchr(file_name, '/'); // path separator is / when communicating with the client
         if (base_name)
         {
             base_name++;                                          // don't want the '/' before the file name
             memmove(file_name, base_name, strlen(base_name) + 1); // overlapping memory area
         }
-        if (PATH_SEP != '/' && strchr(file_name, PATH_SEP)) // file name can't contain PATH_SEP
+#if PATH_SEP != '/'
+        if (strchr(file_name, PATH_SEP)) // file name can't contain PATH_SEP
             return EXIT_FAILURE;
+#endif
     }
 
     // PATH_SEP is not allowed in file name
@@ -408,13 +410,13 @@ int get_files_v2(socket_t *socket)
     status = EXIT_SUCCESS;
     for (size_t i = 0; i < file_cnt; i++)
     {
-        char *file_path = files[i];
+        const char *file_path = files[i];
 #ifdef DEBUG_MODE
         printf("file name = %s\n", file_path);
 #endif
 
-        char *tmp_fname = file_path + path_len;
-        size_t _tmp_len = strlen(tmp_fname);
+        const char *tmp_fname = file_path + path_len;
+        const size_t _tmp_len = strlen(tmp_fname);
         char filename[_tmp_len + 1];
         strncpy(filename, tmp_fname, _tmp_len);
         filename[_tmp_len] = 0;
@@ -452,15 +454,14 @@ int get_files_v2(socket_t *socket)
             goto END;
         }
 
+#if PATH_SEP != '/'
         // path separator is always / when communicating with the client
-        if (PATH_SEP != '/')
+        for (size_t ind = 0; ind < fname_len; ind++)
         {
-            for (size_t ind = 0; ind < fname_len; ind++)
-            {
-                if (filename[ind] == PATH_SEP)
-                    filename[ind] = '/';
-            }
+            if (filename[ind] == PATH_SEP)
+                filename[ind] = '/';
         }
+#endif
 
         if (write_sock(socket, filename, fname_len) == EXIT_FAILURE)
         {
@@ -519,29 +520,28 @@ static int save_file(socket_t *socket, const char *dirname)
 
     file_name[name_length] = 0;
 
+#if PATH_SEP != '/'
     // replace '/' with PATH_SEP
-    if (PATH_SEP != '/')
+    for (ssize_t ind = 0; ind < name_length; ind++)
     {
-        for (ssize_t ind = 0; ind < name_length; ind++)
+        if (file_name[ind] == '/')
         {
-            if (file_name[ind] == '/')
-            {
-                file_name[ind] = PATH_SEP;
-                if (ind > 0 && file_name[ind - 1] == PATH_SEP)
-                    return EXIT_FAILURE; // "//" in path not allowed
-            }
+            file_name[ind] = PATH_SEP;
+            if (ind > 0 && file_name[ind - 1] == PATH_SEP)
+                return EXIT_FAILURE; // "//" in path not allowed
         }
     }
+#endif
 
     char new_path[name_length + 20];
     if (file_name[0] == PATH_SEP)
     {
-        if (snprintf_check(new_path, name_length + 20, "%s%s", dirname, file_name))
+        if (snprintf_check(new_path, (int)(name_length + 20), "%s%s", dirname, file_name))
             return EXIT_FAILURE;
     }
     else
     {
-        if (snprintf_check(new_path, name_length + 20, "%s%c%s", dirname, PATH_SEP, file_name))
+        if (snprintf_check(new_path, (int)(name_length + 20), "%s%c%s", dirname, PATH_SEP, file_name))
             return EXIT_FAILURE;
     }
 
@@ -550,7 +550,7 @@ static int save_file(socket_t *socket, const char *dirname)
         char bad_path[] = "/../";
         bad_path[0] = PATH_SEP;
         bad_path[3] = PATH_SEP;
-        char *ptr = strstr(new_path, bad_path);
+        const char *ptr = strstr(new_path, bad_path);
         if (ptr)
         {
             return EXIT_FAILURE;
@@ -646,7 +646,7 @@ int send_files_v2(socket_t *socket)
     for (size_t i = 0; i < files->len; i++)
     {
         char *filename = files->array[i];
-        size_t name_len = strlen(filename);
+        const int name_len = (int)strlen(filename);
         char old_path[name_len + 20];
         if (snprintf_check(old_path, name_len + 20, "%s%c%s", dirname, PATH_SEP, filename))
         {

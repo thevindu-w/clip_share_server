@@ -37,7 +37,8 @@ void udp_server(const unsigned short port)
     if (port <= 0)
         return;
     sock_t sockfd;
-    struct sockaddr_in servaddr, cliaddr;
+    struct sockaddr_in servaddr;
+    struct sockaddr_in cliaddr;
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
     {
         error("UDP socket creation failed");
@@ -88,7 +89,8 @@ void udp_server(const unsigned short port)
         {
             continue;
         }
-
+        if (n >= 8)
+            n = 7;
         buffer[n] = '\0';
 
 #ifdef DEBUG_MODE

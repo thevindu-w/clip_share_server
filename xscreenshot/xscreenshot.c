@@ -22,7 +22,7 @@ struct mem_file
 	size_t size;
 };
 
-static void my_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
+static void my_png_write_data(const png_structp png_ptr, const png_bytep data, png_size_t length)
 {
 	struct mem_file *p = (struct mem_file *)png_get_io_ptr(png_ptr);
 	size_t nsize = p->size + length;
@@ -49,11 +49,12 @@ static void my_png_write_data(png_structp png_ptr, png_bytep data, png_size_t le
 }
 
 /* LSBFirst: BGRA -> RGBA */
-static void convertrow_lsb(unsigned char *drow, unsigned char *srow, XImage *img)
+static void convertrow_lsb(unsigned char *drow, const unsigned char *srow, const XImage *img)
 {
 	const int bytes_per_line = img->bytes_per_line;
 	const unsigned char bytes_per_pixel = (unsigned char)(img->bits_per_pixel / 8);
-	int sx, dx;
+	int sx;
+	int dx;
 
 	for (sx = 0, dx = 0; sx <= bytes_per_line - 3; sx += bytes_per_pixel)
 	{
@@ -64,11 +65,12 @@ static void convertrow_lsb(unsigned char *drow, unsigned char *srow, XImage *img
 }
 
 /* MSBFirst: ARGB -> RGBA */
-static void convertrow_msb(unsigned char *drow, unsigned char *srow, XImage *img)
+static void convertrow_msb(unsigned char *drow, const unsigned char *srow, const XImage *img)
 {
 	const int bytes_per_line = img->bytes_per_line;
 	const unsigned char bytes_per_pixel = (unsigned char)(img->bits_per_pixel / 8);
-	int sx, dx;
+	int sx;
+	int dx;
 
 	for (sx = 0, dx = 0; sx <= bytes_per_line - 3; sx += bytes_per_pixel)
 	{
@@ -82,8 +84,8 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len)
 {
 	png_structp png_write_p;
 	png_infop png_info_p;
-	unsigned char *drow = NULL, *srow;
-	int h;
+	unsigned char *drow = NULL;
+	const unsigned char *srow;
 
 	png_write_p = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!png_write_p)
@@ -119,13 +121,13 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len)
 		return EXIT_FAILURE;
 	}
 
-	void (*convert)(unsigned char *, unsigned char *, XImage *);
+	void (*convert)(unsigned char *, const unsigned char *, const XImage *);
 	if (img->byte_order == LSBFirst)
 		convert = convertrow_lsb;
 	else
 		convert = convertrow_msb;
 
-	for (h = 0; h < img->height; h++)
+	for (int h = 0; h < img->height; h++)
 	{
 		convert(drow, srow, img);
 		srow += img->bytes_per_line;

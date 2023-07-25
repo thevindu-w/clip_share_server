@@ -134,22 +134,23 @@ doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_options *options
 
 		if (options->is_targets && sel_type == XA_ATOM)
 		{
-			Atom *atom_buf = (Atom *)sel_buf;
+			const Atom *atom_buf = (Atom *)sel_buf;
 			size_t atom_len = sel_len / sizeof(Atom);
-			size_t out_len = 0, out_capacity = 128;
+			size_t out_len = 0;
+			size_t out_capacity = 128;
 			char *out_buf = xcmalloc(out_capacity);
 			out_buf[0] = 0;
 			while (atom_len--)
 			{
 				char *atom_name = XGetAtomName(options->dpy, *atom_buf++);
-				const size_t atom_len = strlen(atom_name);
-				while (atom_len + out_len + 1 >= out_capacity)
+				const size_t atom_name_len = strlen(atom_name);
+				while (atom_name_len + out_len + 1 >= out_capacity)
 				{
 					out_capacity *= 2;
 					out_buf = xcrealloc(out_buf, out_capacity);
 				}
 				if ((int)(out_capacity - out_len) >= 0 && !snprintf_check(out_buf + out_len, (int)(out_capacity - out_len), "%s\n", atom_name))
-					out_len += atom_len + 1;
+					out_len += atom_name_len + 1;
 				XFree(atom_name);
 			}
 			*len_ptr = out_len;
@@ -266,21 +267,9 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
 	else
 	{
 		exit_code = doOut(win, len_ptr, buf_ptr, &options);
-		if (exit_code != EXIT_SUCCESS)
-		{
-			*len_ptr = 0;
-			if (*buf_ptr)
-				free(*buf_ptr);
-			exit_code = EXIT_FAILURE;
-		}
-		else if (atom_name && !strcmp(atom_name, "image/png") && (*len_ptr < 8 || memcmp(*buf_ptr, "\x89PNG\r\n\x1a\n", 8)))
-		{ // invalid png
-			*len_ptr = 0;
-			if (*buf_ptr)
-				free(*buf_ptr);
-			exit_code = EXIT_FAILURE;
-		}
-		else if (atom_name && !strcmp(atom_name, "image/jpeg") && (*len_ptr < 3 || memcmp(*buf_ptr, "\xff\xd8\xff", 3)))
+		if ((exit_code != EXIT_SUCCESS) ||
+			(atom_name && !strcmp(atom_name, "image/png") && (*len_ptr < 8 || memcmp(*buf_ptr, "\x89PNG\r\n\x1a\n", 8))) ||
+			(atom_name && !strcmp(atom_name, "image/jpeg") && (*len_ptr < 3 || memcmp(*buf_ptr, "\xff\xd8\xff", 3))))
 		{ // invalid jpeg
 			*len_ptr = 0;
 			if (*buf_ptr)

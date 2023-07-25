@@ -27,7 +27,7 @@
 
 static void trim(char *string)
 {
-    char *ptr = string;
+    const char *ptr = string;
     while (0 < *ptr && *ptr <= ' ')
     {
         ptr++;
@@ -224,20 +224,19 @@ static void parse_line(char *line, config *cfg)
     else if (!strcmp("working_dir", key))
     {
         if (strlen(value) > 0)
+        {
             if (cfg->working_dir)
                 free(cfg->working_dir);
-        cfg->working_dir = strdup(value);
+            cfg->working_dir = strdup(value);
+        }
     }
     else if (!strcmp("bind_address", key))
     {
-        if (strlen(value) > 0)
+        if (strlen(value) > 0 && ipv4_aton(value, &(cfg->bind_addr)) != EXIT_SUCCESS)
         {
-            if (ipv4_aton(value, &(cfg->bind_addr)) != EXIT_SUCCESS)
-            {
-                char msg[48];
-                snprintf_check(msg, 48, "Invalid bind address %s", value);
-                error_exit(msg);
-            }
+            char msg[48];
+            snprintf_check(msg, 48, "Invalid bind address %s", value);
+            error_exit(msg);
         }
     }
 #ifdef DEBUG_MODE

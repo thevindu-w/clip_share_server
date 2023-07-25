@@ -60,7 +60,7 @@ static SSL_CTX *InitServerCTX(void)
 
 static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *server_cert_buf, const char *ca_cert_buf)
 {
-    BIO *cbio = BIO_new_mem_buf((void *)server_cert_buf, -1);
+    BIO *cbio = BIO_new_mem_buf((const void *)server_cert_buf, -1);
     X509 *cert = PEM_read_bio_X509(cbio, NULL, 0, NULL);
     if (SSL_CTX_use_certificate(ctx, cert) <= 0)
     {
@@ -70,7 +70,7 @@ static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *
         return EXIT_FAILURE;
     }
 
-    BIO *kbio = BIO_new_mem_buf((void *)priv_key_buf, -1);
+    BIO *kbio = BIO_new_mem_buf((const void *)priv_key_buf, -1);
     EVP_PKEY *key = PEM_read_bio_PrivateKey(kbio, NULL, 0, NULL);
     if (SSL_CTX_use_PrivateKey(ctx, key) <= 0)
     {
@@ -89,7 +89,7 @@ static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *
         return EXIT_FAILURE;
     }
 
-    BIO *cabio = BIO_new_mem_buf((void *)ca_cert_buf, -1);
+    BIO *cabio = BIO_new_mem_buf((const void *)ca_cert_buf, -1);
     X509 *ca_cert = PEM_read_bio_X509(cabio, NULL, 0, NULL);
     X509_STORE *x509store = SSL_CTX_get_cert_store(ctx);
     if (X509_STORE_add_cert(x509store, ca_cert) != 1)
@@ -105,7 +105,7 @@ static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *
     return EXIT_SUCCESS;
 }
 
-static int getClientCerts(SSL *ssl, list2 *allowed_clients)
+static int getClientCerts(const SSL *ssl, const list2 *allowed_clients)
 {
     X509 *cert;
     char *buf;
@@ -365,7 +365,7 @@ int read_sock(socket_t *socket, char *buf, size_t size)
 
         case SSL_SOCK:
         {
-            r = SSL_read(socket->socket.ssl, ptr, size - read);
+            r = SSL_read(socket->socket.ssl, ptr, (int)(size - read));
             break;
         }
 
@@ -403,13 +403,12 @@ int read_sock_no_wait(socket_t *socket, char *buf, size_t size)
 
     case SSL_SOCK:
     {
-        return (int)SSL_read(socket->socket.ssl, buf, size);
+        return SSL_read(socket->socket.ssl, buf, (int)size);
     }
 
     default:
         return -1;
     }
-    return 0;
 }
 
 int write_sock(socket_t *socket, const char *buf, size_t size)
@@ -430,7 +429,7 @@ int write_sock(socket_t *socket, const char *buf, size_t size)
 
         case SSL_SOCK:
         {
-            r = SSL_write(socket->socket.ssl, ptr, size);
+            r = SSL_write(socket->socket.ssl, ptr, (int)size);
             break;
         }
 
@@ -468,7 +467,7 @@ int send_size(socket_t *socket, ssize_t size)
 {
     char sz_buf[8];
     {
-        ssize_t sz = (ssize_t)size;
+        ssize_t sz = size;
         for (int i = sizeof(sz_buf) - 1; i >= 0; i--)
         {
             sz_buf[i] = sz & 0xff;

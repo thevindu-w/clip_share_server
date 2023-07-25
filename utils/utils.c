@@ -38,7 +38,7 @@
 #define ERROR_LOG_FILE "server_err.log"
 #define RECURSE_DEPTH_MAX 256
 
-int snprintf_check(char *__restrict__ dest, int size, const char *__restrict__ fmt, ...)
+int snprintf_check(char *dest, int size, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -53,8 +53,11 @@ void _error(const char *msg, int exit_process)
     fprintf(stderr, "%s\n", msg);
 #endif
     FILE *f = fopen(ERROR_LOG_FILE, "a");
-    fprintf(f, "%s\n", msg);
-    fclose(f);
+    if (f)
+    {
+        fprintf(f, "%s\n", msg);
+        fclose(f);
+    }
 #ifdef __linux__
     chmod(ERROR_LOG_FILE, S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH);
 #endif
@@ -101,7 +104,7 @@ int is_directory(const char *path, int follow_symlinks)
         return 0; // empty path
     struct stat sb;
 #ifdef __linux__
-    int (*stat_fn)(const char *__restrict__, struct stat *__restrict__) = follow_symlinks ? stat : lstat;
+    int (*stat_fn)(const char *, struct stat *) = follow_symlinks ? &stat : &lstat;
     if (stat_fn(path, &sb) == 0)
 #elif _WIN32
     (void)follow_symlinks;
@@ -178,10 +181,10 @@ list2 *list_dir(const char *dirname)
         list2 *lst = init_list(2);
         if (!lst)
             return NULL;
-        struct dirent *dir;
+        const struct dirent *dir;
         while ((dir = readdir(d)) != NULL)
         {
-            char *filename = dir->d_name;
+            const char *filename = dir->d_name;
             if (!(strcmp(filename, ".") && strcmp(filename, "..")))
                 continue;
             append(lst, strdup(filename));
@@ -213,18 +216,19 @@ static void recurse_dir(const char *_path, list2 *lst, int depth)
         size_t p_len = strlen(_path);
         char path[p_len + 2];
         strncpy(path, _path, p_len + 1);
+        path[p_len + 1] = 0;
         if (path[p_len - 1] != PATH_SEP)
         {
             path[p_len++] = PATH_SEP;
             path[p_len] = '\0';
         }
-        struct dirent *dir;
+        const struct dirent *dir;
         while ((dir = readdir(d)) != NULL)
         {
-            char *filename = dir->d_name;
+            const char *filename = dir->d_name;
             if (!(strcmp(filename, ".") && strcmp(filename, "..")))
                 continue;
-            size_t _fname_len = strlen(filename);
+            const  size_t _fname_len = strlen(filename);
             char pathname[_fname_len + p_len + 1];
             strncpy(pathname, path, p_len);
             strncpy(pathname + p_len, filename, _fname_len);
@@ -340,7 +344,7 @@ static char *get_copied_files_as_str()
     {
         char found = 0;
         char *copy = targets;
-        char *token;
+        const char *token;
         while ((token = strsep(&copy, "\n")))
         {
             if (!strcmp(token, expected_target))
@@ -392,7 +396,8 @@ static int url_decode(char *str)
 {
     if (strncmp("file://", str, 7))
         return EXIT_FAILURE;
-    char *ptr1 = str, *ptr2 = strstr(str, "://");
+    char *ptr1 = str;
+    char *ptr2 = strstr(str, "://");
     if (!ptr2)
         return EXIT_FAILURE;
     ptr2 += 3;
@@ -401,13 +406,12 @@ static int url_decode(char *str)
         char c;
         if (*ptr2 == '%')
         {
-            c = 0;
             ptr2++;
             char tmp = *ptr2;
             char c1 = hex2char(tmp);
             if (c1 < 0)
                 return EXIT_FAILURE; // invalid url
-            c = c1 << 4;
+            c = (char)(c1 << 4);
             ptr2++;
             tmp = *ptr2;
             c1 = hex2char(tmp);
@@ -515,13 +519,13 @@ dir_files get_copied_dirs_files()
     char *fname = file_path + 1;
     for (size_t i = 0; i < file_cnt; i++)
     {
-        size_t off = strlen(fname) + 1;
+        const size_t off = strlen(fname) + 1;
         if (url_decode(fname) == EXIT_FAILURE)
             break;
 
         if (i == 0)
         {
-            char *sep_ptr = strrchr(fname, PATH_SEP);
+            const char *sep_ptr = strrchr(fname, PATH_SEP);
             if (sep_ptr > fname)
             {
                 ret.path_len = sep_ptr - fname + 1;
