@@ -27,7 +27,7 @@ else
     detected_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
 endif
 
-OBJS_C=main.o clip_share.o udp_serve.o proto/server.o proto/versions.o proto/methods.o utils/utils.o utils/net_utils.o utils/list_utils.o conf_parse.o
+OBJS_C=main.o clip_share.o udp_serve.o proto/server.o proto/versions.o proto/methods.o utils/utils.o utils/net_utils.o utils/list_utils.o config.o
 
 _WEB_OBJS_C=clip_share_web.o
 _WEB_OBJS_S=page_blob.o

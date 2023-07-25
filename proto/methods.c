@@ -149,8 +149,10 @@ int get_files_v1(socket_t *socket)
         {
             tmp_fname++; // remove '/'
         }
-        char filename[strlen(tmp_fname) + 1];
-        strcpy(filename, tmp_fname);
+        size_t _tmp_len = strlen(tmp_fname);
+        char filename[_tmp_len + 1];
+        strncpy(filename, tmp_fname, _tmp_len);
+        filename[_tmp_len] = 0;
         size_t fname_len = strlen(filename);
         if (fname_len > MAX_FILE_NAME_LENGTH)
         {
@@ -233,7 +235,7 @@ int send_file_v1(socket_t *socket)
     }
 
     const ssize_t name_max_len = name_length + 16;
-    char file_name[name_max_len];
+    char file_name[name_max_len + 1];
     if (read_sock(socket, file_name, name_length) == EXIT_FAILURE)
     {
 #ifdef DEBUG_MODE
@@ -267,7 +269,7 @@ int send_file_v1(socket_t *socket)
 
     // if file already exists, use a different file name
     {
-        char tmp_fname[name_max_len];
+        char tmp_fname[name_max_len + 1];
         if (configuration.working_dir != NULL || strcmp(file_name, "clipshare.conf"))
         {
             if (snprintf_check(tmp_fname, name_max_len, ".%c%s", PATH_SEP, file_name))
@@ -286,7 +288,8 @@ int send_file_v1(socket_t *socket)
             if (snprintf_check(tmp_fname, name_max_len, ".%c%i_%s", PATH_SEP, n++, file_name))
                 return EXIT_FAILURE;
         }
-        strcpy(file_name, tmp_fname);
+        strncpy(file_name, tmp_fname, name_max_len);
+        file_name[name_max_len] = 0;
     }
 
     FILE *file = fopen(file_name, "wb");
@@ -411,8 +414,10 @@ int get_files_v2(socket_t *socket)
 #endif
 
         char *tmp_fname = file_path + path_len;
-        char filename[strlen(tmp_fname) + 1];
-        strcpy(filename, tmp_fname);
+        size_t _tmp_len = strlen(tmp_fname);
+        char filename[_tmp_len + 1];
+        strncpy(filename, tmp_fname, _tmp_len);
+        filename[_tmp_len] = 0;
         size_t fname_len = strlen(filename);
         if (fname_len > MAX_FILE_NAME_LENGTH)
         {

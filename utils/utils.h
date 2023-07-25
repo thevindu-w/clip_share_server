@@ -29,6 +29,9 @@
 #define PATH_SEP '\\'
 #endif
 
+#define error(msg) _error(msg, 0)
+#define error_exit(msg) _error(msg, 1)
+
 /*
  * A wrapper for snprintf.
  * returns 1 if snprintf failed or truncated
@@ -48,7 +51,7 @@ typedef struct _dir_files
 /*
  * Append error message to error log file
  */
-extern void error(const char *msg);
+extern void _error(const char *msg, int exit_process);
 
 /*
  * Get copied text from clipboard.

@@ -13,7 +13,7 @@ ENV TERM=xterm-256color
 ENV DISPLAY=:0
 
 RUN mkdir -p /src
-wORKDIR /src
+WORKDIR /src
 
 COPY . .
 

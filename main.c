@@ -214,8 +214,8 @@ int main(int argc, char **argv)
             case 'h': // help
             {
                 print_usage(prog_name);
+                clear_config(&configuration);
                 exit(EXIT_SUCCESS);
-                break;
             }
             case 's': // stop
             {
@@ -235,6 +235,7 @@ int main(int argc, char **argv)
                 {
                     fprintf(stderr, "Invalid app port %s\n", optarg);
                     print_usage(prog_name);
+                    clear_config(&configuration);
                     exit(EXIT_FAILURE);
                 }
                 break;
@@ -248,14 +249,18 @@ int main(int argc, char **argv)
                 {
                     fprintf(stderr, "Invalid web port %s\n", optarg);
                     print_usage(prog_name);
+                    clear_config(&configuration);
                     exit(EXIT_FAILURE);
                 }
                 break;
             }
 #endif
             default:
+            {
                 print_usage(prog_name);
+                clear_config(&configuration);
                 exit(EXIT_FAILURE);
+            }
             }
         }
     }
@@ -268,7 +273,10 @@ int main(int argc, char **argv)
         const char *msg = stop ? "Server Stopped" : "Server Restarting...";
         puts(msg);
         if (stop)
+        {
+            clear_config(&configuration);
             exit(EXIT_SUCCESS);
+        }
     }
 
     configuration.app_port = app_port;
@@ -287,8 +295,7 @@ int main(int argc, char **argv)
             char err[3072];
             snprintf_check(err, 3072, "Not existing working directory \'%s\'", configuration.working_dir);
             fprintf(stderr, "%s\n", err);
-            error(err);
-            exit(1);
+            error_exit(err);
         }
         char *old_work_dir = getcwd(NULL, 0);
         if (chdir(configuration.working_dir))
@@ -296,16 +303,14 @@ int main(int argc, char **argv)
             char err[3072];
             snprintf_check(err, 3072, "Failed changing working directory to \'%s\'", configuration.working_dir);
             fprintf(stderr, "%s\n", err);
-            error(err);
-            exit(1);
+            error_exit(err);
         }
         char *new_work_dir = getcwd(NULL, 0);
         if (old_work_dir == NULL || new_work_dir == NULL)
         {
             char *err = "Error occured during changing working directory.";
             fprintf(stderr, "%s\n", err);
-            error(err);
-            exit(1);
+            error_exit(err);
         }
         // if the working directory did not change, set configuration.working_dir to NULL
         if (!strcmp(old_work_dir, new_work_dir))
@@ -415,5 +420,6 @@ int main(int argc, char **argv)
         WaitForSingleObject(webThread, INFINITE);
 #endif
 #endif
+    clear_config(&configuration);
     return EXIT_SUCCESS;
 }

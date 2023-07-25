@@ -1,7 +1,7 @@
 FROM ubuntu:focal
 
 RUN apt-get update
-RUN apt-get install -y apt-transport-https
+RUN apt-get install --no-install-recommends -y apt-transport-https
 RUN apt-get update
 
 # Install build dependencies
@@ -19,7 +19,7 @@ ENV TERM=xterm-256color
 ENV DISPLAY=:0
 
 RUN mkdir -p /src
-wORKDIR /src
+WORKDIR /src
 
 COPY . .
 

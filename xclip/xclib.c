@@ -36,7 +36,7 @@ xcmalloc(size_t size)
 
 	mem = malloc(size);
 	if (!mem)
-		error("malloc failed");
+		error_exit("malloc failed");
 
 	return (mem);
 }
@@ -49,7 +49,7 @@ xcrealloc(void *ptr, size_t size)
 
 	mem = realloc(ptr, size);
 	if (!mem)
-		error("realloc failed");
+		error_exit("realloc failed");
 
 	return (mem);
 }
@@ -416,8 +416,6 @@ int xcin(Display *dpy,
 		else
 			return (1);
 
-		break;
-
 	case XCLIB_XCIN_INCR:
 		/* length of current chunk */
 
@@ -476,7 +474,6 @@ int xcin(Display *dpy,
 			return (0);
 		else
 			return (1);
-		break;
 	}
 	return (0);
 }

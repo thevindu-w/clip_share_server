@@ -51,32 +51,26 @@ int version_1(socket_t *socket)
     case METHOD_GET_TEXT:
     {
         return get_text_v1(socket);
-        break;
     }
     case METHOD_SEND_TEXT:
     {
         return send_text_v1(socket);
-        break;
     }
     case METHOD_GET_FILE:
     {
         return get_files_v1(socket);
-        break;
     }
     case METHOD_SEND_FILE:
     {
         return send_file_v1(socket);
-        break;
     }
     case METHOD_GET_IMAGE:
     {
         return get_image_v1(socket);
-        break;
     }
     case METHOD_INFO:
     {
         return info_v1(socket);
-        break;
     }
     default: // unknown method
     {
@@ -85,7 +79,6 @@ int version_1(socket_t *socket)
 #endif
         write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
         return EXIT_FAILURE;
-        break;
     }
     }
     return EXIT_SUCCESS;
@@ -107,32 +100,26 @@ int version_2(socket_t *socket)
     case METHOD_GET_TEXT:
     {
         return get_text_v1(socket);
-        break;
     }
     case METHOD_SEND_TEXT:
     {
         return send_text_v1(socket);
-        break;
     }
     case METHOD_GET_FILE:
     {
         return get_files_v2(socket);
-        break;
     }
     case METHOD_SEND_FILE:
     {
         return send_files_v2(socket);
-        break;
     }
     case METHOD_GET_IMAGE:
     {
         return get_image_v1(socket);
-        break;
     }
     case METHOD_INFO:
     {
         return info_v1(socket);
-        break;
     }
     default: // unknown method
     {
@@ -141,7 +128,6 @@ int version_2(socket_t *socket)
 #endif
         write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
         return EXIT_FAILURE;
-        break;
     }
     }
     return EXIT_SUCCESS;

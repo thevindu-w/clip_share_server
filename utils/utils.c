@@ -33,6 +33,7 @@
 #include "list_utils.h"
 #include "../xclip/xclip.h"
 #include "../xscreenshot/screenshot.h"
+#include "../globals.h"
 
 #define ERROR_LOG_FILE "server_err.log"
 #define RECURSE_DEPTH_MAX 256
@@ -46,7 +47,7 @@ int snprintf_check(char *__restrict__ dest, int size, const char *__restrict__ f
     return (ret < 0 || ret > size);
 }
 
-void error(const char *msg)
+void _error(const char *msg, int exit_process)
 {
 #ifdef DEBUG_MODE
     fprintf(stderr, "%s\n", msg);
@@ -56,8 +57,12 @@ void error(const char *msg)
     fclose(f);
 #ifdef __linux__
     chmod(ERROR_LOG_FILE, S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH);
-    exit(1);
 #endif
+    if (exit_process)
+    {
+        clear_config(&configuration);
+        exit(1);
+    }
 }
 
 int file_exists(const char *file_name)
@@ -130,7 +135,8 @@ int mkdirs(const char *dir_path)
 
     size_t len = strlen(dir_path);
     char path[len + 1];
-    strcpy(path, dir_path);
+    strncpy(path, dir_path, len);
+    path[len] = 0;
 
     for (size_t i = 0; i <= len; i++)
     {
@@ -218,9 +224,11 @@ static void recurse_dir(const char *_path, list2 *lst, int depth)
             char *filename = dir->d_name;
             if (!(strcmp(filename, ".") && strcmp(filename, "..")))
                 continue;
-            char pathname[strlen(filename) + p_len + 1];
-            strcpy(pathname, path);
-            strcpy(pathname + p_len, filename);
+            size_t _fname_len = strlen(filename);
+            char pathname[_fname_len + p_len + 1];
+            strncpy(pathname, path, p_len);
+            strncpy(pathname + p_len, filename, _fname_len);
+            pathname[p_len + _fname_len] = 0;
             struct stat sb;
 #ifdef __linux__
             if (lstat(pathname, &sb) == 0)

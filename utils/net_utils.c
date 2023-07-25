@@ -371,7 +371,6 @@ int read_sock(socket_t *socket, char *buf, size_t size)
 
         default:
             return EXIT_FAILURE;
-            break;
         }
         if (r > 0)
         {
@@ -400,18 +399,15 @@ int read_sock_no_wait(socket_t *socket, char *buf, size_t size)
     case PLAIN_SOCK:
     {
         return (int)recv(socket->socket.plain, buf, size, 0);
-        break;
     }
 
     case SSL_SOCK:
     {
         return (int)SSL_read(socket->socket.ssl, buf, size);
-        break;
     }
 
     default:
         return -1;
-        break;
     }
     return 0;
 }
@@ -440,7 +436,6 @@ int write_sock(socket_t *socket, const char *buf, size_t size)
 
         default:
             return EXIT_FAILURE;
-            break;
         }
         if (r > 0)
         {

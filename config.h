@@ -41,5 +41,6 @@ typedef struct _config
 } config;
 
 extern config parse_conf(const char *);
+extern void clear_config(config *conf);
 
 #endif

@@ -110,8 +110,6 @@ doIn(Window win, unsigned long len, const char *buf, xclip_options *options)
 				break;
 		}
 	}
-	free(sel_buf);
-	return EXIT_SUCCESS;
 }
 
 static int
@@ -273,15 +271,16 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
 			*len_ptr = 0;
 			if (*buf_ptr)
 				free(*buf_ptr);
+			exit_code = EXIT_FAILURE;
 		}
-		if (atom_name && !strcmp(atom_name, "image/png") && (*len_ptr < 8 || memcmp(*buf_ptr, "\x89PNG\r\n\x1a\n", 8)))
+		else if (atom_name && !strcmp(atom_name, "image/png") && (*len_ptr < 8 || memcmp(*buf_ptr, "\x89PNG\r\n\x1a\n", 8)))
 		{ // invalid png
 			*len_ptr = 0;
 			if (*buf_ptr)
 				free(*buf_ptr);
 			exit_code = EXIT_FAILURE;
 		}
-		if (atom_name && !strcmp(atom_name, "image/jpeg") && (*len_ptr < 3 || memcmp(*buf_ptr, "\xff\xd8\xff", 3)))
+		else if (atom_name && !strcmp(atom_name, "image/jpeg") && (*len_ptr < 3 || memcmp(*buf_ptr, "\xff\xd8\xff", 3)))
 		{ // invalid jpeg
 			*len_ptr = 0;
 			if (*buf_ptr)

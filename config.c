@@ -27,8 +27,7 @@
 
 static void trim(char *string)
 {
-    char *ptr;
-    ptr = string;
+    char *ptr = string;
     while (0 < *ptr && *ptr <= ' ')
     {
         ptr++;
@@ -41,6 +40,8 @@ static void trim(char *string)
         ptr++;
     }
     *p1 = 0;
+    if (*string == 0)
+        return;
     p1--;
     while (0 < *p1 && *p1 <= ' ')
     {
@@ -69,6 +70,7 @@ static list2 *get_client_list(const char *filename)
 #endif
         append(client_list, strdup(client));
     }
+    fclose(f);
     return client_list;
 }
 
@@ -80,7 +82,7 @@ static char *load_file(FILE *f)
         fclose(f);
         return NULL;
     }
-    char *buf = (char *)malloc(len);
+    char *buf = (char *)malloc(len + 1);
     if (!buf)
     {
         fclose(f);
@@ -89,9 +91,11 @@ static char *load_file(FILE *f)
     ssize_t sz = (ssize_t)fread(buf, 1, len, f);
     if (sz < len)
     {
+        fclose(f);
         free(buf);
         return NULL;
     }
+    buf[len] = 0;
     fclose(f);
     return buf;
 }
@@ -183,6 +187,8 @@ static void parse_line(char *line, config *cfg)
         if (!f)
             return;
         char *buf = load_file(f);
+        if (cfg->priv_key)
+            free(cfg->priv_key);
         cfg->priv_key = buf;
     }
     else if (!strcmp("server_cert", key))
@@ -191,6 +197,8 @@ static void parse_line(char *line, config *cfg)
         if (!f)
             return;
         char *buf = load_file(f);
+        if (cfg->server_cert)
+            free(cfg->server_cert);
         cfg->server_cert = buf;
     }
     else if (!strcmp("ca_cert", key))
@@ -199,18 +207,26 @@ static void parse_line(char *line, config *cfg)
         if (!f)
             return;
         char *buf = load_file(f);
+        if (cfg->ca_cert)
+            free(cfg->ca_cert);
         cfg->ca_cert = buf;
     }
     else if (!strcmp("allowed_clients", key))
     {
         list2 *client_list = get_client_list(value);
         if (client_list)
+        {
+            if (cfg->allowed_clients)
+                free_list(cfg->allowed_clients);
             cfg->allowed_clients = client_list;
+        }
     }
     else if (!strcmp("working_dir", key))
     {
         if (strlen(value) > 0)
-            cfg->working_dir = strdup(value);
+            if (cfg->working_dir)
+                free(cfg->working_dir);
+        cfg->working_dir = strdup(value);
     }
     else if (!strcmp("bind_address", key))
     {
@@ -220,8 +236,7 @@ static void parse_line(char *line, config *cfg)
             {
                 char msg[48];
                 snprintf_check(msg, 48, "Invalid bind address %s", value);
-                error(msg);
-                exit(1);
+                error_exit(msg);
             }
         }
     }
@@ -255,8 +270,7 @@ config parse_conf(const char *conf_file)
     cfg.working_dir = NULL;
     if (ipv4_aton(NULL, &(cfg.bind_addr)) != EXIT_SUCCESS)
     {
-        error("Error initializing bind address");
-        exit(1);
+        error_exit("Error initializing bind address");
     }
 
     FILE *f = fopen(conf_file, "r");
@@ -278,4 +292,30 @@ config parse_conf(const char *conf_file)
     fclose(f);
 
     return cfg;
+}
+
+void clear_config(config *cfg)
+{
+    if (cfg->priv_key)
+    {
+        size_t len = strlen(cfg->priv_key);
+        memset(cfg->priv_key, 0, len);
+        free(cfg->priv_key);
+    }
+    if (cfg->server_cert)
+    {
+        free(cfg->server_cert);
+    }
+    if (cfg->ca_cert)
+    {
+        free(cfg->ca_cert);
+    }
+    if (cfg->working_dir)
+    {
+        free(cfg->working_dir);
+    }
+    if (cfg->allowed_clients)
+    {
+        free_list(cfg->allowed_clients);
+    }
 }
