@@ -86,7 +86,7 @@ $(DEBUG_OBJS):
 winres/app.res: winres/app.rc
 	windres $^ -O coff -o $@
 
-.PHONY: clean debug web test
+.PHONY: clean debug web test install
 
 debug: $(DEBUG_OBJS) $(OTHER_DEPENDENCIES)
 	gcc $^ $(LDLIBS) -o $(PROGRAM_NAME)
@@ -95,6 +95,11 @@ web: $(PROGRAM_NAME_WEB)
 
 test: $(PROGRAM_NAME) $(PROGRAM_NAME_WEB)
 	@chmod +x tests/run.sh && cd tests && ./run.sh $(PROGRAM_NAME)
+
+install: $(PROGRAM_NAME)
+	@echo
+	@echo "No need to install. Just move the $(PROGRAM_NAME) to anywhere and run it."
+	@echo
 
 clean:
 	$(RM) $(OBJS) $(WEB_OBJS) $(DEBUG_OBJS)

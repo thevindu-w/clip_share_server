@@ -193,7 +193,11 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr)
         return EXIT_FAILURE;
     }
     struct in_addr addr;
+#ifdef _WIN32
+    if ((addr.s_addr = inet_addr(address_str)) == INADDR_NONE)
+#else
     if (inet_aton(address_str, &addr) != 1)
+#endif
     {
 #ifdef DEBUG_MODE
         printf("Invalid address %s\n", address_str);

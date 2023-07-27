@@ -1,4 +1,9 @@
+![Build](https://github.com/thevindu-w/clip_share_server/actions/workflows/build_and_test.yml/badge.svg?branch=master)
+![Last commit](https://img.shields.io/github/last-commit/thevindu-w/clip_share_server.svg?color=yellow)
+![License](https://img.shields.io/github/license/thevindu-w/clip_share_server.svg?color=blue)
+
 # Clip Share
+
 ### Copy on one device. Paste on another device
 
 <br>
@@ -134,17 +139,18 @@ The following files should be created and placed in the `cert_keys/` directory a
 ## How to use
 ### Run the server
 
-You can run the server from a terminal or
-When the server is started, it will not open any window. Instead, it will run in the background.
-On Linux, if the program is started from the terminal, it should return immediately (the server will continue to run in the background).
-If something goes wrong, a server_err.log file will be created, and it will contain what went wrong.
+- You can run the server from a terminal or the GUI (if the file manager supports executing programs by double-clicking on it)
+- When the server starts, it will not open any window. Instead, it will run in the background.
+- On Linux, if you start the program from the terminal, it should return immediately (the server will continue to run in the background).
+- If something goes wrong, it will create a `server_err.log` filefile. That file will contain what went wrong.
 
 ### Connect the client application
 
-Open the client application on any other device on the same network.
-If the client supports network scanning, the server can be easily found. Otherwise, enter the server's IPv4 address to the client.
-Now the client should be able to share clipboard data, and files, and get images from the server.
-Note that the client should be allowed through the firewall as mentioned in the above section.
+You can find an Android client app in `releases`. Or you may develop a client app according to the protocol specification described in the `docs/`.<br>
+- The client and the server devices should be on the same network. You can do that by connecting both devices to the same Wi-Fi network. It is also possible to use one of the devices as a Wi-Fi hotspot and connect the other device to that hotspot.
+- If the client supports network scanning, it can easily find the server in the network. Otherwise, enter the server's IPv4 address to the client.
+- Now the client can share clipboard data and files and get images from the server.<br>
+Note that the server should allow the client through the firewall, as mentioned in the above section.
 
 <br>
 
@@ -188,3 +194,5 @@ Note that all the lines in the configuration file are optional. You may omit som
 <br>
 
 You may change these values. But it is recommended to keep the port numbers unchanged. If the port numbers are changed, client application configurations may also need to be changed as appropriate to connect to the server.
+<br>
+If you changed the configuration file, you must restart the server to apply the changes.
