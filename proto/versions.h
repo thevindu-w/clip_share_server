@@ -21,11 +21,23 @@
 #include "../utils/net_utils.h"
 
 #if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
-extern int version_1(socket_t *);
+/*
+ * Accepts a socket connection after the protocol version 1 is selected
+ * after the negotiation phase.
+ * Reads the method code from the client and pass the control to the respective
+ * method handler.
+ */
+extern int version_1(socket_t *socket);
 #endif
 
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
-extern int version_2(socket_t *);
+/*
+ * Accepts a socket connection after the protocol version 2 is selected
+ * after the negotiation phase.
+ * Reads the method code from the client and pass the control to the respective
+ * method handler.
+ */
+extern int version_2(socket_t *socket);
 #endif
 
 #endif

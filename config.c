@@ -25,6 +25,12 @@
 #include "utils/list_utils.h"
 #include "config.h"
 
+/*
+ * Trims all charactors in the range \x01 to \x20 inclusive from both ends of
+ * the string in-place.
+ * The string must point to a valid and null-terminated string.
+ * This does not re-allocate memory to shrink.
+ */
 static void trim(char *string)
 {
     const char *ptr = string;
@@ -50,6 +56,12 @@ static void trim(char *string)
     }
 }
 
+/*
+ * Reads the list of client names from the file given by the filename.
+ * Allowed client names must not exceed 511 characters.
+ * Returns a list2* of null terminated strings as elements on success.
+ * Returns null on error.
+ */
 static list2 *get_client_list(const char *filename)
 {
     FILE *f = fopen(filename, "r");
@@ -74,32 +86,51 @@ static list2 *get_client_list(const char *filename)
     return client_list;
 }
 
-static char *load_file(FILE *f)
+/*
+ * Loads the content of a file given by the file_name.
+ * File must not be empty and its size must be less than 64 KiB
+ * Returns the malloced block of memory containing a null-terminated file content.
+ * Returns null on error.
+ * Note that if the file contained null byte in it, the length of the returned
+ * string may be smaller than the allocated memory block.
+ */
+static char *load_file(const char *file_name)
 {
-    ssize_t len = get_file_size(f);
+    if (!file_name)
+        return NULL;
+    FILE *file_ptr = fopen(file_name, "rb");
+    if (!file_ptr)
+        return NULL;
+    ssize_t len = get_file_size(file_ptr);
     if (len <= 0 || 65536 < len)
     {
-        fclose(f);
+        fclose(file_ptr);
         return NULL;
     }
     char *buf = (char *)malloc(len + 1);
     if (!buf)
     {
-        fclose(f);
+        fclose(file_ptr);
         return NULL;
     }
-    ssize_t sz = (ssize_t)fread(buf, 1, len, f);
+    ssize_t sz = (ssize_t)fread(buf, 1, len, file_ptr);
     if (sz < len)
     {
-        fclose(f);
+        fclose(file_ptr);
         free(buf);
         return NULL;
     }
     buf[len] = 0;
-    fclose(f);
+    fclose(file_ptr);
     return buf;
 }
 
+/*
+ * str must be a valid and null-terminated string
+ * Returns 1 if the string is "true" or "1".
+ * Returns 0 if the string is "false" or "0".
+ * Returns -1 otherwise.
+ */
 static inline char is_true_str(const char *str)
 {
     if (!strcasecmp("true", str) || !strcmp("1", str))
@@ -113,6 +144,10 @@ static inline char is_true_str(const char *str)
     return -1;
 }
 
+/*
+ * Parse a single line in the config file and update the config if the line
+ * contained a valid configuration.
+ */
 static void parse_line(char *line, config *cfg)
 {
     char *eq = strchr(line, '=');
@@ -183,30 +218,21 @@ static void parse_line(char *line, config *cfg)
 #endif
     else if (!strcmp("server_key", key))
     {
-        FILE *f = fopen(value, "rb");
-        if (!f)
-            return;
-        char *buf = load_file(f);
+        char *buf = load_file(value);
         if (cfg->priv_key)
             free(cfg->priv_key);
         cfg->priv_key = buf;
     }
     else if (!strcmp("server_cert", key))
     {
-        FILE *f = fopen(value, "rb");
-        if (!f)
-            return;
-        char *buf = load_file(f);
+        char *buf = load_file(value);
         if (cfg->server_cert)
             free(cfg->server_cert);
         cfg->server_cert = buf;
     }
     else if (!strcmp("ca_cert", key))
     {
-        FILE *f = fopen(value, "rb");
-        if (!f)
-            return;
-        char *buf = load_file(f);
+        char *buf = load_file(value);
         if (cfg->ca_cert)
             free(cfg->ca_cert);
         cfg->ca_cert = buf;
@@ -247,7 +273,7 @@ static void parse_line(char *line, config *cfg)
 #endif
 }
 
-config parse_conf(const char *conf_file)
+config parse_conf(const char *file_name)
 {
     config cfg;
     cfg.app_port = 0;
@@ -272,7 +298,16 @@ config parse_conf(const char *conf_file)
         error_exit("Error initializing bind address");
     }
 
-    FILE *f = fopen(conf_file, "r");
+    if (!file_name)
+    {
+#ifdef DEBUG_MODE
+        printf("File name is null\n");
+#endif
+        puts("Using default configurations");
+        return cfg;
+    }
+
+    FILE *f = fopen(file_name, "r");
     if (!f)
     {
 #ifdef DEBUG_MODE

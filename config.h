@@ -40,7 +40,16 @@ typedef struct _config
     uint32_t bind_addr;
 } config;
 
-extern config parse_conf(const char *);
+/*
+ * Parse the config file given by the file_name.
+ * Returns the default configuration on error.
+ */
+extern config parse_conf(const char *file_name);
+
+/*
+ * Clears all the memory allocated in the array type or list2* type elements in the configuration.
+ * This does not clear the memory block pointed by the config *conf.
+ */
 extern void clear_config(config *conf);
 
 #endif

@@ -21,6 +21,11 @@
 
 #include "../utils/net_utils.h"
 
-extern void server(socket_t *);
+/*
+ * Runs the server after the socket connection is established.
+ * Accepts a socket, negotiates the protocol version, and passes the control
+ * to the respective version handler.
+ */
+extern void server(socket_t *socket);
 
 #endif

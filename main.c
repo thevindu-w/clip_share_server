@@ -58,7 +58,13 @@ static void print_usage(const char *prog_name)
 }
 
 #ifdef __linux__
-
+/*
+ * Attempts to kill all other processes with the name, prog_name, using SIGTERM.
+ * This does not kill itself.
+ * It is not guaranteed to kill all processes with the given name.
+ * Some processes may still survive if the effective user of this process has
+ * no permission to kill that process, or if the process ignores SIGTERM.
+ */
 static void kill_other_processes(const char *prog_name)
 {
     DIR *dir;
@@ -133,8 +139,12 @@ static void kill_other_processes(const char *prog_name)
 
 #elif _WIN32
 
+/*
+ * Attempts to kill all other processes with the name, prog_name.
+ */
 static void kill_other_processes(const char *prog_name)
 {
+    // FIXME: This function will kill the process itself too, which it should not do.
     char cmd[2048];
     if (snprintf_check(cmd, 2048, "taskkill /IM \"%s\" /F", prog_name))
     {
@@ -178,6 +188,9 @@ static DWORD WINAPI webThreadFn(void *arg)
 
 #endif
 
+/*
+ * The main entrypoint of the application
+ */
 int main(int argc, char **argv)
 {
     // Get basename of the program
