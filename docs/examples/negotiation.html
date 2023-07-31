@@ -13,6 +13,7 @@
     <div id="nav">
         <span><a href="index.html">&lt Previous</a></span>
         <span class="growx"></span>
+        <span><a href="v1.html">Next &gt</a></span>
     </div>
     <div class="page">
         <h1>
@@ -20,7 +21,7 @@
         </h1>
 
         <h2 id="obsolete">Obsolete client</h2>
-        <p>Note that all the bytes are hex-encoded.</p>
+        <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
             <thead>
                 <tr>
@@ -33,14 +34,14 @@
             <tbody class="left-align">
                 <tr>
                     <td class="center">1</td>
-                    <td>01</td>
+                    <td class="mono">01</td>
                     <td></td>
                     <td>Client requests protocol version 1</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
-                    <td>02</td>
+                    <td class="mono">02</td>
                     <td>Server rejects the request as it is lower than the minimum supported version</td>
                 </tr>
                 <tr>
@@ -50,7 +51,7 @@
         </table>
 
         <h2 id="unknown">Version unknown to the server</h2>
-        <p>Note that all the bytes are hex-encoded.</p>
+        <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
             <thead>
                 <tr>
@@ -63,20 +64,20 @@
             <tbody class="left-align">
                 <tr>
                     <td class="center">1</td>
-                    <td>02</td>
+                    <td class="mono">02</td>
                     <td></td>
                     <td>Client requests protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center">2</td>
                     <td></td>
-                    <td>03 01</td>
+                    <td class="mono">03 01</td>
                     <td>Server indicates that version 2 is unknown, and the latest supported version of the server is
                         version 1</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
-                    <td>00</td>
+                    <td class="mono">00</td>
                     <td></td>
                     <td>Client rejects the offer to use version 1</td>
                 </tr>
@@ -87,7 +88,7 @@
         </table>
 
         <h2 id="success">Successful version agreement</h2>
-        <p>Note that all the bytes are hex-encoded.</p>
+        <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
             <thead>
                 <tr>
@@ -102,34 +103,34 @@
                 <tr>
                     <td class="center" rowspan="3">Negotiation</td>
                     <td class="center">1</td>
-                    <td>02</td>
+                    <td class="mono">02</td>
                     <td></td>
                     <td>Client requests protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center">2</td>
                     <td></td>
-                    <td>03 01</td>
+                    <td class="mono">03 01</td>
                     <td>Server indicates that version 2 is unknown, and the latest supported version of the server is
                         version 1</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
-                    <td>01</td>
+                    <td class="mono">01</td>
                     <td></td>
                     <td>Client accepts the offer to use version 1</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
                     <td class="center">1</td>
-                    <td>01</td>
+                    <td class="mono">01</td>
                     <td></td>
                     <td>Client requests get text method</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
-                    <td>02</td>
+                    <td class="mono">02</td>
                     <td>Server indicates that there is no text copied to the clipboard (No data)</td>
                 </tr>
                 <tr>
@@ -142,6 +143,7 @@
     <div id="foot">
         <span><a href="index.html">&lt Previous</a></span>
         <span class="growx"></span>
+        <span><a href="v1.html">Next &gt</a></span>
     </div>
 </body>
 

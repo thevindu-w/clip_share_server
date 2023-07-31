@@ -9,7 +9,7 @@ body {
 }
 
 div.page {
-    min-width: 600px;
+    min-width: 720px;
     width: 80vw;
     margin: 0 auto;
 }
@@ -41,6 +41,10 @@ td {
     padding: 0.4em 2ch;
     margin: 0;
     width: fit-content;
+}
+
+th {
+    padding: 0.4em 1ch;
 }
 
 table th {
@@ -92,4 +96,26 @@ h3 {
 
 .left-align * {
     text-align: left;
+}
+
+.mono {
+    font-family: monospace;
+}
+
+div.image {
+    height: 45px;
+    display:block;
+    margin-top: 5px;
+}
+
+div.image span{
+    vertical-align: top;
+    display: inline;
+}
+
+div.image img {
+    height: 40px;
+    margin: 0;
+    margin-left: 5px;
+    display: inline-block
 }
