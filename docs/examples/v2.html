@@ -11,13 +11,11 @@
 
 <body>
     <div id="nav">
-        <span><a href="negotiation.html">&lt Previous</a></span>
-        <span class="growx"></span>
-        <span><a href="v2.html">Next &gt</a></span>
+        <span><a href="v1.html">&lt Previous</a></span>
     </div>
     <div class="page">
         <h1>
-            <center>Protocol Version 1</center>
+            <center>Protocol Version 2</center>
         </h1>
 
         <h2 id="get_text-success">Get Text</h2>
@@ -36,15 +34,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">01</td>
+                    <td class="mono">02</td>
                     <td></td>
-                    <td>Client requests protocol version 1</td>
+                    <td>Client requests protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td>Server accepts the request to use protocol version 1</td>
+                    <td>Server accepts the request to use protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -96,15 +94,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">01</td>
+                    <td class="mono">02</td>
                     <td></td>
-                    <td>Client requests protocol version 1</td>
+                    <td>Client requests protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td>Server accepts the request to use protocol version 1</td>
+                    <td>Server accepts the request to use protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -141,15 +139,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">01</td>
+                    <td class="mono">02</td>
                     <td></td>
-                    <td>Client requests protocol version 1</td>
+                    <td>Client requests protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td>Server accepts the request to use protocol version 1</td>
+                    <td>Server accepts the request to use protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -201,15 +199,15 @@
                 <tr>
                     <td class="center" rowspan="2" colspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">01</td>
+                    <td class="mono">02</td>
                     <td></td>
-                    <td>Client requests protocol version 1</td>
+                    <td>Client requests protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td>Server accepts the request to use protocol version 1</td>
+                    <td>Server accepts the request to use protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2" colspan="2">Method selection</td>
@@ -225,12 +223,12 @@
                     <td>Server accepts the request</td>
                 </tr>
                 <tr>
-                    <td class="center" rowspan="9">Get files</td>
+                    <td class="center" rowspan="17">Get files</td>
                     <td class="center">File count</td>
                     <td class="center">8</td>
                     <td></td>
-                    <td class="mono">00 00 00 00 00 00 00 02</td>
-                    <td>Server sends the number of files as 2 in a 64-bit signed integer in big-endian
+                    <td class="mono">00 00 00 00 00 00 00 03</td>
+                    <td>Server sends the number of files as 3 in a 64-bit signed integer in big-endian
                         format.</td>
                 </tr>
                 <tr>
@@ -245,8 +243,8 @@
                     <td class="center">14</td>
                     <td></td>
                     <td class="mono">66 69 72 73 74 5F 66 69 6C 65 2E 74 78 74</td>
-                    <td>Server sends the name of the first copied file, which is 14 bytes long when encoded in UTF-8.
-                        The file name is "first_file.txt" (without quotes) when decoded.</td>
+                    <td>Server sends the name of the first file, which is 14 bytes long when encoded in UTF-8. The file
+                        name is "first_file.txt" (without quotes) when decoded.</td>
                 </tr>
                 <tr>
                     <td class="center">8</td>
@@ -260,23 +258,23 @@
                     <td></td>
                     <td class="mono">74 68 69 73 20 69 73 20 74 68 65 20 63 6F 6E 74 65 6E 74 20 6F 66 20 74 68 65 20 66
                         69 72 73 74 20 66 69 6C 65</td>
-                    <td>Server sends the content of the first copied file, which is 37 bytes in size. The file content
-                        is "this is the content of the first file" (without quotes).</td>
+                    <td>Server sends the content of the first file, which is 37 bytes in size. The file content is "this
+                        is the content of the first file" (without quotes).</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="4">Second file</td>
                     <td class="center">8</td>
                     <td></td>
-                    <td class="mono">00 00 00 00 00 00 00 0F</td>
-                    <td>Server sends the length of the second file name as 15 bytes as a 64-bit signed integer in
-                        big-endian format. 000000000000000F in hexadecimal is 15 in decimal.</td>
+                    <td class="mono">00 00 00 00 00 00 00 17</td>
+                    <td>Server sends the length of the second file name as 23 bytes as a 64-bit signed integer in
+                        big-endian format. 0000000000000017 in hexadecimal is 23 in decimal.</td>
                 </tr>
                 <tr>
-                    <td class="center">15</td>
+                    <td class="center">23</td>
                     <td></td>
-                    <td class="mono">73 65 63 6F 6E 64 5F 66 69 6C 65 2E 74 78 74</td>
-                    <td>Server sends the name of the second copied file, which is 15 bytes long when encoded in UTF-8.
-                        The file name is "second_file.txt" (without quotes) when decoded.</td>
+                    <td class="mono">66 6F 6C 64 65 72 31 2F 73 65 63 6F 6E 64 5F 66 69 6C 65 2E 74 78 74</td>
+                    <td>Server sends the name of the second file, which is 23 bytes long when encoded in UTF-8. The file
+                        name is "folder1/second_file.txt" (without quotes) when decoded.</td>
                 </tr>
                 <tr>
                     <td class="center">8</td>
@@ -290,14 +288,87 @@
                     <td></td>
                     <td class="mono">74 68 69 73 20 69 73 20 74 68 65 20 63 6F 6E 74 65 6E 74 20 6F 66 20 74 68 65 20 73
                         65 63 6F 6E 64 20 66 69 6C 65</td>
-                    <td>Server sends the content of the second copied file, which is 38 bytes in size. The file content
-                        is "this is the content of the second file" (without quotes).</td>
+                    <td>Server sends the content of the second file, which is 38 bytes in size. The file content is
+                        "this is the content of the second file" (without quotes).</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="4">Third file</td>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 16</td>
+                    <td>Server sends the length of the third file name as 22 bytes as a 64-bit signed integer in
+                        big-endian format. 0000000000000016 in hexadecimal is 22 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">22</td>
+                    <td></td>
+                    <td class="mono">66 6F 6C 64 65 72 32 2F 74 68 69 72 64 5F 66 69 6C 65 2E 74 78 74</td>
+                    <td>Server sends the name of the third file, which is 22 bytes long when encoded in UTF-8. The file
+                        name is "folder2/third_file.txt" (without quotes) when decoded.</td>
+                </tr>
+                <tr>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 25</td>
+                    <td>Server sends the size of the third file as 37 bytes as a 64-bit signed integer in big-endian
+                        format. 0000000000000025 in hexadecimal is 37 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">37</td>
+                    <td></td>
+                    <td class="mono">74 68 69 73 20 69 73 20 74 68 65 20 63 6F 6E 74 65 6E 74 20 6F 66 20 74 68 65 20 74
+                        68 69 72 64 20 66 69 6C 65</td>
+                    <td>Server sends the content of the third file, which is 37 bytes in size. The file content is
+                        "this is the content of the third file" (without quotes).</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="4">Fourth file</td>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 21</td>
+                    <td>Server sends the length of the fourth file name as 33 bytes as a 64-bit signed integer in
+                        big-endian format. 0000000000000021 in hexadecimal is 33 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">33</td>
+                    <td></td>
+                    <td class="mono">66 6F 6C 64 65 72 32 2F 73 75 62 66 6F 6C 64 65 72 2F 66 6F 75 72 74 68 5F 66 69 6C
+                        65 2E 74 78 74</td>
+                    <td>Server sends the name of the fourth file, which is 33 bytes long when encoded in UTF-8. The file
+                        name is "folder2/subfolder/fourth_file.txt" (without quotes) when decoded.</td>
+                </tr>
+                <tr>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 26</td>
+                    <td>Server sends the size of the fourth file as 38 bytes as a 64-bit signed integer in big-endian
+                        format. 0000000000000026 in hexadecimal is 38 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">38</td>
+                    <td></td>
+                    <td class="mono">74 68 69 73 20 69 73 20 74 68 65 20 63 6F 6E 74 65 6E 74 20 6F 66 20 74 68 65 20 66
+                        6F 75 72 74 68 20 66 69 6C 65</td>
+                    <td>Server sends the content of the fourth file, which is 38 bytes in size. The file content is
+                        "this is the content of the fourth file" (without quotes).</td>
                 </tr>
                 <tr>
                     <td class="center" colspan="6">Communication ends and connection closes</td>
                 </tr>
             </tbody>
         </table>
+        <p>The files transfered are in the following structure,<br>
+        <pre>
+.
+├── folder1
+│   └── second_file.txt
+├── folder2
+│   ├── subfolder
+│   │   └── fourth_file.txt
+│   └── third_file.txt
+└── first_file.txt
+        </pre>
+        </p>
 
         <h2 id="get_files-no_data">Get Files (no data)</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
@@ -315,15 +386,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">01</td>
+                    <td class="mono">02</td>
                     <td></td>
-                    <td>Client requests protocol version 1</td>
+                    <td>Client requests protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td>Server accepts the request to use protocol version 1</td>
+                    <td>Server accepts the request to use protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -344,12 +415,12 @@
             </tbody>
         </table>
 
-        <h2 id="send_file">Send File</h2>
+        <h2 id="send_files">Send Files</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
             <thead>
                 <tr>
-                    <th>Phase</th>
+                    <th colspan="2">Phase</th>
                     <th>Size (bytes)</th>
                     <th>Client sends</th>
                     <th>Server sends</th>
@@ -358,24 +429,24 @@
             </thead>
             <tbody class="left-align">
                 <tr>
-                    <td class="center" rowspan="2">Version Negotiation</td>
+                    <td class="center" rowspan="2" colspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">01</td>
+                    <td class="mono">02</td>
                     <td></td>
-                    <td>Client requests protocol version 1</td>
+                    <td>Client requests protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td>Server accepts the request to use protocol version 1</td>
+                    <td>Server accepts the request to use protocol version 2</td>
                 </tr>
                 <tr>
-                    <td class="center" rowspan="2">Method selection</td>
+                    <td class="center" rowspan="2" colspan="2">Method selection</td>
                     <td class="center">1</td>
                     <td class="mono">04</td>
                     <td></td>
-                    <td>Client requests the send file method</td>
+                    <td>Client requests the send files method</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
@@ -384,40 +455,152 @@
                     <td>Server accepts the request</td>
                 </tr>
                 <tr>
-                    <td class="center" rowspan="4">Send file</td>
+                    <td class="center" rowspan="17">Get files</td>
+                    <td class="center">File count</td>
                     <td class="center">8</td>
-                    <td class="mono">00 00 00 00 00 00 00 08</td>
+                    <td class="mono">00 00 00 00 00 00 00 03</td>
                     <td></td>
-                    <td>Client sends the length of the file name as 8 bytes as a 64-bit signed integer in big-endian
-                        format. 0000000000000008 in hexadecimal is 8 in decimal.</td>
+                    <td>Client sends the number of files as 3 in a 64-bit signed integer in big-endian
+                        format.</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="4">First file</td>
+                    <td class="center">8</td>
+                    <td class="mono">00 00 00 00 00 00 00 0E</td>
+                    <td></td>
+                    <td>Client sends the length of the first file name as 14 bytes as a 64-bit signed integer in
+                        big-endian format. 000000000000000E in hexadecimal is 14 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">14</td>
+                    <td class="mono">66 69 72 73 74 5F 66 69 6C 65 2E 74 78 74</td>
+                    <td></td>
+                    <td>Client sends the name of the first file, which is 14 bytes long when encoded in UTF-8. The file
+                        name is "first_file.txt" (without quotes) when decoded.</td>
                 </tr>
                 <tr>
                     <td class="center">8</td>
-                    <td class="mono">66 69 6C 65 2E 74 78 74</td>
+                    <td class="mono">00 00 00 00 00 00 00 25</td>
                     <td></td>
-                    <td>Client sends the file name, which is 8 bytes long when encoded in UTF-8. The file name is
-                        "file.txt" (without quotes) when decoded.</td>
+                    <td>Client sends the size of the first file as 37 bytes as a 64-bit signed integer in big-endian
+                        format. 0000000000000025 in hexadecimal is 37 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">37</td>
+                    <td class="mono">74 68 69 73 20 69 73 20 74 68 65 20 63 6F 6E 74 65 6E 74 20 6F 66 20 74 68 65 20 66
+                        69 72 73 74 20 66 69 6C 65</td>
+                    <td></td>
+                    <td>Client sends the content of the first file, which is 37 bytes in size. The file content is "this
+                        is the content of the first file" (without quotes).</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="4">Second file</td>
+                    <td class="center">8</td>
+                    <td class="mono">00 00 00 00 00 00 00 17</td>
+                    <td></td>
+                    <td>Client sends the length of the second file name as 23 bytes as a 64-bit signed integer in
+                        big-endian format. 0000000000000017 in hexadecimal is 23 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">23</td>
+                    <td class="mono">66 6F 6C 64 65 72 31 2F 73 65 63 6F 6E 64 5F 66 69 6C 65 2E 74 78 74</td>
+                    <td></td>
+                    <td>Client sends the name of the second file, which is 23 bytes long when encoded in UTF-8. The file
+                        name is "folder1/second_file.txt" (without quotes) when decoded.</td>
                 </tr>
                 <tr>
                     <td class="center">8</td>
-                    <td class="mono">00 00 00 00 00 00 00 1F</td>
+                    <td class="mono">00 00 00 00 00 00 00 26</td>
                     <td></td>
-                    <td>Client sends the size of the file as 31 bytes as a 64-bit signed integer in big-endian format.
-                        000000000000001F in hexadecimal is 31 in decimal.</td>
+                    <td>Client sends the size of the second file as 38 bytes as a 64-bit signed integer in big-endian
+                        format. 0000000000000026 in hexadecimal is 38 in decimal.</td>
                 </tr>
                 <tr>
-                    <td class="center">31</td>
-                    <td class="mono">54 68 69 73 20 69 73 20 74 68 65 20 63 6F 6E 74 65 6E 74 20 6F 66 20 74 68 65 20 66
-                        69 6C 65</td>
+                    <td class="center">38</td>
+                    <td class="mono">74 68 69 73 20 69 73 20 74 68 65 20 63 6F 6E 74 65 6E 74 20 6F 66 20 74 68 65 20 73
+                        65 63 6F 6E 64 20 66 69 6C 65</td>
                     <td></td>
-                    <td>Client sends the content of the file, which is 31 bytes in size. The file content is "This is
-                        the content of the file" (without quotes).</td>
+                    <td>Client sends the content of the second file, which is 38 bytes in size. The file content is
+                        "this is the content of the second file" (without quotes).</td>
                 </tr>
                 <tr>
-                    <td class="center" colspan="5">Communication ends and connection closes</td>
+                    <td class="center" rowspan="4">Third file</td>
+                    <td class="center">8</td>
+                    <td class="mono">00 00 00 00 00 00 00 16</td>
+                    <td></td>
+                    <td>Client sends the length of the third file name as 22 bytes as a 64-bit signed integer in
+                        big-endian format. 0000000000000016 in hexadecimal is 22 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">22</td>
+                    <td class="mono">66 6F 6C 64 65 72 32 2F 74 68 69 72 64 5F 66 69 6C 65 2E 74 78 74</td>
+                    <td></td>
+                    <td>Client sends the name of the third file, which is 22 bytes long when encoded in UTF-8. The file
+                        name is "folder2/third_file.txt" (without quotes) when decoded.</td>
+                </tr>
+                <tr>
+                    <td class="center">8</td>
+                    <td class="mono">00 00 00 00 00 00 00 25</td>
+                    <td></td>
+                    <td>Client sends the size of the third file as 37 bytes as a 64-bit signed integer in big-endian
+                        format. 0000000000000025 in hexadecimal is 37 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">37</td>
+                    <td class="mono">74 68 69 73 20 69 73 20 74 68 65 20 63 6F 6E 74 65 6E 74 20 6F 66 20 74 68 65 20 74
+                        68 69 72 64 20 66 69 6C 65</td>
+                    <td></td>
+                    <td>Client sends the content of the third file, which is 37 bytes in size. The file content is
+                        "this is the content of the third file" (without quotes).</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="4">Fourth file</td>
+                    <td class="center">8</td>
+                    <td class="mono">00 00 00 00 00 00 00 21</td>
+                    <td></td>
+                    <td>Client sends the length of the fourth file name as 33 bytes as a 64-bit signed integer in
+                        big-endian format. 0000000000000021 in hexadecimal is 33 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">33</td>
+                    <td class="mono">66 6F 6C 64 65 72 32 2F 73 75 62 66 6F 6C 64 65 72 2F 66 6F 75 72 74 68 5F 66 69 6C
+                        65 2E 74 78 74</td>
+                    <td></td>
+                    <td>Client sends the name of the fourth file, which is 33 bytes long when encoded in UTF-8. The file
+                        name is "folder2/subfolder/fourth_file.txt" (without quotes) when decoded.</td>
+                </tr>
+                <tr>
+                    <td class="center">8</td>
+                    <td class="mono">00 00 00 00 00 00 00 26</td>
+                    <td></td>
+                    <td>Client sends the size of the fourth file as 38 bytes as a 64-bit signed integer in big-endian
+                        format. 0000000000000026 in hexadecimal is 38 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">38</td>
+                    <td class="mono">74 68 69 73 20 69 73 20 74 68 65 20 63 6F 6E 74 65 6E 74 20 6F 66 20 74 68 65 20 66
+                        6F 75 72 74 68 20 66 69 6C 65</td>
+                    <td></td>
+                    <td>Client sends the content of the fourth file, which is 38 bytes in size. The file content is
+                        "this is the content of the fourth file" (without quotes).</td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="6">Communication ends and connection closes</td>
                 </tr>
             </tbody>
         </table>
+        <p>The files transfered are in the following structure,<br>
+        <pre>
+.
+├── folder1
+│   └── second_file.txt
+├── folder2
+│   ├── subfolder
+│   │   └── fourth_file.txt
+│   └── third_file.txt
+└── first_file.txt
+        </pre>
+        </p>
 
         <h2 id="get_image">Get Image</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
@@ -435,15 +618,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">01</td>
+                    <td class="mono">02</td>
                     <td></td>
-                    <td>Client requests protocol version 1</td>
+                    <td>Client requests protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td>Server accepts the request to use protocol version 1</td>
+                    <td>Server accepts the request to use protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -502,15 +685,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">01</td>
+                    <td class="mono">02</td>
                     <td></td>
-                    <td>Client requests protocol version 1</td>
+                    <td>Client requests protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td>Server accepts the request to use protocol version 1</td>
+                    <td>Server accepts the request to use protocol version 2</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -548,9 +731,7 @@
     </div>
     <div id="fill-page"></div>
     <div id="foot">
-        <span><a href="negotiation.html">&lt Previous</a></span>
-        <span class="growx"></span>
-        <span><a href="v2.html">Next &gt</a></span>
+        <span><a href="v1.html">&lt Previous</a></span>
     </div>
 </body>
 
