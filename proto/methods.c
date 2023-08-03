@@ -111,6 +111,9 @@ int send_text_v1(socket_t *socket)
     return EXIT_SUCCESS;
 }
 
+/*
+ * Common function to get files in v1 and v2.
+ */
 static int _get_files_common(int version, socket_t *socket, list2 *file_list, size_t path_len)
 {
     if (!file_list || file_list->len == 0)
@@ -257,6 +260,55 @@ int get_files_v1(socket_t *socket)
     return _get_files_common(1, socket, file_list, 0);
 }
 
+/*
+ * Common function to save files in send_files method of v1 and v2.
+ */
+static int _save_file_common(socket_t *socket, const char *file_name)
+{
+    FILE *file = fopen(file_name, "wb");
+    if (!file)
+        return EXIT_FAILURE;
+
+    ssize_t file_size = read_size(socket);
+#ifdef DEBUG_MODE
+    printf("data len = %zi\n", file_size);
+#endif
+    if (file_size < 0 || file_size > MAX_FILE_SIZE)
+    {
+        fclose(file);
+        return EXIT_FAILURE;
+    }
+
+    char data[FILE_BUF_SZ];
+    while (file_size)
+    {
+        size_t read_len = file_size < FILE_BUF_SZ ? file_size : FILE_BUF_SZ;
+        if (read_sock(socket, data, read_len) == EXIT_FAILURE)
+        {
+#ifdef DEBUG_MODE
+            puts("recieve error");
+#endif
+            fclose(file);
+            remove(file_name);
+            return EXIT_FAILURE;
+        }
+        if (fwrite(data, 1, read_len, file) < read_len)
+        {
+            fclose(file);
+            remove(file_name);
+            return EXIT_FAILURE;
+        }
+        file_size -= read_len;
+    }
+
+    fclose(file);
+
+#ifdef DEBUG_MODE
+    printf("file saved : %s\n", new_path);
+#endif
+    return EXIT_SUCCESS;
+}
+
 int send_file_v1(socket_t *socket)
 {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
@@ -298,13 +350,6 @@ int send_file_v1(socket_t *socket)
     if (strchr(file_name, PATH_SEP))
         return EXIT_FAILURE;
 
-    ssize_t file_size = read_size(socket);
-#ifdef DEBUG_MODE
-    printf("data len = %zi\n", file_size);
-#endif
-    if (file_size < 0 || file_size > MAX_FILE_SIZE)
-        return EXIT_FAILURE;
-
     // if file already exists, use a different file name
     {
         char tmp_fname[name_max_len + 1];
@@ -330,36 +375,7 @@ int send_file_v1(socket_t *socket)
         file_name[name_max_len] = 0;
     }
 
-    FILE *file = fopen(file_name, "wb");
-    if (!file)
-        return EXIT_FAILURE;
-    char data[FILE_BUF_SZ];
-    while (file_size)
-    {
-        size_t read_len = file_size < FILE_BUF_SZ ? file_size : FILE_BUF_SZ;
-        if (read_sock(socket, data, read_len) == EXIT_FAILURE)
-        {
-#ifdef DEBUG_MODE
-            puts("recieve error");
-#endif
-            fclose(file);
-            remove(file_name);
-            return EXIT_FAILURE;
-        }
-        if (fwrite(data, 1, read_len, file) < read_len)
-        {
-            fclose(file);
-            remove(file_name);
-            return EXIT_FAILURE;
-        }
-        file_size -= read_len;
-    }
-
-    fclose(file);
-#ifdef DEBUG_MODE
-    puts("file saved");
-#endif
-    return EXIT_SUCCESS;
+    return _save_file_common(socket, file_name);
 }
 
 int get_image_v1(socket_t *socket)
@@ -501,44 +517,7 @@ static int save_file(socket_t *socket, const char *dirname)
     if (file_exists(new_path))
         return EXIT_FAILURE;
 
-    ssize_t file_size = read_size(socket);
-#ifdef DEBUG_MODE
-    printf("data len = %zi\n", file_size);
-#endif
-    if (file_size < 0 || file_size > MAX_FILE_SIZE)
-        return EXIT_FAILURE;
-
-    FILE *file = fopen(new_path, "wb");
-    if (!file)
-        return EXIT_FAILURE;
-    char data[FILE_BUF_SZ];
-    while (file_size)
-    {
-        size_t read_len = file_size < FILE_BUF_SZ ? file_size : FILE_BUF_SZ;
-        if (read_sock(socket, data, read_len) == EXIT_FAILURE)
-        {
-#ifdef DEBUG_MODE
-            puts("recieve error");
-#endif
-            fclose(file);
-            remove(file_name);
-            return EXIT_FAILURE;
-        }
-        if (fwrite(data, 1, read_len, file) < read_len)
-        {
-            fclose(file);
-            remove(file_name);
-            return EXIT_FAILURE;
-        }
-        file_size -= read_len;
-    }
-
-    fclose(file);
-
-#ifdef DEBUG_MODE
-    printf("file saved : %s\n", new_path);
-#endif
-    return EXIT_SUCCESS;
+    return _save_file_common(socket, new_path);
 }
 
 int send_files_v2(socket_t *socket)
