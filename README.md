@@ -71,8 +71,13 @@ This is the server that runs in the background. Cilents can connect to the serve
 
 * On Arch based distros,
   ```bash
-  # glibc should already be available
   sudo pacman -S libx11 libxmu libpng openssl
+  ```
+
+  glibc should already be available on Arch distros. But you may need to upgrade it with the following command. (You need to do this only if the build fails)
+
+  ```bash
+  sudo pacman -S glibc
   ```
 
 (You may refer to docker/Dockerfile\* to see how to install the dependencies on various Linux distros)

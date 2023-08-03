@@ -3,6 +3,7 @@ FROM archlinux:base
 RUN pacman -Sy
 
 # Install build dependencies
+RUN pacman -S --needed --noconfirm glibc
 RUN pacman -S --needed --noconfirm gcc make libx11 libxmu libpng openssl
 
 # Install test dependencies
