@@ -32,7 +32,7 @@ OBJS_C=main.o clip_share.o udp_serve.o proto/server.o proto/versions.o proto/met
 _WEB_OBJS_C=clip_share_web.o
 _WEB_OBJS_S=page_blob.o
 
-CFLAGS=-c -pipe -Wall -Wextra -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=2
+CFLAGS=-c -pipe -Wall -Wextra --std=gnu11 -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=2
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 
 OTHER_DEPENDENCIES=

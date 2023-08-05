@@ -162,6 +162,11 @@ static void parse_line(char *line, config *cfg)
     trim(key);
     trim(value);
 
+    if (strlen(value) <= 0)
+    {
+        return;
+    }
+
 #ifdef DEBUG_MODE
     printf("Key=%s : Value=%s\n", key, value);
 #endif
@@ -249,21 +254,15 @@ static void parse_line(char *line, config *cfg)
     }
     else if (!strcmp("working_dir", key))
     {
-        if (strlen(value) > 0)
-        {
-            if (cfg->working_dir)
-                free(cfg->working_dir);
-            cfg->working_dir = strdup(value);
-        }
+        if (cfg->working_dir)
+            free(cfg->working_dir);
+        cfg->working_dir = strdup(value);
     }
-    else if (!strcmp("bind_address", key))
+    else if (!strcmp("bind_address", key) && ipv4_aton(value, &(cfg->bind_addr)) != EXIT_SUCCESS)
     {
-        if (strlen(value) > 0 && ipv4_aton(value, &(cfg->bind_addr)) != EXIT_SUCCESS)
-        {
-            char msg[48];
-            snprintf_check(msg, 48, "Invalid bind address %s", value);
-            error_exit(msg);
-        }
+        char msg[48];
+        snprintf_check(msg, 48, "Invalid bind address %s", value);
+        error_exit(msg);
     }
 #ifdef DEBUG_MODE
     else

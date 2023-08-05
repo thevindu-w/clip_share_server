@@ -81,9 +81,9 @@ void udp_server(const unsigned short port)
     {
         len = sizeof(cliaddr);
 #ifdef __linux__
-        n = recvfrom(sockfd, (char *)buffer, 2, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len);
+        n = (int)recvfrom(sockfd, (char *)buffer, 2, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len);
 #elif _WIN32
-        n = recvfrom(sockfd, (char *)buffer, 2, 0, (struct sockaddr *)&cliaddr, &len);
+        n = (int)recvfrom(sockfd, (char *)buffer, 2, 0, (struct sockaddr *)&cliaddr, &len);
 #endif
         if (n <= 0)
         {

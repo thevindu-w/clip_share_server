@@ -131,10 +131,16 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
     printf("%zu file(s)\n", file_cnt);
 #endif
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
-        goto END;
+    {
+        free_list(file_list);
+        return EXIT_FAILURE;
+    }
 
     if (send_size(socket, file_cnt) == EXIT_FAILURE)
-        goto END;
+    {
+        free_list(file_list);
+        return EXIT_FAILURE;
+    }
 
     status = EXIT_SUCCESS;
     for (size_t i = 0; i < file_cnt; i++)
@@ -166,7 +172,10 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
             break;
         }
         default:
-            goto END;
+        {
+            free_list(file_list);
+            return EXIT_FAILURE;
+        }
         }
 
         const size_t _tmp_len = strlen(tmp_fname);
@@ -176,8 +185,8 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
         const size_t fname_len = strlen(filename);
         if (fname_len > MAX_FILE_NAME_LENGTH)
         {
-            status = EXIT_FAILURE;
-            goto END;
+            free_list(file_list);
+            return EXIT_FAILURE;
         }
 
         FILE *fp = fopen(file_path, "rb");
@@ -203,8 +212,8 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
         if (send_size(socket, fname_len) == EXIT_FAILURE)
         {
             fclose(fp);
-            status = EXIT_FAILURE;
-            goto END;
+            free_list(file_list);
+            return EXIT_FAILURE;
         }
 
 #if PATH_SEP != '/'
@@ -222,14 +231,14 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
         if (write_sock(socket, filename, fname_len) == EXIT_FAILURE)
         {
             fclose(fp);
-            status = EXIT_FAILURE;
-            goto END;
+            free_list(file_list);
+            return EXIT_FAILURE;
         }
         if (send_size(socket, file_size) == EXIT_FAILURE)
         {
             fclose(fp);
-            status = EXIT_FAILURE;
-            goto END;
+            free_list(file_list);
+            return EXIT_FAILURE;
         }
 
         char data[FILE_BUF_SZ];
@@ -241,15 +250,14 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
                 if (write_sock(socket, data, read) == EXIT_FAILURE)
                 {
                     fclose(fp);
-                    status = EXIT_FAILURE;
-                    goto END;
+                    free_list(file_list);
+                    return EXIT_FAILURE;
                 }
                 file_size -= read;
             }
         }
         fclose(fp);
     }
-END:
     free_list(file_list);
     return status;
 }
@@ -304,7 +312,7 @@ static int _save_file_common(socket_t *socket, const char *file_name)
     fclose(file);
 
 #ifdef DEBUG_MODE
-    printf("file saved : %s\n", new_path);
+    printf("file saved : %s\n", file_name);
 #endif
     return EXIT_SUCCESS;
 }

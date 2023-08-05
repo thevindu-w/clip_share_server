@@ -138,8 +138,9 @@ int xcout(Display *dpy,
 		XConvertSelection(dpy, sel, target, pty, win, CurrentTime);
 		*context = XCLIB_XCOUT_SENTCONVSEL;
 		return 0;
-
+	}
 	case XCLIB_XCOUT_SENTCONVSEL:
+	{
 		if (evt.type != SelectionNotify)
 			return 0;
 
@@ -315,7 +316,7 @@ int xcout(Display *dpy,
 int xcin(Display *dpy,
 		 Window *win,
 		 XEvent evt,
-		 Atom *pty, Atom target, unsigned char *txt, unsigned long len, unsigned long *pos,
+		 Atom *pty, Atom target, const unsigned char *txt, unsigned long len, unsigned long *pos,
 		 unsigned int *context)
 {
 	unsigned long chunk_len; /* length of current chunk (for incr

@@ -85,7 +85,7 @@ extern int bind_port(listener_t listener, unsigned short port);
  * If SSL is enabled, Initialize SSL and authenticates the client,
  * allowed_clients is a list of Common Names of allowed clients.
  */
-extern socket_t get_connection(listener_t listener, list2 *allowed_clients);
+extern socket_t get_connection(listener_t listener, const list2 *allowed_clients);
 
 /*
  * Closes a socket.

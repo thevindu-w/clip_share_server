@@ -193,10 +193,10 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr)
         return EXIT_FAILURE;
     }
     struct in_addr addr;
-#ifdef _WIN32
-    if ((addr.s_addr = inet_addr(address_str)) == INADDR_NONE)
-#else
+#ifdef __linux__
     if (inet_aton(address_str, &addr) != 1)
+#elif _WIN32
+    if ((addr.s_addr = inet_addr(address_str)) == INADDR_NONE)
 #endif
     {
 #ifdef DEBUG_MODE
@@ -204,7 +204,11 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr)
 #endif
         return EXIT_FAILURE;
     }
+#ifdef __linux__
+    *address_ptr = addr.s_addr;
+#elif _WIN32
     *address_ptr = (uint32_t)addr.s_addr;
+#endif
     return EXIT_SUCCESS;
 }
 
@@ -215,7 +219,7 @@ int bind_port(listener_t listener, unsigned short port)
     sock_t socket = listener.socket;
     struct sockaddr_in name;
     name.sin_family = PF_INET;
-    name.sin_port = (in_port_t)htons(port);
+    name.sin_port = htons(port);
     name.sin_addr.s_addr = configuration.bind_addr;
     int reuse = 1;
     if (setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1)
@@ -234,7 +238,7 @@ int bind_port(listener_t listener, unsigned short port)
     return EXIT_SUCCESS;
 }
 
-socket_t get_connection(listener_t listener, list2 *allowed_clients)
+socket_t get_connection(listener_t listener, const list2 *allowed_clients)
 {
     socket_t sock;
     sock.type = NULL_SOCK;
@@ -470,13 +474,11 @@ int write_sock(socket_t *socket, const char *buf, size_t size)
 int send_size(socket_t *socket, ssize_t size)
 {
     char sz_buf[8];
+    ssize_t sz = size;
+    for (int i = sizeof(sz_buf) - 1; i >= 0; i--)
     {
-        ssize_t sz = size;
-        for (int i = sizeof(sz_buf) - 1; i >= 0; i--)
-        {
-            sz_buf[i] = sz & 0xff;
-            sz >>= 8;
-        }
+        sz_buf[i] = sz & 0xff;
+        sz >>= 8;
     }
     return write_sock(socket, sz_buf, sizeof(sz_buf));
 }

@@ -218,63 +218,62 @@ int main(int argc, char **argv)
     unsigned short web_port = configuration.web_port > 0 ? configuration.web_port : WEB_PORT;
 #endif
 
+    // Parse command line arguments
+    int opt;
+    while ((opt = getopt(argc, argv, "hsrp:w:")) != -1)
     {
-        int opt;
-        while ((opt = getopt(argc, argv, "hsrp:w:")) != -1)
+        switch (opt)
         {
-            switch (opt)
+        case 'h': // help
+        {
+            print_usage(prog_name);
+            clear_config(&configuration);
+            exit(EXIT_SUCCESS);
+        }
+        case 's': // stop
+        {
+            stop = 1;
+            break;
+        }
+        case 'r': // restart
+        {
+            restart = 1;
+            break;
+        }
+        case 'p': // app port
+        {
+            char *endptr;
+            app_port = (unsigned short)strtol(optarg, &endptr, 10);
+            if (*endptr != '\0' || endptr == optarg)
             {
-            case 'h': // help
-            {
-                print_usage(prog_name);
-                clear_config(&configuration);
-                exit(EXIT_SUCCESS);
-            }
-            case 's': // stop
-            {
-                stop = 1;
-                break;
-            }
-            case 'r': // restart
-            {
-                restart = 1;
-                break;
-            }
-            case 'p': // app port
-            {
-                char *endptr;
-                app_port = (unsigned short)strtol(optarg, &endptr, 10);
-                if (*endptr != '\0' || endptr == optarg)
-                {
-                    fprintf(stderr, "Invalid app port %s\n", optarg);
-                    print_usage(prog_name);
-                    clear_config(&configuration);
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            }
-#ifndef NO_WEB
-            case 'w': // web port
-            {
-                char *endptr;
-                web_port = (unsigned short)strtol(optarg, &endptr, 10);
-                if (*endptr != '\0' || endptr == optarg)
-                {
-                    fprintf(stderr, "Invalid web port %s\n", optarg);
-                    print_usage(prog_name);
-                    clear_config(&configuration);
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            }
-#endif
-            default:
-            {
+                fprintf(stderr, "Invalid app port %s\n", optarg);
                 print_usage(prog_name);
                 clear_config(&configuration);
                 exit(EXIT_FAILURE);
             }
+            break;
+        }
+#ifndef NO_WEB
+        case 'w': // web port
+        {
+            char *endptr;
+            web_port = (unsigned short)strtol(optarg, &endptr, 10);
+            if (*endptr != '\0' || endptr == optarg)
+            {
+                fprintf(stderr, "Invalid web port %s\n", optarg);
+                print_usage(prog_name);
+                clear_config(&configuration);
+                exit(EXIT_FAILURE);
             }
+            break;
+        }
+#endif
+        default:
+        {
+            print_usage(prog_name);
+            clear_config(&configuration);
+            exit(EXIT_FAILURE);
+        }
         }
     }
 
@@ -317,6 +316,8 @@ int main(int argc, char **argv)
             snprintf_check(err, 3072, "Failed changing working directory to \'%s\'", configuration.working_dir);
             fprintf(stderr, "%s\n", err);
             error_exit(err);
+            clear_config(&configuration);
+            return EXIT_FAILURE;
         }
         char *new_work_dir = getcwd(NULL, 0);
         if (old_work_dir == NULL || new_work_dir == NULL)
@@ -324,6 +325,8 @@ int main(int argc, char **argv)
             char *err = "Error occured during changing working directory.";
             fprintf(stderr, "%s\n", err);
             error_exit(err);
+            clear_config(&configuration);
+            return EXIT_FAILURE;
         }
         // if the working directory did not change, set configuration.working_dir to NULL
         if (!strcmp(old_work_dir, new_work_dir))

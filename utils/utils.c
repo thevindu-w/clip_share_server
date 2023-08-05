@@ -228,7 +228,7 @@ static void recurse_dir(const char *_path, list2 *lst, int depth)
             const char *filename = dir->d_name;
             if (!(strcmp(filename, ".") && strcmp(filename, "..")))
                 continue;
-            const  size_t _fname_len = strlen(filename);
+            const size_t _fname_len = strlen(filename);
             char pathname[_fname_len + p_len + 1];
             strncpy(pathname, path, p_len);
             strncpy(pathname + p_len, filename, _fname_len);
@@ -341,26 +341,24 @@ static char *get_copied_files_as_str()
             free(targets);
         return NULL;
     }
+    char found = 0;
+    char *copy = targets;
+    const char *token;
+    while ((token = strsep(&copy, "\n")))
     {
-        char found = 0;
-        char *copy = targets;
-        const char *token;
-        while ((token = strsep(&copy, "\n")))
+        if (!strcmp(token, expected_target))
         {
-            if (!strcmp(token, expected_target))
-            {
-                found = 1;
-                break;
-            }
+            found = 1;
+            break;
         }
-        if (!found)
-        {
+    }
+    if (!found)
+    {
 #ifdef DEBUG_MODE
-            puts("No copied files");
+        puts("No copied files");
 #endif
-            free(targets);
-            return NULL;
-        }
+        free(targets);
+        return NULL;
     }
     free(targets);
 
@@ -397,7 +395,7 @@ static int url_decode(char *str)
     if (strncmp("file://", str, 7))
         return EXIT_FAILURE;
     char *ptr1 = str;
-    char *ptr2 = strstr(str, "://");
+    const char *ptr2 = strstr(str, "://");
     if (!ptr2)
         return EXIT_FAILURE;
     ptr2 += 3;

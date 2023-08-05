@@ -49,7 +49,7 @@ extern int xcin(
 	XEvent,
 	Atom *,
 	Atom,
-	unsigned char *,
+	const unsigned char *,
 	unsigned long,
 	unsigned long *,
 	unsigned int *);
