@@ -136,7 +136,7 @@ int mkdirs(const char *dir_path)
             return EXIT_FAILURE;
     }
 
-    size_t len = strlen(dir_path);
+    size_t len = strnlen(dir_path, 2047);
     char path[len + 1];
     strncpy(path, dir_path, len);
     path[len] = 0;
@@ -213,7 +213,7 @@ static void recurse_dir(const char *_path, list2 *lst, int depth)
     DIR *d = opendir(_path);
     if (d)
     {
-        size_t p_len = strlen(_path);
+        size_t p_len = strnlen(_path, 2047);
         char path[p_len + 2];
         strncpy(path, _path, p_len + 1);
         path[p_len + 1] = 0;
@@ -228,7 +228,7 @@ static void recurse_dir(const char *_path, list2 *lst, int depth)
             const char *filename = dir->d_name;
             if (!(strcmp(filename, ".") && strcmp(filename, "..")))
                 continue;
-            const size_t _fname_len = strlen(filename);
+            const size_t _fname_len = strnlen(filename, 2047);
             char pathname[_fname_len + p_len + 1];
             strncpy(pathname, path, p_len);
             strncpy(pathname + p_len, filename, _fname_len);
@@ -436,7 +436,7 @@ list2 *get_copied_files()
     {
         return NULL;
     }
-    char *file_path = fnames + strlen(fnames);
+    char *file_path = fnames + strnlen(fnames, 8);
 
     size_t file_cnt = 1;
     for (char *ptr = file_path + 1; *ptr; ptr++)
@@ -457,7 +457,7 @@ list2 *get_copied_files()
     char *fname = file_path + 1;
     for (size_t i = 0; i < file_cnt; i++)
     {
-        size_t off = strlen(fname) + 1;
+        size_t off = strnlen(fname, 2047) + 1;
         if (url_decode(fname) == EXIT_FAILURE)
             break;
 
@@ -495,7 +495,7 @@ dir_files get_copied_dirs_files()
     {
         return ret;
     }
-    char *file_path = fnames + strlen(fnames);
+    char *file_path = fnames + strnlen(fnames, 8);
 
     size_t file_cnt = 1;
     for (char *ptr = file_path + 1; *ptr; ptr++)
@@ -517,7 +517,7 @@ dir_files get_copied_dirs_files()
     char *fname = file_path + 1;
     for (size_t i = 0; i < file_cnt; i++)
     {
-        const size_t off = strlen(fname) + 1;
+        const size_t off = strnlen(fname, 2047) + 1;
         if (url_decode(fname) == EXIT_FAILURE)
             break;
 
@@ -584,7 +584,8 @@ int get_clipboard_text(char **bufptr, size_t *lenptr)
         return EXIT_FAILURE;
     }
     *bufptr = data;
-    *lenptr = strlen(data);
+    *lenptr = strnlen(data, 4194304);
+    data[*lenptr] = 0;
     return EXIT_SUCCESS;
 }
 

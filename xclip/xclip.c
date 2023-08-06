@@ -143,7 +143,7 @@ doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_options *options
 			while (atom_len--)
 			{
 				char *atom_name = XGetAtomName(options->dpy, *atom_buf++);
-				const size_t atom_name_len = strlen(atom_name);
+				const size_t atom_name_len = strnlen(atom_name, 511);
 				while (atom_name_len + out_len + 1 >= out_capacity)
 				{
 					out_capacity *= 2;

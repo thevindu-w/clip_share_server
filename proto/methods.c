@@ -37,6 +37,8 @@
 #define MAX_TEXT_LENGTH 4194304   // 4 MiB
 #define MAX_IMAGE_SIZE 1073741824 // 1 GiB
 
+#define MIN(x, y) (x < y ? x : y)
+
 int get_text_v1(socket_t *socket)
 {
     size_t length = 0;
@@ -178,12 +180,12 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
         }
         }
 
-        const size_t _tmp_len = strlen(tmp_fname);
+        const size_t _tmp_len = strnlen(tmp_fname, MAX_FILE_NAME_LENGTH);
         char filename[_tmp_len + 1];
         strncpy(filename, tmp_fname, _tmp_len);
         filename[_tmp_len] = 0;
-        const size_t fname_len = strlen(filename);
-        if (fname_len > MAX_FILE_NAME_LENGTH)
+        const size_t fname_len = strnlen(filename, _tmp_len);
+        if (fname_len > MIN(_tmp_len, MAX_FILE_NAME_LENGTH))
         {
             free_list(file_list);
             return EXIT_FAILURE;
@@ -346,7 +348,7 @@ int send_file_v1(socket_t *socket)
         if (base_name)
         {
             base_name++;                                          // don't want the '/' before the file name
-            memmove(file_name, base_name, strlen(base_name) + 1); // overlapping memory area
+            memmove(file_name, base_name, strnlen(base_name, name_length) + 1); // overlapping memory area
         }
 #if PATH_SEP != '/'
         if (strchr(file_name, PATH_SEP)) // file name can't contain PATH_SEP
@@ -426,7 +428,7 @@ int info_v1(socket_t *socket)
 {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
         return EXIT_FAILURE;
-    size_t len = strlen(INFO_NAME);
+    size_t len = strnlen(INFO_NAME, 8192);
     if (send_size(socket, len) == EXIT_FAILURE)
     {
 #ifdef DEBUG_MODE
@@ -561,7 +563,7 @@ int send_files_v2(socket_t *socket)
     for (size_t i = 0; i < files->len; i++)
     {
         char *filename = files->array[i];
-        const int name_len = (int)strlen(filename);
+        const int name_len = (int)strnlen(filename, MAX_FILE_NAME_LENGTH);
         char old_path[name_len + 20];
         if (snprintf_check(old_path, name_len + 20, "%s%c%s", dirname, PATH_SEP, filename))
         {

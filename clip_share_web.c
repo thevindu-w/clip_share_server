@@ -43,7 +43,7 @@ static void receiver_web(socket_t *);
 
 static int say(const char *msg, socket_t *sock)
 {
-    return write_sock(sock, msg, strlen(msg));
+    return write_sock(sock, msg, strnlen(msg, 4194304));
 }
 
 static void receiver_web(socket_t *sock)
@@ -200,7 +200,7 @@ static void receiver_web(socket_t *sock)
         headers = (char *)realloc(headers, header_len + data_len + 1);
         data = headers + header_len;
         cnt = 0;
-        char *data_end_ptr = data + strlen(data);
+        char *data_end_ptr = data + strnlen(data, data_len + 1);
         while (data_end_ptr - data < (long)data_len)
         {
             if ((r = read_sock_no_wait(sock, buf, 256)) > 0)

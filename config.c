@@ -25,6 +25,8 @@
 #include "utils/list_utils.h"
 #include "config.h"
 
+#define LINE_MAX_LEN 2047
+
 /*
  * Trims all charactors in the range \x01 to \x20 inclusive from both ends of
  * the string in-place.
@@ -71,8 +73,9 @@ static list2 *get_client_list(const char *filename)
     char client[512];
     while (fscanf(f, "%511[^\n]%*c", client) != EOF)
     {
+        client[511] = 0;
         trim(client);
-        size_t len = strlen(client);
+        size_t len = strnlen(client, 512);
         if (len < 1)
             continue;
         if (client[0] == '#')
@@ -162,7 +165,8 @@ static void parse_line(char *line, config *cfg)
     trim(key);
     trim(value);
 
-    if (strlen(value) <= 0)
+    const size_t value_len = strnlen(value, LINE_MAX_LEN);
+    if (value_len <= 0 || value_len >= LINE_MAX_LEN)
     {
         return;
     }
@@ -316,10 +320,10 @@ config parse_conf(const char *file_name)
         return cfg;
     }
 
-    char line[2048];
-    line[2047] = 0;
+    char line[LINE_MAX_LEN + 1];
     while (fscanf(f, "%2047[^\n]%*c", line) != EOF)
     {
+        line[LINE_MAX_LEN] = 0;
         parse_line(line, &cfg);
     }
     fclose(f);
@@ -331,7 +335,7 @@ void clear_config(config *cfg)
 {
     if (cfg->priv_key)
     {
-        size_t len = strlen(cfg->priv_key);
+        size_t len = strnlen(cfg->priv_key, 65536);
         memset(cfg->priv_key, 0, len);
         free(cfg->priv_key);
     }

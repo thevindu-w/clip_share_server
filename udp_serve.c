@@ -68,7 +68,7 @@ void udp_server(const unsigned short port)
     puts("UDP bind completed");
 #endif
 
-    const size_t info_len = strlen(INFO_NAME);
+    const size_t info_len = strnlen(INFO_NAME, 8192);
 
     int n;
     socklen_t len;

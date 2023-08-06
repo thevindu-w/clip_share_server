@@ -16,13 +16,12 @@
         <span><a href="v1.html">Next &gt</a></span>
     </div>
     <div class="page">
-        <h1>
-            <center>Protocol Version Negotiation</center>
-        </h1>
+        <h1>Protocol Version Negotiation</h1>
 
         <h2 id="obsolete">Obsolete client</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
+            <caption>Example protocol version negotiation with a client using an obsolete protocol version</caption>
             <thead>
                 <tr>
                     <th>Size (bytes)</th>
@@ -53,6 +52,8 @@
         <h2 id="unknown">Version unknown to the server</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
+            <caption>Example protocol version negotiation with a client using protocol versions unknown to the server
+            </caption>
             <thead>
                 <tr>
                     <th>Size (bytes)</th>
@@ -90,6 +91,7 @@
         <h2 id="success">Successful version agreement</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
+            <caption>Example protocol version negotiation successfully selecting a protocol version</caption>
             <thead>
                 <tr>
                     <th>Phase</th>

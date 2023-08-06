@@ -89,9 +89,18 @@ span.growx {
     flex-grow: 1;
 }
 
+h1 {
+    text-align: center;
+}
+
 h2,
 h3 {
     margin-top: 1.5em;
+}
+
+caption {
+    font-size: small;
+    text-align: left;
 }
 
 .left-align * {
