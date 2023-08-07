@@ -35,6 +35,8 @@
 #include "../xscreenshot/screenshot.h"
 #include "../globals.h"
 
+#define MAX(x, y) (x > y ? x : y)
+
 #define ERROR_LOG_FILE "server_err.log"
 #define RECURSE_DEPTH_MAX 256
 
@@ -199,6 +201,32 @@ list2 *list_dir(const char *dirname)
     }
 #endif
     return NULL;
+}
+
+void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
+{
+    struct mem_file *p = (struct mem_file *)png_get_io_ptr(png_ptr);
+    size_t nsize = p->size + length;
+
+    /* allocate or grow buffer */
+    if (p->buffer == NULL)
+    {
+        p->capacity = MAX(length, 1024);
+        p->buffer = malloc(p->capacity);
+    }
+    else if (nsize > p->capacity)
+    {
+        p->capacity *= 2;
+        p->capacity = MAX(nsize, p->capacity);
+        p->buffer = realloc(p->buffer, p->capacity);
+    }
+
+    if (!p->buffer)
+        png_error(png_ptr, "Write Error");
+
+    /* copy new bytes to end of buffer */
+    memcpy(p->buffer + p->size, data, length);
+    p->size += length;
 }
 
 /*

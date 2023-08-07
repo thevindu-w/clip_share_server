@@ -42,15 +42,13 @@ typedef SOCKET sock_t;
 #define PLAIN_SOCK 1
 #define SSL_SOCK 2
 
-typedef union
-{
-    sock_t plain;
-    SSL *ssl;
-} socket_connection;
-
 typedef struct _socket_t
 {
-    socket_connection socket;
+    union
+    {
+        sock_t plain;
+        SSL *ssl;
+    } socket;
     unsigned char type;
 } socket_t;
 

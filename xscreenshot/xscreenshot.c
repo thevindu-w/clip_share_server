@@ -15,38 +15,7 @@
 
 #include <png.h>
 
-struct mem_file
-{
-	char *buffer;
-	size_t capacity;
-	size_t size;
-};
-
-static void my_png_write_data(const png_structp png_ptr, const png_bytep data, png_size_t length)
-{
-	struct mem_file *p = (struct mem_file *)png_get_io_ptr(png_ptr);
-	size_t nsize = p->size + length;
-
-	/* allocate or grow buffer */
-	if (p->buffer == NULL)
-	{
-		p->capacity = length > 1024 ? length : 1024;
-		p->buffer = malloc(p->capacity);
-	}
-	else if (nsize > p->capacity)
-	{
-		p->capacity *= 2;
-		p->capacity = nsize > p->capacity ? nsize : p->capacity;
-		p->buffer = realloc(p->buffer, p->capacity);
-	}
-
-	if (!p->buffer)
-		png_error(png_ptr, "Write Error");
-
-	/* copy new bytes to end of buffer */
-	memcpy(p->buffer + p->size, data, length);
-	p->size += length;
-}
+#include "../utils/utils.h"
 
 /* LSBFirst: BGRA -> RGBA */
 static void convertrow_lsb(unsigned char *drow, const unsigned char *srow, const XImage *img)
@@ -107,7 +76,7 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len)
 	fake_file.capacity = 0;
 	fake_file.size = 0;
 	png_init_io(png_write_p, (png_FILE_p)&fake_file);
-	png_set_write_fn(png_write_p, &fake_file, my_png_write_data, NULL);
+	png_set_write_fn(png_write_p, &fake_file, png_mem_write_data, NULL);
 	png_set_IHDR(png_write_p, png_info_p, img->width, img->height, 8, PNG_COLOR_TYPE_RGB,
 				 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_BASE);
 	png_write_info(png_write_p, png_info_p);

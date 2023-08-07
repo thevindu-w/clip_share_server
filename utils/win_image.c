@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <windows.h>
 
+#include "utils.h"
 #include "win_image.h"
 
 typedef struct _RGBPixel
@@ -43,43 +44,8 @@ typedef struct _RGBBitmap
   uint8_t bytes_per_pixel;
 } RGBBitmap;
 
-struct mem_file
-{
-  char *buffer;
-  size_t capacity;
-  size_t size;
-};
-
 static int write_png_to_mem(RGBBitmap *, char **, size_t *);
 static void write_image(HBITMAP, char **, size_t *);
-static void png_mem_write_data(png_structp, png_bytep, png_size_t);
-
-static void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
-{
-  /* with libpng15 next line causes pointer deference error; use libpng12 */
-  struct mem_file *p = (struct mem_file *)png_get_io_ptr(png_ptr);
-  size_t nsize = p->size + length;
-
-  /* allocate or grow buffer */
-  if (p->buffer == NULL)
-  {
-    p->capacity = length > 1024 ? length : 1024;
-    p->buffer = malloc(p->capacity);
-  }
-  else if (nsize > p->capacity)
-  {
-    p->capacity *= 2;
-    p->capacity = nsize > p->capacity ? nsize : p->capacity;
-    p->buffer = realloc(p->buffer, p->capacity);
-  }
-
-  if (!p->buffer)
-    png_error(png_ptr, "Write Error");
-
-  /* copy new bytes to end of buffer */
-  memcpy(p->buffer + p->size, data, length);
-  p->size += length;
-}
 
 /* Returns pixel of bitmap at given point. */
 #define RGBPixelAtPoint(image, x, y) \

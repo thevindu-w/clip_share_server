@@ -24,6 +24,12 @@
 #include "list_utils.h"
 
 #ifdef __linux__
+#include <png.h>
+#elif _WIN32
+#include <libpng16/png.h>
+#endif
+
+#ifdef __linux__
 #define PATH_SEP '/'
 #elif _WIN32
 #define PATH_SEP '\\'
@@ -33,11 +39,14 @@
 #define error_exit(msg) _error(msg, 1)
 
 /*
- * A wrapper for snprintf.
- * returns 1 if snprintf failed or truncated
- * returns 0 otherwise
+ * In-memory file to write png image
  */
-int snprintf_check(char * dest, int size, const char * fmt, ...);
+struct mem_file
+{
+    char *buffer;
+    size_t capacity;
+    size_t size;
+};
 
 /*
  * List of files and the length of the path of their parent directory
@@ -47,6 +56,13 @@ typedef struct _dir_files
     size_t path_len;
     list2 *lst;
 } dir_files;
+
+/*
+ * A wrapper for snprintf.
+ * returns 1 if snprintf failed or truncated
+ * returns 0 otherwise
+ */
+int snprintf_check(char *dest, int size, const char *fmt, ...);
 
 /*
  * Append error message to error log file
@@ -128,5 +144,12 @@ extern list2 *list_dir(const char *dirname);
  * returns directories and files on success and set the path_len to 0 and file list to NULL on failure.
  */
 extern dir_files get_copied_dirs_files(void);
+
+/*
+ * The function to be used as png write data function in libpng to write the
+ * image into a memory buffer instead of a file. This will allocate memory for
+ * the struct mem_file buffer.
+ */
+void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length);
 
 #endif
