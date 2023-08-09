@@ -28,9 +28,15 @@
 #include "utils/utils.h"
 #include "servers.h"
 
-#ifdef _WIN32
+#ifndef MSG_WAITALL
 #define MSG_WAITALL 0
+#endif
+
+#ifndef MSG_CONFIRM
 #define MSG_CONFIRM 0
+#endif
+
+#ifdef _WIN32
 typedef int socklen_t;
 #endif
 
@@ -62,7 +68,7 @@ void udp_server(const unsigned short port)
     struct sockaddr_in cliaddr;
     memset(&cliaddr, 0, sizeof(cliaddr));
 
-    const size_t info_len = strnlen(INFO_NAME, 8192);
+    const size_t info_len = strlen(INFO_NAME);
 
     int n;
     socklen_t len;

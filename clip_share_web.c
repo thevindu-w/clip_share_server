@@ -43,7 +43,7 @@ static void receiver_web(socket_t *);
 
 static int say(const char *msg, socket_t *sock)
 {
-    return write_sock(sock, msg, strnlen(msg, 4194304));
+    return write_sock(sock, msg, strlen(msg));
 }
 
 static void receiver_web(socket_t *sock)

@@ -428,7 +428,7 @@ int info_v1(socket_t *socket)
 {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE)
         return EXIT_FAILURE;
-    size_t len = strnlen(INFO_NAME, 8192);
+    const size_t len = strlen(INFO_NAME);
     if (send_size(socket, len) == EXIT_FAILURE)
     {
 #ifdef DEBUG_MODE

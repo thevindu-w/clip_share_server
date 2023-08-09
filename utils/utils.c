@@ -256,7 +256,7 @@ static void recurse_dir(const char *_path, list2 *lst, int depth)
             const char *filename = dir->d_name;
             if (!(strcmp(filename, ".") && strcmp(filename, "..")))
                 continue;
-            const size_t _fname_len = strnlen(filename, 2047);
+            const size_t _fname_len = strlen(filename);
             char pathname[_fname_len + p_len + 1];
             strncpy(pathname, path, p_len);
             strncpy(pathname + p_len, filename, _fname_len);
