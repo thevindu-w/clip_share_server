@@ -33,6 +33,7 @@
 #include <dirent.h>
 #include <ctype.h>
 #elif _WIN32
+#include <tlhelp32.h>
 #include "win_getopt/getopt.h"
 #endif
 
@@ -144,16 +145,23 @@ static void kill_other_processes(const char *prog_name)
  */
 static void kill_other_processes(const char *prog_name)
 {
-    // FIXME: This function will kill the process itself too, which it should not do.
-    char cmd[2048];
-    if (snprintf_check(cmd, 2048, "taskkill /IM \"%s\" /F", prog_name))
+    DWORD this_pid = GetCurrentProcessId();
+    PROCESSENTRY32 entry;
+    entry.dwSize = sizeof(PROCESSENTRY32);
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (Process32First(snapshot, &entry) == TRUE)
     {
-#ifdef DEBUG_MODE
-        fprintf(stderr, "Error writing taskkill command\n");
-#endif
-        return;
+        while (Process32Next(snapshot, &entry) == TRUE)
+        {
+            if ((stricmp(entry.szExeFile, prog_name) == 0) && (entry.th32ProcessID != this_pid))
+            {
+                HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, entry.th32ProcessID);
+                TerminateProcess(hProcess, 0);
+                CloseHandle(hProcess);
+            }
+        }
     }
-    system(cmd);
+    CloseHandle(snapshot);
 }
 
 static DWORD WINAPI udpThreadFn(void *arg)
