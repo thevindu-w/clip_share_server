@@ -253,7 +253,7 @@ int web_server()
     signal(SIGCHLD, SIG_IGN);
 #endif
 
-    listener_t listener = open_listener_socket(1, configuration.priv_key, configuration.server_cert, configuration.ca_cert);
+    listener_t listener = open_listener_socket(SSL_SOCK, configuration.priv_key, configuration.server_cert, configuration.ca_cert);
     if (bind_port(listener, configuration.web_port) != EXIT_SUCCESS)
     {
         return EXIT_FAILURE;

@@ -41,6 +41,7 @@ typedef SOCKET sock_t;
 #define NULL_SOCK 0
 #define PLAIN_SOCK 1
 #define SSL_SOCK 2
+#define UDP_SOCK 127
 
 typedef struct _socket_t
 {
@@ -61,10 +62,11 @@ typedef struct _listener_socket_t
 
 /*
  * Opens a socket for listening.
- * If ssl_enabled is 0, SSL context is not initialized. private_key, server_certificate and ca_certificate are not required in that case.
- * Otherwise, SSL context is initialized with the provided private_key, server_certificate and ca_certificate.
+ * If sock_type is PLAIN_SOCK, an unencrypted TCP socket is created and SSL context is not initialized. private_key, server_certificate and ca_certificate are not required in that case.
+ * If sock_type is SSL_SOCK, an TLS encrypted TCP socket is created and SSL context is initialized with the provided private_key, server_certificate and ca_certificate.
+ * Otherwise, a UDP socket is created and SSL context is not initialized. private_key, server_certificate and ca_certificate are not required in that case.
  */
-extern listener_t open_listener_socket(const int ssl_enabled, const char *private_key, const char *server_certificate, const char *ca_certificate);
+extern listener_t open_listener_socket(const unsigned char sock_type, const char *private_key, const char *server_certificate, const char *ca_certificate);
 
 /*
  * Converts a ipv4 address in dotted decimal into in_addr_t.

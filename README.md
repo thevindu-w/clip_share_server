@@ -151,7 +151,7 @@ The following files should be created and placed in the `cert_keys/` directory a
 
 ### Connect the client application
 
-You can find an Android client app in `releases`. You can also get it from [Fdroid](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare/). The source of the Android client app is available at [github.com/thevindu-w/clip_share_client](https://github.com/thevindu-w/clip_share_client). Or you may develop a client app according to the protocol specification described in the `docs/`.<br>
+You can find an Android client app in [releases](https://github.com/thevindu-w/clip_share_client/releases). You can also get it from [apt.izzysoft.de](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare/). The source of the Android client app is available at [github.com/thevindu-w/clip_share_client](https://github.com/thevindu-w/clip_share_client). Or you may develop a client app according to the protocol specification described in the `docs/`.<br>
 - The client and the server devices should be on the same network. You can do that by connecting both devices to the same Wi-Fi network. It is also possible to use one of the devices as a Wi-Fi hotspot and connect the other device to that hotspot.
 - If the client supports network scanning, it can easily find the server in the network. Otherwise, enter the server's IPv4 address to the client.
 - Now the client can share clipboard data and files and get images from the server.<br>

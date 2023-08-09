@@ -137,21 +137,21 @@ static int getClientCerts(const SSL *ssl, const list2 *allowed_clients)
     return verified ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-listener_t open_listener_socket(const int ssl_enabled, const char *priv_key, const char *server_cert, const char *ca_cert)
+listener_t open_listener_socket(const unsigned char sock_type, const char *priv_key, const char *server_cert, const char *ca_cert)
 {
     listener_t listener;
     listener.type = NULL_SOCK;
 
-    sock_t listener_d = socket(PF_INET, SOCK_STREAM, 0);
+    sock_t listener_d = socket(PF_INET, (sock_type == UDP_SOCK ? SOCK_DGRAM : SOCK_STREAM), 0);
     if (listener_d == INVALID_SOCKET)
     {
         error("Can\'t open socket");
         return listener;
     }
     listener.socket = listener_d;
-    if (!ssl_enabled)
+    if (sock_type != SSL_SOCK)
     {
-        listener.type = PLAIN_SOCK;
+        listener.type = sock_type;
         return listener;
     }
 
@@ -217,21 +217,21 @@ int bind_port(listener_t listener, unsigned short port)
     if (listener.type == NULL_SOCK)
         return EXIT_FAILURE;
     sock_t socket = listener.socket;
-    struct sockaddr_in name;
-    name.sin_family = PF_INET;
-    name.sin_port = htons(port);
-    name.sin_addr.s_addr = configuration.bind_addr;
+    struct sockaddr_in server_addr;
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(port);
+    server_addr.sin_addr.s_addr = configuration.bind_addr;
     int reuse = 1;
-    if (setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1)
+    if (listener.type != UDP_SOCK && setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1)
     {
         error("Can't set the reuse option on the socket");
         return EXIT_FAILURE;
     }
-    int c = bind(socket, (struct sockaddr *)&name, sizeof(name));
-    if (c == -1)
+    if (bind(socket, (const struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
     {
         char errmsg[32];
-        snprintf_check(errmsg, 32, "Can\'t bind to TCP port %hu", port);
+        char *tcp_udp = listener.type == UDP_SOCK ? "UDP" : "TCP";
+        snprintf_check(errmsg, 32, "Can\'t bind to %s port %hu", tcp_udp, port);
         error(errmsg);
         return EXIT_FAILURE;
     }

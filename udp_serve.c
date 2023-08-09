@@ -29,6 +29,8 @@
 #include "servers.h"
 
 #ifdef _WIN32
+#define MSG_WAITALL 0
+#define MSG_CONFIRM 0
 typedef int socklen_t;
 #endif
 
@@ -36,31 +38,19 @@ void udp_server(const unsigned short port)
 {
     if (port <= 0)
         return;
-    sock_t sockfd;
-    struct sockaddr_in servaddr;
-    struct sockaddr_in cliaddr;
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
+
+    listener_t listener = open_listener_socket(UDP_SOCK, NULL, NULL, NULL);
+    if (listener.type == NULL_SOCK)
     {
         error("UDP socket creation failed");
         return;
     }
-
 #ifdef DEBUG_MODE
     puts("UDP socket created");
 #endif
 
-    memset(&servaddr, 0, sizeof(servaddr));
-    memset(&cliaddr, 0, sizeof(cliaddr));
-
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htons(INADDR_ANY);
-    servaddr.sin_port = htons(port);
-
-    if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
+    if (bind_port(listener, port) != EXIT_SUCCESS)
     {
-        char errmsg[32];
-        snprintf_check(errmsg, 32, "Can\'t bind to UDP port %hu", port);
-        error(errmsg);
         return;
     }
 
@@ -68,11 +58,15 @@ void udp_server(const unsigned short port)
     puts("UDP bind completed");
 #endif
 
+    sock_t sockfd = listener.socket;
+    struct sockaddr_in cliaddr;
+    memset(&cliaddr, 0, sizeof(cliaddr));
+
     const size_t info_len = strnlen(INFO_NAME, 8192);
 
     int n;
     socklen_t len;
-    const int buf_sz = 8;
+    const int buf_sz = 4;
     char buffer[buf_sz];
 #ifdef DEBUG_MODE
     puts("UDP server started");
@@ -80,17 +74,13 @@ void udp_server(const unsigned short port)
     while (1)
     {
         len = sizeof(cliaddr);
-#ifdef __linux__
         n = (int)recvfrom(sockfd, (char *)buffer, 2, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len);
-#elif _WIN32
-        n = (int)recvfrom(sockfd, (char *)buffer, 2, 0, (struct sockaddr *)&cliaddr, &len);
-#endif
         if (n <= 0)
         {
             continue;
         }
-        if (n >= 8)
-            n = 7;
+        if (n >= buf_sz)
+            n = buf_sz - 1;
         buffer[n] = '\0';
 
 #ifdef DEBUG_MODE
@@ -101,10 +91,6 @@ void udp_server(const unsigned short port)
         {
             continue;
         }
-#ifdef __linux__
         sendto(sockfd, INFO_NAME, info_len, MSG_CONFIRM, (const struct sockaddr *)&cliaddr, len);
-#elif _WIN32
-        sendto(sockfd, INFO_NAME, info_len, 0, (const struct sockaddr *)&cliaddr, len);
-#endif
     }
 }
