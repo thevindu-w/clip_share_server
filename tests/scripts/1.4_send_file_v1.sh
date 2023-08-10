@@ -10,8 +10,8 @@ echo "abc"$'\n'"def"$'\n'"file content" > "${fileName}"
 
 nameLength=$(printf "%016x" "${#fileName}")
 fileSize=$(printf "%016x" $(stat -c '%s' "${fileName}"))
-content=$(cat "${fileName}" | xxd -p | tr -d '\n')
-body="${nameLength}$(printf "${fileName}" | xxd -p)${fileSize}${content}"
+content=$(cat "${fileName}" | bin2hex | tr -d '\n')
+body="${nameLength}$(printf "${fileName}" | bin2hex)${fileSize}${content}"
 
 cd ..
 mkdir -p copy
@@ -19,18 +19,18 @@ mv clipshare.conf copy/
 cd copy
 
 # restart the server in new directory
-"../../../$1" -r &> /dev/null
+"../../../$1" -r &> /dev/null &
 
 # remove the conf file
 rm -f clipshare.conf
 
-proto=$(printf "\x01" | xxd -p)
-method=$(printf "\x04" | xxd -p)
+proto=$(printf "\x01" | bin2hex)
+method=$(printf "\x04" | bin2hex)
 
-responseDump=$(printf "${proto}${method}${body}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
+responseDump=$(printf "${proto}${method}${body}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf "\x01" | xxd -p)
-methodAck=$(printf "\x01" | xxd -p)
+protoAck=$(printf "\x01" | bin2hex)
+methodAck=$(printf "\x01" | bin2hex)
 
 expected="${protoAck}${methodAck}"
 
@@ -40,6 +40,7 @@ if [ "${responseDump}" != "${expected}" ]; then
 fi
 
 cd ..
+rm -f original/server_err.log copy/server_err.log
 
 diffOutput=$(diff -rq original copy 2>&1 || echo failed)
 if [ ! -z "${diffOutput}" ]; then

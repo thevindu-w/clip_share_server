@@ -9,13 +9,23 @@ dependencies=(
     realpath
     seq
     diff
-    xxd
     python3
     nc
     timeout
     openssl
-    xclip
 )
+
+if [ "$OS" = 'Windows_NT' ]; then
+    DETECTED_OS="Windows"
+    dependencies+=(powershell)
+elif [ "$(uname)" = 'Linux' ]; then
+    DETECTED_OS="Linux"
+    dependencies+=(xclip)
+elif [ "$(uname)" = 'Darwin' ]; then
+    DETECTED_OS="MacOS"
+else
+    DETECTED_OS="unknown"
+fi
 
 for dependency in "${dependencies[@]}"; do
     if ! type "$dependency" &> /dev/null; then
@@ -23,6 +33,14 @@ for dependency in "${dependencies[@]}"; do
         exit 1
     fi
 done
+
+shopt -s expand_aliases
+cur_dir="$(pwd)"
+if type "xxd" &> /dev/null && [ "$DETECTED_OS" = "Linux" ]; then
+    alias hex2bin="xxd -p -r 2>/dev/null"
+else
+    alias hex2bin="python3 -u ${cur_dir}/utils/bin2hex.py -r 2>/dev/null"
+fi
 
 setColor () {
     getColorCode () {
@@ -76,7 +94,74 @@ showStatus () {
     fi
 }
 
-export -f setColor showStatus
+copy_text () {
+    if [ "$DETECTED_OS" = "Linux" ]; then
+        echo -n "$1" | xclip -in -sel clip &>/dev/null
+    elif [ "$DETECTED_OS" = "Windows" ]; then
+        powershell -c "Set-Clipboard -Value '$1'"
+    else
+        echo "Copy text is not available for OS: $DETECTED_OS"
+        exit 1
+    fi
+}
+
+get_copied_text () {
+    if [ "$DETECTED_OS" = "Linux" ]; then
+        xclip -out -sel clip
+    elif [ "$DETECTED_OS" = "Windows" ]; then
+        powershell -c "Get-Clipboard"
+    else
+        echo "Get copied text is not available for OS: $DETECTED_OS"
+        exit 1
+    fi
+}
+
+copy_files () {
+    local files=("$@")
+    if [ "$DETECTED_OS" = "Linux" ]; then
+        local urls=""
+        for f in "${files[@]}"; do
+            local absPath="$(realpath "${f}")"
+            local fPathUrl="$(python3 -c 'from urllib import parse;print(parse.quote(input()))' <<< "${absPath}")"
+            urls+=$'\n'"file://${fPathUrl}"
+        done
+        echo -n "copy${urls}" | xclip -in -sel clip -t x-special/gnome-copied-files &>/dev/null
+    elif [ "$DETECTED_OS" = "Windows" ]; then
+        local files_str="$(printf ", '%s'" "${files[@]}")"
+        command="Set-Clipboard -Path ${files_str:2}"
+        powershell -c "$command"
+    else
+        echo "Copy files is not available for OS: $DETECTED_OS"
+        exit 1
+    fi
+}
+
+copy_image () {
+    if [ "$DETECTED_OS" = "Linux" ]; then
+        hex2bin <<<"$1" | xclip -in -sel clip -t image/png
+    elif [ "$DETECTED_OS" = "Windows" ]; then
+        hex2bin <<<"$1" > image.png
+        powershell -ExecutionPolicy Bypass ../utils/copy_image.ps1
+    else
+        echo "Copy image is not available for OS: $DETECTED_OS"
+        exit 1
+    fi
+}
+
+clear_clipboard () {
+    if [ "$DETECTED_OS" = "Linux" ]; then
+        xclip -in -sel clip -l 1 <<<"dummy" &> /dev/null
+        xclip -out -sel clip &> /dev/null
+    elif [ "$DETECTED_OS" = "Windows" ]; then
+        powershell -c 'Set-Clipboard -Value $null'
+    else
+        echo "Clear clipboard is not available for OS: $DETECTED_OS"
+        exit 1
+    fi
+}
+
+export DETECTED_OS
+export -f setColor showStatus copy_text get_copied_text copy_files copy_image clear_clipboard
 
 exitCode=0
 passCnt=0
@@ -86,7 +171,7 @@ for script in scripts/*.sh; do
     passed=
     attempts=3
     for attempt in $(seq "$attempts"); do
-        if timeout 3 "${script}" "$@"; then
+        if timeout 10 "${script}" "$@"; then
             passed=1
             showStatus "${script}" pass
             break
@@ -104,12 +189,11 @@ for script in scripts/*.sh; do
         failCnt=$(("$failCnt"+1))
         showStatus "${script}" fail
     fi
+    "../${program}" -s &>/dev/null
     rm -rf tmp
 done
 
-if type xclip &> /dev/null; then
-    printf "" | xclip -in -sel clip &> /dev/null
-fi
+clear_clipboard
 
 totalTests=$(("$passCnt"+"$failCnt"))
 test_s="tests"

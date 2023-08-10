@@ -2,12 +2,12 @@
 
 . init.sh
 
-proto=$(printf "\x77" | xxd -p)
-protoReject=$(printf "\x00" | xxd -p)
+proto=$(printf "\x77" | bin2hex)
+protoReject=$(printf "\x00" | bin2hex)
 
-responseDump=$(printf "${proto}${protoReject}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
+responseDump=$(printf "${proto}${protoReject}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x03' | xxd -p)
+protoAck=$(printf '\x03' | bin2hex)
 protoOffer=$(printf '%02x' "$proto_max_version")
 
 expected="${protoAck}${protoOffer}"

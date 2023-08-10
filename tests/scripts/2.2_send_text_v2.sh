@@ -4,15 +4,15 @@
 
 sample="Sample text for v2 send_text"
 
-proto=$(printf "\x02" | xxd -p)
-method=$(printf "\x02" | xxd -p)
+proto=$(printf "\x02" | bin2hex)
+method=$(printf "\x02" | bin2hex)
 length=$(printf "%016x" "${#sample}")
-sampleDump=$(printf "${sample}" | xxd -c 256 -p)
+sampleDump=$(printf "${sample}" | bin2hex)
 
-response=$(printf "${proto}${method}${length}${sampleDump}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
+response=$(printf "${proto}${method}${length}${sampleDump}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf "\x01" | xxd -p)
-methodAck=$(printf "\x01" | xxd -p)
+protoAck=$(printf "\x01" | bin2hex)
+methodAck=$(printf "\x01" | bin2hex)
 
 expected="${protoAck}${methodAck}"
 
@@ -21,7 +21,7 @@ if [ "${response}" != "${expected}" ]; then
     exit 1
 fi
 
-clip=$(xclip -out -sel clip || echo failed)
+clip="$(get_copied_text || echo fail)"
 
 if [ "${clip}" != "${sample}" ]; then
     showStatus info "Clipcoard content not matching."

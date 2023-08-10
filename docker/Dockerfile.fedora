@@ -6,7 +6,7 @@ RUN dnf install --setopt=install_weak_deps=False -y glibc-devel libX11-devel lib
 
 # Install test dependencies
 RUN dnf install --setopt=install_weak_deps=False -y xorg-x11-server-Xvfb
-RUN dnf install --setopt=install_weak_deps=False -y openssl xclip python3 xxd diffutils coreutils netcat
+RUN dnf install --setopt=install_weak_deps=False -y openssl xclip python3 diffutils coreutils netcat
 
 # Set environment variables for tests
 ENV TERM=xterm-256color

@@ -4,17 +4,17 @@
 
 sample="Sample text for v1 get_text"
 
-printf "${sample}" | xclip -in -sel clip
+copy_text "${sample}"
 
-proto=$(printf "\x01" | xxd -p)
-method=$(printf "\x01" | xxd -p)
+proto=$(printf "\x01" | bin2hex)
+method=$(printf "\x01" | bin2hex)
 
-responseDump=$(printf "${proto}${method}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
+responseDump=$(printf "${proto}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf "\x01" | xxd -p)
-methodAck=$(printf "\x01" | xxd -p)
+protoAck=$(printf "\x01" | bin2hex)
+methodAck=$(printf "\x01" | bin2hex)
 length=$(printf "%016x" "${#sample}")
-sampleDump=$(printf "${sample}" | xxd -p | tr -d '\n')
+sampleDump=$(printf "${sample}" | bin2hex | tr -d '\n')
 
 expected="${protoAck}${methodAck}${length}${sampleDump}"
 

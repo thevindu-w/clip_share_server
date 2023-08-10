@@ -2,16 +2,13 @@
 
 . init.sh
 
-# clear any images in clipboard
-echo "dummy" | xclip -in -sel clip
+proto=$(printf "\x02" | bin2hex)
+method=$(printf "\x05" | bin2hex)
 
-proto=$(printf "\x02" | xxd -p)
-method=$(printf "\x05" | xxd -p)
+responseDump=$(printf "${proto}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-responseDump=$(printf "${proto}${method}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
-
-protoAck=$(printf "\x01" | xxd -p)
-methodAck=$(printf "\x01" | xxd -p)
+protoAck=$(printf "\x01" | bin2hex)
+methodAck=$(printf "\x01" | bin2hex)
 
 expected_proto_method_ack="${protoAck}${methodAck}"
 len_expected_header="${#expected_proto_method_ack}"
@@ -30,7 +27,7 @@ fi
 
 len_expected_header="$((${len_expected_header}+16))"
 
-expected_png_header="$(printf '\x89PNG\r\n\x1a\n' | xxd -p)"
+expected_png_header="$(printf '\x89PNG\r\n\x1a\n' | bin2hex)"
 png_header="${responseDump:${len_expected_header}:${#expected_png_header}}"
 
 if [ "$png_header" != "$expected_png_header" ]; then

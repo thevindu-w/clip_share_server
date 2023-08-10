@@ -12,10 +12,19 @@ else
     alias client_tool='nc -w 1 127.0.0.1 4337'
 fi
 
+cur_dir="$(pwd)"
+if type "xxd" &> /dev/null && [ "$DETECTED_OS" = "Linux" ]; then
+    alias bin2hex="xxd -p -c 512 2>/dev/null"
+    alias hex2bin="xxd -p -r 2>/dev/null"
+else
+    alias bin2hex="python3 -u ${cur_dir}/utils/bin2hex.py 2>/dev/null"
+    alias hex2bin="python3 -u ${cur_dir}/utils/bin2hex.py -r 2>/dev/null"
+fi
+
+"../${program}" -s &> /dev/null
 rm -rf tmp
 cp -r config tmp
 cd tmp
-"../../${program}" -r > /dev/null
+"../../${program}" -r &> /dev/null & sleep 0.1
 
-printf "dummy" | xclip -in -sel clip -l 1 &> /dev/null
-xclip -out -sel clip &> /dev/null
+clear_clipboard

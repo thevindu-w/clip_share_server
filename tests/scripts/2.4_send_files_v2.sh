@@ -33,8 +33,8 @@ appendToChunks () {
     elif [ -f "${fname}" ]; then
         nameLength=$(printf "%016x" "${#fname}")
         fileSize=$(printf "%016x" $(stat -c '%s' "${fname}"))
-        content=$(cat "${fname}" | xxd -p | tr -d '\n')
-        chunks+="${nameLength}$(printf "${fname}" | xxd -p)${fileSize}${content}"
+        content=$(cat "${fname}" | bin2hex | tr -d '\n')
+        chunks+="${nameLength}$(printf "${fname}" | bin2hex)${fileSize}${content}"
     fi
 }
 
@@ -48,19 +48,19 @@ mv clipshare.conf copies/
 cd copies
 
 # restart the server in new directory
-"../../../$1" -r &> /dev/null
+"../../../$1" -r &> /dev/null &
 
 # remove the conf file
 rm -f clipshare.conf
 
-proto=$(printf "\x02" | xxd -p)
-method=$(printf "\x04" | xxd -p)
+proto=$(printf "\x02" | bin2hex)
+method=$(printf "\x04" | bin2hex)
 fileCount=$(printf "%016x" $(printf "${#files[@]}"))
 
-responseDump=$(printf "${proto}${method}${fileCount}${chunks}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
+responseDump=$(printf "${proto}${method}${fileCount}${chunks}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf "\x01" | xxd -p)
-methodAck=$(printf "\x01" | xxd -p)
+protoAck=$(printf "\x01" | bin2hex)
+methodAck=$(printf "\x01" | bin2hex)
 
 expected="${protoAck}${methodAck}"
 
@@ -70,6 +70,7 @@ if [ "${responseDump}" != "${expected}" ]; then
 fi
 
 cd ..
+rm -f original/server_err.log copies/server_err.log
 
 diffOutput=$(diff -rq original copies 2>&1 || echo failed)
 if [ ! -z "${diffOutput}" ]; then

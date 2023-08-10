@@ -8,7 +8,7 @@ RUN apt-get update
 RUN apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev
 
 # Install test dependencies
-RUN apt-get install --no-install-recommends -y openssl xclip python3.8-minimal xxd diffutils coreutils netcat
+RUN apt-get install --no-install-recommends -y openssl xclip python3.8-minimal diffutils coreutils netcat
 RUN apt-get install --no-install-recommends -y xvfb
 
 WORKDIR /usr/bin

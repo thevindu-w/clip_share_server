@@ -7,7 +7,6 @@ RUN pacman -S --needed --noconfirm glibc
 RUN pacman -S --needed --noconfirm gcc make libx11 libxmu libpng openssl
 
 # Install test dependencies
-RUN pacman -S --needed --noconfirm vim
 RUN pacman -S --needed --noconfirm coreutils diffutils python openbsd-netcat xclip
 RUN pacman -Sdd --needed --noconfirm pixman freetype2 graphite harfbuzz libfontenc xorg-xkbcomp xorg-setxkbmap xkeyboard-config libxfont2 libunwind libglvnd libxkbfile
 RUN pacman -Sdd --needed --noconfirm xorg-server-xvfb

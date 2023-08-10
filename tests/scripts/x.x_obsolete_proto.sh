@@ -2,11 +2,11 @@
 
 . init.sh
 
-proto=$(printf "\x00" | xxd -p)
+proto=$(printf "\x00" | bin2hex)
 
-responseDump=$(printf "${proto}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
+responseDump=$(printf "${proto}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf "\x02" | xxd -p)
+protoAck=$(printf "\x02" | bin2hex)
 
 expected="${protoAck}"
 

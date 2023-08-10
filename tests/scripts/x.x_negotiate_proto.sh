@@ -3,18 +3,18 @@
 . init.sh
 
 sample="Sample text for negotiate_proto"
-printf "${sample}" | xclip -in -sel clip
+copy_text "${sample}"
 
-proto=$(printf "\x77" | xxd -p)
+proto=$(printf "\x77" | bin2hex)
 protoAccept=$(printf '%02x' "$proto_max_version")
-method=$(printf "\x01" | xxd -p)
+method=$(printf "\x01" | bin2hex)
 
-responseDump=$(printf "${proto}${protoAccept}${method}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
+responseDump=$(printf "${proto}${protoAccept}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf "\x03\x02" | xxd -p)
-methodAck=$(printf "\x01" | xxd -p)
+protoAck=$(printf "\x03\x02" | bin2hex)
+methodAck=$(printf "\x01" | bin2hex)
 length=$(printf "%016x" "${#sample}")
-sampleDump=$(printf "${sample}" | xxd -p | tr -d '\n')
+sampleDump=$(printf "${sample}" | bin2hex | tr -d '\n')
 
 expected="${protoAck}${methodAck}${length}${sampleDump}"
 

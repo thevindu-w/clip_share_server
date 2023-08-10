@@ -33,8 +33,8 @@ appendToChunks () {
     elif [ -f "${fname}" ]; then
         nameLength=$(printf "%016x" "${#fname}")
         fileSize=$(printf "%016x" $(stat -c '%s' "${fname}"))
-        content=$(cat "${fname}" | xxd -p | tr -d '\n')
-        chunks+="${nameLength}$(printf "${fname}" | xxd -p)${fileSize}${content}"
+        content=$(cat "${fname}" | bin2hex | tr -d '\n')
+        chunks+="${nameLength}$(printf "${fname}" | bin2hex)${fileSize}${content}"
     fi
 }
 
@@ -44,22 +44,17 @@ done
 
 cd ..
 
-urls=""
-for f in original/*; do
-    absPath=$(realpath "${f}")
-    fPathUrl=$(python3 -c 'from urllib import parse;print(parse.quote(input()))' <<< "${absPath}")
-    urls+=$'\n'"file://${fPathUrl}"
-done
+shopt -s nullglob
+file_list=(original/*)
+copy_files "${file_list[@]}"
 
-echo -n "copy${urls}" | xclip -in -sel clip -t x-special/gnome-copied-files
+proto=$(printf "\x02" | bin2hex)
+method=$(printf "\x03" | bin2hex)
 
-proto=$(printf "\x02" | xxd -p)
-method=$(printf "\x03" | xxd -p)
+responseDump=$(printf "${proto}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-responseDump=$(printf "${proto}${method}" | xxd -r -p | client_tool | xxd -p | tr -d '\n')
-
-protoAck=$(printf "\x01" | xxd -p)
-methodAck=$(printf "\x01" | xxd -p)
+protoAck=$(printf "\x01" | bin2hex)
+methodAck=$(printf "\x01" | bin2hex)
 fileCount=$(printf "%016x" $(printf "${#files[@]}"))
 
 expectedHead="${protoAck}${methodAck}${fileCount}"
@@ -74,23 +69,23 @@ mkdir -p copies && cd copies
 
 body="${responseDump:${#expectedHead}}"
 for _ in $(seq "${#files[@]}"); do
-    nameLength=$((0x"${body::16}"))
+    nameLength="$((0x"${body::16}"))"
     if [ "$nameLength" -gt "1024" ]; then
         showStatus info "File name too long. Length=${nameLength}."
         exit 1
     fi
-    fileName=$(echo "${body:16:$(("$nameLength"*2))}" | xxd -r -p)
+    fileName="$(echo "${body:16:$(("$nameLength"*2))}" | hex2bin)"
     body="${body:$((16+"$nameLength"*2))}"
 
-    fileSize=$((0x"${body::16}"))
-    if [ "$nameLength" -gt "1048576" ]; then
+    fileSize="$((0x"${body::16}"))"
+    if [ "$fileSize" -gt "1048576" ]; then
         showStatus info "File is too large. size=${fileSize}."
         exit 1
     fi
     if [[ "$fileName" = */* ]]; then
         mkdir -p "${fileName%/*}";
-    fi;
-    echo "${body:16:$(("$fileSize"*2))}" | xxd -r -p > "${fileName}"
+    fi
+    echo "${body:16:$(("$fileSize"*2))}" | hex2bin > "$fileName"
     body="${body:$((16+"$fileSize"*2))}"
 done
 
