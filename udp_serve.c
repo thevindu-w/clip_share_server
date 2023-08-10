@@ -28,7 +28,11 @@
 #include "utils/utils.h"
 #include "servers.h"
 
-#ifndef MSG_WAITALL
+// MSG_WAITALL should not be used. Reset it to 0
+#ifdef _WIN32
+#ifdef MSG_WAITALL
+#undef MSG_WAITALL
+#endif
 #define MSG_WAITALL 0
 #endif
 
