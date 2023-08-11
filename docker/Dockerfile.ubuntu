@@ -8,10 +8,13 @@ RUN apt-get update
 RUN apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev
 
 # Install test dependencies
-RUN apt-get install --no-install-recommends -y openssl xclip python3.8-minimal diffutils coreutils netcat
-RUN apt-get install --no-install-recommends -y xvfb
-
+RUN apt-get install --no-install-recommends -y openssl xclip python3.8-minimal diffutils coreutils netcat-openbsd
+RUN mkdir -p /debs
+WORKDIR /debs
+RUN apt-get download xvfb libunwind8 libgl1 libpixman-1-0 libxfont2 libglvnd0 libglx0 libfontenc1 libfreetype6 xkb-data libxkbfile1 x11-xkb-utils
+RUN dpkg --force-depends -i *.deb 2>/dev/null
 WORKDIR /usr/bin
+RUN rm -rf /debs
 RUN ln -s python3.8 python3
 
 # Set environment variables for tests
