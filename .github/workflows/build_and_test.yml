@@ -51,3 +51,30 @@ jobs:
       run: docker build -t clipshare:arch -f docker/Dockerfile.arch .
     - name: Test
       run: docker run clipshare:arch
+
+  Build-and-Test-on-Windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: false
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-diffutils openbsd-netcat mingw-w64-x86_64-python
+    - name: Setup make
+      run: |
+        ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{github.head_ref}}
+        fetch-depth: 0
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+    - name: Build
+      run: |
+        make
+        make web
+    - name: Test
+      run: make test
