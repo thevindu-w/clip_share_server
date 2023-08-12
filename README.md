@@ -120,7 +120,7 @@ This is the server that runs in the background. Cilents can connect to the serve
   This server listens on the following ports (unless different ports are assigned from the configuration),
 
 * `4337` / `TCP` &nbsp; - &nbsp; For application traffic (not encrypted)
-* `4337` / `UDP` &nbsp; - &nbsp; For network scanning
+* `4337` / `UDP` &nbsp; - &nbsp; For network scanning. This is for UDP broadcasts
 * `4338` / `TCP` &nbsp; - &nbsp; For application traffic over TLS (encrypted)
 * `4339` / `TCP` &nbsp; - &nbsp; For the web server (if the web server is available)
 
@@ -145,7 +145,7 @@ The following files should be created and placed in the `cert_keys/` directory a
 ### Run the server
 
 - You can run the server from a terminal or the GUI (if the file manager supports executing programs by double-clicking on it)
-- When the server starts, it will not open any window. Instead, it will run in the background.
+- When the server starts, it will not open any visible window. Instead, it will run in the background.
 - On Linux, if you start the program from the terminal, it should return immediately (the server will continue to run in the background).
 - If something goes wrong, it will create a `server_err.log` filefile. That file will contain what went wrong.
 
@@ -175,6 +175,7 @@ ca_cert=cert_keys/ca.crt
 allowed_clients=allowed_clients.txt
 working_dir=./path/to/work_dir
 bind_address=0.0.0.0
+restart=true
 ```
 
 Note that all the lines in the configuration file are optional. You may omit some lines if they need to get their default values.
@@ -195,6 +196,7 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `allowed_clients` | The text file containing a list of allowed clients (Common Name of client certificate), one name per each line. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the allowed-clients file | \<Unspecified\> |
 | `working_dir` | The working directory where the application should run. All the files, that are sent from a client, will be saved in this directory. It will follow symlinks if this is a path to a symlink. The user running this application should have write access to the directory | Absolute or relative path to an existing directory | . (Current directory) |
 | `bind_address` | The address of the interface to which the application should bind when listening for connections. It will listen on all interfaces if this is set to `0.0.0.0` | IPv4 address of an interface in a.b.c.d format or `0.0.0.0` | `0.0.0.0` |
+| `restart` | Whether the application should start or restart by default. The values `true` or `1` will make the server restart by default, while `false` or `0` will make it just start without stopping any running instances of the server. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
 
 <br>
 

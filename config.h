@@ -38,6 +38,7 @@ typedef struct _config
     list2 *allowed_clients;
     char *working_dir;
     uint32_t bind_addr;
+    char restart;
 } config;
 
 /*

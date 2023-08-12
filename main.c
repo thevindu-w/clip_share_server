@@ -52,9 +52,9 @@ static void kill_other_processes(const char *);
 static void print_usage(const char *prog_name)
 {
 #ifdef NO_WEB
-    fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-p app_port]\n", prog_name);
+    fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-R] [-p app_port]\n", prog_name);
 #else
-    fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-p app_port] [-w web_port]\n", prog_name);
+    fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-R] [-p app_port] [-w web_port]\n", prog_name);
 #endif
 }
 
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 
     // Parse args
     int stop = 0;
-    int restart = 0;
+    int restart = configuration.restart >= 0 ? configuration.restart : 1;
     unsigned short app_port = configuration.app_port > 0 ? configuration.app_port : APP_PORT;
     unsigned short app_port_secure = configuration.app_port_secure > 0 ? configuration.app_port_secure : APP_PORT_SECURE;
 #ifndef NO_WEB
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
 
     // Parse command line arguments
     int opt;
-    while ((opt = getopt(argc, argv, "hsrp:w:")) != -1)
+    while ((opt = getopt(argc, argv, "hsrRp:w:")) != -1)
     {
         switch (opt)
         {
@@ -246,6 +246,11 @@ int main(int argc, char **argv)
         case 'r': // restart
         {
             restart = 1;
+            break;
+        }
+        case 'R': // no-restart
+        {
+            restart = 0;
             break;
         }
         case 'p': // app port

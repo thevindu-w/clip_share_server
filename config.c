@@ -268,6 +268,14 @@ static void parse_line(char *line, config *cfg)
         snprintf_check(msg, 48, "Invalid bind address %s", value);
         error_exit(msg);
     }
+    else if (!strcmp("restart", key))
+    {
+        char is_true = is_true_str(value);
+        if (is_true >= 0)
+        {
+            cfg->restart = is_true;
+        }
+    }
 #ifdef DEBUG_MODE
     else
     {
@@ -294,7 +302,7 @@ config parse_conf(const char *file_name)
     cfg.server_cert = NULL;
     cfg.ca_cert = NULL;
     cfg.allowed_clients = NULL;
-
+    cfg.restart = -1;
     cfg.working_dir = NULL;
     if (ipv4_aton(NULL, &(cfg.bind_addr)) != EXIT_SUCCESS)
     {
