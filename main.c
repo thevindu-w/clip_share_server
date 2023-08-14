@@ -1,5 +1,5 @@
 /*
- *  main.c - server of clip_share to share data copied to clipboard
+ *  main.c - main entrypoint of clip_share
  *  Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,6 +34,8 @@
 #include <ctype.h>
 #elif _WIN32
 #include <tlhelp32.h>
+#include <shellapi.h>
+#include "winres/resource.h"
 #include "win_getopt/getopt.h"
 #endif
 
@@ -290,10 +292,25 @@ int main(int argc, char **argv)
         }
     }
 
+#ifdef _WIN32
+    HINSTANCE instance = GetModuleHandle(NULL);
+    GUID guid = {.Data1 = 129256,
+                 .Data2 = 19238,
+                 .Data3 = 31293};
+#endif
+
     /* stop other instances of this process if any.
     Stop this process if stop flag is set */
     if (stop || restart)
     {
+#ifdef _WIN32
+        NOTIFYICONDATAA notifyIconData = {
+            .cbSize = sizeof(NOTIFYICONDATAA),
+            .hWnd = NULL,
+            .uFlags = NIF_GUID,
+            .guidItem = guid};
+        Shell_NotifyIconA(NIM_DELETE, &notifyIconData);
+#endif
         kill_other_processes(prog_name);
         const char *msg = stop ? "Server Stopped" : "Server Restarting...";
         puts(msg);
@@ -390,10 +407,11 @@ int main(int argc, char **argv)
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
     {
-        error("failed WSAStartup");
+        error("Failed WSAStartup");
         return EXIT_FAILURE;
     }
-    HANDLE insecureThread = NULL, secureThread = NULL;
+    HANDLE insecureThread = NULL;
+    HANDLE secureThread = NULL;
 #ifndef NO_WEB
     HANDLE webThread = NULL;
 #endif
@@ -432,6 +450,19 @@ int main(int argc, char **argv)
     }
 #endif
 
+    char CLASSNAME[] = "clip";
+    WNDCLASS wc = {.lpfnWndProc = DefWindowProc, .hInstance = instance, .lpszClassName = CLASSNAME};
+    RegisterClass(&wc);
+    NOTIFYICONDATAA notifyIconData = {
+        .cbSize = sizeof(NOTIFYICONDATAA),
+        .hWnd = CreateWindowEx(0, CLASSNAME, "clipshare", 0, 0, 0, 0, 0, NULL, NULL, instance, NULL),
+        .uFlags = NIF_ICON | NIF_TIP | NIF_GUID,
+        .hIcon = LoadIcon(instance, MAKEINTRESOURCE(APP_ICON)),
+        .guidItem = guid};
+    strcpy(notifyIconData.szTip, "ClipShare");
+    Shell_NotifyIconA(NIM_DELETE, &notifyIconData);
+    Shell_NotifyIconA(NIM_ADD, &notifyIconData);
+
     HANDLE udpThread = CreateThread(NULL, 0, udpThreadFn, NULL, 0, NULL);
     if (udpThread == NULL)
     {
@@ -448,6 +479,9 @@ int main(int argc, char **argv)
     if (webThread != NULL)
         WaitForSingleObject(webThread, INFINITE);
 #endif
+    Shell_NotifyIconA(NIM_DELETE, &notifyIconData);
+    if (notifyIconData.hWnd)
+        DestroyWindow(notifyIconData.hWnd);
 #endif
     clear_config(&configuration);
     return EXIT_SUCCESS;

@@ -1,4 +1,6 @@
-id ICON "clip_icon.ico"
+#include "resource.h"
+
+APP_ICON ICON "clip_icon.ico"
 1 VERSIONINFO
 FILEVERSION     2,0,0,0
 PRODUCTVERSION  2,0,0,0

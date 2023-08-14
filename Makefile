@@ -83,8 +83,8 @@ $(DEBUG_OBJS_S): %_debug.o: %.S
 $(DEBUG_OBJS):
 	gcc $(CFLAGS) $(CFLAGS_DEBUG) $^ -o $@
 
-winres/app.res: winres/app.rc
-	windres $^ -O coff -o $@
+winres/app.res: winres/app.rc winres/resource.h
+	windres $< -O coff -o $@
 
 .PHONY: clean debug web test install
 
