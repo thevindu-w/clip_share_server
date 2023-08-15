@@ -176,6 +176,9 @@ allowed_clients=allowed_clients.txt
 working_dir=./path/to/work_dir
 bind_address=0.0.0.0
 restart=true
+
+# Windows only
+tray_icon=true
 ```
 
 Note that all the lines in the configuration file are optional. You may omit some lines if they need to get their default values.
@@ -197,6 +200,7 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `working_dir` | The working directory where the application should run. All the files, that are sent from a client, will be saved in this directory. It will follow symlinks if this is a path to a symlink. The user running this application should have write access to the directory | Absolute or relative path to an existing directory | . (Current directory) |
 | `bind_address` | The address of the interface to which the application should bind when listening for connections. It will listen on all interfaces if this is set to `0.0.0.0` | IPv4 address of an interface in a.b.c.d format or `0.0.0.0` | `0.0.0.0` |
 | `restart` | Whether the application should start or restart by default. The values `true` or `1` will make the server restart by default, while `false` or `0` will make it just start without stopping any running instances of the server. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
+| `tray_icon` | Whether the application should display a system tray icon. This option is available only on Windows. The values `true` or `1` will display a tray icon, while `false` or `0` will prevent displaying a tray icon. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
 
 <br>
 

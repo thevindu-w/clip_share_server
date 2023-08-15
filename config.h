@@ -39,6 +39,9 @@ typedef struct _config
     char *working_dir;
     uint32_t bind_addr;
     char restart;
+#ifdef _WIN32
+    char tray_icon;
+#endif
 } config;
 
 /*

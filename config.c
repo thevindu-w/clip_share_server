@@ -165,11 +165,16 @@ static void parse_line(char *line, config *cfg)
     trim(key);
     trim(value);
 
+    const size_t key_len = strnlen(key, LINE_MAX_LEN);
+    if (key_len <= 0 || key_len >= LINE_MAX_LEN)
+        return;
+
     const size_t value_len = strnlen(value, LINE_MAX_LEN);
     if (value_len <= 0 || value_len >= LINE_MAX_LEN)
-    {
         return;
-    }
+
+    if (key[0] == '#')
+        return;
 
 #ifdef DEBUG_MODE
     printf("Key=%s : Value=%s\n", key, value);
@@ -276,6 +281,16 @@ static void parse_line(char *line, config *cfg)
             cfg->restart = is_true;
         }
     }
+#ifdef _WIN32
+    else if (!strcmp("tray_icon", key))
+    {
+        char is_true = is_true_str(value);
+        if (is_true >= 0)
+        {
+            cfg->tray_icon = is_true;
+        }
+    }
+#endif
 #ifdef DEBUG_MODE
     else
     {
@@ -302,8 +317,11 @@ config parse_conf(const char *file_name)
     cfg.server_cert = NULL;
     cfg.ca_cert = NULL;
     cfg.allowed_clients = NULL;
-    cfg.restart = -1;
     cfg.working_dir = NULL;
+    cfg.restart = -1;
+#ifdef _WIN32
+    cfg.tray_icon = -1;
+#endif
     if (ipv4_aton(NULL, &(cfg.bind_addr)) != EXIT_SUCCESS)
     {
         error_exit("Error initializing bind address");

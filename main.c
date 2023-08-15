@@ -222,6 +222,10 @@ int main(int argc, char **argv)
     // Parse args
     int stop = 0;
     int restart = configuration.restart >= 0 ? configuration.restart : 1;
+#ifdef _WIN32
+    if (configuration.tray_icon < 0)
+        configuration.tray_icon = 1;
+#endif
     unsigned short app_port = configuration.app_port > 0 ? configuration.app_port : APP_PORT;
     unsigned short app_port_secure = configuration.app_port_secure > 0 ? configuration.app_port_secure : APP_PORT_SECURE;
 #ifndef NO_WEB
@@ -450,19 +454,22 @@ int main(int argc, char **argv)
     }
 #endif
 
-    char CLASSNAME[] = "clip";
-    WNDCLASS wc = {.lpfnWndProc = DefWindowProc, .hInstance = instance, .lpszClassName = CLASSNAME};
-    RegisterClass(&wc);
-    NOTIFYICONDATAA notifyIconData = {
-        .cbSize = sizeof(NOTIFYICONDATAA),
-        .hWnd = CreateWindowEx(0, CLASSNAME, "clipshare", 0, 0, 0, 0, 0, NULL, NULL, instance, NULL),
-        .uFlags = NIF_ICON | NIF_TIP | NIF_GUID,
-        .hIcon = LoadIcon(instance, MAKEINTRESOURCE(APP_ICON)),
-        .guidItem = guid};
-    strcpy(notifyIconData.szTip, "ClipShare");
-    Shell_NotifyIconA(NIM_DELETE, &notifyIconData);
-    Shell_NotifyIconA(NIM_ADD, &notifyIconData);
-
+    NOTIFYICONDATAA notifyIconData;
+    if (configuration.tray_icon)
+    {
+        char CLASSNAME[] = "clip";
+        WNDCLASS wc = {.lpfnWndProc = DefWindowProc, .hInstance = instance, .lpszClassName = CLASSNAME};
+        RegisterClass(&wc);
+        notifyIconData = (NOTIFYICONDATAA){
+            .cbSize = sizeof(NOTIFYICONDATAA),
+            .hWnd = CreateWindowEx(0, CLASSNAME, "clipshare", 0, 0, 0, 0, 0, NULL, NULL, instance, NULL),
+            .uFlags = NIF_ICON | NIF_TIP | NIF_GUID,
+            .hIcon = LoadIcon(instance, MAKEINTRESOURCE(APP_ICON)),
+            .guidItem = guid};
+        strcpy(notifyIconData.szTip, "ClipShare");
+        Shell_NotifyIconA(NIM_DELETE, &notifyIconData);
+        Shell_NotifyIconA(NIM_ADD, &notifyIconData);
+    }
     HANDLE udpThread = CreateThread(NULL, 0, udpThreadFn, NULL, 0, NULL);
     if (udpThread == NULL)
     {
@@ -479,9 +486,13 @@ int main(int argc, char **argv)
     if (webThread != NULL)
         WaitForSingleObject(webThread, INFINITE);
 #endif
-    Shell_NotifyIconA(NIM_DELETE, &notifyIconData);
-    if (notifyIconData.hWnd)
-        DestroyWindow(notifyIconData.hWnd);
+    if (configuration.tray_icon)
+    {
+        Shell_NotifyIconA(NIM_DELETE, &notifyIconData);
+        if (notifyIconData.hWnd)
+            DestroyWindow(notifyIconData.hWnd);
+    }
+    CloseHandle(instance);
 #endif
     clear_config(&configuration);
     return EXIT_SUCCESS;
