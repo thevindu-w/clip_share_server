@@ -28,7 +28,7 @@ else
 fi
 
 for dependency in "${dependencies[@]}"; do
-    if ! type "$dependency" &> /dev/null; then
+    if ! type "$dependency" &>/dev/null; then
         echo '"'"$dependency"'"' not found
         exit 1
     fi
@@ -36,40 +36,40 @@ done
 
 shopt -s expand_aliases
 cur_dir="$(pwd)"
-if type "xxd" &> /dev/null && [ "$DETECTED_OS" = "Linux" ]; then
+if type "xxd" &>/dev/null && [ "$DETECTED_OS" = "Linux" ]; then
     alias hex2bin="xxd -p -r 2>/dev/null"
 else
     alias hex2bin="python3 -u ${cur_dir}/utils/bin2hex.py -r 2>/dev/null"
 fi
 
-setColor () {
-    getColorCode () {
+setColor() {
+    getColorCode() {
         if [ "$1" = "red" ]; then
-            echo 31;
+            echo 31
         elif [ "$1" = "green" ]; then
-            echo 32;
+            echo 32
         elif [ "$1" = "yellow" ]; then
-            echo 33;
+            echo 33
         elif [ "$1" = "blue" ]; then
-            echo 34;
+            echo 34
         else
-            echo 0;
+            echo 0
         fi
     }
-    colorSet () {
+    colorSet() {
         color_code="$(getColorCode $1)"
         if [ "$2" = "bold" ]; then
-            printf "\033[1;${color_code}m";
+            printf "\033[1;${color_code}m"
         else
-            printf "\033[${color_code}m";
+            printf "\033[${color_code}m"
         fi
     }
     case "$TERM" in
-        xterm-color|*-256color) colorSet "$@";
+        xterm-color | *-256color) colorSet "$@" ;;
     esac
 }
 
-showStatus () {
+showStatus() {
     name=$(basename -- "$1" | sed 's/\(.*\)\..*/\1/g')
     if [ "$2" = "pass" ]; then
         setColor "green"
@@ -94,7 +94,7 @@ showStatus () {
     fi
 }
 
-copy_text () {
+copy_text() {
     if [ "$DETECTED_OS" = "Linux" ]; then
         echo -n "$1" | xclip -in -sel clip &>/dev/null
     elif [ "$DETECTED_OS" = "Windows" ]; then
@@ -105,7 +105,7 @@ copy_text () {
     fi
 }
 
-get_copied_text () {
+get_copied_text() {
     if [ "$DETECTED_OS" = "Linux" ]; then
         xclip -out -sel clip
     elif [ "$DETECTED_OS" = "Windows" ]; then
@@ -116,13 +116,13 @@ get_copied_text () {
     fi
 }
 
-copy_files () {
+copy_files() {
     local files=("$@")
     if [ "$DETECTED_OS" = "Linux" ]; then
         local urls=""
         for f in "${files[@]}"; do
             local absPath="$(realpath "${f}")"
-            local fPathUrl="$(python3 -c 'from urllib import parse;print(parse.quote(input()))' <<< "${absPath}")"
+            local fPathUrl="$(python3 -c 'from urllib import parse;print(parse.quote(input()))' <<<"${absPath}")"
             urls+=$'\n'"file://${fPathUrl}"
         done
         echo -n "copy${urls}" | xclip -in -sel clip -t x-special/gnome-copied-files &>/dev/null
@@ -136,11 +136,11 @@ copy_files () {
     fi
 }
 
-copy_image () {
+copy_image() {
     if [ "$DETECTED_OS" = "Linux" ]; then
         hex2bin <<<"$1" | xclip -in -sel clip -t image/png
     elif [ "$DETECTED_OS" = "Windows" ]; then
-        hex2bin <<<"$1" > image.png
+        hex2bin <<<"$1" >image.png
         powershell -ExecutionPolicy Bypass ../utils/copy_image.ps1
     else
         echo "Copy image is not available for OS: $DETECTED_OS"
@@ -148,10 +148,10 @@ copy_image () {
     fi
 }
 
-clear_clipboard () {
+clear_clipboard() {
     if [ "$DETECTED_OS" = "Linux" ]; then
-        xclip -in -sel clip -l 1 <<<"dummy" &> /dev/null
-        xclip -out -sel clip &> /dev/null
+        xclip -in -sel clip -l 1 <<<"dummy" &>/dev/null
+        xclip -out -sel clip &>/dev/null
     elif [ "$DETECTED_OS" = "Windows" ]; then
         powershell -c 'Set-Clipboard -Value $null'
     else
@@ -183,10 +183,10 @@ for script in scripts/*.sh; do
         showStatus "${script}" warn "$attemt_msg"
     done
     if [ "$passed" = "1" ]; then
-        passCnt=$(("$passCnt"+1))
+        passCnt=$(("$passCnt" + 1))
     else
         exitCode=1
-        failCnt=$(("$failCnt"+1))
+        failCnt=$(("$failCnt" + 1))
         showStatus "${script}" fail
     fi
     "../${program}" -s &>/dev/null
@@ -195,7 +195,7 @@ done
 
 clear_clipboard
 
-totalTests=$(("$passCnt"+"$failCnt"))
+totalTests=$(("$passCnt" + "$failCnt"))
 test_s="tests"
 if [ "$totalTests" = "1" ]; then
     test_s="test"

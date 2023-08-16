@@ -16,19 +16,16 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "./list_utils.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "list_utils.h"
-
-list2 *init_list(size_t len)
-{
+list2 *init_list(size_t len) {
     list2 *lst = (list2 *)malloc(sizeof(list2));
-    if (!lst)
-        return NULL;
+    if (!lst) return NULL;
     void **arr = (void **)malloc(len * sizeof(void *));
-    if (!arr)
-    {
+    if (!arr) {
         free(lst);
         return NULL;
     }
@@ -38,21 +35,16 @@ list2 *init_list(size_t len)
     return lst;
 }
 
-void free_list(list2 *lst)
-{
-    for (size_t i = 0; i < lst->len; i++)
-    {
-        if (lst->array[i])
-            free(lst->array[i]);
+void free_list(list2 *lst) {
+    for (size_t i = 0; i < lst->len; i++) {
+        if (lst->array[i]) free(lst->array[i]);
     }
     free(lst->array);
     free(lst);
 }
 
-void append(list2 *lst, void *elem)
-{
-    if (lst->len >= lst->capacity)
-    {
+void append(list2 *lst, void *elem) {
+    if (lst->len >= lst->capacity) {
         lst->capacity *= 2;
         lst->array = (void **)realloc(lst->array, sizeof(void *) * lst->capacity);
     }

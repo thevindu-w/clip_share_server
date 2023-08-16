@@ -16,18 +16,18 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "./config.h"
+#include "./globals.h"
 #include "utils/net_utils.h"
 #include "utils/utils.h"
-#include "config.h"
-#include "globals.h"
 
 #ifndef NO_WEB
 #include <stdio.h>
 #include <string.h>
 #ifdef __linux__
-#include <unistd.h>
-#include <sys/wait.h>
 #include <arpa/inet.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #elif _WIN32
 #include <io.h>
 #include <windows.h>
@@ -41,19 +41,13 @@ extern int blob_size_page;
 static int say(const char *, socket_t *);
 static void receiver_web(socket_t *);
 
-static int say(const char *msg, socket_t *sock)
-{
-    return write_sock(sock, msg, strlen(msg));
-}
+static int say(const char *msg, socket_t *sock) { return write_sock(sock, msg, strlen(msg)); }
 
-static void receiver_web(socket_t *sock)
-{
+static void receiver_web(socket_t *sock) {
     char method[8];
     int ind = 0;
-    do
-    {
-        if (read_sock(sock, method + ind, 1) != EXIT_SUCCESS)
-            return;
+    do {
+        if (read_sock(sock, method + ind, 1) != EXIT_SUCCESS) return;
         ind++;
     } while (method[ind - 1] != ' ');
     method[ind - 1] = 0;
@@ -63,10 +57,8 @@ static void receiver_web(socket_t *sock)
 
     char path[2049];
     ind = 0;
-    do
-    {
-        if (read_sock(sock, path + ind, 1) != EXIT_SUCCESS)
-            return;
+    do {
+        if (read_sock(sock, path + ind, 1) != EXIT_SUCCESS) return;
         ind++;
     } while (path[ind - 1] != ' ');
     path[ind - 1] = 0;
@@ -74,75 +66,56 @@ static void receiver_web(socket_t *sock)
     puts(path);
 #endif
 
-    if (!strcmp(method, "GET"))
-    {
+    if (!strcmp(method, "GET")) {
         char buf[128];
-        while (read_sock_no_wait(sock, buf, 128) > 0)
-            ;
-        if (!strcmp(path, "/"))
-        {
-            if (say("HTTP/1.0 200 OK\r\n", sock) != EXIT_SUCCESS)
-                return;
-            char tmp[96];
-            if (snprintf_check(tmp, 96, "Content-Type: text/html; charset=utf-8\r\nContent-Length: %i\r\nConnection: close\r\n\r\n", blob_size_page)) // Content-Disposition: attachment; filename="filename.ext" // put this, filename parameter is optional
-                return;
-            if (say(tmp, sock) != EXIT_SUCCESS)
-                return;
-            if (write_sock(sock, blob_page, blob_size_page) != EXIT_SUCCESS)
-                return;
+        while (read_sock_no_wait(sock, buf, 128) > 0) {
         }
-        else if (!strcmp(path, "/clip"))
-        {
+        if (!strcmp(path, "/")) {
+            if (say("HTTP/1.0 200 OK\r\n", sock) != EXIT_SUCCESS) return;
+            char tmp[96];
+            if (snprintf_check(
+                    tmp, 96,
+                    "Content-Type: text/html; charset=utf-8\r\nContent-Length: %i\r\nConnection: close\r\n\r\n",
+                    blob_size_page))  // Content-Disposition: attachment; filename="filename.ext" // put this, filename
+                                      // parameter is optional
+                return;
+            if (say(tmp, sock) != EXIT_SUCCESS) return;
+            if (write_sock(sock, blob_page, blob_size_page) != EXIT_SUCCESS) return;
+        } else if (!strcmp(path, "/clip")) {
             size_t len;
             char *clip_buf;
-            if (get_clipboard_text(&clip_buf, &len) != EXIT_SUCCESS || len <= 0) // do not change the order
-            {
+            if (get_clipboard_text(&clip_buf, &len) != EXIT_SUCCESS || len <= 0) {  // do not change the order
                 say("HTTP/1.0 500 Internal Server Error\r\n\r\n", sock);
                 return;
             }
-            if (say("HTTP/1.0 200 OK\r\n", sock) != EXIT_SUCCESS)
-                return;
-            if (say("Content-Type: text/plain; charset=utf-8\r\n", sock) != EXIT_SUCCESS)
-                return;
+            if (say("HTTP/1.0 200 OK\r\n", sock) != EXIT_SUCCESS) return;
+            if (say("Content-Type: text/plain; charset=utf-8\r\n", sock) != EXIT_SUCCESS) return;
             char tmp[64];
-            if (snprintf_check(tmp, 64, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len))
-                return;
-            if (say(tmp, sock) != EXIT_SUCCESS)
-                return;
-            if (write_sock(sock, clip_buf, len) != EXIT_SUCCESS)
-                return;
+            if (snprintf_check(tmp, 64, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len)) return;
+            if (say(tmp, sock) != EXIT_SUCCESS) return;
+            if (write_sock(sock, clip_buf, len) != EXIT_SUCCESS) return;
             free(clip_buf);
-        }
-        else if (!strcmp(path, "/img"))
-        {
+        } else if (!strcmp(path, "/img")) {
             size_t len = 0;
             char *clip_buf;
-            if (get_image(&clip_buf, &len) == EXIT_FAILURE || len <= 0)
-            {
+            if (get_image(&clip_buf, &len) == EXIT_FAILURE || len <= 0) {
                 say("HTTP/1.0 404 Not Found\r\n\r\n", sock);
                 return;
             }
-            if (say("HTTP/1.0 200 OK\r\n", sock) != EXIT_SUCCESS)
-                return;
-            if (say("Content-Type: image/png\r\nContent-Disposition: attachment; filename=\"clip.png\"\r\n", sock) != EXIT_SUCCESS)
+            if (say("HTTP/1.0 200 OK\r\n", sock) != EXIT_SUCCESS) return;
+            if (say("Content-Type: image/png\r\nContent-Disposition: attachment; filename=\"clip.png\"\r\n", sock) !=
+                EXIT_SUCCESS)
                 return;
             char tmp[64];
-            if (snprintf_check(tmp, 64, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len))
-                return;
-            if (say(tmp, sock) != EXIT_SUCCESS)
-                return;
-            if (write_sock(sock, clip_buf, len) != EXIT_SUCCESS)
-                return;
+            if (snprintf_check(tmp, 64, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len)) return;
+            if (say(tmp, sock) != EXIT_SUCCESS) return;
+            if (write_sock(sock, clip_buf, len) != EXIT_SUCCESS) return;
             free(clip_buf);
-        }
-        else
-        {
+        } else {
             say("HTTP/1.0 404 Not Found\r\n\r\n", sock);
             return;
         }
-    }
-    else if (!strcmp(method, "POST"))
-    {
+    } else if (!strcmp(method, "POST")) {
         unsigned int len = 2048;
         char *headers = (char *)malloc(len);
         *headers = 0;
@@ -151,46 +124,35 @@ static void receiver_web(socket_t *sock)
         char buf[256];
         char *ptr = headers;
         char *check = ptr;
-        while (1)
-        {
+        while (1) {
             r = read_sock_no_wait(sock, buf, 256);
-            if (r > 0)
-            {
+            if (r > 0) {
                 memcpy(ptr, buf, r);
                 ptr += r;
                 *ptr = 0;
-                if (ptr - headers >= len - 256)
-                    break;
+                if (ptr - headers >= len - 256) break;
                 cnt = 0;
-            }
-            else if (cnt == 0)
-            {
-                if (strstr(check, "\r\n\r\n"))
-                    break;
+            } else if (cnt == 0) {
+                if (strstr(check, "\r\n\r\n")) break;
                 check = ptr - 3;
                 check = check > headers ? check : headers;
-            }
-            else if (cnt++ > 50)
-            {
+            } else if (cnt++ > 50) {
                 break;
             }
         }
         unsigned long data_len;
         const char *cont_len_header = strstr(headers, "Content-Length: ");
-        if (cont_len_header == NULL)
-        {
+        if (cont_len_header == NULL) {
             free(headers);
             return;
         }
         data_len = strtoul(cont_len_header + 16, NULL, 10);
-        if (data_len <= 0 || 1048576 < data_len)
-        {
+        if (data_len <= 0 || 1048576 < data_len) {
             free(headers);
             return;
         }
         char *data = strstr(headers, "\r\n\r\n");
-        if (data == NULL)
-        {
+        if (data == NULL) {
             free(headers);
             return;
         }
@@ -201,24 +163,19 @@ static void receiver_web(socket_t *sock)
         data = headers + header_len;
         cnt = 0;
         char *data_end_ptr = data + strnlen(data, data_len + 1);
-        while (data_end_ptr - data < (long)data_len)
-        {
-            if ((r = read_sock_no_wait(sock, buf, 256)) > 0)
-            {
+        while (data_end_ptr - data < (long)data_len) {
+            if ((r = read_sock_no_wait(sock, buf, 256)) > 0) {
                 memcpy(data_end_ptr, buf, r);
                 data_end_ptr += r;
                 *data_end_ptr = 0;
                 cnt = 0;
-            }
-            else if (cnt++ > 50)
-            {
+            } else if (cnt++ > 50) {
                 free(headers);
                 return;
             }
         }
 
-        if (say("HTTP/1.0 204 No Content\r\n\r\n", sock) != EXIT_SUCCESS)
-        {
+        if (say("HTTP/1.0 204 No Content\r\n\r\n", sock) != EXIT_SUCCESS) {
             free(headers);
             return;
         }
@@ -229,8 +186,7 @@ static void receiver_web(socket_t *sock)
 }
 
 #ifdef _WIN32
-static DWORD WINAPI webServerThreadFn(void *arg)
-{
+static DWORD WINAPI webServerThreadFn(void *arg) {
     socket_t socket;
     memcpy(&socket, arg, sizeof(socket_t));
     free(arg);
@@ -240,10 +196,10 @@ static DWORD WINAPI webServerThreadFn(void *arg)
 }
 #endif
 
-int web_server()
-{
-    if (configuration.allowed_clients == NULL || configuration.allowed_clients->len <= 0 || configuration.web_port <= 0 || configuration.priv_key == NULL || configuration.server_cert == NULL || configuration.ca_cert == NULL)
-    {
+int web_server() {
+    if (configuration.allowed_clients == NULL || configuration.allowed_clients->len <= 0 ||
+        configuration.web_port <= 0 || configuration.priv_key == NULL || configuration.server_cert == NULL ||
+        configuration.ca_cert == NULL) {
 #ifdef DEBUG_MODE
         puts("Invalid config for web server");
 #endif
@@ -253,32 +209,26 @@ int web_server()
     signal(SIGCHLD, SIG_IGN);
 #endif
 
-    listener_t listener = open_listener_socket(SSL_SOCK, configuration.priv_key, configuration.server_cert, configuration.ca_cert);
-    if (bind_port(listener, configuration.web_port) != EXIT_SUCCESS)
-    {
+    listener_t listener =
+        open_listener_socket(SSL_SOCK, configuration.priv_key, configuration.server_cert, configuration.ca_cert);
+    if (bind_port(listener, configuration.web_port) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
-    if (listen(listener.socket, 10) == -1)
-    {
+    if (listen(listener.socket, 10) == -1) {
         error("Can\'t listen");
         return EXIT_FAILURE;
     }
-    while (1)
-    {
+    while (1) {
         socket_t connect_sock = get_connection(listener, configuration.allowed_clients);
-        if (connect_sock.type == NULL_SOCK)
-        {
+        if (connect_sock.type == NULL_SOCK) {
             close_socket(&connect_sock);
             continue;
         }
 #ifdef __linux__
         pid_t p1 = fork();
-        if (p1)
-        {
+        if (p1) {
             close_socket(&connect_sock);
-        }
-        else
-        {
+        } else {
             close(listener.socket);
             receiver_web(&connect_sock);
             close_socket(&connect_sock);
@@ -289,8 +239,7 @@ int web_server()
         memcpy(connect_ptr, &connect_sock, sizeof(socket_t));
         HANDLE serveThread = CreateThread(NULL, 0, webServerThreadFn, (LPDWORD)connect_ptr, 0, NULL);
 #ifdef DEBUG_MODE
-        if (serveThread == NULL)
-        {
+        if (serveThread == NULL) {
             error("Thread creation failed");
             return EXIT_FAILURE;
         }

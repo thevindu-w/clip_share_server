@@ -16,9 +16,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#ifndef UTILS_WIN_IMAGE_H_
+#define UTILS_WIN_IMAGE_H_
 #ifdef _WIN32
-#ifndef _WINSS_
-#define _WINSS_
 
 #include <stdlib.h>
 
@@ -26,4 +26,4 @@ extern void screenCapture(char **, size_t *);
 extern void getCopiedImage(char **, size_t *);
 
 #endif
-#endif
+#endif  // UTILS_WIN_IMAGE_H_

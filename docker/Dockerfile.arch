@@ -8,8 +8,7 @@ RUN pacman -S --needed --noconfirm gcc make libx11 libxmu libpng openssl
 
 # Install test dependencies
 RUN pacman -S --needed --noconfirm coreutils diffutils python openbsd-netcat xclip
-RUN pacman -Sdd --needed --noconfirm pixman freetype2 graphite harfbuzz libfontenc xorg-xkbcomp xorg-setxkbmap xkeyboard-config libxfont2 libunwind libglvnd libxkbfile
-RUN pacman -Sdd --needed --noconfirm xorg-server-xvfb
+RUN pacman -Sdd --needed --noconfirm pixman freetype2 graphite harfbuzz libfontenc xorg-xkbcomp xorg-setxkbmap xkeyboard-config libxfont2 libunwind libglvnd libxkbfile xorg-server-xvfb
 
 # Set environment variables for tests
 ENV TERM=xterm-256color
@@ -21,11 +20,9 @@ WORKDIR /src
 COPY . .
 
 # Build
-RUN make clean
-RUN make
-RUN make web
+RUN make clean && make && make web
 
 # Prepare the test environment initialization script
 RUN chmod +x docker/run_docker.sh
 
-CMD docker/run_docker.sh
+CMD ["docker/run_docker.sh"]

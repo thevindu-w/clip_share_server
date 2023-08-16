@@ -6,7 +6,7 @@ fileName="file 1.txt"
 
 mkdir -p original && cd original
 
-echo "abc"$'\n'"def"$'\n'"file content" > "${fileName}"
+echo "abc"$'\n'"def"$'\n'"file content" >"${fileName}"
 
 nameLength=$(printf "%016x" "${#fileName}")
 fileSize=$(printf "%016x" $(stat -c '%s' "${fileName}"))
@@ -19,7 +19,7 @@ mv clipshare.conf copy/
 cd copy
 
 # restart the server in new directory
-"../../../$1" -r &> /dev/null &
+"../../../$1" -r &>/dev/null &
 
 # remove the conf file
 rm -f clipshare.conf

@@ -16,8 +16,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _SERVER_
-#define _SERVER_
+#ifndef PROTO_SERVER_H_
+#define PROTO_SERVER_H_
 
 #include "../utils/net_utils.h"
 
@@ -28,4 +28,4 @@
  */
 extern void server(socket_t *socket);
 
-#endif
+#endif  // PROTO_SERVER_H_

@@ -1,6 +1,4 @@
 /*
- *
- *
  *  xcdef.h - definitions for use throughout xclip
  *  Copyright (C) 2001 Kim Saunders
  *  Copyright (C) 2007-2008 Peter Åstrand
@@ -19,6 +17,9 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifndef XCLIP_XCDEF_H_
+#define XCLIP_XCDEF_H_
+
 /* output level constants */
 #define OSILENT 0
 #define OQUIET 1
@@ -31,3 +32,5 @@
 /* true/false string constants */
 #define SF "F" /* false */
 #define ST "T" /* true  */
+
+#endif  // XCLIP_XCDEF_H_

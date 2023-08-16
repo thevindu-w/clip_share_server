@@ -16,17 +16,17 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _NET_UTILS_
-#define _NET_UTILS_
+#ifndef UTILS_NET_UTILS_H_
+#define UTILS_NET_UTILS_H_
 
-#include <stdlib.h>
 #include <openssl/ssl.h>
+#include <stdlib.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
 #endif
 
-#include "list_utils.h"
+#include "./list_utils.h"
 
 #ifdef __linux__
 typedef int sock_t;
@@ -43,18 +43,15 @@ typedef SOCKET sock_t;
 #define SSL_SOCK 2
 #define UDP_SOCK 127
 
-typedef struct _socket_t
-{
-    union
-    {
+typedef struct _socket_t {
+    union {
         sock_t plain;
         SSL *ssl;
     } socket;
     unsigned char type;
 } socket_t;
 
-typedef struct _listener_socket_t
-{
+typedef struct _listener_socket_t {
     sock_t socket;
     unsigned char type;
     SSL_CTX *ctx;
@@ -62,11 +59,14 @@ typedef struct _listener_socket_t
 
 /*
  * Opens a socket for listening.
- * If sock_type is PLAIN_SOCK, an unencrypted TCP socket is created and SSL context is not initialized. private_key, server_certificate and ca_certificate are not required in that case.
- * If sock_type is SSL_SOCK, an TLS encrypted TCP socket is created and SSL context is initialized with the provided private_key, server_certificate and ca_certificate.
- * Otherwise, a UDP socket is created and SSL context is not initialized. private_key, server_certificate and ca_certificate are not required in that case.
+ * If sock_type is PLAIN_SOCK, an unencrypted TCP socket is created and SSL context is not initialized. private_key,
+ * server_certificate and ca_certificate are not required in that case. If sock_type is SSL_SOCK, an TLS encrypted TCP
+ * socket is created and SSL context is initialized with the provided private_key, server_certificate and
+ * ca_certificate. Otherwise, a UDP socket is created and SSL context is not initialized. private_key,
+ * server_certificate and ca_certificate are not required in that case.
  */
-extern listener_t open_listener_socket(const unsigned char sock_type, const char *private_key, const char *server_certificate, const char *ca_certificate);
+extern listener_t open_listener_socket(const unsigned char sock_type, const char *private_key,
+                                       const char *server_certificate, const char *ca_certificate);
 
 /*
  * Converts a ipv4 address in dotted decimal into in_addr_t.
@@ -129,4 +129,4 @@ extern int send_size(socket_t *socket, ssize_t num);
  */
 extern ssize_t read_size(socket_t *socket);
 
-#endif
+#endif  // UTILS_NET_UTILS_H_

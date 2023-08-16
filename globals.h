@@ -16,11 +16,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _GLOBALSX_
-#define _GLOBALSX_
+#ifndef GLOBALS_H_
+#define GLOBALS_H_
 
-#include "config.h"
+#include "./config.h"
 
 extern config configuration;
 
-#endif
+#endif  // GLOBALS_H_

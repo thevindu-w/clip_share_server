@@ -16,13 +16,14 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "./versions.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "versions.h"
 #include "../utils/net_utils.h"
-#include "methods.h"
+#include "./methods.h"
 
 // methods
 #define METHOD_GET_TEXT 1
@@ -38,48 +39,39 @@
 
 #if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
 
-int version_1(socket_t *socket)
-{
+int version_1(socket_t *socket) {
     unsigned char method;
-    if (read_sock(socket, (char *)&method, 1) == EXIT_FAILURE)
-    {
+    if (read_sock(socket, (char *)&method, 1) == EXIT_FAILURE) {
         return EXIT_FAILURE;
     }
 
-    switch (method)
-    {
-    case METHOD_GET_TEXT:
-    {
-        return get_text_v1(socket);
-    }
-    case METHOD_SEND_TEXT:
-    {
-        return send_text_v1(socket);
-    }
-    case METHOD_GET_FILE:
-    {
-        return get_files_v1(socket);
-    }
-    case METHOD_SEND_FILE:
-    {
-        return send_file_v1(socket);
-    }
-    case METHOD_GET_IMAGE:
-    {
-        return get_image_v1(socket);
-    }
-    case METHOD_INFO:
-    {
-        return info_v1(socket);
-    }
-    default: // unknown method
-    {
+    switch (method) {
+        case METHOD_GET_TEXT: {
+            return get_text_v1(socket);
+        }
+        case METHOD_SEND_TEXT: {
+            return send_text_v1(socket);
+        }
+        case METHOD_GET_FILE: {
+            return get_files_v1(socket);
+        }
+        case METHOD_SEND_FILE: {
+            return send_file_v1(socket);
+        }
+        case METHOD_GET_IMAGE: {
+            return get_image_v1(socket);
+        }
+        case METHOD_INFO: {
+            return info_v1(socket);
+        }
+        default:  // unknown method
+        {
 #ifdef DEBUG_MODE
-        fprintf(stderr, "Unknown method\n");
+            fprintf(stderr, "Unknown method\n");
 #endif
-        write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
-        return EXIT_FAILURE;
-    }
+            write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
+            return EXIT_FAILURE;
+        }
     }
     return EXIT_SUCCESS;
 }
@@ -87,48 +79,39 @@ int version_1(socket_t *socket)
 
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
 
-int version_2(socket_t *socket)
-{
+int version_2(socket_t *socket) {
     unsigned char method;
-    if (read_sock(socket, (char *)&method, 1) == EXIT_FAILURE)
-    {
+    if (read_sock(socket, (char *)&method, 1) == EXIT_FAILURE) {
         return EXIT_FAILURE;
     }
 
-    switch (method)
-    {
-    case METHOD_GET_TEXT:
-    {
-        return get_text_v1(socket);
-    }
-    case METHOD_SEND_TEXT:
-    {
-        return send_text_v1(socket);
-    }
-    case METHOD_GET_FILE:
-    {
-        return get_files_v2(socket);
-    }
-    case METHOD_SEND_FILE:
-    {
-        return send_files_v2(socket);
-    }
-    case METHOD_GET_IMAGE:
-    {
-        return get_image_v1(socket);
-    }
-    case METHOD_INFO:
-    {
-        return info_v1(socket);
-    }
-    default: // unknown method
-    {
+    switch (method) {
+        case METHOD_GET_TEXT: {
+            return get_text_v1(socket);
+        }
+        case METHOD_SEND_TEXT: {
+            return send_text_v1(socket);
+        }
+        case METHOD_GET_FILE: {
+            return get_files_v2(socket);
+        }
+        case METHOD_SEND_FILE: {
+            return send_files_v2(socket);
+        }
+        case METHOD_GET_IMAGE: {
+            return get_image_v1(socket);
+        }
+        case METHOD_INFO: {
+            return info_v1(socket);
+        }
+        default:  // unknown method
+        {
 #ifdef DEBUG_MODE
-        fprintf(stderr, "Unknown method\n");
+            fprintf(stderr, "Unknown method\n");
 #endif
-        write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
-        return EXIT_FAILURE;
-    }
+            write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
+            return EXIT_FAILURE;
+        }
     }
     return EXIT_SUCCESS;
 }

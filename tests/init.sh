@@ -13,7 +13,7 @@ else
 fi
 
 cur_dir="$(pwd)"
-if type "xxd" &> /dev/null && [ "$DETECTED_OS" = "Linux" ]; then
+if type "xxd" &>/dev/null && [ "$DETECTED_OS" = "Linux" ]; then
     alias bin2hex="xxd -p -c 512 2>/dev/null"
     alias hex2bin="xxd -p -r 2>/dev/null"
 else
@@ -21,10 +21,11 @@ else
     alias hex2bin="python3 -u ${cur_dir}/utils/bin2hex.py -r 2>/dev/null"
 fi
 
-"../${program}" -s &> /dev/null
+"../${program}" -s &>/dev/null
 rm -rf tmp
 cp -r config tmp
 cd tmp
-"../../${program}" -r &> /dev/null & sleep 0.1
+"../../${program}" -r &>/dev/null &
+sleep 0.1
 
 clear_clipboard

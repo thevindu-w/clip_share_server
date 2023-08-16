@@ -26,21 +26,20 @@
 #include <winsock2.h>
 #endif
 #include <ctype.h>
-#include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/ssl.h>
 #include <openssl/x509_vfy.h>
 
 #include "../globals.h"
-#include "utils.h"
-#include "net_utils.h"
-#include "list_utils.h"
+#include "./list_utils.h"
+#include "./net_utils.h"
+#include "./utils.h"
 
 #ifdef _WIN32
 typedef u_short in_port_t;
 #endif
 
-static SSL_CTX *InitServerCTX(void)
-{
+static SSL_CTX *InitServerCTX(void) {
     const SSL_METHOD *method;
     SSL_CTX *ctx;
 
@@ -48,8 +47,7 @@ static SSL_CTX *InitServerCTX(void)
     SSL_load_error_strings();     /* load all error messages */
     method = TLS_server_method(); /* create new server-method instance */
     ctx = SSL_CTX_new(method);    /* create new context from method */
-    if (!ctx)
-    {
+    if (!ctx) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stderr);
 #endif
@@ -58,12 +56,11 @@ static SSL_CTX *InitServerCTX(void)
     return ctx;
 }
 
-static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *server_cert_buf, const char *ca_cert_buf)
-{
+static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *server_cert_buf,
+                            const char *ca_cert_buf) {
     BIO *cbio = BIO_new_mem_buf((const void *)server_cert_buf, -1);
     X509 *cert = PEM_read_bio_X509(cbio, NULL, 0, NULL);
-    if (SSL_CTX_use_certificate(ctx, cert) <= 0)
-    {
+    if (SSL_CTX_use_certificate(ctx, cert) <= 0) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
 #endif
@@ -72,8 +69,7 @@ static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *
 
     BIO *kbio = BIO_new_mem_buf((const void *)priv_key_buf, -1);
     EVP_PKEY *key = PEM_read_bio_PrivateKey(kbio, NULL, 0, NULL);
-    if (SSL_CTX_use_PrivateKey(ctx, key) <= 0)
-    {
+    if (SSL_CTX_use_PrivateKey(ctx, key) <= 0) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
 #endif
@@ -81,8 +77,7 @@ static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *
     }
 
     /* verify private key */
-    if (!SSL_CTX_check_private_key(ctx))
-    {
+    if (!SSL_CTX_check_private_key(ctx)) {
 #ifdef DEBUG_MODE
         puts("Private key does not match the public certificate");
 #endif
@@ -92,8 +87,7 @@ static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *
     BIO *cabio = BIO_new_mem_buf((const void *)ca_cert_buf, -1);
     X509 *ca_cert = PEM_read_bio_X509(cabio, NULL, 0, NULL);
     X509_STORE *x509store = SSL_CTX_get_cert_store(ctx);
-    if (X509_STORE_add_cert(x509store, ca_cert) != 1)
-    {
+    if (X509_STORE_add_cert(x509store, ca_cert) != 1) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
 #endif
@@ -105,14 +99,12 @@ static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *
     return EXIT_SUCCESS;
 }
 
-static int getClientCerts(const SSL *ssl, const list2 *allowed_clients)
-{
+static int getClientCerts(const SSL *ssl, const list2 *allowed_clients) {
     X509 *cert;
     char *buf;
 
     cert = SSL_get_peer_certificate(ssl); /* Get certificates (if available) */
-    if (!cert)
-    {
+    if (!cert) {
         return EXIT_FAILURE;
     }
     int verified = 0;
@@ -121,10 +113,8 @@ static int getClientCerts(const SSL *ssl, const list2 *allowed_clients)
 #ifdef DEBUG_MODE
     printf("Client Common Name: %s\n", buf);
 #endif
-    for (size_t i = 0; i < allowed_clients->len; i++)
-    {
-        if (!strcmp(buf, allowed_clients->array[i]))
-        {
+    for (size_t i = 0; i < allowed_clients->len; i++) {
+        if (!strcmp(buf, allowed_clients->array[i])) {
             verified = 1;
 #ifdef DEBUG_MODE
             puts("client verified");
@@ -137,20 +127,18 @@ static int getClientCerts(const SSL *ssl, const list2 *allowed_clients)
     return verified ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-listener_t open_listener_socket(const unsigned char sock_type, const char *priv_key, const char *server_cert, const char *ca_cert)
-{
+listener_t open_listener_socket(const unsigned char sock_type, const char *priv_key, const char *server_cert,
+                                const char *ca_cert) {
     listener_t listener;
     listener.type = NULL_SOCK;
 
     sock_t listener_d = socket(PF_INET, (sock_type == UDP_SOCK ? SOCK_DGRAM : SOCK_STREAM), 0);
-    if (listener_d == INVALID_SOCKET)
-    {
+    if (listener_d == INVALID_SOCKET) {
         error("Can\'t open socket");
         return listener;
     }
     listener.socket = listener_d;
-    if (sock_type != SSL_SOCK)
-    {
+    if (sock_type != SSL_SOCK) {
         listener.type = sock_type;
         return listener;
     }
@@ -158,13 +146,11 @@ listener_t open_listener_socket(const unsigned char sock_type, const char *priv_
     SSL_CTX *ctx;
     SSL_library_init();
     ctx = InitServerCTX();
-    if (!ctx)
-    {
+    if (!ctx) {
         return listener;
     }
     /* load certs and keys */
-    if (LoadCertificates(ctx, priv_key, server_cert, ca_cert) != EXIT_SUCCESS)
-    {
+    if (LoadCertificates(ctx, priv_key, server_cert, ca_cert) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         fputs("Loading certificates failed\n", stderr);
 #endif
@@ -175,18 +161,14 @@ listener_t open_listener_socket(const unsigned char sock_type, const char *priv_
     return listener;
 }
 
-int ipv4_aton(const char *address_str, uint32_t *address_ptr)
-{
-    if (!address_ptr)
-        return EXIT_FAILURE;
-    if (address_str == NULL)
-    {
+int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
+    if (!address_ptr) return EXIT_FAILURE;
+    if (address_str == NULL) {
         *address_ptr = htonl(INADDR_ANY);
         return EXIT_SUCCESS;
     }
     unsigned int a, b, c, d;
-    if (sscanf(address_str, "%u.%u.%u.%u", &a, &b, &c, &d) != 4 || a >= 256 || b >= 256 || c >= 256 || d >= 256)
-    {
+    if (sscanf(address_str, "%u.%u.%u.%u", &a, &b, &c, &d) != 4 || a >= 256 || b >= 256 || c >= 256 || d >= 256) {
 #ifdef DEBUG_MODE
         printf("Invalid address %s\n", address_str);
 #endif
@@ -212,23 +194,19 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr)
     return EXIT_SUCCESS;
 }
 
-int bind_port(listener_t listener, unsigned short port)
-{
-    if (listener.type == NULL_SOCK)
-        return EXIT_FAILURE;
+int bind_port(listener_t listener, unsigned short port) {
+    if (listener.type == NULL_SOCK) return EXIT_FAILURE;
     sock_t socket = listener.socket;
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
     server_addr.sin_addr.s_addr = configuration.bind_addr;
     int reuse = 1;
-    if (listener.type != UDP_SOCK && setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1)
-    {
+    if (listener.type != UDP_SOCK && setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1) {
         error("Can't set the reuse option on the socket");
         return EXIT_FAILURE;
     }
-    if (bind(socket, (const struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
-    {
+    if (bind(socket, (const struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         char errmsg[32];
         char *tcp_udp = listener.type == UDP_SOCK ? "UDP" : "TCP";
         snprintf_check(errmsg, 32, "Can\'t bind to %s port %hu", tcp_udp, port);
@@ -238,12 +216,10 @@ int bind_port(listener_t listener, unsigned short port)
     return EXIT_SUCCESS;
 }
 
-socket_t get_connection(listener_t listener, const list2 *allowed_clients)
-{
+socket_t get_connection(listener_t listener, const list2 *allowed_clients) {
     socket_t sock;
     sock.type = NULL_SOCK;
-    if (listener.type == NULL_SOCK)
-        return sock;
+    if (listener.type == NULL_SOCK) return sock;
     sock_t listener_socket = listener.socket;
     struct sockaddr_in client_addr;
 #ifdef __linux__
@@ -253,143 +229,120 @@ socket_t get_connection(listener_t listener, const list2 *allowed_clients)
 #endif
     sock_t connect_d = accept(listener_socket, (struct sockaddr *)&client_addr, &address_size);
     struct timeval tv = {0, 100000};
-    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) == -1)
-    { // set timeout option to 100ms
+    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) == -1) {  // set timeout option to 100ms
         error("Can't set the timeout option of the connection");
         return sock;
     }
-    if (connect_d == INVALID_SOCKET)
-    {
+    if (connect_d == INVALID_SOCKET) {
         error("Can\'t open secondary socket");
         return sock;
     }
 #ifdef DEBUG_MODE
     printf("\nConnection: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 #endif
-    switch (listener.type)
-    {
-    case PLAIN_SOCK:
-    {
-        sock.socket.plain = connect_d;
-        sock.type = PLAIN_SOCK;
-        break;
-    }
-
-    case SSL_SOCK:
-    {
-        SSL_CTX *ctx = listener.ctx;
-        SSL *ssl = SSL_new(ctx);
-        SSL_set_fd(ssl, connect_d);
-        /* do SSL-protocol accept */
-        int accept_st;
-        while ((accept_st = SSL_accept(ssl)) != 1)
-        { /* do SSL-protocol accept */
-            if (accept_st == 0)
-            {
-#ifdef DEBUG_MODE
-                puts("SSL_accept error");
-#endif
-                return sock;
-            }
-            switch (SSL_get_error(ssl, accept_st))
-            {
-            case SSL_ERROR_WANT_READ:
-                continue;
-            case SSL_ERROR_WANT_WRITE:
-                continue;
-            default:
-            {
-#ifdef DEBUG_MODE
-                ERR_print_errors_fp(stdout);
-#endif
-                return sock;
-            }
-            }
-        }
-        sock.socket.ssl = ssl;
-        sock.type = SSL_SOCK;
-        if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) /* get any certificates */
-        {
-            close_socket(&sock);
-            sock.type = NULL_SOCK;
-            return sock;
-        }
-        break;
-    }
-
-    default:
-        break;
-    }
-    return sock;
-}
-
-void close_socket(socket_t *socket)
-{
-    switch (socket->type)
-    {
-    case PLAIN_SOCK:
-    {
-#ifdef __linux__
-        close(socket->socket.plain);
-#elif _WIN32
-        closesocket(socket->socket.plain);
-#endif
-        break;
-    }
-
-    case SSL_SOCK:
-    {
-        sock_t sd = SSL_get_fd(socket->socket.ssl); /* get socket connection */
-        SSL_free(socket->socket.ssl);               /* release SSL state */
-#ifdef __linux__
-        close(sd);
-#elif _WIN32
-        closesocket(sd);
-#endif
-        break;
-    }
-
-    default:
-        break;
-    }
-    socket->type = NULL_SOCK;
-}
-
-int read_sock(socket_t *socket, char *buf, size_t size)
-{
-    int cnt = 0;
-    size_t read = 0;
-    char *ptr = buf;
-    while (read < size)
-    {
-        ssize_t r;
-        switch (socket->type)
-        {
-        case PLAIN_SOCK:
-        {
-            r = recv(socket->socket.plain, ptr, size - read, 0);
+    switch (listener.type) {
+        case PLAIN_SOCK: {
+            sock.socket.plain = connect_d;
+            sock.type = PLAIN_SOCK;
             break;
         }
 
-        case SSL_SOCK:
-        {
-            r = SSL_read(socket->socket.ssl, ptr, (int)(size - read));
+        case SSL_SOCK: {
+            SSL_CTX *ctx = listener.ctx;
+            SSL *ssl = SSL_new(ctx);
+            SSL_set_fd(ssl, connect_d);
+            /* do SSL-protocol accept */
+            int accept_st;
+            while ((accept_st = SSL_accept(ssl)) != 1) { /* do SSL-protocol accept */
+                if (accept_st == 0) {
+#ifdef DEBUG_MODE
+                    puts("SSL_accept error");
+#endif
+                    return sock;
+                }
+                switch (SSL_get_error(ssl, accept_st)) {
+                    case SSL_ERROR_WANT_READ:
+                        continue;
+                    case SSL_ERROR_WANT_WRITE:
+                        continue;
+                    default: {
+#ifdef DEBUG_MODE
+                        ERR_print_errors_fp(stdout);
+#endif
+                        return sock;
+                    }
+                }
+            }
+            sock.socket.ssl = ssl;
+            sock.type = SSL_SOCK;
+            if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) {  // get client certificates if any
+                close_socket(&sock);
+                sock.type = NULL_SOCK;
+                return sock;
+            }
             break;
         }
 
         default:
-            return EXIT_FAILURE;
+            break;
+    }
+    return sock;
+}
+
+void close_socket(socket_t *socket) {
+    switch (socket->type) {
+        case PLAIN_SOCK: {
+#ifdef __linux__
+            close(socket->socket.plain);
+#elif _WIN32
+            closesocket(socket->socket.plain);
+#endif
+            break;
         }
-        if (r > 0)
-        {
+
+        case SSL_SOCK: {
+            sock_t sd = SSL_get_fd(socket->socket.ssl); /* get socket connection */
+            SSL_free(socket->socket.ssl);               /* release SSL state */
+#ifdef __linux__
+            close(sd);
+#elif _WIN32
+            closesocket(sd);
+#endif
+            break;
+        }
+
+        default:
+            break;
+    }
+    socket->type = NULL_SOCK;
+}
+
+int read_sock(socket_t *socket, char *buf, size_t size) {
+    int cnt = 0;
+    size_t read = 0;
+    char *ptr = buf;
+    while (read < size) {
+        ssize_t r;
+        switch (socket->type) {
+            case PLAIN_SOCK: {
+                r = recv(socket->socket.plain, ptr, size - read, 0);
+                break;
+            }
+
+            case SSL_SOCK: {
+                r = SSL_read(socket->socket.ssl, ptr, (int)(size - read));
+                break;
+            }
+
+            default:
+                return EXIT_FAILURE;
+        }
+        if (r > 0) {
             read += r;
             cnt = 0;
             ptr += r;
-        }
-        else
-        {
-            if (cnt++ > 50)
-            {
+        } else {
+            if (cnt++ > 50) {
 #ifdef DEBUG_MODE
                 fputs("Read sock failed\n", stderr);
 #endif
@@ -400,68 +353,53 @@ int read_sock(socket_t *socket, char *buf, size_t size)
     return EXIT_SUCCESS;
 }
 
-int read_sock_no_wait(socket_t *socket, char *buf, size_t size)
-{
-    switch (socket->type)
-    {
-    case PLAIN_SOCK:
-    {
-        return (int)recv(socket->socket.plain, buf, size, 0);
-    }
-
-    case SSL_SOCK:
-    {
-        return SSL_read(socket->socket.ssl, buf, (int)size);
-    }
-
-    default:
-        return -1;
-    }
-}
-
-int write_sock(socket_t *socket, const char *buf, size_t size)
-{
-    int cnt = 0;
-    size_t written = 0;
-    const char *ptr = buf;
-    while (written < size)
-    {
-        ssize_t r;
-        switch (socket->type)
-        {
-        case PLAIN_SOCK:
-        {
-            r = send(socket->socket.plain, ptr, size, 0);
-            break;
+int read_sock_no_wait(socket_t *socket, char *buf, size_t size) {
+    switch (socket->type) {
+        case PLAIN_SOCK: {
+            return (int)recv(socket->socket.plain, buf, size, 0);
         }
 
-        case SSL_SOCK:
-        {
-            r = SSL_write(socket->socket.ssl, ptr, (int)size);
-            break;
+        case SSL_SOCK: {
+            return SSL_read(socket->socket.ssl, buf, (int)size);
         }
 
         default:
-            return EXIT_FAILURE;
+            return -1;
+    }
+}
+
+int write_sock(socket_t *socket, const char *buf, size_t size) {
+    int cnt = 0;
+    size_t written = 0;
+    const char *ptr = buf;
+    while (written < size) {
+        ssize_t r;
+        switch (socket->type) {
+            case PLAIN_SOCK: {
+                r = send(socket->socket.plain, ptr, size, 0);
+                break;
+            }
+
+            case SSL_SOCK: {
+                r = SSL_write(socket->socket.ssl, ptr, (int)size);
+                break;
+            }
+
+            default:
+                return EXIT_FAILURE;
         }
-        if (r > 0)
-        {
+        if (r > 0) {
             written += r;
             cnt = 0;
             ptr += r;
-        }
-        else if (r == 0)
-        {
-            if (cnt++ > 50)
-            {
+        } else if (r == 0) {
+            if (cnt++ > 50) {
 #ifdef DEBUG_MODE
                 fputs("Write sock failed\n", stderr);
 #endif
                 return EXIT_FAILURE;
             }
-        }
-        else
-        {
+        } else {
 #ifdef DEBUG_MODE
             fputs("Write sock failed\n", stderr);
 #endif
@@ -471,31 +409,26 @@ int write_sock(socket_t *socket, const char *buf, size_t size)
     return EXIT_SUCCESS;
 }
 
-int send_size(socket_t *socket, ssize_t size)
-{
+int send_size(socket_t *socket, ssize_t size) {
     char sz_buf[8];
     ssize_t sz = size;
-    for (int i = sizeof(sz_buf) - 1; i >= 0; i--)
-    {
+    for (int i = sizeof(sz_buf) - 1; i >= 0; i--) {
         sz_buf[i] = sz & 0xff;
         sz >>= 8;
     }
     return write_sock(socket, sz_buf, sizeof(sz_buf));
 }
 
-ssize_t read_size(socket_t *socket)
-{
+ssize_t read_size(socket_t *socket) {
     unsigned char sz_buf[8];
-    if (read_sock(socket, (char *)sz_buf, sizeof(sz_buf)) == EXIT_FAILURE)
-    {
+    if (read_sock(socket, (char *)sz_buf, sizeof(sz_buf)) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
         fputs("Read size failed\n", stderr);
 #endif
         return -1;
     }
     ssize_t size = 0;
-    for (unsigned i = 0; i < sizeof(sz_buf); i++)
-    {
+    for (unsigned i = 0; i < sizeof(sz_buf); i++) {
         size = (size << 8) | sz_buf[i];
     }
     return size;

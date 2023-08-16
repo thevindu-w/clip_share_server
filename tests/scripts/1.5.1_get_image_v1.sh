@@ -15,7 +15,7 @@ responseDump=$(printf "${proto}${method}" | hex2bin | client_tool | bin2hex | tr
 
 protoAck=$(printf "\x01" | bin2hex)
 methodAck=$(printf "\x01" | bin2hex)
-length=$(printf "%016x" $(("${#imgSample}"/2)))
+length=$(printf "%016x" $(("${#imgSample}" / 2)))
 
 expected="${protoAck}${methodAck}${length}${imgSample}"
 

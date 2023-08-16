@@ -16,15 +16,15 @@ files=(
 mkdir -p original && cd original
 
 for f in "${files[@]}"; do
-    if [[ "$f" = */* ]]; then
-        mkdir -p "${f%/*}";
-    fi;
-    echo "${f}"$'\n'"abc" > "${f}"
+    if [[ $f == */* ]]; then
+        mkdir -p "${f%/*}"
+    fi
+    echo "${f}"$'\n'"abc" >"${f}"
 done
 
 chunks=""
 
-appendToChunks () {
+appendToChunks() {
     fname="$1"
     if [ -d "${fname}" ]; then
         for f in "${fname}"/*; do
@@ -48,7 +48,7 @@ mv clipshare.conf copies/
 cd copies
 
 # restart the server in new directory
-"../../../$1" -r &> /dev/null &
+"../../../$1" -r &>/dev/null &
 
 # remove the conf file
 rm -f clipshare.conf

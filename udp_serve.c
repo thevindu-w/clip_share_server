@@ -24,9 +24,9 @@
 #include <winsock2.h>
 #endif
 
+#include "./servers.h"
 #include "utils/net_utils.h"
 #include "utils/utils.h"
-#include "servers.h"
 
 // MSG_WAITALL should not be used. Reset it to 0
 #ifdef _WIN32
@@ -44,14 +44,11 @@
 typedef int socklen_t;
 #endif
 
-void udp_server(const unsigned short port)
-{
-    if (port <= 0)
-        return;
+void udp_server(const unsigned short port) {
+    if (port <= 0) return;
 
     listener_t listener = open_listener_socket(UDP_SOCK, NULL, NULL, NULL);
-    if (listener.type == NULL_SOCK)
-    {
+    if (listener.type == NULL_SOCK) {
         error("UDP socket creation failed");
         return;
     }
@@ -59,8 +56,7 @@ void udp_server(const unsigned short port)
     puts("UDP socket created");
 #endif
 
-    if (bind_port(listener, port) != EXIT_SUCCESS)
-    {
+    if (bind_port(listener, port) != EXIT_SUCCESS) {
         return;
     }
 
@@ -81,24 +77,20 @@ void udp_server(const unsigned short port)
 #ifdef DEBUG_MODE
     puts("UDP server started");
 #endif
-    while (1)
-    {
+    while (1) {
         len = sizeof(cliaddr);
         n = (int)recvfrom(sockfd, (char *)buffer, 2, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len);
-        if (n <= 0)
-        {
+        if (n <= 0) {
             continue;
         }
-        if (n >= buf_sz)
-            n = buf_sz - 1;
+        if (n >= buf_sz) n = buf_sz - 1;
         buffer[n] = '\0';
 
 #ifdef DEBUG_MODE
         printf("Client UDP message : %s\n", buffer);
 #endif
 
-        if (strcmp(buffer, "in"))
-        {
+        if (strcmp(buffer, "in")) {
             continue;
         }
         sendto(sockfd, INFO_NAME, info_len, MSG_CONFIRM, (const struct sockaddr *)&cliaddr, len);

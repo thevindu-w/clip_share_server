@@ -12,7 +12,7 @@ RUN apt-get install --no-install-recommends -y openssl xclip python3.8-minimal d
 RUN mkdir -p /debs
 WORKDIR /debs
 RUN apt-get download xvfb libunwind8 libgl1 libpixman-1-0 libxfont2 libglvnd0 libglx0 libfontenc1 libfreetype6 xkb-data libxkbfile1 x11-xkb-utils
-RUN dpkg --force-depends -i *.deb 2>/dev/null
+RUN dpkg --force-depends -i ./*.deb 2>/dev/null
 WORKDIR /usr/bin
 RUN rm -rf /debs
 RUN ln -s python3.8 python3
@@ -27,11 +27,9 @@ WORKDIR /src
 COPY . .
 
 # Build
-RUN make clean
-RUN make
-RUN make web
+RUN make clean && make && make web
 
 # Prepare the test environment initialization script
 RUN chmod +x docker/run_docker.sh
 
-CMD docker/run_docker.sh
+CMD ["docker/run_docker.sh"]

@@ -16,13 +16,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _LIST_UTILS_
-#define _LIST_UTILS_
+#ifndef UTILS_LIST_UTILS_H_
+#define UTILS_LIST_UTILS_H_
 
 #include <stdlib.h>
 
-typedef struct _list
-{
+typedef struct _list {
     size_t len;
     size_t capacity;
     void **array;
@@ -45,4 +44,4 @@ extern void free_list(list2 *lst);
  */
 extern void append(list2 *lst, void *elem);
 
-#endif
+#endif  // UTILS_LIST_UTILS_H_

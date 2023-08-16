@@ -1,5 +1,5 @@
-#ifndef _SCREENSHOT_
-#define _SCREENSHOT_
+#ifndef XSCREENSHOT_SCREENSHOT_H_
+#define XSCREENSHOT_SCREENSHOT_H_
 
 #include <stdlib.h>
 
@@ -11,4 +11,4 @@
  */
 extern int screenshot_util(size_t *, char **);
 
-#endif
+#endif  // XSCREENSHOT_SCREENSHOT_H_

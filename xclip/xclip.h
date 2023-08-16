@@ -1,5 +1,5 @@
-#ifndef _XCLIP_
-#define _XCLIP_
+#ifndef XCLIP_XCLIP_H_
+#define XCLIP_XCLIP_H_
 
 #define XCLIP_IN 0
 #define XCLIP_OUT 1
@@ -13,4 +13,4 @@
  */
 extern int xclip_util(int, const char *, unsigned long *, char **);
 
-#endif
+#endif  // XCLIP_XCLIP_H_

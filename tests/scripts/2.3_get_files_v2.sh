@@ -16,15 +16,15 @@ files=(
 mkdir -p original && cd original
 
 for f in "${files[@]}"; do
-    if [[ "$f" = */* ]]; then
-        mkdir -p "${f%/*}";
-    fi;
-    echo "${f}"$'\n'"abc" > "${f}"
+    if [[ $f == */* ]]; then
+        mkdir -p "${f%/*}"
+    fi
+    echo "${f}"$'\n'"abc" >"${f}"
 done
 
 chunks=""
 
-appendToChunks () {
+appendToChunks() {
     fname="$1"
     if [ -d "${fname}" ]; then
         for f in "${fname}"/*; do
@@ -74,19 +74,19 @@ for _ in $(seq "${#files[@]}"); do
         showStatus info "File name too long. Length=${nameLength}."
         exit 1
     fi
-    fileName="$(echo "${body:16:$(("$nameLength"*2))}" | hex2bin)"
-    body="${body:$((16+"$nameLength"*2))}"
+    fileName="$(echo "${body:16:$(("$nameLength" * 2))}" | hex2bin)"
+    body="${body:$((16 + "$nameLength" * 2))}"
 
     fileSize="$((0x"${body::16}"))"
     if [ "$fileSize" -gt "1048576" ]; then
         showStatus info "File is too large. size=${fileSize}."
         exit 1
     fi
-    if [[ "$fileName" = */* ]]; then
-        mkdir -p "${fileName%/*}";
+    if [[ $fileName == */* ]]; then
+        mkdir -p "${fileName%/*}"
     fi
-    echo "${body:16:$(("$fileSize"*2))}" | hex2bin > "$fileName"
-    body="${body:$((16+"$fileSize"*2))}"
+    echo "${body:16:$(("$fileSize" * 2))}" | hex2bin >"$fileName"
+    body="${body:$((16 + "$fileSize" * 2))}"
 done
 
 if [ "${body}" != "" ]; then

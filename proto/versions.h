@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef _VERSIONS_
-#define _VERSIONS_
+#ifndef PROTO_VERSIONS_H_
+#define PROTO_VERSIONS_H_
 
 #include "../utils/net_utils.h"
 
@@ -40,4 +40,4 @@ extern int version_1(socket_t *socket);
 extern int version_2(socket_t *socket);
 #endif
 
-#endif
+#endif  // PROTO_VERSIONS_H_

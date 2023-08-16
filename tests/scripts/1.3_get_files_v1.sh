@@ -10,7 +10,7 @@ files=(
 mkdir -p original && cd original
 
 for f in "${files[@]}"; do
-    echo "${f}"$'\n'"abc" > "${f}"
+    echo "${f}"$'\n'"abc" >"${f}"
 done
 
 chunks=""

@@ -16,12 +16,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _UTILS_
-#define _UTILS_
+#ifndef UTILS_UTILS_H_
+#define UTILS_UTILS_H_
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "list_utils.h"
+
+#include "./list_utils.h"
 
 #ifdef __linux__
 #include <png.h>
@@ -41,8 +42,7 @@
 /*
  * In-memory file to write png image
  */
-struct mem_file
-{
+struct mem_file {
     char *buffer;
     size_t capacity;
     size_t size;
@@ -51,8 +51,7 @@ struct mem_file
 /*
  * List of files and the length of the path of their parent directory
  */
-typedef struct _dir_files
-{
+typedef struct _dir_files {
     size_t path_len;
     list2 *lst;
 } dir_files;
@@ -152,4 +151,4 @@ extern dir_files get_copied_dirs_files(void);
  */
 void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length);
 
-#endif
+#endif  // UTILS_UTILS_H_

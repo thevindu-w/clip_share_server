@@ -16,6 +16,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#ifndef PROTO_METHODS_H_
+#define PROTO_METHODS_H_
+
 #include "../utils/net_utils.h"
 
 // Version 1 methods
@@ -31,3 +34,5 @@ extern int info_v1(socket_t *socket);
 
 extern int get_files_v2(socket_t *socket);
 extern int send_files_v2(socket_t *socket);
+
+#endif  // PROTO_METHODS_H_
