@@ -1,4 +1,4 @@
-name: Build and Test clip_share_server
+name: Build and Test
 run-name: Build and Test on ${{ github.sha }}
 
 on:
