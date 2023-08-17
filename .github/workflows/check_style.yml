@@ -1,0 +1,31 @@
+name: Check Style
+run-name: Style check on ${{ github.sha }}
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  Style-Check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{github.head_ref}}
+        fetch-depth: 0
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+    - name: Install tools
+      run: |
+        sudo apt install cpplint shfmt
+        sudo wget https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -O /bin/hadolint && sudo chmod +x /bin/hadolint
+    - name: Check C code style
+      run: cpplint --linelength=120 --filter=-build/include,+build/include_subdir,-runtime/int,-runtime/arrays,-readability/casting,-legal/copyright --recursive .
+    - name: Check test script style
+      run: find . -type f -name '*.sh' -print0 | xargs -0 shfmt -d -s -i 4 -ci
+    - name: Check Dockerfiles
+      run: hadolint --ignore DL3008 --ignore DL3041 -t warning docker/Dockerfile.*
