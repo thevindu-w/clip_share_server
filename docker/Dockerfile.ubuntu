@@ -9,11 +9,11 @@ RUN apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev lib
 
 # Install test dependencies
 RUN apt-get install --no-install-recommends -y openssl xclip python3.8-minimal diffutils coreutils netcat-openbsd
-RUN rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /debs
 WORKDIR /debs
 RUN apt-get download xvfb libunwind8 libgl1 libpixman-1-0 libxfont2 libglvnd0 libglx0 libfontenc1 libfreetype6 xkb-data libxkbfile1 x11-xkb-utils && dpkg --force-depends -i ./*.deb 2>/dev/null
 RUN rm -rf /debs
+RUN rm -rf /var/lib/apt/lists/*
 WORKDIR /usr/bin
 RUN ln -s python3.8 python3
 
