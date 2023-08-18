@@ -3,26 +3,39 @@ FROM archlinux:base
 RUN pacman -Sy
 
 # Install build dependencies
-RUN pacman -S --needed --noconfirm glibc
-RUN pacman -S --needed --noconfirm gcc make libx11 libxmu libpng openssl
+RUN pacman -S --needed --noconfirm gcc make glibc libx11 libxmu libpng openssl
 
 # Install test dependencies
 RUN pacman -S --needed --noconfirm coreutils diffutils python openbsd-netcat xclip
 RUN pacman -Sdd --needed --noconfirm pixman freetype2 graphite harfbuzz libfontenc xorg-xkbcomp xorg-setxkbmap xkeyboard-config libxfont2 libunwind libglvnd libxkbfile xorg-server-xvfb
 
+RUN useradd -mU -s /bin/bash user
+USER user
+
 # Set environment variables for tests
 ENV TERM=xterm-256color
 ENV DISPLAY=:0
+ENV HOME=/home/user
 
-RUN mkdir -p /src
-WORKDIR /src
+RUN mkdir -p "$HOME/src"
+WORKDIR "$HOME/src"
 
-COPY . .
+# Copy the source files
+COPY --chown=user:user Makefile clip_share.c clip_share_web.c config.c main.c udp_serve.c config.h globals.h servers.h page_blob.S ./
+COPY --chown=user:user ./html html
+COPY --chown=user:user ./proto proto
+COPY --chown=user:user ./utils utils
+COPY --chown=user:user ./win_getopt win_getopt
+COPY --chown=user:user ./winres winres
+COPY --chown=user:user ./xclip xclip
+COPY --chown=user:user ./xscreenshot xscreenshot
 
 # Build
 RUN make clean && make && make web
 
 # Prepare the test environment initialization script
+COPY --chown=user:user ./docker/run_docker.sh docker/
 RUN chmod +x docker/run_docker.sh
+COPY --chown=user:user ./tests tests
 
 CMD ["docker/run_docker.sh"]

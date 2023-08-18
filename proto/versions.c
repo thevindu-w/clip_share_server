@@ -64,8 +64,7 @@ int version_1(socket_t *socket) {
         case METHOD_INFO: {
             return info_v1(socket);
         }
-        default:  // unknown method
-        {
+        default: {  // unknown method
 #ifdef DEBUG_MODE
             fprintf(stderr, "Unknown method\n");
 #endif
@@ -104,8 +103,7 @@ int version_2(socket_t *socket) {
         case METHOD_INFO: {
             return info_v1(socket);
         }
-        default:  // unknown method
-        {
+        default: {  // unknown method
 #ifdef DEBUG_MODE
             fprintf(stderr, "Unknown method\n");
 #endif

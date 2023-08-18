@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../globals.h"
 #include "./list_utils.h"
 
 #ifdef __linux__
@@ -36,8 +37,12 @@
 #define PATH_SEP '\\'
 #endif
 
-#define error(msg) _error(msg, 0)
-#define error_exit(msg) _error(msg, 1)
+#define error_exit(msg)               \
+    {                                 \
+        error(msg);                   \
+        clear_config(&configuration); \
+        exit(1);                      \
+    }
 
 /*
  * In-memory file to write png image
@@ -66,7 +71,7 @@ int snprintf_check(char *dest, int size, const char *fmt, ...);
 /*
  * Append error message to error log file
  */
-extern void _error(const char *msg, int exit_process);
+extern void error(const char *msg);
 
 /*
  * Get copied text from clipboard.

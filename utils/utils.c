@@ -49,7 +49,7 @@ int snprintf_check(char *dest, int size, const char *fmt, ...) {
     return (ret < 0 || ret > size);
 }
 
-void _error(const char *msg, int exit_process) {
+void error(const char *msg) {
 #ifdef DEBUG_MODE
     fprintf(stderr, "%s\n", msg);
 #endif
@@ -61,10 +61,6 @@ void _error(const char *msg, int exit_process) {
 #ifdef __linux__
     chmod(ERROR_LOG_FILE, S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH);
 #endif
-    if (exit_process) {
-        clear_config(&configuration);
-        exit(1);
-    }
 }
 
 int file_exists(const char *file_name) {
@@ -133,11 +129,10 @@ int mkdirs(const char *dir_path) {
                 if (!is_directory(path, 0)) return EXIT_FAILURE;
             } else {
 #ifdef __linux__
-                if (mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))
+                if (mkdir(path, S_IRWXU | S_IRWXG)) {
 #elif _WIN32
-                if (mkdir(path))
+                if (mkdir(path)) {
 #endif
-                {
 #ifdef DEBUG_MODE
                     printf("Error creating directory %s\n", path);
 #endif

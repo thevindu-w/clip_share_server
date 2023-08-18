@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "./globals.h"
 #include "utils/list_utils.h"
 #include "utils/net_utils.h"
 #include "utils/utils.h"

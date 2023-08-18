@@ -9,27 +9,41 @@ RUN apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev lib
 
 # Install test dependencies
 RUN apt-get install --no-install-recommends -y openssl xclip python3.8-minimal diffutils coreutils netcat-openbsd
+RUN rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /debs
 WORKDIR /debs
-RUN apt-get download xvfb libunwind8 libgl1 libpixman-1-0 libxfont2 libglvnd0 libglx0 libfontenc1 libfreetype6 xkb-data libxkbfile1 x11-xkb-utils
-RUN dpkg --force-depends -i ./*.deb 2>/dev/null
-WORKDIR /usr/bin
+RUN apt-get download xvfb libunwind8 libgl1 libpixman-1-0 libxfont2 libglvnd0 libglx0 libfontenc1 libfreetype6 xkb-data libxkbfile1 x11-xkb-utils && dpkg --force-depends -i ./*.deb 2>/dev/null
 RUN rm -rf /debs
+WORKDIR /usr/bin
 RUN ln -s python3.8 python3
+
+RUN useradd -mU -s /bin/bash user
+USER user
 
 # Set environment variables for tests
 ENV TERM=xterm-256color
 ENV DISPLAY=:0
+ENV HOME=/home/user
 
-RUN mkdir -p /src
-WORKDIR /src
+RUN mkdir -p "$HOME/src"
+WORKDIR "$HOME/src"
 
-COPY . .
+# Copy the source files
+COPY --chown=user:user Makefile clip_share.c clip_share_web.c config.c main.c udp_serve.c config.h globals.h servers.h page_blob.S ./
+COPY --chown=user:user ./html html
+COPY --chown=user:user ./proto proto
+COPY --chown=user:user ./utils utils
+COPY --chown=user:user ./win_getopt win_getopt
+COPY --chown=user:user ./winres winres
+COPY --chown=user:user ./xclip xclip
+COPY --chown=user:user ./xscreenshot xscreenshot
 
 # Build
 RUN make clean && make && make web
 
 # Prepare the test environment initialization script
+COPY --chown=user:user ./docker/run_docker.sh docker/
 RUN chmod +x docker/run_docker.sh
+COPY --chown=user:user ./tests tests
 
 CMD ["docker/run_docker.sh"]

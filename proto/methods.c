@@ -317,13 +317,12 @@ int send_file_v1(socket_t *socket) {
         if (configuration.working_dir != NULL || strcmp(file_name, "clipshare.conf")) {
             if (snprintf_check(tmp_fname, name_max_len, ".%c%s", PATH_SEP, file_name)) return EXIT_FAILURE;
         } else {
-            if (snprintf_check(tmp_fname, name_max_len, ".%c1_%s", PATH_SEP,
-                               file_name))  // do not create file named clipshare.conf
-                return EXIT_FAILURE;
+            // do not create file named clipshare.conf
+            if (snprintf_check(tmp_fname, name_max_len, ".%c1_%s", PATH_SEP, file_name)) return EXIT_FAILURE;
         }
         int n = 1;
         while (file_exists(tmp_fname)) {
-            if (n > 999999999) return EXIT_FAILURE;
+            if (n > 999999) return EXIT_FAILURE;
             if (snprintf_check(tmp_fname, name_max_len, ".%c%i_%s", PATH_SEP, n++, file_name)) return EXIT_FAILURE;
         }
         strncpy(file_name, tmp_fname, name_max_len);
@@ -498,7 +497,7 @@ int send_files_v2(socket_t *socket) {
         // if new_path already exists, use a different file name
         int n = 1;
         while (file_exists(new_path)) {
-            if (n > 999999999) return EXIT_FAILURE;
+            if (n > 999999) return EXIT_FAILURE;
             if (snprintf_check(new_path, name_len + 20, ".%c%i_%s", PATH_SEP, n++, filename)) {
                 status = EXIT_FAILURE;
                 continue;

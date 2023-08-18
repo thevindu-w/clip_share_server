@@ -176,11 +176,10 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
     }
     struct in_addr addr;
 #ifdef __linux__
-    if (inet_aton(address_str, &addr) != 1)
+    if (inet_aton(address_str, &addr) != 1) {
 #elif _WIN32
-    if ((addr.s_addr = inet_addr(address_str)) == INADDR_NONE)
+    if ((addr.s_addr = inet_addr(address_str)) == INADDR_NONE) {
 #endif
-    {
 #ifdef DEBUG_MODE
         printf("Invalid address %s\n", address_str);
 #endif

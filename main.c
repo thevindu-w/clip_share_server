@@ -212,29 +212,24 @@ int main(int argc, char **argv) {
     int opt;
     while ((opt = getopt(argc, argv, "hsrRp:w:")) != -1) {
         switch (opt) {
-            case 'h':  // help
-            {
+            case 'h': {  // help
                 print_usage(prog_name);
                 clear_config(&configuration);
                 exit(EXIT_SUCCESS);
             }
-            case 's':  // stop
-            {
+            case 's': {  // stop
                 stop = 1;
                 break;
             }
-            case 'r':  // restart
-            {
+            case 'r': {  // restart
                 restart = 1;
                 break;
             }
-            case 'R':  // no-restart
-            {
+            case 'R': {  // no-restart
                 restart = 0;
                 break;
             }
-            case 'p':  // app port
-            {
+            case 'p': {  // app port
                 char *endptr;
                 app_port = (unsigned short)strtol(optarg, &endptr, 10);
                 if (*endptr != '\0' || endptr == optarg) {
@@ -246,8 +241,7 @@ int main(int argc, char **argv) {
                 break;
             }
 #ifndef NO_WEB
-            case 'w':  // web port
-            {
+            case 'w': {  // web port
                 char *endptr;
                 web_port = (unsigned short)strtol(optarg, &endptr, 10);
                 if (*endptr != '\0' || endptr == optarg) {
@@ -312,16 +306,12 @@ int main(int argc, char **argv) {
             snprintf_check(err, 3072, "Failed changing working directory to \'%s\'", configuration.working_dir);
             fprintf(stderr, "%s\n", err);
             error_exit(err);
-            clear_config(&configuration);
-            return EXIT_FAILURE;
         }
         char *new_work_dir = getcwd(NULL, 0);
         if (old_work_dir == NULL || new_work_dir == NULL) {
             char *err = "Error occured during changing working directory.";
             fprintf(stderr, "%s\n", err);
             error_exit(err);
-            clear_config(&configuration);
-            return EXIT_FAILURE;
         }
         // if the working directory did not change, set configuration.working_dir to NULL
         if (!strcmp(old_work_dir, new_work_dir)) {
