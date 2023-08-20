@@ -33,6 +33,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #elif _WIN32
+#include <openssl/md5.h>
 #include <shellapi.h>
 #include <tlhelp32.h>
 
@@ -176,6 +177,34 @@ static DWORD WINAPI webThreadFn(void *arg) {
 }
 #endif
 
+static inline GUID getGUID() {
+    char file_path[1024];
+    GetModuleFileName(NULL, (char *)file_path, 1024);
+    unsigned char md5_hash[EVP_MAX_MD_SIZE];
+    EVP_MD_CTX *context = EVP_MD_CTX_new();
+    const EVP_MD *md = EVP_md5();
+    unsigned int md_len;
+    EVP_DigestInit_ex2(context, md, NULL);
+    EVP_DigestUpdate(context, file_path, strnlen(file_path, 1023));
+    EVP_DigestFinal_ex(context, md5_hash, &md_len);
+    EVP_MD_CTX_free(context);
+    GUID guid = {0};
+    unsigned offset = 0;
+    for (unsigned i = 0; i < sizeof(guid.Data1); i++) {
+        guid.Data1 = (guid.Data1 << 8) | md5_hash[offset++];
+    }
+    for (unsigned i = 0; i < sizeof(guid.Data2); i++) {
+        guid.Data2 = (guid.Data2 << 8) | md5_hash[offset++];
+    }
+    for (unsigned i = 0; i < sizeof(guid.Data3); i++) {
+        guid.Data3 = (guid.Data3 << 8) | md5_hash[offset++];
+    }
+    for (unsigned i = 0; i < 8; i++) {
+        guid.Data4[i] = md5_hash[offset++];
+    }
+    return guid;
+}
+
 #endif
 
 /*
@@ -263,7 +292,7 @@ int main(int argc, char **argv) {
 
 #ifdef _WIN32
     HINSTANCE instance = GetModuleHandle(NULL);
-    GUID guid = {.Data1 = 129256, .Data2 = 19238, .Data3 = 31293};
+    const GUID guid = getGUID();
 #endif
 
     /* stop other instances of this process if any.
