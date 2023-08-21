@@ -40,6 +40,6 @@ extern int web_server();
 /*
  * start UDP server listening for broadcast packets
  */
-extern void udp_server(const unsigned short);
+extern void udp_server();
 
 #endif  // SERVERS_H_

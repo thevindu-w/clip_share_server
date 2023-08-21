@@ -153,7 +153,7 @@ static void kill_other_processes(const char *prog_name) {
 
 static DWORD WINAPI udpThreadFn(void *arg) {
     (void)arg;
-    udp_server(configuration.app_port);
+    udp_server();
     return EXIT_SUCCESS;
 }
 
@@ -374,7 +374,7 @@ int main(int argc, char **argv) {
     puts("Server Started");
     pid_t p_scan = fork();
     if (p_scan == 0) {
-        udp_server(app_port);
+        udp_server();
         return 0;
     }
 

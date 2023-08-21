@@ -31,7 +31,7 @@
 
 /* wrapper for malloc that checks for errors */
 void *xcmalloc(size_t size) {
-    if (!size) error_exit("malloc failed");
+    if (!size) error_exit("malloc zero");
     void *mem;
 
     mem = malloc(size);
@@ -42,7 +42,7 @@ void *xcmalloc(size_t size) {
 
 /* wrapper for realloc that checks for errors */
 void *xcrealloc(void *ptr, size_t size) {
-    if (!size) error_exit("realloc failed");
+    if (!size) error_exit("realloc zero");
     void *mem;
 
     mem = realloc(ptr, size);
