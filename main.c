@@ -53,13 +53,7 @@ config configuration;
 static void print_usage(const char *);
 static void kill_other_processes(const char *);
 
-static void print_usage(const char *prog_name) {
-#ifdef NO_WEB
-    fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-R] [-p app_port]\n", prog_name);
-#else
-    fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-R] [-p app_port] [-w web_port]\n", prog_name);
-#endif
-}
+static void print_usage(const char *prog_name) { fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-R]\n", prog_name); }
 
 #ifdef __linux__
 /*
@@ -224,22 +218,24 @@ int main(int argc, char **argv) {
 
     configuration = parse_conf("clipshare.conf");
 
-    // Parse args
+    // Apply defaults
     int stop = 0;
-    int restart = configuration.restart >= 0 ? configuration.restart : 1;
+    if (configuration.restart <= 0) configuration.restart = 1;
+    if (configuration.app_port <= 0) configuration.app_port = APP_PORT;
+    if (configuration.insecure_mode_enabled <= 0) configuration.insecure_mode_enabled = 1;
+    if (configuration.app_port_secure <= 0) configuration.app_port_secure = APP_PORT_SECURE;
+    if (configuration.secure_mode_enabled <= 0) configuration.secure_mode_enabled = 0;
+#ifndef NO_WEB
+    if (configuration.web_port <= 0) configuration.web_port = WEB_PORT;
+    if (configuration.web_mode_enabled <= 0) configuration.web_mode_enabled = 0;
+#endif
 #ifdef _WIN32
     if (configuration.tray_icon < 0) configuration.tray_icon = 1;
-#endif
-    unsigned short app_port = configuration.app_port > 0 ? configuration.app_port : APP_PORT;
-    unsigned short app_port_secure =
-        configuration.app_port_secure > 0 ? configuration.app_port_secure : APP_PORT_SECURE;
-#ifndef NO_WEB
-    unsigned short web_port = configuration.web_port > 0 ? configuration.web_port : WEB_PORT;
 #endif
 
     // Parse command line arguments
     int opt;
-    while ((opt = getopt(argc, argv, "hsrRp:w:")) != -1) {
+    while ((opt = getopt(argc, argv, "hsrR")) != -1) {
         switch (opt) {
             case 'h': {  // help
                 print_usage(prog_name);
@@ -251,37 +247,13 @@ int main(int argc, char **argv) {
                 break;
             }
             case 'r': {  // restart
-                restart = 1;
+                configuration.restart = 1;
                 break;
             }
             case 'R': {  // no-restart
-                restart = 0;
+                configuration.restart = 0;
                 break;
             }
-            case 'p': {  // app port
-                char *endptr;
-                app_port = (unsigned short)strtol(optarg, &endptr, 10);
-                if (*endptr != '\0' || endptr == optarg) {
-                    fprintf(stderr, "Invalid app port %s\n", optarg);
-                    print_usage(prog_name);
-                    clear_config(&configuration);
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            }
-#ifndef NO_WEB
-            case 'w': {  // web port
-                char *endptr;
-                web_port = (unsigned short)strtol(optarg, &endptr, 10);
-                if (*endptr != '\0' || endptr == optarg) {
-                    fprintf(stderr, "Invalid web port %s\n", optarg);
-                    print_usage(prog_name);
-                    clear_config(&configuration);
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            }
-#endif
             default: {
                 print_usage(prog_name);
                 clear_config(&configuration);
@@ -297,7 +269,7 @@ int main(int argc, char **argv) {
 
     /* stop other instances of this process if any.
     Stop this process if stop flag is set */
-    if (stop || restart) {
+    if (stop || configuration.restart) {
 #ifdef _WIN32
         NOTIFYICONDATAA notifyIconData = {
             .cbSize = sizeof(NOTIFYICONDATAA), .hWnd = NULL, .uFlags = NIF_GUID, .guidItem = guid};
@@ -311,16 +283,6 @@ int main(int argc, char **argv) {
             exit(EXIT_SUCCESS);
         }
     }
-
-    configuration.app_port = app_port;
-    configuration.insecure_mode_enabled =
-        configuration.insecure_mode_enabled >= 0 ? configuration.insecure_mode_enabled : 1;
-    configuration.app_port_secure = app_port_secure;
-    configuration.secure_mode_enabled = configuration.secure_mode_enabled >= 0 ? configuration.secure_mode_enabled : 0;
-#ifndef NO_WEB
-    configuration.web_port = web_port;
-    configuration.web_mode_enabled = configuration.web_mode_enabled >= 0 ? configuration.web_mode_enabled : 0;
-#endif
 
     if (configuration.working_dir) {
         if (!is_directory(configuration.working_dir, 1)) {
