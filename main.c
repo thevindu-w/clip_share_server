@@ -125,6 +125,13 @@ static void kill_other_processes(const char *prog_name) {
 
 #elif _WIN32
 
+#define TRAY_CB_MSG (WM_USER + 0x100)
+
+static volatile HINSTANCE instance = NULL;
+static volatile HWND hWnd = NULL;
+static volatile GUID guid = {0};
+static volatile char running = 1;
+
 /*
  * Attempts to kill all other processes with the name, prog_name.
  */
@@ -171,7 +178,7 @@ static DWORD WINAPI webThreadFn(void *arg) {
 }
 #endif
 
-static inline GUID getGUID() {
+static inline void setGUID() {
     char file_path[1024];
     GetModuleFileName(NULL, (char *)file_path, 1024);
     unsigned char md5_hash[EVP_MAX_MD_SIZE];
@@ -182,7 +189,6 @@ static inline GUID getGUID() {
     EVP_DigestUpdate(context, file_path, strnlen(file_path, 1023));
     EVP_DigestFinal_ex(context, md5_hash, &md_len);
     EVP_MD_CTX_free(context);
-    GUID guid = {0};
     unsigned offset = 0;
     for (unsigned i = 0; i < sizeof(guid.Data1); i++) {
         guid.Data1 = (guid.Data1 << 8) | md5_hash[offset++];
@@ -196,7 +202,59 @@ static inline GUID getGUID() {
     for (unsigned i = 0; i < 8; i++) {
         guid.Data4[i] = md5_hash[offset++];
     }
-    return guid;
+}
+
+static inline void show_tray_icon() {
+    NOTIFYICONDATA notifyIconData;
+    if (configuration.tray_icon) {
+        notifyIconData = (NOTIFYICONDATA){.hWnd = hWnd,
+                                          .uFlags = NIF_ICON | NIF_TIP | NIF_SHOWTIP | NIF_MESSAGE | NIF_GUID,
+                                          .uCallbackMessage = TRAY_CB_MSG,
+                                          .uVersion = NOTIFYICON_VERSION_4,
+                                          .hIcon = LoadIcon(instance, MAKEINTRESOURCE(APP_ICON)),
+                                          .guidItem = guid};
+        notifyIconData.cbSize = sizeof(notifyIconData);
+        snprintf_check(notifyIconData.szTip, 64, "ClipShare");
+        Shell_NotifyIcon(NIM_DELETE, &notifyIconData);
+        Shell_NotifyIcon(NIM_ADD, &notifyIconData);
+        Shell_NotifyIcon(NIM_SETVERSION, &notifyIconData);
+    }
+}
+
+static inline void remove_tray_icon() {
+    NOTIFYICONDATA notifyIconData = {
+        .cbSize = sizeof(NOTIFYICONDATA), .hWnd = NULL, .uFlags = NIF_GUID, .guidItem = guid};
+    Shell_NotifyIcon(NIM_DELETE, &notifyIconData);
+    if (hWnd) DestroyWindow(hWnd);
+}
+
+LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    switch (msg) {
+        case WM_COMMAND: {
+            remove_tray_icon();
+            running = 0;
+            break;
+        }
+        case TRAY_CB_MSG: {
+            switch (LOWORD(lParam)) {
+                case NIN_SELECT:
+                case NIN_KEYSELECT:
+                case WM_CONTEXTMENU: {
+                    const int IDM_EXIT = 100;
+                    POINT pt;
+                    GetCursorPos(&pt);
+                    HMENU hmenu = CreatePopupMenu();
+                    InsertMenu(hmenu, 0, MF_BYPOSITION | MF_STRING, IDM_EXIT, TEXT("Stop"));
+                    SetForegroundWindow(hWnd);
+                    TrackPopupMenu(hmenu, TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_BOTTOMALIGN, pt.x, pt.y, 0, hWnd, NULL);
+                    PostMessage(hWnd, WM_NULL, 0, 50);
+                    return 0;
+                }
+            }
+            break;
+        }
+    }
+    return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
 #endif
@@ -263,17 +321,16 @@ int main(int argc, char **argv) {
     }
 
 #ifdef _WIN32
-    HINSTANCE instance = GetModuleHandle(NULL);
-    const GUID guid = getGUID();
+    // initialize instance and guid
+    instance = GetModuleHandle(NULL);
+    setGUID();
 #endif
 
     /* stop other instances of this process if any.
     Stop this process if stop flag is set */
     if (stop || configuration.restart) {
 #ifdef _WIN32
-        NOTIFYICONDATAA notifyIconData = {
-            .cbSize = sizeof(NOTIFYICONDATAA), .hWnd = NULL, .uFlags = NIF_GUID, .guidItem = guid};
-        Shell_NotifyIconA(NIM_DELETE, &notifyIconData);
+        remove_tray_icon();
 #endif
         kill_other_processes(prog_name);
         const char *msg = stop ? "Server Stopped" : "Server Restarting...";
@@ -381,25 +438,31 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    NOTIFYICONDATAA notifyIconData;
     if (configuration.tray_icon) {
         char CLASSNAME[] = "clip";
-        WNDCLASS wc = {.lpfnWndProc = DefWindowProc, .hInstance = instance, .lpszClassName = CLASSNAME};
+        WNDCLASS wc = {.lpfnWndProc = (WNDPROC)WindowProc, .hInstance = instance, .lpszClassName = CLASSNAME};
         RegisterClass(&wc);
-        notifyIconData = (NOTIFYICONDATAA){
-            .cbSize = sizeof(NOTIFYICONDATAA),
-            .hWnd = CreateWindowEx(0, CLASSNAME, "clipshare", 0, 0, 0, 0, 0, NULL, NULL, instance, NULL),
-            .uFlags = NIF_ICON | NIF_TIP | NIF_GUID,
-            .hIcon = LoadIcon(instance, MAKEINTRESOURCE(APP_ICON)),
-            .guidItem = guid};
-        snprintf_check(notifyIconData.szTip, 64, "ClipShare");
-        Shell_NotifyIconA(NIM_DELETE, &notifyIconData);
-        Shell_NotifyIconA(NIM_ADD, &notifyIconData);
+        hWnd = CreateWindowEx(0, CLASSNAME, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, instance, NULL);
+        show_tray_icon();
     }
+
     HANDLE udpThread = CreateThread(NULL, 0, udpThreadFn, NULL, 0, NULL);
     if (udpThread == NULL) {
 #ifdef DEBUG_MODE
         error("UDP thread creation failed");
+#endif
+    }
+
+    if (configuration.tray_icon) {
+        MSG msg = {};
+        while (running && GetMessage(&msg, NULL, 0, 0)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+        if (insecureThread != NULL) TerminateThread(insecureThread, 0);
+        if (secureThread != NULL) TerminateThread(secureThread, 0);
+#ifndef NO_WEB
+        if (webThread != NULL) TerminateThread(webThread, 0);
 #endif
     }
 
@@ -408,10 +471,8 @@ int main(int argc, char **argv) {
 #ifndef NO_WEB
     if (webThread != NULL) WaitForSingleObject(webThread, INFINITE);
 #endif
-    if (configuration.tray_icon) {
-        Shell_NotifyIconA(NIM_DELETE, &notifyIconData);
-        if (notifyIconData.hWnd) DestroyWindow(notifyIconData.hWnd);
-    }
+
+    remove_tray_icon();
     CloseHandle(instance);
 #endif
     clear_config(&configuration);
