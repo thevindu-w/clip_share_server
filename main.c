@@ -296,7 +296,7 @@ int main(int argc, char **argv) {
     while ((opt = getopt(argc, argv, "hsrR")) != -1) {
         switch (opt) {
             case 'h': {  // help
-                print_usage(prog_name);
+                print_usage(argv[0]);
                 clear_config(&configuration);
                 exit(EXIT_SUCCESS);
             }
@@ -313,7 +313,7 @@ int main(int argc, char **argv) {
                 break;
             }
             default: {
-                print_usage(prog_name);
+                print_usage(argv[0]);
                 clear_config(&configuration);
                 exit(EXIT_FAILURE);
             }

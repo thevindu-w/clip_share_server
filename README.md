@@ -159,6 +159,24 @@ The following files should be created and placed in the `cert_keys/` directory a
 - On Linux, if you start the program from the terminal, it should return immediately (the server will continue to run in the background).
 - If something goes wrong, it will create a `server_err.log` file. That file will contain what went wrong.
 
+#### Command line options
+```
+./clip_share [-h] [-s] [-r] [-R]
+
+  -h     Help       - Display usage and exit.
+
+  -s     Stop       - Stop all instances of the server if any.
+
+  -r     Restart    - Stop other instances of the server if any,
+                      and restart the server. This option takes
+                      precedence over the restart value in the
+                      configuration file.
+
+  -R     No-Restart - Start the server without restarting. This
+                      option takes precedence over the restart
+                      value in the configuration file.
+```
+
 ### Connect the client application
 
 You can find an Android client app in [releases](https://github.com/thevindu-w/clip_share_client/releases). You can also get it from [apt.izzysoft.de](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare/). The source of the Android client app is available at [github.com/thevindu-w/clip_share_client](https://github.com/thevindu-w/clip_share_client). Or you may develop a client app according to the protocol specification described in the `docs/`.<br>
