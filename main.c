@@ -53,7 +53,14 @@ config configuration;
 static void print_usage(const char *);
 static void kill_other_processes(const char *);
 
-static void print_usage(const char *prog_name) { fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-R]\n", prog_name); }
+static void print_usage(const char *prog_name) {
+#ifdef _WIN32
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$", "w", stderr);
+    }
+#endif
+    fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-R]\n", prog_name);
+}
 
 #ifdef __linux__
 /*
