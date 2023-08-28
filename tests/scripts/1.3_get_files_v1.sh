@@ -25,6 +25,7 @@ cd ..
 
 shopt -s nullglob
 file_list=(original/*)
+shopt -u nullglob
 copy_files "${file_list[@]}"
 
 proto=$(printf "\x01" | bin2hex)
