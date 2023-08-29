@@ -361,7 +361,7 @@ int xcin(Display *dpy, Window *win, XEvent evt, Atom *pty, Atom target, const un
             if (evt.xproperty.state != PropertyDelete) return 0;
 
             /* set the chunk length to the maximum size */
-            chunk_len = chunk_size;
+            chunk_len = (unsigned long)chunk_size;
 
             /* if a chunk length of maximum size would extend
              * beyond the end of txt, set the length to be the
@@ -389,7 +389,7 @@ int xcin(Display *dpy, Window *win, XEvent evt, Atom *pty, Atom target, const un
             /* all data has been sent, break out of the loop */
             if (!chunk_len) *context = XCLIB_XCIN_NONE;
 
-            *pos += chunk_size;
+            *pos += (unsigned long)chunk_size;
 
             /* if chunk_len == 0, we just finished the transfer,
              * return 1

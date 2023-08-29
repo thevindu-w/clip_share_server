@@ -100,12 +100,12 @@ static inline void load_file(const char *file_name, char **ptr) {
         fclose(file_ptr);
         return;
     }
-    char *buf = (char *)malloc(len + 1);
+    char *buf = (char *)malloc((size_t)len + 1);
     if (!buf) {
         fclose(file_ptr);
         return;
     }
-    ssize_t sz = (ssize_t)fread(buf, 1, len, file_ptr);
+    ssize_t sz = (ssize_t)fread(buf, 1, (size_t)len, file_ptr);
     if (sz < len) {
         fclose(file_ptr);
         free(buf);

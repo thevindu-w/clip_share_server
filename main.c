@@ -45,8 +45,10 @@
 #define APP_PORT 4337
 // tcp
 #define APP_PORT_SECURE 4338
+#ifndef NO_WEB
 // tcp
 #define WEB_PORT 4339
+#endif
 
 config configuration;
 
@@ -364,7 +366,7 @@ int main(int argc, char **argv) {
         }
         char *new_work_dir = getcwd(NULL, 0);
         if (old_work_dir == NULL || new_work_dir == NULL) {
-            char *err = "Error occured during changing working directory.";
+            const char *err = "Error occured during changing working directory.";
             fprintf(stderr, "%s\n", err);
             error_exit(err);
         }

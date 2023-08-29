@@ -18,6 +18,7 @@
 
 #include "./config.h"
 #include "./globals.h"
+#include "./servers.h"
 #include "utils/net_utils.h"
 #include "utils/utils.h"
 
@@ -80,7 +81,7 @@ static void receiver_web(socket_t *sock) {
                                       // parameter is optional
                 return;
             if (say(tmp, sock) != EXIT_SUCCESS) return;
-            if (write_sock(sock, blob_page, blob_size_page) != EXIT_SUCCESS) return;
+            if (write_sock(sock, blob_page, (size_t)blob_size_page) != EXIT_SUCCESS) return;
         } else if (!strcmp(path, "/clip")) {
             size_t len;
             char *clip_buf;
@@ -127,7 +128,7 @@ static void receiver_web(socket_t *sock) {
         while (1) {
             r = read_sock_no_wait(sock, buf, 256);
             if (r > 0) {
-                memcpy(ptr, buf, r);
+                memcpy(ptr, buf, (size_t)r);
                 ptr += r;
                 *ptr = 0;
                 if (ptr - headers >= len - 256) break;
@@ -165,7 +166,7 @@ static void receiver_web(socket_t *sock) {
         char *data_end_ptr = data + strnlen(data, data_len + 1);
         while (data_end_ptr - data < (long)data_len) {
             if ((r = read_sock_no_wait(sock, buf, 256)) > 0) {
-                memcpy(data_end_ptr, buf, r);
+                memcpy(data_end_ptr, buf, (size_t)r);
                 data_end_ptr += r;
                 *data_end_ptr = 0;
                 cnt = 0;
@@ -196,7 +197,7 @@ static DWORD WINAPI webServerThreadFn(void *arg) {
 }
 #endif
 
-int web_server() {
+int web_server(void) {
     if (configuration.allowed_clients == NULL || configuration.allowed_clients->len <= 0 ||
         configuration.web_port <= 0 || configuration.priv_key == NULL || configuration.server_cert == NULL ||
         configuration.ca_cert == NULL) {

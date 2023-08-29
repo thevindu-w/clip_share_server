@@ -34,12 +34,12 @@ extern int clip_share(const int is_secure);
 /*
  * Start TCP web server.
  */
-extern int web_server();
+extern int web_server(void);
 #endif
 
 /*
  * start UDP server listening for broadcast packets
  */
-extern void udp_server();
+extern void udp_server(void);
 
 #endif  // SERVERS_H_

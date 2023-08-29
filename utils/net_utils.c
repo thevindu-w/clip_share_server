@@ -207,7 +207,7 @@ int bind_port(listener_t listener, unsigned short port) {
     }
     if (bind(socket, (const struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         char errmsg[32];
-        char *tcp_udp = listener.type == UDP_SOCK ? "UDP" : "TCP";
+        const char *tcp_udp = listener.type == UDP_SOCK ? "UDP" : "TCP";
         snprintf_check(errmsg, 32, "Can\'t bind to %s port %hu", tcp_udp, port);
         error(errmsg);
         return EXIT_FAILURE;
@@ -337,7 +337,7 @@ int read_sock(socket_t *socket, char *buf, size_t size) {
                 return EXIT_FAILURE;
         }
         if (r > 0) {
-            read += r;
+            read += (size_t)r;
             cnt = 0;
             ptr += r;
         } else {
@@ -388,7 +388,7 @@ int write_sock(socket_t *socket, const char *buf, size_t size) {
                 return EXIT_FAILURE;
         }
         if (r > 0) {
-            written += r;
+            written += (size_t)r;
             cnt = 0;
             ptr += r;
         } else if (r == 0) {
@@ -412,7 +412,7 @@ int send_size(socket_t *socket, ssize_t size) {
     char sz_buf[8];
     ssize_t sz = size;
     for (int i = sizeof(sz_buf) - 1; i >= 0; i--) {
-        sz_buf[i] = sz & 0xff;
+        sz_buf[i] = (char)(sz & 0xff);
         sz >>= 8;
     }
     return write_sock(socket, sz_buf, sizeof(sz_buf));

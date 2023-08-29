@@ -63,7 +63,7 @@ int get_text_v1(socket_t *socket) {
         free(buf);
         return EXIT_FAILURE;
     }
-    if (send_size(socket, length) == EXIT_FAILURE) {
+    if (send_size(socket, (ssize_t)length) == EXIT_FAILURE) {
         free(buf);
         return EXIT_FAILURE;
     }
@@ -84,8 +84,8 @@ int send_text_v1(socket_t *socket) {
     // limit maximum length to 4 MiB
     if (length <= 0 || length > MAX_TEXT_LENGTH) return EXIT_FAILURE;
 
-    char *data = malloc(length + 1);
-    if (read_sock(socket, data, length) == EXIT_FAILURE) {
+    char *data = malloc((size_t)length + 1);
+    if (read_sock(socket, data, (size_t)length) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
         fputs("Read data failed\n", stderr);
 #endif
@@ -97,7 +97,7 @@ int send_text_v1(socket_t *socket) {
 #ifdef DEBUG_MODE
     if (length < 1024) puts(data);
 #endif
-    put_clipboard_text(data, length);
+    put_clipboard_text(data, (size_t)length);
     free(data);
     return EXIT_SUCCESS;
 }
@@ -123,7 +123,7 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
         return EXIT_FAILURE;
     }
 
-    if (send_size(socket, file_cnt) == EXIT_FAILURE) {
+    if (send_size(socket, (ssize_t)file_cnt) == EXIT_FAILURE) {
         free_list(file_list);
         return EXIT_FAILURE;
     }
@@ -157,6 +157,7 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
         }
 
         const size_t _tmp_len = strnlen(tmp_fname, MAX_FILE_NAME_LENGTH);
+        if (_tmp_len > MAX_FILE_NAME_LENGTH) error_exit("Too long file name.");
         char filename[_tmp_len + 1];
         strncpy(filename, tmp_fname, _tmp_len);
         filename[_tmp_len] = 0;
@@ -184,7 +185,7 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
             continue;
         }
 
-        if (send_size(socket, fname_len) == EXIT_FAILURE) {
+        if (send_size(socket, (ssize_t)fname_len) == EXIT_FAILURE) {
             fclose(fp);
             free_list(file_list);
             return EXIT_FAILURE;
@@ -219,7 +220,7 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
                     free_list(file_list);
                     return EXIT_FAILURE;
                 }
-                file_size -= read;
+                file_size -= (ssize_t)read;
             }
         }
         fclose(fp);
@@ -251,7 +252,7 @@ static int _save_file_common(socket_t *socket, const char *file_name) {
 
     char data[FILE_BUF_SZ];
     while (file_size) {
-        size_t read_len = file_size < FILE_BUF_SZ ? file_size : FILE_BUF_SZ;
+        size_t read_len = file_size < FILE_BUF_SZ ? (size_t)file_size : FILE_BUF_SZ;
         if (read_sock(socket, data, read_len) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
             puts("recieve error");
@@ -265,7 +266,7 @@ static int _save_file_common(socket_t *socket, const char *file_name) {
             remove(file_name);
             return EXIT_FAILURE;
         }
-        file_size -= read_len;
+        file_size -= (ssize_t)read_len;
     }
 
     fclose(file);
@@ -286,9 +287,10 @@ int send_file_v1(socket_t *socket) {
         return EXIT_FAILURE;
     }
 
-    const int name_max_len = (int)(name_length + 16);
+    const size_t name_max_len = (size_t)(name_length + 16);
+    if (name_max_len > MAX_FILE_NAME_LENGTH) error_exit("Too long file name.");
     char file_name[name_max_len + 1];
-    if (read_sock(socket, file_name, name_length) == EXIT_FAILURE) {
+    if (read_sock(socket, file_name, (size_t)name_length) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
         fputs("Read file name failed\n", stderr);
 #endif
@@ -300,7 +302,7 @@ int send_file_v1(socket_t *socket) {
         const char *base_name = strrchr(file_name, '/');  // path separator is / when communicating with the client
         if (base_name) {
             base_name++;  // don't want the '/' before the file name
-            memmove(file_name, base_name, strnlen(base_name, name_length) + 1);  // overlapping memory area
+            memmove(file_name, base_name, strnlen(base_name, (size_t)name_length) + 1);  // overlapping memory area
         }
 #if PATH_SEP != '/'
         if (strchr(file_name, PATH_SEP))  // file name can't contain PATH_SEP
@@ -351,7 +353,7 @@ int get_image_v1(socket_t *socket) {
         free(buf);
         return EXIT_FAILURE;
     }
-    if (send_size(socket, length) == EXIT_FAILURE) {
+    if (send_size(socket, (ssize_t)length) == EXIT_FAILURE) {
         free(buf);
         return EXIT_FAILURE;
     }
@@ -366,7 +368,7 @@ int get_image_v1(socket_t *socket) {
 int info_v1(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
     const size_t len = strlen(INFO_NAME);
-    if (send_size(socket, len) == EXIT_FAILURE) {
+    if (send_size(socket, (ssize_t)len) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
         fprintf(stderr, "send length failed\n");
 #endif
@@ -395,7 +397,7 @@ static int save_file(socket_t *socket, const char *dirname) {
     if (name_length < 0 || name_length > MAX_FILE_NAME_LENGTH) return EXIT_FAILURE;
 
     char file_name[name_length + 1];
-    if (read_sock(socket, file_name, name_length) != EXIT_SUCCESS) {
+    if (read_sock(socket, file_name, (size_t)name_length) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         fputs("Read file name failed\n", stderr);
 #endif
@@ -416,9 +418,9 @@ static int save_file(socket_t *socket, const char *dirname) {
 
     char new_path[name_length + 20];
     if (file_name[0] == PATH_SEP) {
-        if (snprintf_check(new_path, (int)(name_length + 20), "%s%s", dirname, file_name)) return EXIT_FAILURE;
+        if (snprintf_check(new_path, (size_t)(name_length + 20), "%s%s", dirname, file_name)) return EXIT_FAILURE;
     } else {
-        if (snprintf_check(new_path, (int)(name_length + 20), "%s%c%s", dirname, PATH_SEP, file_name))
+        if (snprintf_check(new_path, (size_t)(name_length + 20), "%s%c%s", dirname, PATH_SEP, file_name))
             return EXIT_FAILURE;
     }
 
@@ -472,7 +474,8 @@ int send_files_v2(socket_t *socket) {
     int status = EXIT_SUCCESS;
     for (size_t i = 0; i < files->len; i++) {
         char *filename = files->array[i];
-        const int name_len = (int)strnlen(filename, MAX_FILE_NAME_LENGTH);
+        const size_t name_len = strnlen(filename, MAX_FILE_NAME_LENGTH);
+        if (name_len > MAX_FILE_NAME_LENGTH) error_exit("Too long file name.");
         char old_path[name_len + 20];
         if (snprintf_check(old_path, name_len + 20, "%s%c%s", dirname, PATH_SEP, filename)) {
             status = EXIT_FAILURE;

@@ -32,7 +32,7 @@ OBJS_C=main.o clip_share.o udp_serve.o proto/server.o proto/versions.o proto/met
 _WEB_OBJS_C=clip_share_web.o
 _WEB_OBJS_S=page_blob.o
 
-CFLAGS=-c -pipe -Wall -Wextra --std=gnu11 -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=2
+CFLAGS=-c -pipe -Wall -Wextra -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wshift-overflow=2 -Wswitch-default -Wstrict-overflow=4 -Wstringop-overflow -Walloc-zero -Wconversion -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wexpansion-to-defined -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wjump-misses-init -Wlogical-op -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Wvla-larger-than=65536 -Woverlength-strings --std=gnu11 -fstack-protector -fstack-protector-all -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=2
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 
 OTHER_DEPENDENCIES=
@@ -53,6 +53,7 @@ ifeq ($(detected_OS),Windows)
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
 	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB).exe
 endif
+CFLAGS_OPTIM+= -Werror
 
 OBJS=$(OBJS_C)
 
@@ -65,10 +66,10 @@ DEBUG_OBJS_S=$(_WEB_OBJS_S:.o=_debug.o)
 DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_S)
 
 $(PROGRAM_NAME): $(OBJS) $(OTHER_DEPENDENCIES)
-	gcc $^ -no-pie $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
+	gcc -Werror $^ -no-pie $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
 
 $(PROGRAM_NAME_WEB): $(WEB_OBJS) $(OTHER_DEPENDENCIES)
-	gcc $^ -no-pie $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
+	gcc -Werror $^ -no-pie $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
 
 $(OBJS_C): %.o: %.c
 	gcc $(CFLAGS_OPTIM) $(CFLAGS) -DNO_WEB -fno-pie $^ -o $@

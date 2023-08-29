@@ -66,7 +66,7 @@ typedef struct _dir_files {
  * returns 1 if snprintf failed or truncated
  * returns 0 otherwise
  */
-int snprintf_check(char *dest, int size, const char *fmt, ...);
+int snprintf_check(char *dest, size_t size, const char *fmt, ...);
 
 /*
  * Append error message to error log file
@@ -89,7 +89,7 @@ extern int get_clipboard_text(char **bufptr, size_t *lenptr);
  * Reads len bytes of text from the data buffer and copies it into the clipboard.
  * returns EXIT_SUCCESS on success and EXIT_FAILURE on failure.
  */
-extern int put_clipboard_text(const char *data, const size_t len);
+extern int put_clipboard_text(char *data, size_t len);
 
 /*
  * Get copied image from clipboard. If there is no image, get a screenshot instead.

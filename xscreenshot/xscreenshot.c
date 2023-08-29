@@ -3,6 +3,8 @@
  * 2022 Modified by H. Thevindu J. Wijesekera
  */
 
+#include "./xscreenshot.h"
+
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -22,7 +24,7 @@ static void convertrow_lsb(unsigned char *drow, const unsigned char *srow, const
     int sx;
     int dx;
 
-    for (sx = 0, dx = 0; sx <= bytes_per_line - 3; sx += bytes_per_pixel) {
+    for (sx = 0, dx = 0; sx + 3 <= bytes_per_line; sx += bytes_per_pixel) {
         drow[dx++] = srow[sx + 2]; /* B -> R */
         drow[dx++] = srow[sx + 1]; /* G -> G */
         drow[dx++] = srow[sx];     /* R -> B */
@@ -36,7 +38,7 @@ static void convertrow_msb(unsigned char *drow, const unsigned char *srow, const
     int sx;
     int dx;
 
-    for (sx = 0, dx = 0; sx <= bytes_per_line - 3; sx += bytes_per_pixel) {
+    for (sx = 0, dx = 0; sx + 3 <= bytes_per_line; sx += bytes_per_pixel) {
         drow[dx++] = srow[sx + 1]; /* G -> R */
         drow[dx++] = srow[sx + 2]; /* B -> G */
         drow[dx++] = srow[sx + 3]; /* A -> B */
@@ -68,12 +70,12 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len) {
     fake_file.size = 0;
     png_init_io(png_write_p, (png_FILE_p)&fake_file);
     png_set_write_fn(png_write_p, &fake_file, png_mem_write_data, NULL);
-    png_set_IHDR(png_write_p, png_info_p, img->width, img->height, 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
-                 PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_BASE);
+    png_set_IHDR(png_write_p, png_info_p, (png_uint_32)(img->width), (png_uint_32)(img->height), 8, PNG_COLOR_TYPE_RGB,
+                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_BASE);
     png_write_info(png_write_p, png_info_p);
 
     srow = (unsigned char *)img->data;
-    drow = malloc(img->width * 4); /* output RGBA */
+    drow = malloc((size_t)(img->width) * 4); /* output RGBA */
     if (!drow) {
         png_destroy_write_struct(&png_write_p, &png_info_p);
         *len = 0;
@@ -118,7 +120,7 @@ int screenshot_util(size_t *len, char **buf) {
     XGrabServer(dpy);
     XGetWindowAttributes(dpy, win, &attr);
 
-    img = XGetImage(dpy, win, 0, 0, attr.width, attr.height, 0xffffffff, ZPixmap);
+    img = XGetImage(dpy, win, 0, 0, (unsigned int)(attr.width), (unsigned int)(attr.height), 0xffffffff, ZPixmap);
 
     XUngrabServer(dpy);
     XCloseDisplay(dpy);

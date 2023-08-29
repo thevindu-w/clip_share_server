@@ -45,7 +45,7 @@
 typedef int socklen_t;
 #endif
 
-void udp_server() {
+void udp_server(void) {
     if (configuration.app_port <= 0) return;
 
     listener_t listener = open_listener_socket(UDP_SOCK, NULL, NULL, NULL);

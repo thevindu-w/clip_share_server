@@ -32,7 +32,7 @@
 
 #include "../globals.h"
 #include "../xclip/xclip.h"
-#include "../xscreenshot/screenshot.h"
+#include "../xscreenshot/xscreenshot.h"
 #include "./list_utils.h"
 #include "./utils.h"
 
@@ -41,12 +41,12 @@
 #define ERROR_LOG_FILE "server_err.log"
 #define RECURSE_DEPTH_MAX 256
 
-int snprintf_check(char *dest, int size, const char *fmt, ...) {
+int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     int ret = vsnprintf(dest, size, fmt, ap);
     va_end(ap);
-    return (ret < 0 || ret > size);
+    return (ret < 0 || ret > (long)size);
 }
 
 void error(const char *msg) {
@@ -118,6 +118,7 @@ int mkdirs(const char *dir_path) {
     }
 
     size_t len = strnlen(dir_path, 2047);
+    if (len > 2048) error_exit("Too long file name.");
     char path[len + 1];
     strncpy(path, dir_path, len);
     path[len] = 0;
@@ -198,6 +199,7 @@ static void recurse_dir(const char *_path, list2 *lst, int depth) {
     DIR *d = opendir(_path);
     if (d) {
         size_t p_len = strnlen(_path, 2047);
+        if (p_len > 2048) error_exit("Too long file name.");
         char path[p_len + 2];
         strncpy(path, _path, p_len + 1);
         path[p_len + 1] = 0;
@@ -210,9 +212,10 @@ static void recurse_dir(const char *_path, list2 *lst, int depth) {
             const char *filename = dir->d_name;
             if (!(strcmp(filename, ".") && strcmp(filename, ".."))) continue;
             const size_t _fname_len = strlen(filename);
+            if (_fname_len + p_len > 2048) error_exit("Too long file name.");
             char pathname[_fname_len + p_len + 1];
             strncpy(pathname, path, p_len);
-            strncpy(pathname + p_len, filename, _fname_len);
+            strncpy(pathname + p_len, filename, _fname_len+1);
             pathname[p_len + _fname_len] = 0;
             struct stat sb;
 #ifdef __linux__
@@ -238,7 +241,7 @@ static void recurse_dir(const char *_path, list2 *lst, int depth) {
 #ifdef __linux__
 
 static int url_decode(char *);
-static char *get_copied_files_as_str();
+static char *get_copied_files_as_str(void);
 
 int get_clipboard_text(char **buf_ptr, size_t *len_ptr) {
     *buf_ptr = NULL;
@@ -252,8 +255,8 @@ int get_clipboard_text(char **buf_ptr, size_t *len_ptr) {
     return EXIT_SUCCESS;
 }
 
-int put_clipboard_text(const char *data, const size_t len) {
-    if (xclip_util(XCLIP_IN, NULL, (size_t *)&len, (char **)&data) != EXIT_SUCCESS) {
+int put_clipboard_text(char *data, size_t len) {
+    if (xclip_util(XCLIP_IN, NULL, &len, &data) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         fputs("Failed to write to clipboard\n", stderr);
 #endif
@@ -283,13 +286,13 @@ int get_image(char **buf_ptr, size_t *len_ptr) {
 }
 
 static inline char hex2char(char h) {
-    if ('0' <= h && h <= '9') return h - '0';
-    if ('A' <= h && h <= 'F') return h - 'A' + 10;
-    if ('a' <= h && h <= 'f') return h - 'a' + 10;
+    if ('0' <= h && h <= '9') return (char)((int)h - '0');
+    if ('A' <= h && h <= 'F') return (char)((int)h - 'A' + 10);
+    if ('a' <= h && h <= 'f') return (char)((int)h - 'a' + 10);
     return -1;
 }
 
-static char *get_copied_files_as_str() {
+static char *get_copied_files_as_str(void) {
     const char *const expected_target = "x-special/gnome-copied-files";
     char *targets;
     size_t targets_len;
@@ -372,7 +375,7 @@ static int url_decode(char *str) {
     return EXIT_SUCCESS;
 }
 
-list2 *get_copied_files() {
+list2 *get_copied_files(void) {
     char *fnames = get_copied_files_as_str();
     if (!fnames) {
         return NULL;
@@ -419,7 +422,7 @@ list2 *get_copied_files() {
     return lst;
 }
 
-dir_files get_copied_dirs_files() {
+dir_files get_copied_dirs_files(void) {
     dir_files ret;
     ret.lst = NULL;
     ret.path_len = 0;
@@ -451,7 +454,7 @@ dir_files get_copied_dirs_files() {
         if (i == 0) {
             const char *sep_ptr = strrchr(fname, PATH_SEP);
             if (sep_ptr > fname) {
-                ret.path_len = sep_ptr - fname + 1;
+                ret.path_len = (size_t)sep_ptr - (size_t)fname + 1;
             }
         }
 
@@ -526,7 +529,7 @@ int get_image(char **buf_ptr, size_t *len_ptr) {
     return EXIT_FAILURE;
 }
 
-list2 *get_copied_files() {
+list2 *get_copied_files(void) {
     if (!OpenClipboard(0)) return NULL;
     if (!IsClipboardFormatAvailable(CF_HDROP)) {
         CloseClipboard();
@@ -577,7 +580,7 @@ list2 *get_copied_files() {
     return lst;
 }
 
-dir_files get_copied_dirs_files() {
+dir_files get_copied_dirs_files(void) {
     dir_files ret;
     ret.lst = NULL;
     ret.path_len = 0;

@@ -1,5 +1,5 @@
-#ifndef XSCREENSHOT_SCREENSHOT_H_
-#define XSCREENSHOT_SCREENSHOT_H_
+#ifndef XSCREENSHOT_XSCREENSHOT_H_
+#define XSCREENSHOT_XSCREENSHOT_H_
 
 #include <stdlib.h>
 
@@ -9,6 +9,6 @@
  * this will set the size of the buffer in bytes
  * returns -1 if an error occured
  */
-extern int screenshot_util(size_t *, char **);
+extern int screenshot_util(size_t *len, char **buf);
 
-#endif  // XSCREENSHOT_SCREENSHOT_H_
+#endif  // XSCREENSHOT_XSCREENSHOT_H_
