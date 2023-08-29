@@ -94,6 +94,10 @@ void udp_server(void) {
         if (strcmp(buffer, "in")) {
             continue;
         }
+#ifdef _WIN32
+        sendto(sockfd, INFO_NAME, (int)info_len, MSG_CONFIRM, (const struct sockaddr *)&cliaddr, len);
+#else
         sendto(sockfd, INFO_NAME, info_len, MSG_CONFIRM, (const struct sockaddr *)&cliaddr, len);
+#endif
     }
 }

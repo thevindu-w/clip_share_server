@@ -215,7 +215,7 @@ static void recurse_dir(const char *_path, list2 *lst, int depth) {
             if (_fname_len + p_len > 2048) error_exit("Too long file name.");
             char pathname[_fname_len + p_len + 1];
             strncpy(pathname, path, p_len);
-            strncpy(pathname + p_len, filename, _fname_len+1);
+            strncpy(pathname + p_len, filename, _fname_len + 1);
             pathname[p_len + _fname_len] = 0;
             struct stat sb;
 #ifdef __linux__
@@ -510,7 +510,7 @@ int get_clipboard_text(char **bufptr, size_t *lenptr) {
     return EXIT_SUCCESS;
 }
 
-int put_clipboard_text(const char *data, const size_t len) {
+int put_clipboard_text(char *data, size_t len) {
     HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len + 1);
     memcpy(GlobalLock(hMem), data, len + 1);
     GlobalUnlock(hMem);
@@ -546,7 +546,7 @@ list2 *get_copied_files(void) {
         return NULL;
     }
 
-    size_t file_cnt = DragQueryFile(hDrop, -1, NULL, MAX_PATH);
+    size_t file_cnt = DragQueryFile(hDrop, (UINT)(-1), NULL, MAX_PATH);
 
     if (file_cnt <= 0) {
         GlobalUnlock(hGlobal);
@@ -563,7 +563,7 @@ list2 *get_copied_files(void) {
     char fileName[MAX_PATH + 1];
     for (size_t i = 0; i < file_cnt; i++) {
         fileName[0] = '\0';
-        DragQueryFile(hDrop, i, fileName, MAX_PATH);
+        DragQueryFile(hDrop, (UINT)i, fileName, MAX_PATH);
         DWORD attr = GetFileAttributes(fileName);
         DWORD dontWant =
             FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_DEVICE | FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_OFFLINE;
@@ -601,7 +601,7 @@ dir_files get_copied_dirs_files(void) {
         return ret;
     }
 
-    size_t file_cnt = DragQueryFile(hDrop, -1, NULL, MAX_PATH);
+    size_t file_cnt = DragQueryFile(hDrop, (UINT)(-1), NULL, MAX_PATH);
 
     if (file_cnt <= 0) {
         GlobalUnlock(hGlobal);
@@ -618,7 +618,7 @@ dir_files get_copied_dirs_files(void) {
     char fileName[MAX_PATH + 1];
     for (size_t i = 0; i < file_cnt; i++) {
         fileName[0] = '\0';
-        DragQueryFile(hDrop, i, fileName, MAX_PATH);
+        DragQueryFile(hDrop, (UINT)i, fileName, MAX_PATH);
         DWORD attr = GetFileAttributes(fileName);
         DWORD dontWant = FILE_ATTRIBUTE_DEVICE | FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_OFFLINE;
         if (attr & dontWant) {
@@ -630,7 +630,7 @@ dir_files get_copied_dirs_files(void) {
         if (i == 0) {
             char *sep_ptr = strrchr(fileName, PATH_SEP);
             if (sep_ptr > fileName) {
-                ret.path_len = sep_ptr - fileName + 1;
+                ret.path_len = (size_t)(sep_ptr - fileName + 1);
             }
         }
         if (attr & FILE_ATTRIBUTE_DIRECTORY) {

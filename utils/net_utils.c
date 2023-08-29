@@ -249,7 +249,11 @@ socket_t get_connection(listener_t listener, const list2 *allowed_clients) {
         case SSL_SOCK: {
             SSL_CTX *ctx = listener.ctx;
             SSL *ssl = SSL_new(ctx);
+#ifdef _WIN32
+            SSL_set_fd(ssl, (int)connect_d);
+#else
             SSL_set_fd(ssl, connect_d);
+#endif
             /* do SSL-protocol accept */
             int accept_st;
             while ((accept_st = SSL_accept(ssl)) != 1) { /* do SSL-protocol accept */
@@ -300,8 +304,12 @@ void close_socket(socket_t *socket) {
         }
 
         case SSL_SOCK: {
+#ifdef _WIN32
+            sock_t sd = (sock_t)SSL_get_fd(socket->socket.ssl); /* get socket connection */
+#else
             sock_t sd = SSL_get_fd(socket->socket.ssl); /* get socket connection */
-            SSL_free(socket->socket.ssl);               /* release SSL state */
+#endif
+            SSL_free(socket->socket.ssl); /* release SSL state */
 #ifdef __linux__
             close(sd);
 #elif _WIN32
@@ -324,7 +332,11 @@ int read_sock(socket_t *socket, char *buf, size_t size) {
         ssize_t r;
         switch (socket->type) {
             case PLAIN_SOCK: {
+#ifdef _WIN32
+                r = recv(socket->socket.plain, ptr, (int)(size - read), 0);
+#else
                 r = recv(socket->socket.plain, ptr, size - read, 0);
+#endif
                 break;
             }
 
@@ -355,7 +367,11 @@ int read_sock(socket_t *socket, char *buf, size_t size) {
 int read_sock_no_wait(socket_t *socket, char *buf, size_t size) {
     switch (socket->type) {
         case PLAIN_SOCK: {
+#ifdef _WIN32
+            return recv(socket->socket.plain, buf, (int)size, 0);
+#else
             return (int)recv(socket->socket.plain, buf, size, 0);
+#endif
         }
 
         case SSL_SOCK: {
@@ -375,7 +391,11 @@ int write_sock(socket_t *socket, const char *buf, size_t size) {
         ssize_t r;
         switch (socket->type) {
             case PLAIN_SOCK: {
+#ifdef _WIN32
+                r = send(socket->socket.plain, ptr, (int)size, 0);
+#else
                 r = send(socket->socket.plain, ptr, size, 0);
+#endif
                 break;
             }
 

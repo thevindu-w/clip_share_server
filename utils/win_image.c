@@ -54,7 +54,8 @@ static void write_image(HBITMAP hBitmap3, char **buf_ptr, size_t *len_ptr) {
     HDC hDC;
     int iBits;
     WORD wBitCount;
-    DWORD dwPaletteSize = 0, dwBmBitsSize = 0;
+    DWORD dwPaletteSize = 0;
+    DWORD dwBmBitsSize = 0;
     BITMAP Bitmap0;
     BITMAPINFOHEADER bi;
     LPBITMAPINFOHEADER lpbi;
@@ -82,7 +83,7 @@ static void write_image(HBITMAP hBitmap3, char **buf_ptr, size_t *len_ptr) {
     bi.biYPelsPerMeter = 0;
     bi.biClrImportant = 0;
     bi.biClrUsed = 256;
-    dwBmBitsSize = ((Bitmap0.bmWidth * wBitCount + 31) & ~31) / 8 * Bitmap0.bmHeight;
+    dwBmBitsSize = (DWORD)(((Bitmap0.bmWidth * wBitCount + 31) & ~31) / 8 * Bitmap0.bmHeight);
     hDib = GlobalAlloc(GHND, dwBmBitsSize + dwPaletteSize + sizeof(BITMAPINFOHEADER));
     lpbi = (LPBITMAPINFOHEADER)GlobalLock(hDib);
     *lpbi = bi;
@@ -97,10 +98,10 @@ static void write_image(HBITMAP hBitmap3, char **buf_ptr, size_t *len_ptr) {
               (BITMAPINFO *)lpbi, DIB_RGB_COLORS);
 
     RGBBitmap rgbBitmap;
-    rgbBitmap.bytes_per_pixel = wBitCount / 8;
-    rgbBitmap.width = Bitmap0.bmWidth;
-    rgbBitmap.height = Bitmap0.bmHeight;
-    rgbBitmap.bytewidth = ((Bitmap0.bmWidth * wBitCount + 31) & ~31) / 8;
+    rgbBitmap.bytes_per_pixel = (uint8_t)(wBitCount / 8);
+    rgbBitmap.width = (size_t)Bitmap0.bmWidth;
+    rgbBitmap.height = (size_t)Bitmap0.bmHeight;
+    rgbBitmap.bytewidth = (size_t)(((Bitmap0.bmWidth * wBitCount + 31) & ~31) / 8);
     rgbBitmap.pixels = (RGBPixel *)((LPSTR)lpbi + sizeof(BITMAPINFOHEADER) + dwPaletteSize);
     write_png_to_mem(&rgbBitmap, buf_ptr, len_ptr);
     GlobalUnlock(hDib);
@@ -156,8 +157,8 @@ static int write_png_to_mem(RGBBitmap *bitmap, char **buf_ptr, size_t *len_ptr) 
     }
 
     /* Set image attributes. */
-    png_set_IHDR(png_ptr, info_ptr, bitmap->width, bitmap->height, 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
-                 PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+    png_set_IHDR(png_ptr, info_ptr, (png_uint_32)bitmap->width, (png_uint_32)bitmap->height, 8, PNG_COLOR_TYPE_RGB,
+                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 
     /* Initialize rows of PNG. */
     row_pointers = png_malloc(png_ptr, bitmap->height * sizeof(png_byte *));

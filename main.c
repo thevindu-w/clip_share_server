@@ -187,7 +187,7 @@ static DWORD WINAPI webThreadFn(void *arg) {
 }
 #endif
 
-static inline void setGUID() {
+static inline void setGUID(void) {
     char file_path[1024];
     GetModuleFileName(NULL, (char *)file_path, 1024);
     unsigned char md5_hash[EVP_MAX_MD_SIZE];
@@ -213,7 +213,7 @@ static inline void setGUID() {
     }
 }
 
-static inline void show_tray_icon() {
+static inline void show_tray_icon(void) {
     NOTIFYICONDATA notifyIconData;
     if (configuration.tray_icon) {
         notifyIconData = (NOTIFYICONDATA){.hWnd = hWnd,
@@ -230,14 +230,14 @@ static inline void show_tray_icon() {
     }
 }
 
-static inline void remove_tray_icon() {
+static inline void remove_tray_icon(void) {
     NOTIFYICONDATA notifyIconData = {
         .cbSize = sizeof(NOTIFYICONDATA), .hWnd = NULL, .uFlags = NIF_GUID, .guidItem = guid};
     Shell_NotifyIcon(NIM_DELETE, &notifyIconData);
     if (hWnd) DestroyWindow(hWnd);
 }
 
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+static LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
         case WM_COMMAND: {
             remove_tray_icon();
@@ -249,21 +249,25 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                 case NIN_SELECT:
                 case NIN_KEYSELECT:
                 case WM_CONTEXTMENU: {
-                    const int IDM_EXIT = 100;
                     POINT pt;
                     GetCursorPos(&pt);
                     HMENU hmenu = CreatePopupMenu();
-                    InsertMenu(hmenu, 0, MF_BYPOSITION | MF_STRING, IDM_EXIT, TEXT("Stop"));
-                    SetForegroundWindow(hWnd);
-                    TrackPopupMenu(hmenu, TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_BOTTOMALIGN, pt.x, pt.y, 0, hWnd, NULL);
-                    PostMessage(hWnd, WM_NULL, 0, 50);
+                    InsertMenu(hmenu, 0, MF_BYPOSITION | MF_STRING, 100, TEXT("Stop"));
+                    SetForegroundWindow(window);
+                    TrackPopupMenu(hmenu, TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_BOTTOMALIGN, pt.x, pt.y, 0, window,
+                                   NULL);
+                    PostMessage(window, WM_NULL, 0, 50);
                     return 0;
                 }
+                default:
+                    break;
             }
             break;
         }
+        default:
+            break;
     }
-    return DefWindowProc(hWnd, msg, wParam, lParam);
+    return DefWindowProc(window, msg, wParam, lParam);
 }
 
 #endif
