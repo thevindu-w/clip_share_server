@@ -73,14 +73,18 @@ void server(socket_t *socket) {
     switch (version) {
         case 0:  // version 0 is for testing purposes
             break;
+#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
         case 1: {
             version_1(socket);
             break;
         }
+#endif
+#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
         case 2: {
             version_2(socket);
             break;
         }
+#endif
         default:  // invalid or unknown version
             break;
     }
