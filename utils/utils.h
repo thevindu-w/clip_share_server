@@ -66,7 +66,7 @@ typedef struct _dir_files {
  * returns 1 if snprintf failed or truncated
  * returns 0 otherwise
  */
-int snprintf_check(char *dest, size_t size, const char *fmt, ...);
+int snprintf_check(char *dest, size_t size, const char *fmt, ...) __attribute__((__format__(printf, 3, 4)));
 
 /*
  * Append error message to error log file
@@ -128,6 +128,7 @@ extern int file_exists(const char *file_name);
  */
 extern int is_directory(const char *path, int follow_symlinks);
 
+#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
 /*
  * Creates the directory given by the path and all its parent directories if missing.
  * Will not delete any existing files or directories.
@@ -148,6 +149,7 @@ extern list2 *list_dir(const char *dirname);
  * returns directories and files on success and set the path_len to 0 and file list to NULL on failure.
  */
 extern dir_files get_copied_dirs_files(void);
+#endif
 
 /*
  * The function to be used as png write data function in libpng to write the

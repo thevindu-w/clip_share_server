@@ -41,7 +41,7 @@
 #define ERROR_LOG_FILE "server_err.log"
 #define RECURSE_DEPTH_MAX 256
 
-int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
+__attribute__((__format__(printf, 3, 4))) int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     int ret = vsnprintf(dest, size, fmt, ap);
@@ -107,6 +107,7 @@ int is_directory(const char *path, int follow_symlinks) {
     return 0;
 }
 
+#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
 int mkdirs(const char *dir_path) {
     if (dir_path[0] != '.') return EXIT_FAILURE;  // path must be relative and start with .
 
@@ -167,6 +168,7 @@ list2 *list_dir(const char *dirname) {
     }
     return NULL;
 }
+#endif
 
 void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) {
     struct mem_file *p = (struct mem_file *)png_get_io_ptr(png_ptr);
@@ -189,6 +191,7 @@ void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) 
     p->size += length;
 }
 
+#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
 /*
  * Recursively append all file paths in the directory and its subdirectories
  * to the list.
@@ -237,6 +240,7 @@ static void recurse_dir(const char *_path, list2 *lst, int depth) {
 #endif
     }
 }
+#endif
 
 #ifdef __linux__
 
@@ -422,6 +426,7 @@ list2 *get_copied_files(void) {
     return lst;
 }
 
+#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
 dir_files get_copied_dirs_files(void) {
     dir_files ret;
     ret.lst = NULL;
@@ -484,6 +489,7 @@ dir_files get_copied_dirs_files(void) {
     free(fnames);
     return ret;
 }
+#endif
 
 #elif _WIN32
 
@@ -580,6 +586,7 @@ list2 *get_copied_files(void) {
     return lst;
 }
 
+#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
 dir_files get_copied_dirs_files(void) {
     dir_files ret;
     ret.lst = NULL;
@@ -643,5 +650,6 @@ dir_files get_copied_dirs_files(void) {
     CloseClipboard();
     return ret;
 }
+#endif
 
 #endif

@@ -364,6 +364,7 @@ int read_sock(socket_t *socket, char *buf, size_t size) {
     return EXIT_SUCCESS;
 }
 
+#ifndef NO_WEB
 int read_sock_no_wait(socket_t *socket, char *buf, size_t size) {
     switch (socket->type) {
         case PLAIN_SOCK: {
@@ -382,6 +383,7 @@ int read_sock_no_wait(socket_t *socket, char *buf, size_t size) {
             return -1;
     }
 }
+#endif
 
 int write_sock(socket_t *socket, const char *buf, size_t size) {
     int cnt = 0;

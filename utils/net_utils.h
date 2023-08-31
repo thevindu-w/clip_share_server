@@ -100,6 +100,7 @@ extern void close_socket(socket_t *socket);
  */
 extern int read_sock(socket_t *socket, char *buf, size_t num);
 
+#ifndef NO_WEB
 /*
  * Reads num bytes from the socket into buf.
  * buf should be writable and should have a capacitiy of at least num bytes.
@@ -108,6 +109,7 @@ extern int read_sock(socket_t *socket, char *buf, size_t num);
  * returns -1 on error.
  */
 extern int read_sock_no_wait(socket_t *socket, char *buf, size_t num);
+#endif
 
 /*
  * Writes num bytes from buf to the socket.

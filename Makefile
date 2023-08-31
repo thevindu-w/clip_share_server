@@ -36,7 +36,7 @@ CFLAGS=-c -pipe -Wall -Wextra -Wdouble-promotion -Wformat-nonliteral -Wformat-se
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 
 OTHER_DEPENDENCIES=
-LINK_FLAGS_BUILD=
+LINK_FLAGS_BUILD=-Wl,-s,--gc-sections
 
 ifeq ($(detected_OS),Linux)
 	OBJS_C+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o

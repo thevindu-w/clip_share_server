@@ -229,11 +229,6 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
     return status;
 }
 
-int get_files_v1(socket_t *socket) {
-    list2 *file_list = get_copied_files();
-    return _get_files_common(1, socket, file_list, 0);
-}
-
 /*
  * Common function to save files in send_files method of v1 and v2.
  */
@@ -275,6 +270,12 @@ static int _save_file_common(socket_t *socket, const char *file_name) {
     printf("file saved : %s\n", file_name);
 #endif
     return EXIT_SUCCESS;
+}
+
+#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+int get_files_v1(socket_t *socket) {
+    list2 *file_list = get_copied_files();
+    return _get_files_common(1, socket, file_list, 0);
 }
 
 int send_file_v1(socket_t *socket) {
@@ -333,6 +334,7 @@ int send_file_v1(socket_t *socket) {
 
     return _save_file_common(socket, file_name);
 }
+#endif
 
 int get_image_v1(socket_t *socket) {
     size_t length = 0;
@@ -383,6 +385,7 @@ int info_v1(socket_t *socket) {
     return EXIT_SUCCESS;
 }
 
+#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
 int get_files_v2(socket_t *socket) {
     dir_files copied_dir_files = get_copied_dirs_files();
     return _get_files_common(2, socket, copied_dir_files.lst, copied_dir_files.path_len);
@@ -518,3 +521,4 @@ int send_files_v2(socket_t *socket) {
     if (status == EXIT_SUCCESS && rmdir(dirname)) status = EXIT_FAILURE;
     return status;
 }
+#endif
