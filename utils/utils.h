@@ -66,7 +66,7 @@ typedef struct _dir_files {
  * returns 1 if snprintf failed or truncated
  * returns 0 otherwise
  */
-int snprintf_check(char *dest, size_t size, const char *fmt, ...) __attribute__((__format__(printf, 3, 4)));
+int snprintf_check(char *dest, size_t size, const char *fmt, ...) __attribute__((__format__(gnu_printf, 3, 4)));
 
 /*
  * Append error message to error log file

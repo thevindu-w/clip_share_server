@@ -41,7 +41,7 @@
 #define ERROR_LOG_FILE "server_err.log"
 #define RECURSE_DEPTH_MAX 256
 
-__attribute__((__format__(printf, 3, 4))) int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
+__attribute__((__format__(gnu_printf, 3, 4))) int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     int ret = vsnprintf(dest, size, fmt, ap);
