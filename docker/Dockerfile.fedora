@@ -18,21 +18,19 @@ RUN mkdir -p "$HOME/src"
 WORKDIR "$HOME/src"
 
 # Copy the source files
-COPY --chown=user:user Makefile clip_share.c clip_share_web.c config.c main.c udp_serve.c config.h globals.h servers.h page_blob.S ./
-COPY --chown=user:user ./html html
-COPY --chown=user:user ./proto proto
-COPY --chown=user:user ./utils utils
-COPY --chown=user:user ./win_getopt win_getopt
-COPY --chown=user:user ./winres winres
-COPY --chown=user:user ./xclip xclip
-COPY --chown=user:user ./xscreenshot xscreenshot
+COPY Makefile clip_share.c clip_share_web.c config.c main.c udp_serve.c config.h globals.h servers.h page_blob.S ./
+COPY ./html html
+RUN mkdir proto utils xclip xscreenshot
+COPY ./proto/*.c ./proto/*.h proto/
+COPY ./utils/*.c ./utils/*.h utils/
+COPY ./xclip/*.c ./xclip/*.h xclip/
+COPY ./xscreenshot/*.c ./xscreenshot/*.h xscreenshot/
 
 # Build
 RUN make clean && make && make web
 
 # Prepare the test environment initialization script
-COPY --chown=user:user ./docker/run_docker.sh docker/
-RUN chmod +x docker/run_docker.sh
+COPY --chmod=755 ./docker/run_docker.sh docker/
 COPY --chown=user:user ./tests tests
 
 CMD ["docker/run_docker.sh"]

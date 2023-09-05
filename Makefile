@@ -36,7 +36,7 @@ CFLAGS=-c -pipe -Wall -Wextra -Wdouble-promotion -Wformat-nonliteral -Wformat-se
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 
 OTHER_DEPENDENCIES=
-LINK_FLAGS_BUILD=-Wl,-s,--gc-sections
+LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections
 
 ifeq ($(detected_OS),Linux)
 	OBJS_C+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
@@ -66,10 +66,10 @@ DEBUG_OBJS_S=$(_WEB_OBJS_S:.o=_debug.o)
 DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_S)
 
 $(PROGRAM_NAME): $(OBJS) $(OTHER_DEPENDENCIES)
-	gcc -Werror $^ -no-pie $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
+	gcc -Werror $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
 
 $(PROGRAM_NAME_WEB): $(WEB_OBJS) $(OTHER_DEPENDENCIES)
-	gcc -Werror $^ -no-pie $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
+	gcc -Werror $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
 
 $(OBJS_C): %.o: %.c
 	gcc $(CFLAGS_OPTIM) $(CFLAGS) -DNO_WEB -fno-pie $^ -o $@
