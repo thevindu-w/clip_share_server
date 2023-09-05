@@ -157,7 +157,7 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
         }
 
         const size_t _tmp_len = strnlen(tmp_fname, MAX_FILE_NAME_LENGTH);
-        if (_tmp_len > MAX_FILE_NAME_LENGTH) error_exit("Too long file name.");
+        if (_tmp_len > MAX_FILE_NAME_LENGTH) error_exit("Too long file name.")
         char filename[_tmp_len + 1];
         strncpy(filename, tmp_fname, _tmp_len);
         filename[_tmp_len] = 0;
@@ -289,7 +289,7 @@ int send_file_v1(socket_t *socket) {
     }
 
     const size_t name_max_len = (size_t)(name_length + 16);
-    if (name_max_len > MAX_FILE_NAME_LENGTH) error_exit("Too long file name.");
+    if (name_max_len > MAX_FILE_NAME_LENGTH) error_exit("Too long file name.")
     char file_name[name_max_len + 1];
     if (read_sock(socket, file_name, (size_t)name_length) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
@@ -478,7 +478,7 @@ int send_files_v2(socket_t *socket) {
     for (size_t i = 0; i < files->len; i++) {
         char *filename = files->array[i];
         const size_t name_len = strnlen(filename, MAX_FILE_NAME_LENGTH);
-        if (name_len > MAX_FILE_NAME_LENGTH) error_exit("Too long file name.");
+        if (name_len > MAX_FILE_NAME_LENGTH) error_exit("Too long file name.")
         char old_path[name_len + 20];
         if (snprintf_check(old_path, name_len + 20, "%s%c%s", dirname, PATH_SEP, filename)) {
             status = EXIT_FAILURE;

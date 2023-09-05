@@ -8,7 +8,7 @@ if '-r' in sys.argv[1:]:
         if tmp:
             val=int(tmp + s, 16)
             bval=val.to_bytes(1, 'big')
-            assert type(bval)==bytes
+            assert isinstance(bval, bytes)
             assert len(bval)==1
             sys.stdout.buffer.write(bval)
             tmp = ''

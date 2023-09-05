@@ -361,20 +361,20 @@ int main(int argc, char **argv) {
             char err[3072];
             snprintf_check(err, 3072, "Not existing working directory \'%s\'", configuration.working_dir);
             fprintf(stderr, "%s\n", err);
-            error_exit(err);
+            error_exit(err)
         }
         char *old_work_dir = getcwd(NULL, 0);
         if (chdir(configuration.working_dir)) {
             char err[3072];
             snprintf_check(err, 3072, "Failed changing working directory to \'%s\'", configuration.working_dir);
             fprintf(stderr, "%s\n", err);
-            error_exit(err);
+            error_exit(err)
         }
         char *new_work_dir = getcwd(NULL, 0);
         if (old_work_dir == NULL || new_work_dir == NULL) {
             const char *err = "Error occured during changing working directory.";
             fprintf(stderr, "%s\n", err);
-            error_exit(err);
+            error_exit(err)
         }
         // if the working directory did not change, set configuration.working_dir to NULL
         if (!strcmp(old_work_dir, new_work_dir)) {

@@ -25,6 +25,7 @@
             width: 100%;
         }
 
+        th,
         td {
             vertical-align: middle;
             text-align: center;
@@ -63,10 +64,11 @@
 <body>
     <textarea id="txt"></textarea><br>
     <table>
+        <caption>Function buttons</caption>
         <tr>
-            <td><button id="getbtn" class="btn" onclick="getbtnclk()">Get</button></td>
-            <td><button id="sendbtn" class="btn" onclick="sendbtnclk()">Send</button></td>
-            <td><a href="/img" target="_blank"><button id="imgbtn" class="btn">Image</button></a></td>
+            <th><button id="getbtn" class="btn" onclick="getbtnclk()">Get</button></th>
+            <th><button id="sendbtn" class="btn" onclick="sendbtnclk()">Send</button></th>
+            <th><a href="/img" target="_blank"><button id="imgbtn" class="btn">Image</button></a></th>
         </tr>
         <tr>
             <td><input type="checkbox" class="chkbox" id="getchk"></td>
@@ -95,7 +97,7 @@
                 navigator.clipboard.readText().then(text => {
                     txtbox.value = text;
                     sendText(text);
-                }).catch(reason => { alert("You should allow clipboard access for " + host); });
+                }).catch(reason => {alert("You should allow clipboard access for " + host);});
             } else {
                 alert("You should allow clipboard access for " + host + ".\nOr paste the text here to send.");
                 sendText(txtbox.value);
@@ -109,7 +111,7 @@
                     if (text === '') return;
                     txtbox.value = text;
                     if (navigator.clipboard?.writeText) {
-                        navIigator.clipboard.writeText(text).catch(reason => { alert("You should allow clipboard access for " + host); });
+                        navIigator.clipboard.writeText(text).catch(reason => {alert("You should allow clipboard access for " + host);});
                     } else {
                         alert("You should allow clipboard access for " + host + ".\nOr copy the text manually.");
                     }

@@ -167,7 +167,10 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
         *address_ptr = htonl(INADDR_ANY);
         return EXIT_SUCCESS;
     }
-    unsigned int a, b, c, d;
+    unsigned int a;
+    unsigned int b;
+    unsigned int c;
+    unsigned int d;
     if (sscanf(address_str, "%u.%u.%u.%u", &a, &b, &c, &d) != 4 || a >= 256 || b >= 256 || c >= 256 || d >= 256) {
 #ifdef DEBUG_MODE
         printf("Invalid address %s\n", address_str);

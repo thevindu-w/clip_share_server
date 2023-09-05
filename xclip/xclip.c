@@ -132,7 +132,7 @@ static int doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_optio
                     out_buf = xcrealloc(out_buf, out_capacity);
                 }
                 if ((ssize_t)(out_capacity - out_len) >= 0 &&
-                    !snprintf_check(out_buf + out_len, (size_t)(out_capacity - out_len), "%s\n", atom_name))
+                    !snprintf_check(out_buf + out_len, out_capacity - out_len, "%s\n", atom_name))
                     out_len += atom_name_len + 1;
                 XFree(atom_name);
             }

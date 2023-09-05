@@ -119,7 +119,7 @@ int mkdirs(const char *dir_path) {
     }
 
     size_t len = strnlen(dir_path, 2047);
-    if (len > 2048) error_exit("Too long file name.");
+    if (len > 2048) error_exit("Too long file name.")
     char path[len + 1];
     strncpy(path, dir_path, len);
     path[len] = 0;
@@ -202,7 +202,7 @@ static void recurse_dir(const char *_path, list2 *lst, int depth) {
     DIR *d = opendir(_path);
     if (d) {
         size_t p_len = strnlen(_path, 2047);
-        if (p_len > 2048) error_exit("Too long file name.");
+        if (p_len > 2048) error_exit("Too long file name.")
         char path[p_len + 2];
         strncpy(path, _path, p_len + 1);
         path[p_len + 1] = 0;
@@ -215,7 +215,7 @@ static void recurse_dir(const char *_path, list2 *lst, int depth) {
             const char *filename = dir->d_name;
             if (!(strcmp(filename, ".") && strcmp(filename, ".."))) continue;
             const size_t _fname_len = strlen(filename);
-            if (_fname_len + p_len > 2048) error_exit("Too long file name.");
+            if (_fname_len + p_len > 2048) error_exit("Too long file name.")
             char pathname[_fname_len + p_len + 1];
             strncpy(pathname, path, p_len);
             strncpy(pathname + p_len, filename, _fname_len + 1);
