@@ -1,7 +1,7 @@
 /*
  *  xclib.c - xclip library to look after xlib mechanics for xclip
  *  Copyright (C) 2001 Kim Saunders
- *  Copyright (C) 2007-2008 Peter Åstrand
+ *  Copyright (C) 2007-2022 Peter Åstrand
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ *  2022-2023 Modified by H. Thevindu J. Wijesekera
  */
 
 #include "./xclib.h"
@@ -133,7 +135,7 @@ int xcout(Display *dpy, Window win, XEvent evt, Atom sel, Atom target, Atom *typ
             /* find the size and format of the data in property */
             XGetWindowProperty(dpy, win, pty, 0, 0, False, AnyPropertyType, type, &pty_format, &pty_items, &pty_size,
                                &buffer);
-            XFree(buffer);
+            if (buffer) XFree(buffer);
 
             if (*type == inc) {
                 /* start INCR mechanism by deleting property */
@@ -162,7 +164,7 @@ int xcout(Display *dpy, Window win, XEvent evt, Atom sel, Atom target, Atom *typ
             *txt = ltxt;
 
             /* free the buffer */
-            XFree(buffer);
+            if (buffer) XFree(buffer);
 
             *context = XCLIB_XCOUT_NONE;
 
@@ -188,7 +190,7 @@ int xcout(Display *dpy, Window win, XEvent evt, Atom sel, Atom target, Atom *typ
 
             if (pty_size == 0) {
                 /* no more data, exit from loop */
-                XFree(buffer);
+                if (buffer) XFree(buffer);
                 XDeleteProperty(dpy, win, pty);
                 *context = XCLIB_XCOUT_NONE;
 
@@ -198,7 +200,7 @@ int xcout(Display *dpy, Window win, XEvent evt, Atom sel, Atom target, Atom *typ
                 return 1;
             }
 
-            XFree(buffer);
+            if (buffer) XFree(buffer);
 
             /* if we have come this far, the propery contains
              * text, we know the size.
@@ -222,7 +224,7 @@ int xcout(Display *dpy, Window win, XEvent evt, Atom sel, Atom target, Atom *typ
             memcpy(&ltxt[*len - pty_machsize], buffer, pty_machsize);
 
             *txt = ltxt;
-            XFree(buffer);
+            if (buffer) XFree(buffer);
 
             /* delete property to get the next item */
             XDeleteProperty(dpy, win, pty);

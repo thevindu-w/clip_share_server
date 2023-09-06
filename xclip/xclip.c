@@ -1,7 +1,7 @@
 /*
  *  xclip.c - command line interface to X server selections
  *  Copyright (C) 2001 Kim Saunders
- *  Copyright (C) 2007-2008 Peter Åstrand
+ *  Copyright (C) 2007-2022 Peter Åstrand
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * 2022 Modified by H. Thevindu J. Wijesekera
+ *  2022-2023 Modified by H. Thevindu J. Wijesekera
  */
 
 #include <stdio.h>
@@ -116,6 +116,12 @@ static int doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_optio
 
         /* fetch the selection, or part of it */
         xcout(options->dpy, win, evt, options->sseln, options->target, &sel_type, &sel_buf, &sel_len, &context);
+
+        if (context == XCLIB_XCOUT_SELECTION_REFUSED) {
+            if (sel_buf) free(sel_buf);
+            *len_ptr = 0;
+            return EXIT_FAILURE;
+        }
 
         if (options->is_targets && sel_type == XA_ATOM) {
             const Atom *atom_buf = (Atom *)sel_buf;

@@ -1,7 +1,7 @@
 /*
  *  xcdef.h - definitions for use throughout xclip
  *  Copyright (C) 2001 Kim Saunders
- *  Copyright (C) 2007-2008 Peter Åstrand
+ *  Copyright (C) 2007-2022 Peter Åstrand
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,22 +15,15 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ *  2022-2023 Modified by H. Thevindu J. Wijesekera
  */
 
 #ifndef XCLIP_XCDEF_H_
 #define XCLIP_XCDEF_H_
 
-/* output level constants */
-#define OSILENT 0
-#define OQUIET 1
-#define OVERBOSE 2
-
 /* generic true/false constants for stuff */
 #define F 0 /* false... */
 #define T 1 /* true...  */
-
-/* true/false string constants */
-#define SF "F" /* false */
-#define ST "T" /* true  */
 
 #endif  // XCLIP_XCDEF_H_

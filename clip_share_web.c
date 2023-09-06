@@ -34,8 +34,6 @@
 #include <windows.h>
 #endif
 
-#define FAIL -1
-
 extern char blob_page[];
 extern int blob_size_page;
 
