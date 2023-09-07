@@ -44,14 +44,7 @@ done
 
 cd ..
 mkdir -p copies
-mv clipshare.conf copies/
-cd copies
-
-# restart the server in new directory
-"../../../$1" -r &>/dev/null &
-
-# remove the conf file
-rm -f clipshare.conf
+update_config working_dir copies
 
 proto=$(printf "\x02" | bin2hex)
 method=$(printf "\x04" | bin2hex)
@@ -69,7 +62,6 @@ if [ "${responseDump}" != "${expected}" ]; then
     exit 1
 fi
 
-cd ..
 rm -f original/server_err.log copies/server_err.log
 
 diffOutput=$(diff -rq original copies 2>&1 || echo failed)

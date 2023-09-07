@@ -13,6 +13,7 @@ dependencies=(
     nc
     timeout
     openssl
+    sed
 )
 
 if [ "$OS" = 'Windows_NT' ]; then
@@ -33,6 +34,8 @@ for dependency in "${dependencies[@]}"; do
         exit 1
     fi
 done
+
+program="$(realpath "../${program}")"
 
 shopt -s expand_aliases
 cur_dir="$(pwd)"
@@ -160,8 +163,17 @@ clear_clipboard() {
     fi
 }
 
+update_config() {
+    key="$1"
+    value="$2"
+    [[ $key =~ ^[A-Za-z0-9_]+$ ]]
+    sed -i -E '/^(\s|#)*'"${key}"'\s*=/c\'"${key}=${value}"'\' clipshare.conf
+    "$program" -r &>/dev/null &
+    sleep 0.1
+}
+
 export DETECTED_OS
-export -f setColor showStatus copy_text get_copied_text copy_files copy_image clear_clipboard
+export -f setColor showStatus copy_text get_copied_text copy_files copy_image clear_clipboard update_config
 
 exitCode=0
 passCnt=0
@@ -171,7 +183,7 @@ for script in scripts/*.sh; do
     passed=
     attempts=3
     for attempt in $(seq "$attempts"); do
-        if timeout 20 "${script}" "$@"; then
+        if timeout 20 "${script}" "$program"; then
             passed=1
             showStatus "${script}" pass
             break
@@ -189,7 +201,7 @@ for script in scripts/*.sh; do
         failCnt=$(("$failCnt" + 1))
         showStatus "${script}" fail
     fi
-    "../${program}" -s &>/dev/null
+    "${program}" -s &>/dev/null
     rm -rf tmp
 done
 
