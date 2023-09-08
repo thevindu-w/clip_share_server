@@ -21,7 +21,7 @@ jobs:
         repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
     - name: Install tools
       run: |
-        sudo apt install cpplint shfmt
+        sudo apt-get update && sudo apt-get install -y --no-install-recommends cpplint shfmt
         sudo wget https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -O /bin/hadolint && sudo chmod +x /bin/hadolint
     - name: Check C code style
       run: cpplint --linelength=120 --filter=-build/include,+build/include_subdir,-runtime/int,-runtime/arrays,-readability/casting,-legal/copyright --recursive .
