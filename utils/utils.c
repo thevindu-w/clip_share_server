@@ -54,13 +54,18 @@ void error(const char *msg) {
     fprintf(stderr, "%s\n", msg);
 #endif
     FILE *f = fopen(ERROR_LOG_FILE, "a");
+    // retry with delays if failed
+    for (unsigned int i = 0; (i < 4) && (f == NULL); i++) {
+        if (usleep(1000 + i * 50000)) break;
+        f = fopen(ERROR_LOG_FILE, "a");
+    }
     if (f) {
         fprintf(f, "%s\n", msg);
         fclose(f);
-    }
 #ifdef __linux__
-    chmod(ERROR_LOG_FILE, S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH);
+        chmod(ERROR_LOG_FILE, S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH);
 #endif
+    }
 }
 
 int file_exists(const char *file_name) {
