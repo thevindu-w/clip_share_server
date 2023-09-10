@@ -164,8 +164,10 @@ The following files should be created and placed in the `cert_keys/` directory a
 ./clip_share [-h] [-s] [-r] [-R]
 
   -h     Help       - Display usage and exit.
+                      This takes priority over all other options.
 
   -s     Stop       - Stop all instances of the server if any.
+                      This takes priority over -r and -R.
 
   -r     Restart    - Stop other instances of the server if any,
                       and restart the server. This option takes
