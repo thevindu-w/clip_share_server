@@ -65,8 +65,9 @@ int clip_share(const int is_secure) {
         }
         port = configuration.app_port;
     }
-    listener_t listener = open_listener_socket((is_secure ? SSL_SOCK : PLAIN_SOCK), configuration.priv_key,
-                                               configuration.server_cert, configuration.ca_cert);
+    listener_t listener;
+    open_listener_socket(&listener, (is_secure ? SSL_SOCK : PLAIN_SOCK), configuration.priv_key,
+                         configuration.server_cert, configuration.ca_cert);
     if (bind_port(listener, port) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
@@ -78,7 +79,8 @@ int clip_share(const int is_secure) {
     signal(SIGCHLD, SIG_IGN);
 #endif
     while (1) {
-        socket_t connect_sock = get_connection(listener, configuration.allowed_clients);
+        socket_t connect_sock;
+        get_connection(&connect_sock, listener, configuration.allowed_clients);
         if (connect_sock.type == NULL_SOCK) {
             close_socket(&connect_sock);
             continue;

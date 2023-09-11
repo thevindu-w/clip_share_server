@@ -48,7 +48,8 @@ typedef int socklen_t;
 void udp_server(void) {
     if (configuration.app_port <= 0) return;
 
-    listener_t listener = open_listener_socket(UDP_SOCK, NULL, NULL, NULL);
+    listener_t listener;
+    open_listener_socket(&listener, UDP_SOCK, NULL, NULL, NULL);
     if (listener.type == NULL_SOCK) {
         error("UDP socket creation failed");
         return;

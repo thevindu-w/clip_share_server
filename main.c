@@ -289,7 +289,7 @@ int main(int argc, char **argv) {
     printf("prog_name=%s\n", prog_name);
 #endif
 
-    configuration = parse_conf("clipshare.conf");
+    parse_conf(&configuration, "clipshare.conf");
 
     // Apply defaults
     int stop = 0;

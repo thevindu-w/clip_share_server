@@ -208,8 +208,8 @@ int web_server(void) {
     signal(SIGCHLD, SIG_IGN);
 #endif
 
-    listener_t listener =
-        open_listener_socket(SSL_SOCK, configuration.priv_key, configuration.server_cert, configuration.ca_cert);
+    listener_t listener;
+    open_listener_socket(&listener, SSL_SOCK, configuration.priv_key, configuration.server_cert, configuration.ca_cert);
     if (bind_port(listener, configuration.web_port) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
@@ -218,7 +218,8 @@ int web_server(void) {
         return EXIT_FAILURE;
     }
     while (1) {
-        socket_t connect_sock = get_connection(listener, configuration.allowed_clients);
+        socket_t connect_sock;
+        get_connection(&connect_sock, listener, configuration.allowed_clients);
         if (connect_sock.type == NULL_SOCK) {
             close_socket(&connect_sock);
             continue;

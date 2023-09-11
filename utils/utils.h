@@ -143,12 +143,13 @@ extern int mkdirs(const char *path);
 extern list2 *list_dir(const char *dirname);
 
 /*
+ * Accepts a valid pointer to a dir_files structure
  * Get copied files and directories from the clipboard.
  * Only regular files are included in the file list.
  * Set the path_len to the length of path name of the directory which the files are copied.
- * returns directories and files on success and set the path_len to 0 and file list to NULL on failure.
+ * Sets directories and files in dfiles_p on success and sets the path_len to 0 and file list to NULL on failure.
  */
-extern dir_files get_copied_dirs_files(void);
+extern void get_copied_dirs_files(dir_files *dfiles_p);
 #endif
 
 /*

@@ -127,38 +127,36 @@ static int getClientCerts(const SSL *ssl, const list2 *allowed_clients) {
     return verified ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-listener_t open_listener_socket(const unsigned char sock_type, const char *priv_key, const char *server_cert,
-                                const char *ca_cert) {
-    listener_t listener;
-    listener.type = NULL_SOCK;
+void open_listener_socket(listener_t *listener, const unsigned char sock_type, const char *priv_key,
+                          const char *server_cert, const char *ca_cert) {
+    listener->type = NULL_SOCK;
 
     sock_t listener_d = socket(PF_INET, (sock_type == UDP_SOCK ? SOCK_DGRAM : SOCK_STREAM), 0);
     if (listener_d == INVALID_SOCKET) {
         error("Can\'t open socket");
-        return listener;
+        return;
     }
-    listener.socket = listener_d;
+    listener->socket = listener_d;
     if (sock_type != SSL_SOCK) {
-        listener.type = sock_type;
-        return listener;
+        listener->type = sock_type;
+        return;
     }
 
     SSL_CTX *ctx;
     SSL_library_init();
     ctx = InitServerCTX();
     if (!ctx) {
-        return listener;
+        return;
     }
     /* load certs and keys */
     if (LoadCertificates(ctx, priv_key, server_cert, ca_cert) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         fputs("Loading certificates failed\n", stderr);
 #endif
-        return listener;
+        return;
     }
-    listener.ctx = ctx;
-    listener.type = SSL_SOCK;
-    return listener;
+    listener->ctx = ctx;
+    listener->type = SSL_SOCK;
 }
 
 int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
@@ -218,10 +216,9 @@ int bind_port(listener_t listener, unsigned short port) {
     return EXIT_SUCCESS;
 }
 
-socket_t get_connection(listener_t listener, const list2 *allowed_clients) {
-    socket_t sock;
-    sock.type = NULL_SOCK;
-    if (listener.type == NULL_SOCK) return sock;
+void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_clients) {
+    sock->type = NULL_SOCK;
+    if (listener.type == NULL_SOCK) return;
     sock_t listener_socket = listener.socket;
     struct sockaddr_in client_addr;
 #ifdef __linux__
@@ -233,19 +230,19 @@ socket_t get_connection(listener_t listener, const list2 *allowed_clients) {
     struct timeval tv = {0, 100000};
     if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) == -1) {  // set timeout option to 100ms
         error("Can't set the timeout option of the connection");
-        return sock;
+        return;
     }
     if (connect_d == INVALID_SOCKET) {
         error("Can\'t open secondary socket");
-        return sock;
+        return;
     }
 #ifdef DEBUG_MODE
     printf("\nConnection: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 #endif
     switch (listener.type) {
         case PLAIN_SOCK: {
-            sock.socket.plain = connect_d;
-            sock.type = PLAIN_SOCK;
+            sock->socket.plain = connect_d;
+            sock->type = PLAIN_SOCK;
             break;
         }
 
@@ -264,7 +261,7 @@ socket_t get_connection(listener_t listener, const list2 *allowed_clients) {
 #ifdef DEBUG_MODE
                     puts("SSL_accept error");
 #endif
-                    return sock;
+                    return;
                 }
                 switch (SSL_get_error(ssl, accept_st)) {
                     case SSL_ERROR_WANT_READ:
@@ -275,16 +272,16 @@ socket_t get_connection(listener_t listener, const list2 *allowed_clients) {
 #ifdef DEBUG_MODE
                         ERR_print_errors_fp(stdout);
 #endif
-                        return sock;
+                        return;
                     }
                 }
             }
-            sock.socket.ssl = ssl;
-            sock.type = SSL_SOCK;
+            sock->socket.ssl = ssl;
+            sock->type = SSL_SOCK;
             if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) {  // get client certificates if any
-                close_socket(&sock);
-                sock.type = NULL_SOCK;
-                return sock;
+                close_socket(sock);
+                sock->type = NULL_SOCK;
+                return;
             }
             break;
         }
@@ -292,7 +289,6 @@ socket_t get_connection(listener_t listener, const list2 *allowed_clients) {
         default:
             break;
     }
-    return sock;
 }
 
 void close_socket(socket_t *socket) {

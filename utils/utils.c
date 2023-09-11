@@ -432,13 +432,12 @@ list2 *get_copied_files(void) {
 }
 
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
-dir_files get_copied_dirs_files(void) {
-    dir_files ret;
-    ret.lst = NULL;
-    ret.path_len = 0;
+void get_copied_dirs_files(dir_files *dfiles_p) {
+    dfiles_p->lst = NULL;
+    dfiles_p->path_len = 0;
     char *fnames = get_copied_files_as_str();
     if (!fnames) {
-        return ret;
+        return;
     }
     char *file_path = fnames + strnlen(fnames, 8);
 
@@ -453,9 +452,9 @@ dir_files get_copied_dirs_files(void) {
     list2 *lst = init_list(file_cnt);
     if (!lst) {
         free(fnames);
-        return ret;
+        return;
     }
-    ret.lst = lst;
+    dfiles_p->lst = lst;
     char *fname = file_path + 1;
     for (size_t i = 0; i < file_cnt; i++) {
         const size_t off = strnlen(fname, 2047) + 1;
@@ -464,7 +463,7 @@ dir_files get_copied_dirs_files(void) {
         if (i == 0) {
             const char *sep_ptr = strrchr(fname, PATH_SEP);
             if (sep_ptr > fname) {
-                ret.path_len = (size_t)sep_ptr - (size_t)fname + 1;
+                dfiles_p->path_len = (size_t)sep_ptr - (size_t)fname + 1;
             }
         }
 
@@ -492,7 +491,6 @@ dir_files get_copied_dirs_files(void) {
         fname += off;
     }
     free(fnames);
-    return ret;
 }
 #endif
 
@@ -592,25 +590,24 @@ list2 *get_copied_files(void) {
 }
 
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
-dir_files get_copied_dirs_files(void) {
-    dir_files ret;
-    ret.lst = NULL;
-    ret.path_len = 0;
+void get_copied_dirs_files(dir_files *dfiles_p) {
+    dfiles_p->lst = NULL;
+    dfiles_p->path_len = 0;
 
-    if (!OpenClipboard(0)) return ret;
+    if (!OpenClipboard(0)) return;
     if (!IsClipboardFormatAvailable(CF_HDROP)) {
         CloseClipboard();
-        return ret;
+        return;
     }
     HGLOBAL hGlobal = (HGLOBAL)GetClipboardData(CF_HDROP);
     if (!hGlobal) {
         CloseClipboard();
-        return ret;
+        return;
     }
     HDROP hDrop = (HDROP)GlobalLock(hGlobal);
     if (!hDrop) {
         CloseClipboard();
-        return ret;
+        return;
     }
 
     size_t file_cnt = DragQueryFile(hDrop, (UINT)(-1), NULL, MAX_PATH);
@@ -618,15 +615,15 @@ dir_files get_copied_dirs_files(void) {
     if (file_cnt <= 0) {
         GlobalUnlock(hGlobal);
         CloseClipboard();
-        return ret;
+        return;
     }
     list2 *lst = init_list(file_cnt);
     if (!lst) {
         GlobalUnlock(hGlobal);
         CloseClipboard();
-        return ret;
+        return;
     }
-    ret.lst = lst;
+    dfiles_p->lst = lst;
     char fileName[MAX_PATH + 1];
     for (size_t i = 0; i < file_cnt; i++) {
         fileName[0] = '\0';
@@ -642,7 +639,7 @@ dir_files get_copied_dirs_files(void) {
         if (i == 0) {
             char *sep_ptr = strrchr(fileName, PATH_SEP);
             if (sep_ptr > fileName) {
-                ret.path_len = (size_t)(sep_ptr - fileName + 1);
+                dfiles_p->path_len = (size_t)(sep_ptr - fileName + 1);
             }
         }
         if (attr & FILE_ATTRIBUTE_DIRECTORY) {
@@ -653,7 +650,6 @@ dir_files get_copied_dirs_files(void) {
     }
     GlobalUnlock(hGlobal);
     CloseClipboard();
-    return ret;
 }
 #endif
 

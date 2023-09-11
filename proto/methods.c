@@ -387,7 +387,8 @@ int info_v1(socket_t *socket) {
 
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
 int get_files_v2(socket_t *socket) {
-    dir_files copied_dir_files = get_copied_dirs_files();
+    dir_files copied_dir_files;
+    get_copied_dirs_files(&copied_dir_files);
     return _get_files_common(2, socket, copied_dir_files.lst, copied_dir_files.path_len);
 }
 

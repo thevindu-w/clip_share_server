@@ -60,12 +60,13 @@ typedef struct _listener_socket_t {
 /*
  * Opens a socket for listening.
  * If sock_type is PLAIN_SOCK, an unencrypted TCP socket is created and SSL context is not initialized. private_key,
- * server_certificate and ca_certificate are not required in that case. If sock_type is SSL_SOCK, an TLS encrypted TCP
- * socket is created and SSL context is initialized with the provided private_key, server_certificate and
- * ca_certificate. Otherwise, a UDP socket is created and SSL context is not initialized. private_key,
  * server_certificate and ca_certificate are not required in that case.
+ * If sock_type is SSL_SOCK, an TLS encrypted TCP socket is created and SSL context is initialized with the provided
+ * private_key, server_certificate and ca_certificate.
+ * Otherwise, a UDP socket is created and SSL context is not initialized. private_key, server_certificate and
+ * ca_certificate are not required in that case.
  */
-extern listener_t open_listener_socket(const unsigned char sock_type, const char *private_key,
+extern void open_listener_socket(listener_t *listener, const unsigned char sock_type, const char *private_key,
                                        const char *server_certificate, const char *ca_certificate);
 
 /*
@@ -85,7 +86,7 @@ extern int bind_port(listener_t listener, unsigned short port);
  * If SSL is enabled, Initialize SSL and authenticates the client,
  * allowed_clients is a list of Common Names of allowed clients.
  */
-extern socket_t get_connection(listener_t listener, const list2 *allowed_clients);
+extern void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_clients);
 
 /*
  * Closes a socket.

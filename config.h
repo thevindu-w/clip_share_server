@@ -46,9 +46,9 @@ typedef struct _config {
 
 /*
  * Parse the config file given by the file_name.
- * Returns the default configuration on error.
+ * Sets the default configuration on error.
  */
-extern config parse_conf(const char *file_name);
+extern void parse_conf(config *cfg, const char *file_name);
 
 /*
  * Clears all the memory allocated in the array type or list2* type elements in the configuration.

@@ -32,7 +32,7 @@ OBJS_C=main.o clip_share.o udp_serve.o proto/server.o proto/versions.o proto/met
 _WEB_OBJS_C=clip_share_web.o
 _WEB_OBJS_S=page_blob.o
 
-CFLAGS=-c -pipe -Wall -Wextra -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wshift-overflow=2 -Wswitch-default -Wstrict-overflow=4 -Wstringop-overflow -Walloc-zero -Wconversion -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wexpansion-to-defined -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wjump-misses-init -Wlogical-op -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Wvla-larger-than=65536 -Woverlength-strings --std=gnu11 -fstack-protector -fstack-protector-all -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=2
+CFLAGS=-c -pipe -Wall -Wextra -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wshift-overflow=2 -Wswitch-default -Wstrict-overflow=4 -Wstringop-overflow -Walloc-zero -Wconversion -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wexpansion-to-defined -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wjump-misses-init -Wlogical-op -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Wvla-larger-than=65536 -Woverlength-strings --std=gnu11 -fstack-protector -fstack-protector-all -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=2
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 
 OTHER_DEPENDENCIES=
