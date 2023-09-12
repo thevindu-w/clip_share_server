@@ -37,13 +37,6 @@
 #define PATH_SEP '\\'
 #endif
 
-#define error_exit(msg)               \
-    {                                 \
-        error(msg);                   \
-        clear_config(&configuration); \
-        exit(1);                      \
-    }
-
 /*
  * In-memory file to write png image
  */
@@ -72,6 +65,11 @@ int snprintf_check(char *dest, size_t size, const char *fmt, ...) __attribute__(
  * Append error message to error log file
  */
 extern void error(const char *msg);
+
+/*
+ * Append error message to error log file and exit
+ */
+extern void error_exit(const char *msg);
 
 /*
  * Get copied text from clipboard.

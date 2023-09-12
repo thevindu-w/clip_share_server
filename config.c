@@ -206,7 +206,7 @@ static void parse_line(char *line, config *cfg) {
     } else if (!strcmp("bind_address", key) && ipv4_aton(value, &(cfg->bind_addr)) != EXIT_SUCCESS) {
         char msg[48];
         snprintf_check(msg, 48, "Invalid bind address %s", value);
-        error_exit(msg)
+        error_exit(msg);
     } else if (!strcmp("restart", key)) {
         set_is_true(value, &(cfg->restart));
 #ifdef _WIN32
@@ -241,9 +241,7 @@ void parse_conf(config *cfg, const char *file_name) {
 #ifdef _WIN32
     cfg->tray_icon = -1;
 #endif
-    if (ipv4_aton(NULL, &(cfg->bind_addr)) != EXIT_SUCCESS) {
-        error_exit("Error initializing bind address")
-    }
+    if (ipv4_aton(NULL, &(cfg->bind_addr)) != EXIT_SUCCESS) error_exit("Error initializing bind address");
 
     if (!file_name) {
 #ifdef DEBUG_MODE

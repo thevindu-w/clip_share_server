@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  *  2022-2023 Modified by H. Thevindu J. Wijesekera
  */
 
@@ -33,24 +33,24 @@
 
 /* wrapper for malloc that checks for errors */
 void *xcmalloc(size_t size) {
-    if (!size) error_exit("malloc zero") void *mem;
+    if (!size) error_exit("malloc zero");
+    void *mem;
 
     mem = malloc(size);
-    if (!mem)
-        error_exit("malloc failed")
+    if (!mem) error_exit("malloc failed");
 
-            return mem;
+    return mem;
 }
 
 /* wrapper for realloc that checks for errors */
 void *xcrealloc(void *ptr, size_t size) {
-    if (!size) error_exit("realloc zero") void *mem;
+    if (!size) error_exit("realloc zero");
+    void *mem;
 
     mem = realloc(ptr, size);
-    if (!mem)
-        error_exit("realloc failed")
+    if (!mem) error_exit("realloc failed");
 
-            return mem;
+    return mem;
 }
 
 /* Returns the machine-specific number of bytes per data element
