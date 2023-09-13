@@ -5,12 +5,23 @@
 
 # Clip Share
 
-### Copy on one device. Paste on another device
+### Share Clipboard and Files. Copy on one device. Paste on another device
 
 <br>
+
 This is the server that runs in the background. Clients can connect to the server and share copied text, files, and images.
+
+<a href="https://github.com/thevindu-w/clip_share_server/releases"><img src="https://raw.githubusercontent.com/thevindu-w/clip_share_client/master/fastlane/metadata/android/en-US/images/icon.png" alt="Get it on GitHub" height="100"/></a><br>
+(Download the server
+from [Releases](https://github.com/thevindu-w/clip_share_server/releases).)
+
+<a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="100"/></a><br>
+(Download the client app
+from [apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare).)
+
 <br>
-<br>
+
+If you prefer using the pre-built binaries from [Releases](https://github.com/thevindu-w/clip_share_server/releases), you may skip the [Build](#building) section and start from the [How to Use](#how-to-use) section. 
 
 ## Building
 
@@ -125,7 +136,19 @@ pacman -S mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng
 <br>
 <br>
 
-## Allow through firewall
+## How to Use
+
+### Run the server
+
+- You can run the server from a terminal or the GUI (if the file manager supports executing programs by double-clicking on it)
+- When the server starts, it will not open any visible window. Instead, it will run in the background.
+- On Linux, if you start the program from the terminal, it should return immediately (the server will continue to run in the background).
+- On Windows, it will show a tray icon unless disabled from the configuration file. You can click on it to stop the server.
+- If something goes wrong, it will create a `server_err.log` file. That file will contain what went wrong.
+
+<br>
+
+### Allow through firewall
 
   This server listens on the following ports (unless different ports are assigned from the configuration),
 
@@ -138,7 +161,17 @@ You may need to allow incoming connections to the above ports for the client to 
 
 <br>
 
-## Create SSL/TLS certificate and key files
+### Connect the client application
+
+You can find an Android client app in [releases](https://github.com/thevindu-w/clip_share_client/releases). You can also get it from [apt.izzysoft.de](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare/). The source of the Android client app is available at [github.com/thevindu-w/clip_share_client](https://github.com/thevindu-w/clip_share_client). Or you may develop a client app according to the protocol specification described in the `docs/`.<br>
+- The client and the server devices should be on the same network. You can do that by connecting both devices to the same Wi-Fi network. It is also possible to use one of the devices as a Wi-Fi hotspot and connect the other device to that hotspot.
+- If the client supports network scanning, it can easily find the server in the network. Otherwise, enter the server's IPv4 address to the client.
+- Now the client can share clipboard data and files and get images from the server.<br>
+Note that the server should allow the client through the firewall, as mentioned in the above section.
+
+<br>
+
+### Create SSL/TLS certificate and key files
 
 **Note**: This section is optional if you do not need the TLS encrypted mode and the web mode.
 <br>
@@ -146,20 +179,11 @@ The following files should be created and placed in the `cert_keys/` directory a
 
 * `server.key` &ensp; - &nbsp; SSL/TLS key file for the server
 * `server.crt` &ensp; - &nbsp; SSL/TLS certificate file of the server
-* `ca.crt` &emsp;&emsp;&ensp; - &nbsp; SSL/TLS certificate of the CA which signed the server.crt
+* `ca.crt` &emsp;&emsp;&ensp; - &nbsp; SSL/TLS certificate of the CA which signed both the server.crt and the client's SSL/TLS certificate
 
 <br>
-<br>
 
-## How to use
-### Run the server
-
-- You can run the server from a terminal or the GUI (if the file manager supports executing programs by double-clicking on it)
-- When the server starts, it will not open any visible window. Instead, it will run in the background.
-- On Linux, if you start the program from the terminal, it should return immediately (the server will continue to run in the background).
-- If something goes wrong, it will create a `server_err.log` file. That file will contain what went wrong.
-
-#### Command line options
+### Command line options
 ```
 ./clip_share [-h] [-s] [-r] [-R]
 
@@ -179,17 +203,8 @@ The following files should be created and placed in the `cert_keys/` directory a
                       value in the configuration file.
 ```
 
-### Connect the client application
+### Configuration
 
-You can find an Android client app in [releases](https://github.com/thevindu-w/clip_share_client/releases). You can also get it from [apt.izzysoft.de](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare/). The source of the Android client app is available at [github.com/thevindu-w/clip_share_client](https://github.com/thevindu-w/clip_share_client). Or you may develop a client app according to the protocol specification described in the `docs/`.<br>
-- The client and the server devices should be on the same network. You can do that by connecting both devices to the same Wi-Fi network. It is also possible to use one of the devices as a Wi-Fi hotspot and connect the other device to that hotspot.
-- If the client supports network scanning, it can easily find the server in the network. Otherwise, enter the server's IPv4 address to the client.
-- Now the client can share clipboard data and files and get images from the server.<br>
-Note that the server should allow the client through the firewall, as mentioned in the above section.
-
-<br>
-
-## Configuration
 Create a file named &nbsp; `clipshare.conf` &nbsp; and add the following lines into that configuration file.
 
 ```properties
