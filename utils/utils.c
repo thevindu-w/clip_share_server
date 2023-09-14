@@ -39,7 +39,7 @@
 #define MAX(x, y) (x > y ? x : y)
 
 #define ERROR_LOG_FILE "server_err.log"
-#define RECURSE_DEPTH_MAX 256
+#define MAX_RECURSE_DEPTH 256
 
 __attribute__((__format__(gnu_printf, 3, 4))) int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
     va_list ap;
@@ -55,8 +55,10 @@ void error(const char *msg) {
 #endif
     FILE *f = fopen(ERROR_LOG_FILE, "a");
     // retry with delays if failed
-    for (unsigned int i = 0; (i < 4) && (f == NULL); i++) {
-        if (usleep(1000 + i * 50000)) break;
+    for (unsigned int i = 0; i < 4; i++) {
+        if (f != NULL) break;
+        struct timespec interval = {.tv_sec = 0, .tv_nsec = (long)(1 + i * 50) * 1000000l};
+        if (nanosleep(&interval, NULL)) break;
         f = fopen(ERROR_LOG_FILE, "a");
     }
     if (f) {
@@ -118,7 +120,67 @@ int is_directory(const char *path, int follow_symlinks) {
     return 0;
 }
 
+void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) {
+    struct mem_file *p = (struct mem_file *)png_get_io_ptr(png_ptr);
+    size_t nsize = p->size + length;
+
+    /* allocate or grow buffer */
+    if (p->buffer == NULL) {
+        p->capacity = MAX(length, 1024);
+        p->buffer = malloc(p->capacity);
+    } else if (nsize > p->capacity) {
+        p->capacity *= 2;
+        p->capacity = MAX(nsize, p->capacity);
+        p->buffer = realloc(p->buffer, p->capacity);
+    }
+
+    if (!p->buffer) png_error(png_ptr, "Write Error");
+
+    /* copy new bytes to end of buffer */
+    memcpy(p->buffer + p->size, data, length);
+    p->size += length;
+}
+
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
+/*
+ * Try to create the directory at path.
+ * If the path points to an existing directory or a new directory was created successfuly, returns EXIT_SUCCESS.
+ * If the path points to an existing file which is not a directory or creating a directory failed, returns EXIT_FAILURE.
+ */
+static int _mkdir_check(const char *path);
+
+/*
+ * Recursively append all file paths in the directory and its subdirectories
+ * to the list.
+ * maximum recursion depth is limited to MAX_RECURSE_DEPTH
+ */
+static void recurse_dir(const char *_path, list2 *lst, int depth);
+
+/*
+ * Check if the path is a file or a directory.
+ * If the path is a directory, calls recurse_dir() on that.
+ * Otherwise, appends the path to the list
+ */
+static void _process_path(const char *path, list2 *lst, int depth);
+
+static int _mkdir_check(const char *path) {
+    if (file_exists(path)) {
+        if (!is_directory(path, 0)) return EXIT_FAILURE;
+    } else {
+#ifdef __linux__
+        if (mkdir(path, S_IRWXU | S_IRWXG)) {
+#elif _WIN32
+        if (mkdir(path)) {
+#endif
+#ifdef DEBUG_MODE
+            printf("Error creating directory %s\n", path);
+#endif
+            return EXIT_FAILURE;
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
 int mkdirs(const char *dir_path) {
     if (dir_path[0] != '.') return EXIT_FAILURE;  // path must be relative and start with .
 
@@ -139,25 +201,13 @@ int mkdirs(const char *dir_path) {
     path[len] = 0;
 
     for (size_t i = 0; i <= len; i++) {
-        if (path[i] == PATH_SEP || path[i] == 0) {
-            path[i] = 0;
-            if (file_exists(path)) {
-                if (!is_directory(path, 0)) return EXIT_FAILURE;
-            } else {
-#ifdef __linux__
-                if (mkdir(path, S_IRWXU | S_IRWXG)) {
-#elif _WIN32
-                if (mkdir(path)) {
-#endif
-#ifdef DEBUG_MODE
-                    printf("Error creating directory %s\n", path);
-#endif
-                    path[i] = PATH_SEP;
-                    return EXIT_FAILURE;
-                }
-            }
-            if (i < len) path[i] = PATH_SEP;
+        if (path[i] != PATH_SEP && path[i] != 0) continue;
+        path[i] = 0;
+        if (_mkdir_check(path) != EXIT_SUCCESS) {
+            path[i] = PATH_SEP;
+            return EXIT_FAILURE;
         }
+        if (i < len) path[i] = PATH_SEP;
     }
     return EXIT_SUCCESS;
 }
@@ -182,87 +232,63 @@ list2 *list_dir(const char *dirname) {
     }
     return NULL;
 }
+
+static void _process_path(const char *path, list2 *lst, int depth) {
+    struct stat sb;
+#ifdef __linux__
+    if (lstat(path, &sb) == 0) {
+#elif _WIN32
+    if (stat(path, &sb) == 0) {
 #endif
-
-void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) {
-    struct mem_file *p = (struct mem_file *)png_get_io_ptr(png_ptr);
-    size_t nsize = p->size + length;
-
-    /* allocate or grow buffer */
-    if (p->buffer == NULL) {
-        p->capacity = MAX(length, 1024);
-        p->buffer = malloc(p->capacity);
-    } else if (nsize > p->capacity) {
-        p->capacity *= 2;
-        p->capacity = MAX(nsize, p->capacity);
-        p->buffer = realloc(p->buffer, p->capacity);
+        if (S_ISDIR(sb.st_mode)) {
+            recurse_dir(path, lst, depth + 1);
+        } else if (S_ISREG(sb.st_mode)) {
+            append(lst, strdup(path));
+        }
     }
-
-    if (!p->buffer) png_error(png_ptr, "Write Error");
-
-    /* copy new bytes to end of buffer */
-    memcpy(p->buffer + p->size, data, length);
-    p->size += length;
 }
 
-#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
-/*
- * Recursively append all file paths in the directory and its subdirectories
- * to the list.
- * maximum recursion depth is limited to RECURSE_DEPTH_MAX
- */
 static void recurse_dir(const char *_path, list2 *lst, int depth) {
-    if (depth > RECURSE_DEPTH_MAX) return;
+    if (depth > MAX_RECURSE_DEPTH) return;
     DIR *d = opendir(_path);
-    if (d) {
-        size_t p_len = strnlen(_path, 2047);
-        if (p_len > 2048) {
+    if (!d) {
+#ifdef DEBUG_MODE
+        printf("Error opening directory %s", _path);
+#endif
+        return;
+    }
+    size_t p_len = strnlen(_path, 2047);
+    if (p_len > 2048) {
+        error("Too long file name.");
+        (void)closedir(d);
+        return;
+    }
+    char path[p_len + 2];
+    strncpy(path, _path, p_len + 1);
+    path[p_len + 1] = 0;
+    if (path[p_len - 1] != PATH_SEP) {
+        path[p_len++] = PATH_SEP;
+        path[p_len] = '\0';
+    }
+    const struct dirent *dir;
+    while ((dir = readdir(d)) != NULL) {
+        const char *filename = dir->d_name;
+        if (!(strcmp(filename, ".") && strcmp(filename, ".."))) continue;
+        const size_t _fname_len = strlen(filename);
+        if (_fname_len + p_len > 2048) {
             error("Too long file name.");
             (void)closedir(d);
             return;
         }
-        char path[p_len + 2];
-        strncpy(path, _path, p_len + 1);
-        path[p_len + 1] = 0;
-        if (path[p_len - 1] != PATH_SEP) {
-            path[p_len++] = PATH_SEP;
-            path[p_len] = '\0';
-        }
-        const struct dirent *dir;
-        while ((dir = readdir(d)) != NULL) {
-            const char *filename = dir->d_name;
-            if (!(strcmp(filename, ".") && strcmp(filename, ".."))) continue;
-            const size_t _fname_len = strlen(filename);
-            if (_fname_len + p_len > 2048) {
-                error("Too long file name.");
-                (void)closedir(d);
-                return;
-            }
-            char pathname[_fname_len + p_len + 1];
-            strncpy(pathname, path, p_len);
-            strncpy(pathname + p_len, filename, _fname_len + 1);
-            pathname[p_len + _fname_len] = 0;
-            struct stat sb;
-#ifdef __linux__
-            if (lstat(pathname, &sb) == 0) {
-#elif _WIN32
-            if (stat(pathname, &sb) == 0) {
-#endif
-                if (S_ISDIR(sb.st_mode)) {
-                    recurse_dir(pathname, lst, depth + 1);
-                } else if (S_ISREG(sb.st_mode)) {
-                    append(lst, strdup(pathname));
-                }
-            }
-        }
-        (void)closedir(d);
-#ifdef DEBUG_MODE
-    } else {
-        puts("Error opening directory");
-#endif
+        char pathname[_fname_len + p_len + 1];
+        strncpy(pathname, path, p_len);
+        strncpy(pathname + p_len, filename, _fname_len + 1);
+        pathname[p_len + _fname_len] = 0;
+        _process_path(pathname, lst, depth);
     }
+    (void)closedir(d);
 }
-#endif
+#endif  // (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
 
 #ifdef __linux__
 
