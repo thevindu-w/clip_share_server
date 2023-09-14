@@ -56,16 +56,17 @@ static inline int _check_path(const char *path) {
 /*
  * Get only the base name
  */
-static inline void _get_base_name(char *file_name, size_t name_length) {
+static inline int _get_base_name(char *file_name, size_t name_length) {
     const char *base_name = strrchr(file_name, '/');  // path separator is / when communicating with the client
     if (base_name) {
         base_name++;                                                         // don't want the '/' before the file name
         memmove(file_name, base_name, strnlen(base_name, name_length) + 1);  // overlapping memory area
     }
 #if PATH_SEP != '/'
-    if (strchr(file_name, PATH_SEP))  // file name can't contain PATH_SEP
-        return EXIT_FAILURE;
+    // file name must not contain PATH_SEP
+    if (strchr(file_name, PATH_SEP)) return EXIT_FAILURE;
 #endif
+    return EXIT_SUCCESS;
 }
 
 /*
@@ -363,7 +364,7 @@ int send_file_v1(socket_t *socket) {
         return EXIT_FAILURE;
     }
     file_name[name_length] = 0;
-    _get_base_name(file_name, (size_t)name_length);
+    if (_get_base_name(file_name, (size_t)name_length) != EXIT_SUCCESS) return EXIT_FAILURE;
 
     // PATH_SEP is not allowed in file name
     if (strchr(file_name, PATH_SEP)) return EXIT_FAILURE;
