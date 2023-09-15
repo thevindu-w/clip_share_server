@@ -11,21 +11,55 @@
 
 This is the server that runs in the background. Clients can connect to the server and share copied text, files, and images.
 
+## Download
+
+<table>
+<tr>
+<th>Server</th>
+<th>Client</th>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/thevindu-w/clip_share_server/releases"><img src="https://raw.githubusercontent.com/thevindu-w/clip_share_client/master/fastlane/metadata/android/en-US/images/icon.png" alt="Get it on GitHub" height="100"/></a><br>
 (Download the server
-from [Releases](https://github.com/thevindu-w/clip_share_server/releases).)
-
+from <a href="https://github.com/thevindu-w/clip_share_server/releases">Releases</a>.)
+</td>
+<td>
 <a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="100"/></a><br>
 (Download the client app
-from [apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare).)
+from <a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare">apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare</a>.<br>
+or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHub</a>.)
+</td>
+</tr>
+</table>
 
 <br>
 
-If you prefer using the pre-built binaries from [Releases](https://github.com/thevindu-w/clip_share_server/releases), you may skip the [Build](#building) section and start from the [How to Use](#how-to-use) section. 
+## Table of Contents
+
+- [Building](#building)
+  - [Build tools](#build-tools)
+    - [Linux](#linux)
+    - [Windows](#windows)
+  - [Dependencies](#dependencies)
+    - [Linux](#linux-1)
+    - [Windows](#windows-1)
+  - [Compiling](#compiling)
+- [How to Use](#how-to-use)
+  - [Run the server](#run-the-server)
+  - [Allow through firewall](#allow-through-firewall)
+  - [Connect the client application](#connect-the-client-application)
+  - [Create SSL/TLS certificate and key files](#create-ssltls-certificate-and-key-files)
+  - [Command line options](#command-line-options)
+  - [Configuration](#configuration)
+
+<br>
 
 ## Building
 
-### Tools
+**Note:** If you prefer using the pre-built binaries from [Releases](https://github.com/thevindu-w/clip_share_server/releases), you may skip this section and start from the [How to Use](#how-to-use) section. 
+
+### Build tools
 
   This needs the following tools,
 
@@ -174,7 +208,7 @@ Note that the server should allow the client through the firewall, as mentioned 
 ### Create SSL/TLS certificate and key files
 
 **Note**: This section is optional if you do not need the TLS encrypted mode and the web mode.
-<br>
+
 The following files should be created and placed in the `cert_keys/` directory and specified in the configuration file `clipshare.conf`. You may use different file names and paths to store the keys and certificates. Refer [OpenSSL manual](https://www.openssl.org/docs/manmaster/man1/openssl.html) for more information on generating keys.
 
 * `server.key` &ensp; - &nbsp; SSL/TLS key file for the server
