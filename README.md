@@ -3,7 +3,7 @@
 ![Last commit](https://img.shields.io/github/last-commit/thevindu-w/clip_share_server.svg?color=yellow)
 ![License](https://img.shields.io/github/license/thevindu-w/clip_share_server.svg?color=blue)
 
-# Clip Share
+# ClipShare Server
 
 ### Share Clipboard and Files. Copy on one device. Paste on another device
 

@@ -14,7 +14,7 @@ BEGIN
       VALUE "InternalName", "clip_share"
       VALUE "LegalCopyright", "H. Thevindu J. Wijesekera"
       VALUE "OriginalFilename", "clip_share.exe"
-      VALUE "ProductName", "Clip Share"
+      VALUE "ProductName", "ClipShare"
       VALUE "ProductVersion", "2.0"
     END
   END
