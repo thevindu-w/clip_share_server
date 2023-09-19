@@ -1,0 +1,7 @@
+*.key
+*.crt
+*.pem
+*.pfx
+*.csr
+*.srl
+*.log

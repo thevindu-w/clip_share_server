@@ -21,14 +21,13 @@ This is the server that runs in the background. Clients can connect to the serve
 <tr>
 <td>
 <a href="https://github.com/thevindu-w/clip_share_server/releases"><img src="https://raw.githubusercontent.com/thevindu-w/clip_share_client/master/fastlane/metadata/android/en-US/images/icon.png" alt="Get it on GitHub" height="100"/></a><br>
-(Download the server
-from <a href="https://github.com/thevindu-w/clip_share_server/releases">Releases</a>.)
+(Download the server from <a href="https://github.com/thevindu-w/clip_share_server/releases">Releases</a>.)
 </td>
 <td>
 <a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="100"/></a><br>
 (Download the client app
 from <a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare">apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare</a>.<br>
-or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHub</a>.)
+or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHub Releases</a>.)
 </td>
 </tr>
 </table>
@@ -209,11 +208,32 @@ Note that the server should allow the client through the firewall, as mentioned 
 
 **Note**: This section is optional if you do not need the TLS encrypted mode and the web mode.
 
-The following files should be created and placed in the `cert_keys/` directory and specified in the configuration file `clipshare.conf`. You may use different file names and paths to store the keys and certificates. Refer [OpenSSL manual](https://www.openssl.org/docs/manmaster/man1/openssl.html) for more information on generating keys.
+The following files should be created, and their paths should be specified in the configuration file `clipshare.conf`. You may use different file names and paths to store the keys and certificates.
 
 * `server.key` &ensp; - &nbsp; SSL/TLS key file for the server
 * `server.crt` &ensp; - &nbsp; SSL/TLS certificate file of the server
-* `ca.crt` &emsp;&emsp;&ensp; - &nbsp; SSL/TLS certificate of the CA which signed both the server.crt and the client's SSL/TLS certificate
+* `ca.crt` &emsp;&emsp;&ensp; - &nbsp; SSL/TLS certificate of the CA, which signed both the server.crt and the client's SSL/TLS certificate
+
+You may use the helper script `keygen.sh` in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory to generate TLS keys and certificates for both the server and the client. Keep the `clipshare.ext` file in the same directory as the `keygen.sh` script when running the script.
+```bash
+# If you downloaded/cloned the repository and run the script from the repository root,
+chmod +x helper_tools/keygen.sh
+helper_tools/keygen.sh
+
+# If you downloaded the script separately and run the script from within the same directory,
+chmod +x keygen.sh
+./keygen.sh
+```
+
+Note: On Windows, the script might hang. If that happens, use the `winpty` utility when running the script. Here are some examples,
+```bash
+winpty helper_tools/keygen.sh
+# or
+winpty ./keygen.sh
+```
+If you use this script, the server's common name will be `clipshare_server`, and the client's common name will be `clipshare_client`.
+
+Refer to the [OpenSSL manual](https://www.openssl.org/docs/manmaster/man1/openssl.html) for more information on generating keys.
 
 <br>
 
