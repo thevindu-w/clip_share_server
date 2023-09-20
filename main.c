@@ -365,6 +365,7 @@ int main(int argc, char **argv) {
     if (configuration.insecure_mode_enabled <= 0) configuration.insecure_mode_enabled = 1;
     if (configuration.app_port_secure <= 0) configuration.app_port_secure = APP_PORT_SECURE;
     if (configuration.secure_mode_enabled <= 0) configuration.secure_mode_enabled = 0;
+    if (configuration.udp_port <= 0) configuration.udp_port = APP_PORT;
 #ifndef NO_WEB
     if (configuration.web_port <= 0) configuration.web_port = WEB_PORT;
     if (configuration.web_mode_enabled <= 0) configuration.web_mode_enabled = 0;

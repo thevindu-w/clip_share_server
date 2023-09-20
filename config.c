@@ -162,13 +162,13 @@ static void parse_line(char *line, config *cfg) {
     trim(key);
     trim(value);
 
+    if (key[0] == '#') return;
+
     const size_t key_len = strnlen(key, LINE_MAX_LEN);
     if (key_len <= 0 || key_len >= LINE_MAX_LEN) return;
 
     const size_t value_len = strnlen(value, LINE_MAX_LEN);
     if (value_len <= 0 || value_len >= LINE_MAX_LEN) return;
-
-    if (key[0] == '#') return;
 
 #ifdef DEBUG_MODE
     printf("Key=%s : Value=%s\n", key, value);
@@ -182,6 +182,8 @@ static void parse_line(char *line, config *cfg) {
         set_port(value, &(cfg->app_port_secure));
     } else if (!strcmp("secure_mode_enabled", key)) {
         set_is_true(value, &(cfg->secure_mode_enabled));
+    } else if (!strcmp("udp_port", key)) {
+        set_port(value, &(cfg->udp_port));
 #ifndef NO_WEB
     } else if (!strcmp("web_port", key)) {
         set_port(value, &(cfg->web_port));
@@ -196,10 +198,9 @@ static void parse_line(char *line, config *cfg) {
         load_file(value, &(cfg->ca_cert));
     } else if (!strcmp("allowed_clients", key)) {
         list2 *client_list = get_client_list(value);
-        if (client_list) {
-            if (cfg->allowed_clients) free_list(cfg->allowed_clients);
-            cfg->allowed_clients = client_list;
-        }
+        if (client_list == NULL) return;
+        if (cfg->allowed_clients) free_list(cfg->allowed_clients);
+        cfg->allowed_clients = client_list;
     } else if (!strcmp("working_dir", key)) {
         if (cfg->working_dir) free(cfg->working_dir);
         cfg->working_dir = strdup(value);
@@ -226,6 +227,8 @@ void parse_conf(config *cfg, const char *file_name) {
 
     cfg->app_port_secure = 0;
     cfg->secure_mode_enabled = -1;
+
+    cfg->udp_port = 0;
 
 #ifndef NO_WEB
     cfg->web_port = 0;
