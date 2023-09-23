@@ -15,6 +15,8 @@ len_expected_header="${#expected_proto_method_ack}"
 
 if [ "${responseDump::len_expected_header}" != "${expected_proto_method_ack}" ]; then
     showStatus info "Incorrect protocol:method ack."
+    echo 'Expected:' "${expected_proto_method_ack}"
+    echo 'Received:' "${responseDump::len_expected_header}"
     exit 1
 fi
 

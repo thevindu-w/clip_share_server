@@ -5,6 +5,7 @@ program=$1
 dependencies=(
     "../${program}"
     stat
+    pwd
     printf
     realpath
     seq

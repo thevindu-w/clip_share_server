@@ -63,6 +63,8 @@ responseHead="${responseDump::${#expectedHead}}"
 
 if [ "${responseHead}" != "${expectedHead}" ]; then
     showStatus info "Incorrect response header"
+    echo 'Expected:' "$expectedHead"
+    echo 'Received:' "$responseHead"
     exit 1
 fi
 

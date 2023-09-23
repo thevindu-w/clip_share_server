@@ -18,6 +18,8 @@ expected="${protoAck}${methodAck}"
 
 if [ "${response}" != "${expected}" ]; then
     showStatus info "Incorrect server response."
+    echo 'Expected:' "$expected"
+    echo 'Received:' "$responseDump"
     exit 1
 fi
 
@@ -25,5 +27,7 @@ clip="$(get_copied_text || echo fail)"
 
 if [ "${clip}" != "${sample}" ]; then
     showStatus info "Clipcoard content not matching."
+    echo 'Expected:' "$sample"
+    echo 'Received:' "$clip"
     exit 1
 fi

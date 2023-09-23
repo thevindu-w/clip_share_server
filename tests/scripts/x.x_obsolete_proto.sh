@@ -12,5 +12,7 @@ expected="${protoAck}"
 
 if [ "${responseDump}" != "${expected}" ]; then
     showStatus info "Incorrect server response."
+    echo 'Expected:' "$expected"
+    echo 'Received:' "$responseDump"
     exit 1
 fi

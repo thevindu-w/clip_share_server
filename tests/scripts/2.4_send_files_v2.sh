@@ -59,10 +59,10 @@ expected="${protoAck}${methodAck}"
 
 if [ "${responseDump}" != "${expected}" ]; then
     showStatus info "Incorrect response."
+    echo 'Expected:' "$expected"
+    echo 'Received:' "$responseDump"
     exit 1
 fi
-
-rm -f original/server_err.log copies/server_err.log
 
 diffOutput=$(diff -rq original copies 2>&1 || echo failed)
 if [ ! -z "${diffOutput}" ]; then
