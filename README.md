@@ -264,6 +264,7 @@ Create a file named &nbsp; `clipshare.conf` &nbsp; and add the following lines i
 ```properties
 app_port=4337
 app_port_secure=4338
+udp_port=4337
 web_port=4339
 insecure_mode_enabled=true
 secure_mode_enabled=true
@@ -287,11 +288,12 @@ Note that all the lines in the configuration file are optional. You may omit som
 | Property | Description | Accepted values | Default |
 |  :----:  | :--------   | :------------   |  :---:  |
 | `insecure_mode_enabled` | Whether or not the application listens for unencrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
-| `app_port` | The port on which the application listens for unencrypted TCP connections. The application listens on the same port for UDP for network scanning. (Values below 1024 may require superuser/admin privileges) | Any valid, unused port number (1 - 65535) | `4337` |
+| `app_port` | The port on which the application listens for unencrypted TCP connections. (Values below 1024 may require superuser/admin privileges) | Any valid, unused TCP port number (1 - 65535) | `4337` |
 | `secure_mode_enabled` | Whether or not the application listens for TLS-encrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
-| `app_port_secure` | The TCP port on which the application listens for TLS-encrypted connections. (Values below 1024 may require superuser/admin privileges) | Any valid, unused port number (1 - 65535) | `4338` |
+| `app_port_secure` | The TCP port on which the application listens for TLS-encrypted connections. (Values below 1024 may require superuser/admin privileges) | Any valid, unused TCP port number (1 - 65535) | `4338` |
+| `udp_port` | The port on which the application listens for UDP broadcasts of network scanning. (Values below 1024 may require superuser/admin privileges) | Any valid, unused UDP port number (1 - 65535) | `4337` |
 | `web_mode_enabled` | Whether or not the application listens for TLS-encrypted connections from web clients if the web mode is available. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
-| `web_port` | The TCP port on which the application listens for TLS-encrypted connections for web clients. This setting is used only if web mode is available. (Values below 1024 may require superuser/admin privileges) | Any valid, unused port number (1 - 65535) | `4339` |
+| `web_port` | The TCP port on which the application listens for TLS-encrypted connections for web clients. This setting is used only if web mode is available. (Values below 1024 may require superuser/admin privileges) | Any valid, unused TCP port number (1 - 65535) | `4339` |
 | `server_key` | The TLS private key file of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the private key file | \<Unspecified\> |
 | `server_cert` | The TLS certificate file of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the server's TLS certificate file | \<Unspecified\> |
 | `ca_cert` | The TLS certificate file of the CA that signed the TLS certificate of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the TLS certificate file of the CA | \<Unspecified\> |
