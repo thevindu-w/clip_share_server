@@ -27,7 +27,7 @@ else
     detected_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
 endif
 
-OBJS_C=main.o clip_share.o udp_serve.o proto/server.o proto/versions.o proto/methods.o utils/utils.o utils/net_utils.o utils/list_utils.o config.o
+OBJS=main.o clip_share.o udp_serve.o proto/server.o proto/versions.o proto/methods.o utils/utils.o utils/net_utils.o utils/list_utils.o config.o
 
 _WEB_OBJS_C=clip_share_web.o
 _WEB_OBJS_S=page_blob.o
@@ -39,12 +39,12 @@ OTHER_DEPENDENCIES=
 LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections
 
 ifeq ($(detected_OS),Linux)
-	OBJS_C+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
+	OBJS+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 	CFLAGS_OPTIM=-Os
 	LDLIBS=-lssl -lcrypto -lX11 -lXmu -lpng
 endif
 ifeq ($(detected_OS),Windows)
-	OBJS_C+= utils/win_image.o win_getopt/getopt.o
+	OBJS+= utils/win_image.o win_getopt/getopt.o
 	CFLAGS_OPTIM=-O3
 	OTHER_DEPENDENCIES+= winres/app.res
 	LDLIBS=-l:libssl.a -l:libcrypto.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a
@@ -55,13 +55,11 @@ ifeq ($(detected_OS),Windows)
 endif
 CFLAGS_OPTIM+= -Werror
 
-OBJS=$(OBJS_C)
-
-WEB_OBJS_C=$(OBJS_C:.o=_web.o) $(_WEB_OBJS_C:.o=_web.o)
+WEB_OBJS_C=$(OBJS:.o=_web.o) $(_WEB_OBJS_C:.o=_web.o)
 WEB_OBJS_S=$(_WEB_OBJS_S:.o=_web.o)
 WEB_OBJS=$(WEB_OBJS_C) $(WEB_OBJS_S)
 
-DEBUG_OBJS_C=$(OBJS_C:.o=_debug.o) $(_WEB_OBJS_C:.o=_debug.o)
+DEBUG_OBJS_C=$(OBJS:.o=_debug.o) $(_WEB_OBJS_C:.o=_debug.o)
 DEBUG_OBJS_S=$(_WEB_OBJS_S:.o=_debug.o)
 DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_S)
 
@@ -71,7 +69,7 @@ $(PROGRAM_NAME): $(OBJS) $(OTHER_DEPENDENCIES)
 $(PROGRAM_NAME_WEB): $(WEB_OBJS) $(OTHER_DEPENDENCIES)
 	gcc -Werror $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
 
-$(OBJS_C): %.o: %.c
+$(OBJS): %.o: %.c
 	gcc $(CFLAGS_OPTIM) $(CFLAGS) -DNO_WEB -fno-pie $^ -o $@
 
 $(WEB_OBJS_C): %_web.o: %.c
