@@ -4,8 +4,6 @@ export SECURE=1
 
 . init.sh
 
-clear_clipboard
-
 proto=$(printf "\x02" | bin2hex)
 method=$(printf "\x01" | bin2hex)
 

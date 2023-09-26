@@ -2,8 +2,6 @@
 
 . init.sh
 
-clear_clipboard
-
 proto=$(printf "\x77" | bin2hex)
 protoAccept=$(printf '%02x' "$proto_max_version")
 method=$(printf "\x01" | bin2hex)

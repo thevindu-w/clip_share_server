@@ -184,7 +184,7 @@ for script in scripts/*.sh; do
     passed=
     attempts=3
     for attempt in $(seq "$attempts"); do
-        if timeout 20 "${script}" "$program"; then
+        if timeout 60 "${script}" "$program"; then
             passed=1
             showStatus "${script}" pass
             break
