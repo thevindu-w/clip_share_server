@@ -225,13 +225,7 @@ chmod +x keygen.sh
 ./keygen.sh
 ```
 
-Note: On Windows, the script might hang. If that happens, use the `winpty` utility when running the script. Here are some examples,
-```bash
-winpty helper_tools/keygen.sh
-# or
-winpty ./keygen.sh
-```
-If you use this script, the server's common name will be `clipshare_server`, and the client's common name will be `clipshare_client`.
+If you use this script, the server's common name will be `clipshare_server`, and the client's common name will be `clipshare_client`. You may change those names in the `keygen.sh` script.
 
 Refer to the [OpenSSL manual](https://www.openssl.org/docs/manmaster/man1/openssl.html) for more information on generating keys.
 
