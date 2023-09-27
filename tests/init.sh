@@ -27,5 +27,3 @@ cp -r config tmp
 cd tmp
 "${program}" -r &>/dev/null &
 sleep 0.1
-
-clear_clipboard

@@ -9,6 +9,8 @@ method=$(printf "\x02" | bin2hex)
 length=$(printf "%016x" "${#sample}")
 sampleDump=$(printf "${sample}" | bin2hex)
 
+clear_clipboard
+
 response=$(printf "${proto}${method}${length}${sampleDump}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
 protoAck=$(printf "\x01" | bin2hex)

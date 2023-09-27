@@ -53,57 +53,6 @@ static inline int _check_path(const char *path) {
     }
     return EXIT_SUCCESS;
 }
-/*
- * Get only the base name
- */
-static inline int _get_base_name(char *file_name, size_t name_length) {
-    const char *base_name = strrchr(file_name, '/');  // path separator is / when communicating with the client
-    if (base_name) {
-        base_name++;                                                         // don't want the '/' before the file name
-        memmove(file_name, base_name, strnlen(base_name, name_length) + 1);  // overlapping memory area
-    }
-#if PATH_SEP != '/'
-    // file name must not contain PATH_SEP
-    if (strchr(file_name, PATH_SEP)) return EXIT_FAILURE;
-#endif
-    return EXIT_SUCCESS;
-}
-
-/*
- * Make parent directories for path
- */
-static inline int _make_directories(char *path) {
-    char *base_name = strrchr(path, PATH_SEP);
-    if (!base_name) return EXIT_FAILURE;
-    *base_name = 0;
-    if (mkdirs(path) != EXIT_SUCCESS) {
-        *base_name = PATH_SEP;
-        return EXIT_FAILURE;
-    }
-    *base_name = PATH_SEP;
-    return EXIT_SUCCESS;
-}
-
-/*
- * Change file name if exists
- */
-static inline int _rename_if_exists(char *file_name, size_t max_len) {
-    char tmp_fname[max_len + 1];
-    if (configuration.working_dir != NULL || strcmp(file_name, "clipshare.conf")) {
-        if (snprintf_check(tmp_fname, max_len, ".%c%s", PATH_SEP, file_name)) return EXIT_FAILURE;
-    } else {
-        // do not create file named clipshare.conf
-        if (snprintf_check(tmp_fname, max_len, ".%c1_%s", PATH_SEP, file_name)) return EXIT_FAILURE;
-    }
-    int n = 1;
-    while (file_exists(tmp_fname)) {
-        if (n > 999999) return EXIT_FAILURE;
-        if (snprintf_check(tmp_fname, max_len, ".%c%i_%s", PATH_SEP, n++, file_name)) return EXIT_FAILURE;
-    }
-    strncpy(file_name, tmp_fname, max_len);
-    file_name[max_len] = 0;
-    return EXIT_SUCCESS;
-}
 
 int get_text_v1(socket_t *socket) {
     size_t length = 0;
@@ -336,6 +285,43 @@ static int _save_file_common(socket_t *socket, const char *file_name) {
 }
 
 #if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+/*
+ * Get only the base name
+ */
+static inline int _get_base_name(char *file_name, size_t name_length) {
+    const char *base_name = strrchr(file_name, '/');  // path separator is / when communicating with the client
+    if (base_name) {
+        base_name++;                                                         // don't want the '/' before the file name
+        memmove(file_name, base_name, strnlen(base_name, name_length) + 1);  // overlapping memory area
+    }
+#if PATH_SEP != '/'
+    // file name must not contain PATH_SEP
+    if (strchr(file_name, PATH_SEP)) return EXIT_FAILURE;
+#endif
+    return EXIT_SUCCESS;
+}
+
+/*
+ * Change file name if exists
+ */
+static inline int _rename_if_exists(char *file_name, size_t max_len) {
+    char tmp_fname[max_len + 1];
+    if (configuration.working_dir != NULL || strcmp(file_name, "clipshare.conf")) {
+        if (snprintf_check(tmp_fname, max_len, ".%c%s", PATH_SEP, file_name)) return EXIT_FAILURE;
+    } else {
+        // do not create file named clipshare.conf
+        if (snprintf_check(tmp_fname, max_len, ".%c1_%s", PATH_SEP, file_name)) return EXIT_FAILURE;
+    }
+    int n = 1;
+    while (file_exists(tmp_fname)) {
+        if (n > 999999) return EXIT_FAILURE;
+        if (snprintf_check(tmp_fname, max_len, ".%c%i_%s", PATH_SEP, n++, file_name)) return EXIT_FAILURE;
+    }
+    strncpy(file_name, tmp_fname, max_len);
+    file_name[max_len] = 0;
+    return EXIT_SUCCESS;
+}
+
 int get_files_v1(socket_t *socket) {
     list2 *file_list = get_copied_files();
     return _get_files_common(1, socket, file_list, 0);
@@ -426,6 +412,21 @@ int info_v1(socket_t *socket) {
 }
 
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
+/*
+ * Make parent directories for path
+ */
+static inline int _make_directories(char *path) {
+    char *base_name = strrchr(path, PATH_SEP);
+    if (!base_name) return EXIT_FAILURE;
+    *base_name = 0;
+    if (mkdirs(path) != EXIT_SUCCESS) {
+        *base_name = PATH_SEP;
+        return EXIT_FAILURE;
+    }
+    *base_name = PATH_SEP;
+    return EXIT_SUCCESS;
+}
+
 int get_files_v2(socket_t *socket) {
     dir_files copied_dir_files;
     get_copied_dirs_files(&copied_dir_files);
