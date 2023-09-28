@@ -42,6 +42,7 @@ typedef struct _config {
     char restart;
 #ifdef _WIN32
     char tray_icon;
+    unsigned short display;
 #endif
 } config;
 

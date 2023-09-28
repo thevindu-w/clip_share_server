@@ -372,6 +372,7 @@ int main(int argc, char **argv) {
 #endif
 #ifdef _WIN32
     if (configuration.tray_icon < 0) configuration.tray_icon = 1;
+    if (configuration.display <= 0) configuration.display = 1;
 #endif
 
     // Parse command line arguments

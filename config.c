@@ -139,7 +139,7 @@ static inline void set_is_true(const char *str, char *conf_ptr) {
  * 65536.
  * Otherwise, does not change the value pointed by conf_ptr
  */
-static inline void set_port(const char *str, unsigned short *conf_ptr) {
+static inline void set_ushort(const char *str, unsigned short *conf_ptr) {
     long port = strtol(str, NULL, 10);
     if (0 < port && port < 65536) {
         *conf_ptr = (unsigned short)port;
@@ -175,18 +175,18 @@ static void parse_line(char *line, config *cfg) {
 #endif
 
     if (!strcmp("app_port", key)) {
-        set_port(value, &(cfg->app_port));
+        set_ushort(value, &(cfg->app_port));
     } else if (!strcmp("insecure_mode_enabled", key)) {
         set_is_true(value, &(cfg->insecure_mode_enabled));
     } else if (!strcmp("app_port_secure", key)) {
-        set_port(value, &(cfg->app_port_secure));
+        set_ushort(value, &(cfg->app_port_secure));
     } else if (!strcmp("secure_mode_enabled", key)) {
         set_is_true(value, &(cfg->secure_mode_enabled));
     } else if (!strcmp("udp_port", key)) {
-        set_port(value, &(cfg->udp_port));
+        set_ushort(value, &(cfg->udp_port));
 #ifndef NO_WEB
     } else if (!strcmp("web_port", key)) {
-        set_port(value, &(cfg->web_port));
+        set_ushort(value, &(cfg->web_port));
     } else if (!strcmp("web_mode_enabled", key)) {
         set_is_true(value, &(cfg->web_mode_enabled));
 #endif
@@ -213,6 +213,8 @@ static void parse_line(char *line, config *cfg) {
 #ifdef _WIN32
     } else if (!strcmp("tray_icon", key)) {
         set_is_true(value, &(cfg->tray_icon));
+    } else if (!strcmp("display", key)) {
+        set_ushort(value, &(cfg->display));
 #endif
 #ifdef DEBUG_MODE
     } else {
@@ -243,6 +245,7 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->restart = -1;
 #ifdef _WIN32
     cfg->tray_icon = -1;
+    cfg->display = 0;
 #endif
     if (ipv4_aton(NULL, &(cfg->bind_addr)) != EXIT_SUCCESS) error_exit("Error initializing bind address");
 

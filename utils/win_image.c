@@ -27,6 +27,11 @@
 #include <windows.h>
 
 #include "./utils.h"
+#include "../globals.h"
+
+/* Returns pixel of bitmap at given point. */
+#define RGBPixelAtPoint(image, x, y) \
+    *(((image)->pixels) + (((image)->bytewidth * (y)) + ((x) * (image)->bytes_per_pixel)))
 
 typedef struct _RGBPixel {
     uint8_t blue;
@@ -43,12 +48,15 @@ typedef struct _RGBBitmap {
     uint8_t bytes_per_pixel;
 } RGBBitmap;
 
+typedef struct _buf_len_ptr {
+    char **buf_ptr;
+    size_t *len_ptr;
+} buf_len_ptr;
+
+static unsigned short current_display;
+
 static int write_png_to_mem(RGBBitmap *, char **, size_t *);
 static void write_image(HBITMAP, char **, size_t *);
-
-/* Returns pixel of bitmap at given point. */
-#define RGBPixelAtPoint(image, x, y) \
-    *(((image)->pixels) + (((image)->bytewidth * (y)) + ((x) * (image)->bytes_per_pixel)))
 
 static void write_image(HBITMAP hBitmap3, char **buf_ptr, size_t *len_ptr) {
     HDC hDC;
@@ -108,23 +116,42 @@ static void write_image(HBITMAP hBitmap3, char **buf_ptr, size_t *len_ptr) {
     GlobalFree(hDib);
 }
 
-void screenCapture(char **buf_ptr, size_t *len_ptr) {
-    HDC hdcSource = GetDC(NULL);
-    HDC hdcMemory = CreateCompatibleDC(hdcSource);
+static BOOL CALLBACK enumCallback(HMONITOR monitor, HDC hdcSource, LPRECT lprect, LPARAM lparam) {
+    (void)lprect;
+    if (current_display++ != configuration.display) return TRUE;
 
-    int capX = GetDeviceCaps(hdcSource, DESKTOPHORZRES);
-    int capY = GetDeviceCaps(hdcSource, DESKTOPVERTRES);
+    MONITORINFO info;
+    info.cbSize = sizeof(MONITORINFO);
+    if (!GetMonitorInfo(monitor, &info)) return FALSE;
+
+    HDC hdcMemory = CreateCompatibleDC(hdcSource);
+    if (!hdcMemory) return FALSE;
+
+    int capX = (int)(info.rcMonitor.right - info.rcMonitor.left);
+    int capY = (int)(info.rcMonitor.bottom - info.rcMonitor.top);
 
     HBITMAP hBitmap = CreateCompatibleBitmap(hdcSource, capX, capY);
     HBITMAP hBitmapOld = (HBITMAP)SelectObject(hdcMemory, hBitmap);
 
-    BitBlt(hdcMemory, 0, 0, capX, capY, hdcSource, 0, 0, SRCCOPY);
+    BitBlt(hdcMemory, 0, 0, capX, capY, hdcSource, info.rcMonitor.left, info.rcMonitor.top, SRCCOPY);
     hBitmap = (HBITMAP)SelectObject(hdcMemory, hBitmapOld);
 
     DeleteDC(hdcSource);
     DeleteDC(hdcMemory);
+    buf_len_ptr *buf_len = (buf_len_ptr *)lparam;
+    write_image(hBitmap, buf_len->buf_ptr, buf_len->len_ptr);
+    return TRUE;
+}
 
-    write_image(hBitmap, buf_ptr, len_ptr);
+void screenCapture(char **buf_ptr, size_t *len_ptr) {
+    HDC hdcSource = GetDC(NULL);
+    buf_len_ptr buf_len = {.buf_ptr = buf_ptr, .len_ptr = len_ptr};
+    current_display = 1;
+    if (EnumDisplayMonitors(hdcSource, NULL, enumCallback, (LPARAM)&buf_len) == 0) {
+        if (*buf_ptr) free(*buf_ptr);
+        *buf_ptr = NULL;
+        *len_ptr = 0;
+    }
 }
 
 /* Attempts to save PNG to file; returns 0 on success, non-zero on error. */
