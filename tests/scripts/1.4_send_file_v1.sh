@@ -2,28 +2,28 @@
 
 . init.sh
 
-fileName="file 1.txt"
+fileName='file 1.txt'
 
 mkdir -p original && cd original
 
-echo "abc"$'\n'"def"$'\n'"file content" >"${fileName}"
+echo "abc"$'\n'"def"$'\n'"file content" >"$fileName"
 
-nameLength=$(printf "%016x" "${#fileName}")
-fileSize=$(printf "%016x" $(stat -c '%s' "${fileName}"))
-content=$(cat "${fileName}" | bin2hex | tr -d '\n')
-body="${nameLength}$(printf "${fileName}" | bin2hex)${fileSize}${content}"
+nameLength=$(printf '%016x' "${#fileName}")
+fileSize=$(printf '%016x' $(stat -c '%s' "${fileName}"))
+content=$(cat "$fileName" | bin2hex | tr -d '\n')
+body="${nameLength}$(echo -n "$fileName" | bin2hex)${fileSize}${content}"
 
 cd ..
 mkdir -p copy
 update_config working_dir copy
 
-proto=$(printf "\x01" | bin2hex)
-method=$(printf "\x04" | bin2hex)
+proto=$(printf '\x01' | bin2hex)
+method=$(printf '\x04' | bin2hex)
 
 responseDump=$(printf "${proto}${method}${body}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf "\x01" | bin2hex)
-methodAck=$(printf "\x01" | bin2hex)
+protoAck=$(printf '\x01' | bin2hex)
+methodAck=$(printf '\x01' | bin2hex)
 
 expected="${protoAck}${methodAck}"
 
