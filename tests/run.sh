@@ -29,6 +29,7 @@ else
     DETECTED_OS="unknown"
 fi
 
+# Check if all dependencies are available
 for dependency in "${dependencies[@]}"; do
     if ! type "$dependency" &>/dev/null; then
         echo '"'"$dependency"'"' not found
@@ -36,17 +37,19 @@ for dependency in "${dependencies[@]}"; do
     fi
 done
 
+# Get the absolute path of clip_share executable
 program="$(realpath "../${program}")"
 
 shopt -s expand_aliases
-cur_dir="$(pwd)"
 if type "xxd" &>/dev/null && [ "$DETECTED_OS" = "Linux" ]; then
     alias hex2bin="xxd -p -r 2>/dev/null"
 else
-    alias hex2bin="python3 -u ${cur_dir}/utils/bin2hex.py -r 2>/dev/null"
+    alias hex2bin="python3 -u $(pwd)/utils/bin2hex.py -r 2>/dev/null"
 fi
 
+# Set the color for console output
 setColor() {
+    # Get the color code from color name
     getColorCode() {
         if [ "$1" = "red" ]; then
             echo 31
@@ -60,6 +63,8 @@ setColor() {
             echo 0
         fi
     }
+
+    # Set the color for console output
     colorSet() {
         color_code="$(getColorCode $1)"
         if [ "$2" = "bold" ]; then
@@ -73,31 +78,35 @@ setColor() {
     esac
 }
 
+# Show status message. Usage showStatus <script-name> <status:pass|fail|warn|info> [message]
 showStatus() {
     name=$(basename -- "$1" | sed 's/\(.*\)\..*/\1/g')
     if [ "$2" = "pass" ]; then
         setColor "green"
-        echo "Test ${name} passed"
+        echo -n 'PASS: '
         setColor reset
+        echo "$name"
     elif [ "$2" = "fail" ]; then
         setColor "red"
-        echo -n "Test ${name} failed"
+        echo -n 'FAIL: '
         setColor reset
-        echo " $3"
+        printf '%-27s %s\n' "$name" "$3"
     elif [ "$2" = "warn" ]; then
         setColor "yellow"
-        echo -n "Test ${name}"
+        echo -n 'WARN: '
         setColor reset
-        echo " $3"
+        printf '%-27s %s\n' "$name" "$3"
     elif [ "$2" = "info" ]; then
         setColor "blue"
-        echo "$3"
+        echo -n 'INFO: '
         setColor reset
+        printf '%-27s %s\n' "$name" "$3"
     else
         setColor reset
     fi
 }
 
+# Copy a string to clipboard
 copy_text() {
     if [ "$DETECTED_OS" = "Linux" ]; then
         echo -n "$1" | xclip -in -sel clip &>/dev/null
@@ -109,6 +118,7 @@ copy_text() {
     fi
 }
 
+# Get copied text from clipboard
 get_copied_text() {
     if [ "$DETECTED_OS" = "Linux" ]; then
         xclip -out -sel clip
@@ -120,6 +130,7 @@ get_copied_text() {
     fi
 }
 
+# Copy a list of files, given by file names, to clipboard
 copy_files() {
     local files=("$@")
     if [ "$DETECTED_OS" = "Linux" ]; then
@@ -140,6 +151,7 @@ copy_files() {
     fi
 }
 
+# Copy an image to clipboard
 copy_image() {
     if [ "$DETECTED_OS" = "Linux" ]; then
         hex2bin <<<"$1" | xclip -in -sel clip -t image/png
@@ -152,6 +164,7 @@ copy_image() {
     fi
 }
 
+# Clear the content of clipboard
 clear_clipboard() {
     if [ "$DETECTED_OS" = "Linux" ]; then
         xclip -in -sel clip -l 1 <<<"dummy" &>/dev/null
@@ -164,6 +177,7 @@ clear_clipboard() {
     fi
 }
 
+# Update the test clipshare.conf file and restart the program. Usage: update_config <key> <value>
 update_config() {
     key="$1"
     value="$2"
@@ -182,12 +196,16 @@ failCnt=0
 for script in scripts/*.sh; do
     chmod +x "${script}"
     passed=
-    attempts=3
+    attempts=3 # number of retries before failure
     for attempt in $(seq "$attempts"); do
         if timeout 60 "${script}" "$program"; then
             passed=1
             showStatus "${script}" pass
             break
+        fi
+        scriptExitCode="${PIPESTATUS[0]}"
+        if [ "$scriptExitCode" == '124' ]; then
+            showStatus "${script}" info 'Test timeout'
         fi
         attemt_msg="Attempt ${attempt} / ${attempts} failed."
         if [ "$attempt" != "$attempts" ]; then
@@ -215,17 +233,25 @@ if [ "$totalTests" = "1" ]; then
 fi
 if [ "$failCnt" = "0" ]; then
     setColor "green" "bold"
+    echo '======================================================'
     echo "Passed all ${totalTests} ${test_s}."
+    echo '======================================================'
 elif [ "$failCnt" = "1" ]; then
     setColor "red" "bold"
+    echo '======================================================'
     echo -n "Failed ${failCnt} test."
     setColor "reset"
     echo " Passed ${passCnt} out of ${totalTests} ${test_s}."
+    setColor "red" "bold"
+    echo '======================================================'
 else
     setColor "red" "bold"
+    echo '======================================================'
     echo -n "Failed ${failCnt} tests."
     setColor "reset"
     echo " Passed ${passCnt} out of ${totalTests} ${test_s}."
+    setColor "red" "bold"
+    echo '======================================================'
 fi
 setColor "reset"
 
