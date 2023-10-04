@@ -87,7 +87,7 @@ $(DEBUG_OBJS):
 	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $^ -o $@
 
 winres/app.res: winres/app.rc winres/resource.h
-	windres $< -O coff -o $@
+	windres -I. $< -O coff -o $@
 
 .PHONY: all clean debug web test check install
 
