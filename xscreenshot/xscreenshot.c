@@ -3,8 +3,6 @@
  * 2022 Modified by H. Thevindu J. Wijesekera
  */
 
-#include "./xscreenshot.h"
-
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -14,8 +12,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "../utils/utils.h"
+#include <utils/utils.h>
+#include <xscreenshot/xscreenshot.h>
 
 /* LSBFirst: BGRA -> RGBA */
 static void convertrow_lsb(unsigned char *drow, const unsigned char *srow, const XImage *img) {

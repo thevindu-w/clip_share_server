@@ -18,7 +18,7 @@
 #ifndef PROTO_VERSIONS_H_
 #define PROTO_VERSIONS_H_
 
-#include "../utils/net_utils.h"
+#include <utils/net_utils.h>
 
 #if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
 /*

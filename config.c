@@ -16,16 +16,14 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "./config.h"
-
+#include <config.h>
+#include <globals.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "./globals.h"
-#include "utils/list_utils.h"
-#include "utils/net_utils.h"
-#include "utils/utils.h"
+#include <utils/list_utils.h>
+#include <utils/net_utils.h>
+#include <utils/utils.h>
 
 #define LINE_MAX_LEN 2047
 
@@ -35,19 +33,19 @@
  * The string must point to a valid and null-terminated string.
  * This does not re-allocate memory to shrink.
  */
-static inline void trim(char *string) {
-    const char *ptr = string;
+static inline void trim(char *str) {
+    const char *ptr = str;
     while (0 < *ptr && *ptr <= ' ') {
         ptr++;
     }
-    char *p1 = string;
+    char *p1 = str;
     while (*ptr) {
         *p1 = *ptr;
         p1++;
         ptr++;
     }
     *p1 = 0;
-    if (*string == 0) return;
+    if (*str == 0) return;
     p1--;
     while (0 < *p1 && *p1 <= ' ') {
         *p1 = 0;

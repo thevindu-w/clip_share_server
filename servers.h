@@ -19,7 +19,7 @@
 #ifndef SERVERS_H_
 #define SERVERS_H_
 
-#include "./config.h"
+#include <config.h>
 
 #define INSECURE 0
 #define SECURE 1

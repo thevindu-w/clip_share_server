@@ -16,10 +16,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "./list_utils.h"
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <utils/list_utils.h>
 
 list2 *init_list(size_t len) {
     list2 *lst = (list2 *)malloc(sizeof(list2));

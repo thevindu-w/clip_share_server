@@ -16,14 +16,14 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
+#include <globals.h>
+#include <proto/server.h>
+#include <servers.h>
 #include <stdlib.h>
+#include <utils/net_utils.h>
+#include <utils/utils.h>
 
-#include "./config.h"
-#include "./globals.h"
-#include "./servers.h"
-#include "proto/server.h"
-#include "utils/net_utils.h"
-#include "utils/utils.h"
 #ifdef __linux__
 #include <arpa/inet.h>
 #include <sys/wait.h>

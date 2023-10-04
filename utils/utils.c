@@ -25,16 +25,15 @@
 #include <unistd.h>
 
 #ifdef _WIN32
+#include <utils/win_image.h>
 #include <windows.h>
-
-#include "./win_image.h"
 #endif
 
-#include "../globals.h"
-#include "../xclip/xclip.h"
-#include "../xscreenshot/xscreenshot.h"
-#include "./list_utils.h"
-#include "./utils.h"
+#include <globals.h>
+#include <utils/list_utils.h>
+#include <utils/utils.h>
+#include <xclip/xclip.h>
+#include <xscreenshot/xscreenshot.h>
 
 #define MAX(x, y) (x > y ? x : y)
 

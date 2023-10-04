@@ -24,7 +24,7 @@ jobs:
         sudo apt-get update && sudo apt-get install -y --no-install-recommends cpplint shfmt
         sudo wget https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -O /bin/hadolint && sudo chmod +x /bin/hadolint
     - name: Check C code style
-      run: cpplint --linelength=120 --filter=-build/include,+build/include_subdir,-runtime/int,-runtime/arrays,-readability/casting,-legal/copyright --recursive .
+      run: cpplint --linelength=120 --filter=-runtime/int,-runtime/arrays,-readability/casting,-legal/copyright --recursive .
     - name: Check test script style
       run: find . -type f -name '*.sh' -print0 | xargs -0 shfmt -d -s -i 4 -ci
     - name: Check Dockerfiles

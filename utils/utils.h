@@ -19,11 +19,10 @@
 #ifndef UTILS_UTILS_H_
 #define UTILS_UTILS_H_
 
+#include <globals.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "../globals.h"
-#include "./list_utils.h"
+#include <utils/list_utils.h>
 
 #ifdef __linux__
 #include <png.h>

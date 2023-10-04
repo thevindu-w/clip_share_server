@@ -18,16 +18,14 @@
 
 #ifdef _WIN32
 
-#include "./win_image.h"
-
+#include <globals.h>
 #include <libpng16/png.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <utils/utils.h>
+#include <utils/win_image.h>
 #include <windows.h>
-
-#include "./utils.h"
-#include "../globals.h"
 
 /* Returns pixel of bitmap at given point. */
 #define RGBPixelAtPoint(image, x, y) \

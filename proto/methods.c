@@ -16,17 +16,15 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "./methods.h"
-
+#include <globals.h>
+#include <proto/methods.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
-#include "../globals.h"
-#include "../utils/net_utils.h"
-#include "../utils/utils.h"
+#include <utils/net_utils.h>
+#include <utils/utils.h>
 
 // status codes
 #define STATUS_OK 1

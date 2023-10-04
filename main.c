@@ -16,16 +16,15 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include <fcntl.h>
+#include <globals.h>
+#include <servers.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "./config.h"
-#include "./globals.h"
-#include "./servers.h"
-#include "utils/net_utils.h"
-#include "utils/utils.h"
+#include <utils/net_utils.h>
+#include <utils/utils.h>
 
 #ifdef __linux__
 #include <ctype.h>
@@ -36,9 +35,8 @@
 #include <openssl/md5.h>
 #include <shellapi.h>
 #include <tlhelp32.h>
-
-#include "win_getopt/getopt.h"
-#include "winres/resource.h"
+#include <win_getopt/getopt.h>
+#include <winres/resource.h>
 #endif
 
 // tcp and udp

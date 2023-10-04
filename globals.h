@@ -19,7 +19,7 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
-#include "./config.h"
+#include <config.h>
 
 extern config configuration;
 

@@ -20,8 +20,7 @@
 #define CONFIG_H_
 
 #include <stdint.h>
-
-#include "utils/list_utils.h"
+#include <utils/list_utils.h>
 
 typedef struct _config {
     unsigned short app_port;

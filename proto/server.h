@@ -19,7 +19,7 @@
 #ifndef PROTO_SERVER_H_
 #define PROTO_SERVER_H_
 
-#include "../utils/net_utils.h"
+#include <utils/net_utils.h>
 
 /*
  * Runs the server after the socket connection is established.

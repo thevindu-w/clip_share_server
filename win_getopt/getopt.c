@@ -22,8 +22,7 @@
 
 #ifdef _WIN32
 
-#include "./getopt.h"
-
+#include <win_getopt/getopt.h>
 #include <windows.h>
 
 char *optarg = NULL;

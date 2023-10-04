@@ -16,14 +16,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "./versions.h"
-
+#include <proto/methods.h>
+#include <proto/versions.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "../utils/net_utils.h"
-#include "./methods.h"
+#include <utils/net_utils.h>
 
 // methods
 #define METHOD_GET_TEXT 1

@@ -30,11 +30,10 @@
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xmu/Atoms.h>
-
-#include "../utils/utils.h"
-#include "./xcdef.h"
-#include "./xclib.h"
-#include "./xclip.h"
+#include <utils/utils.h>
+#include <xclip/xcdef.h>
+#include <xclip/xclib.h>
+#include <xclip/xclip.h>
 
 typedef struct _xclip_options {
     Atom sseln; /* X selection to work with */

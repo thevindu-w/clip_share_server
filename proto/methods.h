@@ -19,7 +19,7 @@
 #ifndef PROTO_METHODS_H_
 #define PROTO_METHODS_H_
 
-#include "../utils/net_utils.h"
+#include <utils/net_utils.h>
 
 // Version 1 methods
 

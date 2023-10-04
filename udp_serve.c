@@ -24,10 +24,10 @@
 #include <winsock2.h>
 #endif
 
-#include "./globals.h"
-#include "./servers.h"
-#include "utils/net_utils.h"
-#include "utils/utils.h"
+#include <globals.h>
+#include <servers.h>
+#include <utils/net_utils.h>
+#include <utils/utils.h>
 
 // MSG_WAITALL should not be used. Reset it to 0
 #ifdef _WIN32

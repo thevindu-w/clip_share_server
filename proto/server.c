@@ -16,13 +16,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "./server.h"
-
+#include <proto/server.h>
+#include <proto/versions.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "../utils/net_utils.h"
-#include "./versions.h"
+#include <utils/net_utils.h>
 
 // protocol version status
 #define PROTOCOL_SUPPORTED 1

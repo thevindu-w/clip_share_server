@@ -16,11 +16,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "./config.h"
-#include "./globals.h"
-#include "./servers.h"
-#include "utils/net_utils.h"
-#include "utils/utils.h"
+#include <config.h>
+#include <globals.h>
+#include <servers.h>
+#include <utils/net_utils.h>
+#include <utils/utils.h>
 
 #ifndef NO_WEB
 #include <stdio.h>

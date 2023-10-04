@@ -26,14 +26,13 @@
 #include <winsock2.h>
 #endif
 #include <ctype.h>
+#include <globals.h>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 #include <openssl/x509_vfy.h>
-
-#include "../globals.h"
-#include "./list_utils.h"
-#include "./net_utils.h"
-#include "./utils.h"
+#include <utils/list_utils.h>
+#include <utils/net_utils.h>
+#include <utils/utils.h>
 
 #ifdef _WIN32
 typedef u_short in_port_t;

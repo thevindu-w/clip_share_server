@@ -19,17 +19,15 @@
  *  2022-2023 Modified by H. Thevindu J. Wijesekera
  */
 
-#include "./xclib.h"
-
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
+#include <globals.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "../globals.h"
-#include "../utils/utils.h"
-#include "./xcdef.h"
+#include <utils/utils.h>
+#include <xclip/xcdef.h>
+#include <xclip/xclib.h>
 
 /* wrapper for malloc that checks for errors */
 void *xcmalloc(size_t size) {

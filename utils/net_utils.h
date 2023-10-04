@@ -26,7 +26,7 @@
 #include <winsock2.h>
 #endif
 
-#include "./list_utils.h"
+#include <utils/list_utils.h>
 
 #ifdef __linux__
 typedef int sock_t;
@@ -67,7 +67,7 @@ typedef struct _listener_socket_t {
  * ca_certificate are not required in that case.
  */
 extern void open_listener_socket(listener_t *listener, const unsigned char sock_type, const char *private_key,
-                                       const char *server_certificate, const char *ca_certificate);
+                                 const char *server_certificate, const char *ca_certificate);
 
 /*
  * Converts a ipv4 address in dotted decimal into in_addr_t.
