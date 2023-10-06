@@ -40,6 +40,11 @@
 #define ERROR_LOG_FILE "server_err.log"
 #define MAX_RECURSE_DEPTH 256
 
+#ifdef _WIN32
+static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p);
+static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p);
+#endif
+
 __attribute__((__format__(gnu_printf, 3, 4))) int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
@@ -538,14 +543,40 @@ void get_copied_dirs_files(dir_files *dfiles_p) {
 
 #elif _WIN32
 
+static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p) {
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, utf8str, -1, NULL, 0);
+    wchar_t *wstr = malloc((size_t)wlen * sizeof(wchar_t));
+    if (!wstr) return EXIT_FAILURE;
+    MultiByteToWideChar(CP_UTF8, 0, utf8str, -1, wstr, wlen);
+    wstr[wlen] = 0;
+    *wstr_p = wstr;
+    *wlen_p = wlen;
+    return EXIT_SUCCESS;
+}
+
+static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p) {
+    int len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
+    char *str = malloc((size_t)len);
+    if (!str) return EXIT_FAILURE;
+    WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, len, NULL, NULL);
+    *utf8str_p = str;
+    *len_p = len-1;
+    return EXIT_SUCCESS;
+}
+
 int get_clipboard_text(char **bufptr, size_t *lenptr) {
     if (!OpenClipboard(0)) return EXIT_FAILURE;
     if (!IsClipboardFormatAvailable(CF_TEXT)) {
         CloseClipboard();
         return EXIT_FAILURE;
     }
-    HANDLE h = GetClipboardData(CF_TEXT);
-    char *data = strdup((char *)h);
+    HANDLE h = GetClipboardData(CF_UNICODETEXT);
+    char *data;
+    int len;
+    if (wchar_to_utf8_str((wchar_t *)h, &data, &len) != EXIT_SUCCESS) {
+        data = NULL;
+        len = 0;
+    }
     CloseClipboard();
 
     if (!data) {
@@ -556,18 +587,29 @@ int get_clipboard_text(char **bufptr, size_t *lenptr) {
         return EXIT_FAILURE;
     }
     *bufptr = data;
-    *lenptr = strnlen(data, 4194304);
+    *lenptr = (size_t)len;
     data[*lenptr] = 0;
     return EXIT_SUCCESS;
 }
 
 int put_clipboard_text(char *data, size_t len) {
-    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len + 1);
-    memcpy(GlobalLock(hMem), data, len + 1);
-    GlobalUnlock(hMem);
     if (!OpenClipboard(0)) return EXIT_FAILURE;
+    wchar_t *wstr;
+    int wlen;
+    char prev = data[len];
+    data[len] = 0;
+    if (utf8_to_wchar_str(data, &wstr, &wlen) != EXIT_SUCCESS) {
+        data[len] = prev;
+        CloseClipboard();
+        return EXIT_FAILURE;
+    }
+    data[len] = prev;
+    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, (size_t)(wlen + 1) * sizeof(wchar_t));
+    wcscpy_s(GlobalLock(hMem), (rsize_t)(wlen + 1), wstr);
+    GlobalUnlock(hMem);
+    free(wstr);
     EmptyClipboard();
-    HANDLE res = SetClipboardData(CF_TEXT, hMem);
+    HANDLE res = SetClipboardData(CF_UNICODETEXT, hMem);
     CloseClipboard();
     return (res == NULL ? EXIT_FAILURE : EXIT_SUCCESS);
 }
