@@ -82,7 +82,16 @@ void error_exit(const char *msg) {
 
 int file_exists(const char *file_name) {
     if (file_name[0] == 0) return 0;  // empty path
-    return access(file_name, F_OK) == 0;
+    int f_ok;
+#ifdef __linux__
+    f_ok = access(file_name, F_OK);
+#elif _WIN32
+    wchar_t *wfname;
+    if (utf8_to_wchar_str(file_name, &wfname, NULL) != EXIT_SUCCESS) return -1;
+    f_ok = _waccess(wfname, F_OK);
+    free(wfname);
+#endif
+    return f_ok == 0;
 }
 
 ssize_t get_file_size(FILE *fp) {
@@ -108,13 +117,21 @@ ssize_t get_file_size(FILE *fp) {
 int is_directory(const char *path, int follow_symlinks) {
     if (path[0] == 0) return 0;  // empty path
     struct stat sb;
+    int stat_result;
 #ifdef __linux__
-    int (*stat_fn)(const char *, struct stat *) = follow_symlinks ? &stat : &lstat;
-    if (stat_fn(path, &sb) == 0) {
+    if (follow_symlinks) {
+        stat_result = stat(path, &sb);
+    } else {
+        stat_result = lstat(path, &sb);
+    }
 #elif _WIN32
     (void)follow_symlinks;
-    if (stat(path, &sb) == 0) {
+    wchar_t *wpath;
+    if (utf8_to_wchar_str(path, &wpath, NULL) != EXIT_SUCCESS) return -1;
+    stat_result = wstat(wpath, &sb);
+    free(wpath);
 #endif
+    if (stat_result == 0) {
         if (S_ISDIR(sb.st_mode)) {
             return 1;
         } else {
@@ -145,11 +162,61 @@ void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) 
     p->size += length;
 }
 
+FILE *open_file(const char *filename, const char *mode) {
+#ifdef __linux__
+    return fopen(filename, mode);
+#elif _WIN32
+    wchar_t *wfname;
+    wchar_t *wmode;
+    if (utf8_to_wchar_str(filename, &wfname, NULL) != EXIT_SUCCESS) return NULL;
+    if (utf8_to_wchar_str(mode, &wmode, NULL) != EXIT_SUCCESS) {
+        free(wfname);
+        return NULL;
+    }
+    FILE *fp = _wfopen(wfname, wmode);
+    free(wfname);
+    free(wmode);
+    return fp;
+#endif
+}
+
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
+
+int rename_file(const char *old_name, const char *new_name) {
+#ifdef __linux__
+    return rename(old_name, new_name);
+#elif _WIN32
+    wchar_t *wold;
+    wchar_t *wnew;
+    if (utf8_to_wchar_str(old_name, &wold, NULL) != EXIT_SUCCESS) return -1;
+    if (utf8_to_wchar_str(new_name, &wnew, NULL) != EXIT_SUCCESS) {
+        free(wold);
+        return -1;
+    }
+    int result = _wrename(wold, wnew);
+    free(wold);
+    free(wnew);
+    return result;
+#endif
+}
+
+int remove_directory(const char *path) {
+#ifdef __linux__
+    return rmdir(path);
+#elif _WIN32
+    wchar_t *wpath;
+    if (utf8_to_wchar_str(path, &wpath, NULL) != EXIT_SUCCESS) return -1;
+    int result = (RemoveDirectoryW(wpath) == FALSE);
+    free(wpath);
+    return result;
+#endif
+}
+
 /*
  * Try to create the directory at path.
  * If the path points to an existing directory or a new directory was created successfuly, returns EXIT_SUCCESS.
- * If the path points to an existing file which is not a directory or creating a directory failed, returns EXIT_FAILURE.
+ * If the path points to an existing file which is not a directory or creating a directory failed, returns
+ * EXIT_FAILURE.
  */
 static int _mkdir_check(const char *path);
 
@@ -171,11 +238,19 @@ static int _mkdir_check(const char *path) {
     if (file_exists(path)) {
         if (!is_directory(path, 0)) return EXIT_FAILURE;
     } else {
+        int status;  // success=0 and failure=non-zero
 #ifdef __linux__
-        if (mkdir(path, S_IRWXU | S_IRWXG)) {
+        status = mkdir(path, S_IRWXU | S_IRWXG);
 #elif _WIN32
-        if (mkdir(path)) {
+        wchar_t *wpath;
+        if (utf8_to_wchar_str(path, &wpath, NULL) == EXIT_SUCCESS) {
+            status = CreateDirectoryW(wpath, NULL) != TRUE;
+            free(wpath);
+        } else {
+            status = 1;
+        }
 #endif
+        if (status) {
 #ifdef DEBUG_MODE
             printf("Error creating directory %s\n", path);
 #endif
@@ -195,7 +270,7 @@ int mkdirs(const char *dir_path) {
             return EXIT_FAILURE;
     }
 
-    size_t len = strnlen(dir_path, 2047);
+    size_t len = strnlen(dir_path, 2050);
     if (len > 2048) {
         error("Too long file name.");
         return EXIT_FAILURE;
@@ -208,7 +283,6 @@ int mkdirs(const char *dir_path) {
         if (path[i] != PATH_SEP && path[i] != 0) continue;
         path[i] = 0;
         if (_mkdir_check(path) != EXIT_SUCCESS) {
-            path[i] = PATH_SEP;
             return EXIT_FAILURE;
         }
         if (i < len) path[i] = PATH_SEP;
@@ -217,17 +291,44 @@ int mkdirs(const char *dir_path) {
 }
 
 list2 *list_dir(const char *dirname) {
+#ifdef __linux__
     DIR *d = opendir(dirname);
+#elif _WIN32
+    wchar_t *wdname;
+    if (utf8_to_wchar_str(dirname, &wdname, NULL) != EXIT_SUCCESS) {
+        return NULL;
+    }
+    _WDIR *d = _wopendir(wdname);
+    free(wdname);
+#endif
     if (d) {
         list2 *lst = init_list(2);
         if (!lst) return NULL;
-        const struct dirent *dir;
-        while ((dir = readdir(d)) != NULL) {
-            const char *filename = dir->d_name;
+        while (1) {
+#ifdef __linux__
+            const struct dirent *dir = readdir(d);
+            const char *filename;
+#elif _WIN32
+            const struct _wdirent *dir = _wreaddir(d);
+            const wchar_t *filename;
+#endif
+            if (dir == NULL) break;
+            filename = dir->d_name;
+#ifdef __linux__
             if (!(strcmp(filename, ".") && strcmp(filename, ".."))) continue;
             append(lst, strdup(filename));
+#elif _WIN32
+            if (!(wcscmp(filename, L".") && wcscmp(filename, L".."))) continue;
+            char *utf8fname;
+            if (wchar_to_utf8_str(filename, &utf8fname, NULL) != EXIT_SUCCESS) continue;
+            append(lst, utf8fname);
+#endif
         }
+#ifdef __linux__
         (void)closedir(d);
+#elif _WIN32
+        (void)_wclosedir(d);
+#endif
         return lst;
 #ifdef DEBUG_MODE
     } else {
@@ -550,7 +651,7 @@ static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p)
     MultiByteToWideChar(CP_UTF8, 0, utf8str, -1, wstr, wlen);
     wstr[wlen] = 0;
     *wstr_p = wstr;
-    *wlen_p = wlen;
+    if (wlen_p) *wlen_p = wlen - 1;
     return EXIT_SUCCESS;
 }
 
@@ -560,7 +661,7 @@ static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p) 
     if (!str) return EXIT_FAILURE;
     WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, len, NULL, NULL);
     *utf8str_p = str;
-    *len_p = len-1;
+    if (len_p) *len_p = len - 1;
     return EXIT_SUCCESS;
 }
 

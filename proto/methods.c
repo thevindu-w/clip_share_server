@@ -148,7 +148,7 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
         return EXIT_FAILURE;
     }
 
-    FILE *fp = fopen(file_path, "rb");
+    FILE *fp = open_file(file_path, "rb");
     if (!fp) {
         error("Couldn't open some files");
         return EXIT_FAILURE;
@@ -243,7 +243,7 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
  * Common function to save files in send_files method of v1 and v2.
  */
 static int _save_file_common(socket_t *socket, const char *file_name) {
-    FILE *file = fopen(file_name, "wb");
+    FILE *file = open_file(file_name, "wb");
     if (!file) return EXIT_FAILURE;
 
     ssize_t file_size = read_size(socket);
@@ -504,7 +504,7 @@ static int _check_and_rename(const char *filename, const char *dirname) {
         if (snprintf_check(new_path, name_len + 20, ".%c%i_%s", PATH_SEP, n++, filename)) return EXIT_FAILURE;
     }
 
-    if (rename(old_path, new_path)) {
+    if (rename_file(old_path, new_path)) {
 #ifdef DEBUG_MODE
         printf("Rename failed : %s\n", new_path);
 #endif
@@ -539,7 +539,7 @@ int send_files_v2(socket_t *socket) {
         if (_check_and_rename(filename, dirname) != EXIT_SUCCESS) status = EXIT_FAILURE;
     }
     free_list(files);
-    if (status == EXIT_SUCCESS && rmdir(dirname)) status = EXIT_FAILURE;
+    if (status == EXIT_SUCCESS && remove_directory(dirname)) status = EXIT_FAILURE;
     return status;
 }
 #endif

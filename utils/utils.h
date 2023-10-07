@@ -147,6 +147,19 @@ extern list2 *list_dir(const char *dirname);
  * Sets directories and files in dfiles_p on success and sets the path_len to 0 and file list to NULL on failure.
  */
 extern void get_copied_dirs_files(dir_files *dfiles_p);
+
+/*
+ * A wrapper for rename() to be platform independent.
+ * Internally converts the path names to wide char on Windows.
+ */
+extern int rename_file(const char *old_name, const char *new_name);
+
+/*
+ * A wrapper for rmdir() to be platform independent.
+ * Internally converts the path names to wide char on Windows.
+ */
+extern int remove_directory(const char *path);
+
 #endif
 
 /*
@@ -155,5 +168,11 @@ extern void get_copied_dirs_files(dir_files *dfiles_p);
  * the struct mem_file buffer.
  */
 void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length);
+
+/*
+ * A wrapper for fopen() to be platform independent.
+ * Internally converts the filename to wide char on Windows.
+ */
+extern FILE *open_file(const char *filename, const char *mode);
 
 #endif  // UTILS_UTILS_H_
