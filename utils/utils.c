@@ -40,9 +40,13 @@
 #define ERROR_LOG_FILE "server_err.log"
 #define MAX_RECURSE_DEPTH 256
 
-#ifdef _WIN32
+#ifdef __linux__
+static int url_decode(char *);
+static char *get_copied_files_as_str(void);
+#elif _WIN32
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p);
 static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p);
+static inline void _wappend(list2 *lst, const wchar_t *wstr);
 #endif
 
 __attribute__((__format__(gnu_printf, 3, 4))) int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
@@ -179,23 +183,6 @@ FILE *open_file(const char *filename, const char *mode) {
     return fp;
 #endif
 }
-
-#ifdef _WIN32
-/*
- * A wrapper to append() for wide strings.
- * Convert wchar_t * string to utf-8 and append to list
- */
-static inline void _wappend(list2 *lst, const wchar_t *wstr) {
-    char *utf8path;
-    if (wchar_to_utf8_str(wstr, &utf8path, NULL) != EXIT_SUCCESS) {
-#ifdef DEBUG_MODE
-        wprintf(L"Error while converting file path: %s\n", wstr);
-#endif
-        return;
-    }
-    append(lst, utf8path);
-}
-#endif
 
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
 
@@ -603,9 +590,6 @@ void get_copied_dirs_files(dir_files *dfiles_p) {
 
 #ifdef __linux__
 
-static int url_decode(char *);
-static char *get_copied_files_as_str(void);
-
 int get_clipboard_text(char **buf_ptr, size_t *len_ptr) {
     *buf_ptr = NULL;
     if (xclip_util(XCLIP_OUT, NULL, len_ptr, buf_ptr) != EXIT_SUCCESS || *len_ptr <= 0) {  // do not change the order
@@ -808,6 +792,21 @@ static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p) 
     *utf8str_p = str;
     if (len_p) *len_p = len - 1;
     return EXIT_SUCCESS;
+}
+
+/*
+ * A wrapper to append() for wide strings.
+ * Convert wchar_t * string to utf-8 and append to list
+ */
+static inline void _wappend(list2 *lst, const wchar_t *wstr) {
+    char *utf8path;
+    if (wchar_to_utf8_str(wstr, &utf8path, NULL) != EXIT_SUCCESS) {
+#ifdef DEBUG_MODE
+        wprintf(L"Error while converting file path: %s\n", wstr);
+#endif
+        return;
+    }
+    append(lst, utf8path);
 }
 
 int get_clipboard_text(char **bufptr, size_t *lenptr) {
