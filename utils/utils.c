@@ -773,11 +773,11 @@ list2 *get_copied_files(void) {
 
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p) {
     int wlen = MultiByteToWideChar(CP_UTF8, 0, utf8str, -1, NULL, 0);
-    if (wlen == 0) return EXIT_FAILURE;
+    if (wlen <= 0) return EXIT_FAILURE;
     wchar_t *wstr = malloc((size_t)wlen * sizeof(wchar_t));
     if (!wstr) return EXIT_FAILURE;
     MultiByteToWideChar(CP_UTF8, 0, utf8str, -1, wstr, wlen);
-    wstr[wlen] = 0;
+    wstr[wlen - 1] = 0;
     *wstr_p = wstr;
     if (wlen_p) *wlen_p = wlen - 1;
     return EXIT_SUCCESS;
@@ -785,10 +785,11 @@ static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p)
 
 static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p) {
     int len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
-    if (len == 0) return EXIT_FAILURE;
+    if (len <= 0) return EXIT_FAILURE;
     char *str = malloc((size_t)len);
     if (!str) return EXIT_FAILURE;
     WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, len, NULL, NULL);
+    str[len - 1] = 0;
     *utf8str_p = str;
     if (len_p) *len_p = len - 1;
     return EXIT_SUCCESS;

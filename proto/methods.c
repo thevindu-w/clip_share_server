@@ -231,6 +231,9 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
 #endif
 
         if (_transfer_single_file(version, socket, file_path, path_len) != EXIT_SUCCESS) {
+#ifdef DEBUG_MODE
+            puts("Transfer failed");
+#endif
             free_list(file_list);
             return EXIT_FAILURE;
         }
