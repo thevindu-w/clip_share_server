@@ -1,0 +1,10 @@
+winres/clip_icon.ico -text
+
+winres/app.rc -crlf
+*.[pP][sS]1 -crlf
+*.[cC][mM][dD] -crlf
+*.[bB][aA][tT] -crlf
+*.[iI][cC][sS] -crlf
+* text=auto
+
+*.sh text eol=lf
