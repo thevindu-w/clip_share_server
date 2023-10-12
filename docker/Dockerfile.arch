@@ -2,7 +2,7 @@ FROM archlinux:base
 
 # Install build dependencies
 RUN pacman -Sy && \
-    pacman -S --needed --noconfirm gcc make glibc libx11 libxmu libpng openssl
+    pacman -S --needed --noconfirm gcc make glibc libx11 libxmu libpng openssl libunistring
 
 # Install test dependencies
 RUN pacman -S --needed --noconfirm coreutils diffutils python openbsd-netcat xclip sed

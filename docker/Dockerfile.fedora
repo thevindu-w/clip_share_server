@@ -1,7 +1,7 @@
 FROM fedora:39
 
 # Install build dependencies
-RUN dnf install --setopt=install_weak_deps=False -y gcc make glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel && dnf clean all
+RUN dnf install --setopt=install_weak_deps=False -y gcc make glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel libunistring-devel && dnf clean all
 
 # Install test dependencies
 RUN dnf install --setopt=install_weak_deps=False -y xorg-x11-server-Xvfb openssl xclip python3 diffutils coreutils netcat sed && dnf clean all

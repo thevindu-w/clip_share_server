@@ -62,7 +62,7 @@ jobs:
       with:
         msystem: MINGW64
         update: false
-        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-diffutils openbsd-netcat mingw-w64-x86_64-python sed
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-libunistring mingw-w64-x86_64-diffutils openbsd-netcat mingw-w64-x86_64-python sed
     - name: Setup make
       run: |
         ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe

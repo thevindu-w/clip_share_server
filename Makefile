@@ -42,12 +42,12 @@ endif
 ifeq ($(detected_OS),Linux)
 	OBJS+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 	CFLAGS_OPTIM=-Os
-	LDLIBS=-lssl -lcrypto -lX11 -lXmu -lpng
+	LDLIBS=-lunistring -lssl -lcrypto -lX11 -lXmu -lpng
 else ifeq ($(detected_OS),Windows)
 	OBJS+= utils/win_image.o win_getopt/getopt.o
 	CFLAGS_OPTIM=-O3
 	OTHER_DEPENDENCIES+= winres/app.res
-	LDLIBS=-l:libssl.a -l:libcrypto.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a
+	LDLIBS=-l:libunistring.a -l:libssl.a -l:libcrypto.a -l:libpthread.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a
 	LINK_FLAGS_BUILD+= -mwindows
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe

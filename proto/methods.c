@@ -23,6 +23,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <unistr.h>
 #include <utils/net_utils.h>
 #include <utils/utils.h>
 
@@ -106,6 +107,13 @@ int send_text_v1(socket_t *socket) {
     }
     close_socket(socket);
     data[length] = 0;
+    if (u8_check((uint8_t *)data, (size_t)length)) {
+#ifdef DEBUG_MODE
+        fputs("Invalid UTF-8\n", stderr);
+#endif
+        free(data);
+        return EXIT_FAILURE;
+    }
 #ifdef DEBUG_MODE
     if (length < 1024) puts(data);
 #endif
@@ -351,6 +359,13 @@ int send_file_v1(socket_t *socket) {
         return EXIT_FAILURE;
     }
     file_name[name_length] = 0;
+    if (u8_check((uint8_t *)file_name, (size_t)name_length)) {
+#ifdef DEBUG_MODE
+        fputs("Invalid UTF-8\n", stderr);
+#endif
+        return EXIT_FAILURE;
+    }
+
     if (_get_base_name(file_name, (size_t)name_length) != EXIT_SUCCESS) return EXIT_FAILURE;
 
     // PATH_SEP is not allowed in file name
@@ -451,6 +466,12 @@ static int save_file(socket_t *socket, const char *dirname) {
     }
 
     file_name[name_length] = 0;
+    if (u8_check((uint8_t *)file_name, (size_t)name_length)) {
+#ifdef DEBUG_MODE
+        fputs("Invalid UTF-8\n", stderr);
+#endif
+        return EXIT_FAILURE;
+    }
 
 #if PATH_SEP != '/'
     // replace '/' with PATH_SEP
