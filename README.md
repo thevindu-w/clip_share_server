@@ -106,22 +106,23 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
 * libxmu
 * libpng
 * libssl
+* libunistring
 
   They can be installed with the following command:
 
 * On Debian-based or Ubuntu-based distros,
   ```bash
-  sudo apt-get install libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev
+  sudo apt-get install libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev libunistring-dev
   ```
 
 * On Redhat-based or Fedora-based distros,
   ```bash
-  sudo yum install glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel
+  sudo yum install glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel libunistring-devel
   ```
 
 * On Arch-based distros,
   ```bash
-  sudo pacman -S libx11 libxmu libpng openssl
+  sudo pacman -S libx11 libxmu libpng openssl libunistring
   ```
 
   glibc should already be available on Arch distros. But you may need to upgrade it with the following command. (You need to do this only if the build fails)
@@ -130,7 +131,7 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
   sudo pacman -S glibc
   ```
 
-(You may refer to docker/Dockerfile\* to see how to install the dependencies on various Linux distros)
+(You may refer to docker/Dockerfile.\* to see how to install the dependencies on various Linux distros)
 
 #### Windows
 
@@ -139,10 +140,11 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
 * [libz](https://packages.msys2.org/package/mingw-w64-x86_64-libzip?repo=mingw64)
 * [libpng16](https://packages.msys2.org/package/mingw-w64-x86_64-libpng?repo=mingw64)
 * [libssl](https://packages.msys2.org/package/mingw-w64-x86_64-openssl?repo=mingw64) (provided by OpenSSL)
+* [libunistring](https://packages.msys2.org/package/mingw-w64-x86_64-libunistring?repo=mingw64)
 
 In an [MSYS2](https://www.msys2.org/) environment, these tools can be installed using pacman with the following command:
 ```bash
-pacman -S mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng
+pacman -S mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-libunistring
 ```
 <br>
 
