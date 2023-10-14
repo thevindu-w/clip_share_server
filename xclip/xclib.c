@@ -46,7 +46,10 @@ void *xcrealloc(void *ptr, size_t size) {
     void *mem;
 
     mem = realloc(ptr, size);
-    if (!mem) error_exit("realloc failed");
+    if (!mem) {
+        free(ptr);
+        error_exit("realloc failed");
+    }
 
     return mem;
 }

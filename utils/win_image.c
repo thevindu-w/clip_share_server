@@ -219,7 +219,8 @@ static int write_png_to_mem(RGBBitmap *bitmap, char **buf_ptr, size_t *len_ptr) 
 
     /* Finish writing. */
     png_destroy_write_struct(&png_ptr, &info_ptr);
-    fake_file.buffer = realloc(fake_file.buffer, fake_file.size);
+    char *new_buf = realloc(fake_file.buffer, fake_file.size);
+    if (new_buf) fake_file.buffer = new_buf;
     *buf_ptr = fake_file.buffer;
     *len_ptr = fake_file.size;
     return 0;

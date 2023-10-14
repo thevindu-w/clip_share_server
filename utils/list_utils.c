@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <utils/list_utils.h>
+#include <utils/utils.h>
 
 list2 *init_list(size_t len) {
     list2 *lst = (list2 *)malloc(sizeof(list2));
@@ -44,8 +45,11 @@ void free_list(list2 *lst) {
 
 void append(list2 *lst, void *elem) {
     if (lst->len >= lst->capacity) {
-        lst->capacity *= 2;
-        lst->array = (void **)realloc(lst->array, sizeof(void *) * lst->capacity);
+        size_t new_cap = lst->capacity * 2;
+        void **new_arr = (void **)realloc(lst->array, sizeof(void *) * new_cap);
+        if (!new_arr) return;
+        lst->array = new_arr;
+        lst->capacity = new_cap;
     }
     lst->array[lst->len] = elem;
     lst->len++;

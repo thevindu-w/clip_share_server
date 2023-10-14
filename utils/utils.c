@@ -156,7 +156,9 @@ void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) 
     } else if (nsize > p->capacity) {
         p->capacity *= 2;
         p->capacity = MAX(nsize, p->capacity);
-        p->buffer = realloc(p->buffer, p->capacity);
+        char *new_buf = realloc(p->buffer, p->capacity);
+        if (!new_buf) free(p->buffer);
+        p->buffer = new_buf;
     }
 
     if (!p->buffer) png_error(png_ptr, "Write Error");

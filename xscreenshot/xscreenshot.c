@@ -94,7 +94,8 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len) {
     png_write_end(png_write_p, NULL);
     free(drow);
 
-    fake_file.buffer = realloc(fake_file.buffer, fake_file.size);
+    char *new_buf = realloc(fake_file.buffer, fake_file.size);
+    if (new_buf) fake_file.buffer = new_buf;
     *buf_ptr = fake_file.buffer;
     *len = fake_file.size;
     png_free_data(png_write_p, png_info_p, PNG_FREE_ALL, -1);
