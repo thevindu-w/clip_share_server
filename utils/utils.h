@@ -125,7 +125,31 @@ extern int file_exists(const char *file_name);
  */
 extern int is_directory(const char *path, int follow_symlinks);
 
+/*
+ * The function to be used as png write data function in libpng to write the
+ * image into a memory buffer instead of a file. This will allocate memory for
+ * the struct mem_file buffer.
+ */
+void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length);
+
+/*
+ * A wrapper for fopen() to be platform independent.
+ * Internally converts the filename to wide char on Windows.
+ */
+extern FILE *open_file(const char *filename, const char *mode);
+
+/*
+ * Converts line endings to LF or CRLF based on the platform.
+ * param str_p is a valid pointer to malloced, null-terminated char * which may be realloced and returned.
+ * If force_lf is non-zero, convert EOL to LF regardless of the platform
+ * Else, convert EOL of str to LF
+ * Returns the length of the new string without the terminating '\0'.
+ * If an error occured, this will free() the *str_p and return -1.
+ */
+extern ssize_t convert_eol(char **str_p, int force_lf);
+
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
+
 /*
  * Creates the directory given by the path and all its parent directories if missing.
  * Will not delete any existing files or directories.
@@ -161,18 +185,5 @@ extern int rename_file(const char *old_name, const char *new_name);
 extern int remove_directory(const char *path);
 
 #endif
-
-/*
- * The function to be used as png write data function in libpng to write the
- * image into a memory buffer instead of a file. This will allocate memory for
- * the struct mem_file buffer.
- */
-void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length);
-
-/*
- * A wrapper for fopen() to be platform independent.
- * Internally converts the filename to wide char on Windows.
- */
-extern FILE *open_file(const char *filename, const char *mode);
 
 #endif  // UTILS_UTILS_H_

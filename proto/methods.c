@@ -72,11 +72,16 @@ int get_text_v1(socket_t *socket) {
         puts("");
     }
 #endif
+    ssize_t new_len = convert_eol(&buf, 1);
+    if (new_len < 0) {
+        write_sock(socket, &(char){STATUS_NO_DATA}, 1);
+        return EXIT_SUCCESS;
+    }
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) {
         free(buf);
         return EXIT_FAILURE;
     }
-    if (send_size(socket, (ssize_t)length) == EXIT_FAILURE) {
+    if (send_size(socket, new_len) == EXIT_FAILURE) {
         free(buf);
         return EXIT_FAILURE;
     }
@@ -117,6 +122,8 @@ int send_text_v1(socket_t *socket) {
 #ifdef DEBUG_MODE
     if (length < 1024) puts(data);
 #endif
+    length = convert_eol(&data, 0);
+    if (length < 0) return EXIT_FAILURE;
     put_clipboard_text(data, (size_t)length);
     free(data);
     return EXIT_SUCCESS;
