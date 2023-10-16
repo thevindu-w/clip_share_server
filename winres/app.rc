@@ -2,20 +2,20 @@
 
 APP_ICON ICON "clip_icon.ico"
 1 VERSIONINFO
-FILEVERSION     2,4,0,0
-PRODUCTVERSION  2,4,0,0
+FILEVERSION     2,5,0,0
+PRODUCTVERSION  2,5,0,0
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
     BLOCK "040904E4"
     BEGIN
       VALUE "FileDescription", "Clipboard Share"
-      VALUE "FileVersion", "2.4"
+      VALUE "FileVersion", "2.5"
       VALUE "InternalName", "clip_share"
       VALUE "LegalCopyright", "H. Thevindu J. Wijesekera"
       VALUE "OriginalFilename", "clip_share.exe"
       VALUE "ProductName", "ClipShare"
-      VALUE "ProductVersion", "2.4"
+      VALUE "ProductVersion", "2.5"
     END
   END
   BLOCK "VarFileInfo"
