@@ -133,8 +133,8 @@ static inline void set_is_true(const char *str, char *conf_ptr) {
 /*
  * str must be a valid and null-terminated string
  * conf_ptr must be a valid pointer to an unsigned short
- * Sets the value pointed by conf_ptr to the port number given as a string in str if that is a valid value between 0 and
- * 65536.
+ * Sets the value pointed by conf_ptr to the port number given as a string in str if that is a valid value between 1 and
+ * 65535 inclusive.
  * Otherwise, does not change the value pointed by conf_ptr
  */
 static inline void set_ushort(const char *str, unsigned short *conf_ptr) {
