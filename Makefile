@@ -31,7 +31,7 @@ _WEB_OBJS_C=clip_share_web.o
 _WEB_OBJS_S=page_blob.o
 
 OTHER_DEPENDENCIES=
-LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections
+LINK_FLAGS_BUILD=-no-pie
 
 ifeq ($(OS),Windows_NT)
     detected_OS := Windows
@@ -43,6 +43,7 @@ ifeq ($(detected_OS),Linux)
 	OBJS+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 	CFLAGS_OPTIM=-Os
 	LDLIBS=-lunistring -lssl -lcrypto -lX11 -lXmu -lpng
+	LINK_FLAGS_BUILD+= -Wl,-s,--gc-sections
 else ifeq ($(detected_OS),Windows)
 	OBJS+= utils/win_image.o win_getopt/getopt.o
 	CFLAGS_OPTIM=-O3
