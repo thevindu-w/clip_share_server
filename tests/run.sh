@@ -42,8 +42,10 @@ program="$(realpath "../${program}")"
 
 shopt -s expand_aliases
 if type "xxd" &>/dev/null && [ "$DETECTED_OS" = "Linux" ]; then
+    alias bin2hex="xxd -p -c 512 2>/dev/null"
     alias hex2bin="xxd -p -r 2>/dev/null"
 else
+    alias bin2hex="python3 -u ${cur_dir}/utils/bin2hex.py 2>/dev/null"
     alias hex2bin="python3 -u $(pwd)/utils/bin2hex.py -r 2>/dev/null"
 fi
 
@@ -121,9 +123,19 @@ copy_text() {
 # Get copied text from clipboard
 get_copied_text() {
     if [ "$DETECTED_OS" = "Linux" ]; then
-        xclip -out -sel clip
+        xclip -out -sel clip | bin2hex
     elif [ "$DETECTED_OS" = "Windows" ]; then
-        powershell -c "Get-Clipboard"
+        prev_dir="$(pwd)"
+        cd /tmp
+        powershell -c 'Get-Clipboard -Raw | Out-File "clip.txt" -Encoding utf8'
+        local copied_text="$(cat 'clip.txt')"
+        copied_text="$(echo -n "$copied_text" | bin2hex)"
+        cd "$prev_dir"
+        # remove BOM if present
+        if [ "${copied_text::6}" = 'efbbbf' ]; then
+            copied_text="${copied_text:6}"
+        fi
+        echo -n "$copied_text"
     else
         echo "Get copied text is not available for OS: $DETECTED_OS"
         exit 1
@@ -143,8 +155,7 @@ copy_files() {
         echo -n "copy${urls}" | xclip -in -sel clip -t x-special/gnome-copied-files &>/dev/null
     elif [ "$DETECTED_OS" = "Windows" ]; then
         local files_str="$(printf ", '%s'" "${files[@]}")"
-        command="Set-Clipboard -Path ${files_str:2}"
-        powershell -c "$command"
+        powershell -c "Set-Clipboard -Path ${files_str:2}"
     else
         echo "Copy files is not available for OS: $DETECTED_OS"
         exit 1

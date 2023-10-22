@@ -27,9 +27,9 @@ fi
 
 clip="$(get_copied_text || echo fail)"
 
-if [ "${clip}" != "${sample}" ]; then
+if [ "${clip}" != "${sampleDump}" ]; then
     showStatus info "Clipcoard content not matching."
-    echo 'Expected:' "$sample"
+    echo 'Expected:' "$sampleDump"
     echo 'Received:' "$clip"
     exit 1
 fi

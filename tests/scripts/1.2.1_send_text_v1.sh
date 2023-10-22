@@ -2,11 +2,12 @@
 
 . init.sh
 
-sample="Sample text for v1 send_text"
+sample="send_text 範例文字 1"
 
 proto=$(printf "\x01" | bin2hex)
 method=$(printf "\x02" | bin2hex)
-length=$(printf "%016x" "${#sample}")
+printf -v _ '%s%n' "$sample" utf8len
+length="$(printf '%016x' $utf8len)"
 sampleDump=$(printf "${sample}" | bin2hex)
 
 clear_clipboard
