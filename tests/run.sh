@@ -41,12 +41,13 @@ done
 program="$(realpath "../${program}")"
 
 shopt -s expand_aliases
+TEST_ROOT="$(pwd)"
 if type "xxd" &>/dev/null && [ "$DETECTED_OS" = "Linux" ]; then
     alias bin2hex="xxd -p -c 512 2>/dev/null"
     alias hex2bin="xxd -p -r 2>/dev/null"
 else
-    alias bin2hex="python3 -u ${cur_dir}/utils/bin2hex.py 2>/dev/null"
-    alias hex2bin="python3 -u $(pwd)/utils/bin2hex.py -r 2>/dev/null"
+    alias bin2hex="python3 -u ${TEST_ROOT}/utils/bin2hex.py 2>/dev/null"
+    alias hex2bin="python3 -u ${TEST_ROOT}/utils/bin2hex.py -r 2>/dev/null"
 fi
 
 # Set the color for console output
