@@ -132,15 +132,27 @@ static inline void set_is_true(const char *str, char *conf_ptr) {
 
 /*
  * str must be a valid and null-terminated string
+ * conf_ptr must be a valid pointer to an unsigned int
+ * Sets the value pointed by conf_ptr to the unsigned int given as a string in str if that is a valid value between 1
+ * and 2^32-1 inclusive. Otherwise, does not change the value pointed by conf_ptr
+ */
+static inline void set_uint(const char *str, unsigned int *conf_ptr) {
+    long value = strtol(str, NULL, 10);
+    if (0 < value && value < (unsigned int)-1) {
+        *conf_ptr = (unsigned int)value;
+    }
+}
+
+/*
+ * str must be a valid and null-terminated string
  * conf_ptr must be a valid pointer to an unsigned short
- * Sets the value pointed by conf_ptr to the port number given as a string in str if that is a valid value between 1 and
- * 65535 inclusive.
- * Otherwise, does not change the value pointed by conf_ptr
+ * Sets the value pointed by conf_ptr to the unsigned short given as a string in str if that is a valid value between 1
+ * and 65535 inclusive. Otherwise, does not change the value pointed by conf_ptr
  */
 static inline void set_ushort(const char *str, unsigned short *conf_ptr) {
-    long port = strtol(str, NULL, 10);
-    if (0 < port && port < 65536) {
-        *conf_ptr = (unsigned short)port;
+    long value = strtol(str, NULL, 10);
+    if (0 < value && value < 65536) {
+        *conf_ptr = (unsigned short)value;
     }
 }
 
@@ -208,6 +220,8 @@ static void parse_line(char *line, config *cfg) {
         error_exit(msg);
     } else if (!strcmp("restart", key)) {
         set_is_true(value, &(cfg->restart));
+    } else if (!strcmp("max_text_length", key)) {
+        set_uint(value, &(cfg->max_text_length));
 #ifdef _WIN32
     } else if (!strcmp("tray_icon", key)) {
         set_is_true(value, &(cfg->tray_icon));
@@ -241,6 +255,7 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->allowed_clients = NULL;
     cfg->working_dir = NULL;
     cfg->restart = -1;
+    cfg->max_text_length = 0;
 #ifdef _WIN32
     cfg->tray_icon = -1;
     cfg->display = 0;

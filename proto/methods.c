@@ -34,7 +34,6 @@
 #define FILE_BUF_SZ 65536           // 64 KiB
 #define MAX_FILE_SIZE 68719476736l  // 64 GiB
 #define MAX_FILE_NAME_LENGTH 2048
-#define MAX_TEXT_LENGTH 4194304    // 4 MiB
 #define MAX_IMAGE_SIZE 1073741824  // 1 GiB
 
 #define MIN(x, y) (x < y ? x : y)
@@ -57,7 +56,7 @@ int get_text_v1(socket_t *socket) {
     size_t length = 0;
     char *buf = NULL;
     if (get_clipboard_text(&buf, &length) != EXIT_SUCCESS || length <= 0 ||
-        length > MAX_TEXT_LENGTH) {  // do not change the order
+        length > configuration.max_text_length) {  // do not change the order
 #ifdef DEBUG_MODE
         printf("clipboard read text failed. len = %zu\n", length);
 #endif
@@ -100,7 +99,7 @@ int send_text_v1(socket_t *socket) {
     printf("Len = %zi\n", length);
 #endif
     // limit maximum length to 4 MiB
-    if (length <= 0 || length > MAX_TEXT_LENGTH) return EXIT_FAILURE;
+    if (length <= 0 || length > configuration.max_text_length) return EXIT_FAILURE;
 
     char *data = malloc((size_t)length + 1);
     if (read_sock(socket, data, (size_t)length) == EXIT_FAILURE) {

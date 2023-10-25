@@ -39,6 +39,7 @@ typedef struct _config {
     char *working_dir;
     uint32_t bind_addr;
     char restart;
+    unsigned int max_text_length;
 #ifdef _WIN32
     char tray_icon;
     unsigned short display;

@@ -47,6 +47,8 @@
 // tcp
 #define WEB_PORT 4339
 #endif
+// maximum text length
+#define MAX_TEXT_LENGTH 4194304  // 4 MiB
 
 config configuration;
 
@@ -364,6 +366,7 @@ int main(int argc, char **argv) {
     if (configuration.app_port_secure <= 0) configuration.app_port_secure = APP_PORT_SECURE;
     if (configuration.secure_mode_enabled < 0) configuration.secure_mode_enabled = 0;
     if (configuration.udp_port <= 0) configuration.udp_port = APP_PORT;
+    if (configuration.max_text_length <= 0) configuration.max_text_length = MAX_TEXT_LENGTH;
 #ifndef NO_WEB
     if (configuration.web_port <= 0) configuration.web_port = WEB_PORT;
     if (configuration.web_mode_enabled < 0) configuration.web_mode_enabled = 0;
