@@ -137,8 +137,8 @@ static inline void set_is_true(const char *str, char *conf_ptr) {
  * and 2^32-1 inclusive. Otherwise, does not change the value pointed by conf_ptr
  */
 static inline void set_uint(const char *str, unsigned int *conf_ptr) {
-    long value = strtol(str, NULL, 10);
-    if (0 < value && value < (unsigned int)-1) {
+    long long value = strtoll(str, NULL, 10);
+    if (0 < value && value <= 4294967295L) {
         *conf_ptr = (unsigned int)value;
     }
 }
