@@ -106,7 +106,6 @@ static inline void _change_working_dir(void) {
         snprintf_check(err, 3072, "Not existing working directory \'%s\'", configuration.working_dir);
         fprintf(stderr, "%s\n", err);
         error_exit(err);
-        return;
     }
     char *old_work_dir = getcwd(NULL, 0);
     if (chdir(configuration.working_dir)) {
@@ -114,14 +113,12 @@ static inline void _change_working_dir(void) {
         snprintf_check(err, 3072, "Failed changing working directory to \'%s\'", configuration.working_dir);
         fprintf(stderr, "%s\n", err);
         error_exit(err);
-        return;
     }
     char *new_work_dir = getcwd(NULL, 0);
     if (old_work_dir == NULL || new_work_dir == NULL) {
         const char *err = "Error occured during changing working directory.";
         fprintf(stderr, "%s\n", err);
         error_exit(err);
-        return;
     }
     // if the working directory did not change, set configuration.working_dir to NULL
     if (!strcmp(old_work_dir, new_work_dir)) {
@@ -129,6 +126,24 @@ static inline void _change_working_dir(void) {
     }
     free(old_work_dir);
     free(new_work_dir);
+}
+
+static inline void _apply_default_conf(void) {
+    if (configuration.restart < 0) configuration.restart = 1;
+    if (configuration.app_port <= 0) configuration.app_port = APP_PORT;
+    if (configuration.insecure_mode_enabled < 0) configuration.insecure_mode_enabled = 1;
+    if (configuration.app_port_secure <= 0) configuration.app_port_secure = APP_PORT_SECURE;
+    if (configuration.secure_mode_enabled < 0) configuration.secure_mode_enabled = 0;
+    if (configuration.udp_port <= 0) configuration.udp_port = APP_PORT;
+    if (configuration.max_text_length <= 0) configuration.max_text_length = MAX_TEXT_LENGTH;
+#ifndef NO_WEB
+    if (configuration.web_port <= 0) configuration.web_port = WEB_PORT;
+    if (configuration.web_mode_enabled < 0) configuration.web_mode_enabled = 0;
+#endif
+#ifdef _WIN32
+    if (configuration.tray_icon < 0) configuration.tray_icon = 1;
+    if (configuration.display <= 0) configuration.display = 1;
+#endif
 }
 
 #ifdef __linux__
@@ -357,24 +372,9 @@ int main(int argc, char **argv) {
 #endif
 
     parse_conf(&configuration, "clipshare.conf");
+    _apply_default_conf();
 
-    // Apply defaults
     int stop = 0;
-    if (configuration.restart < 0) configuration.restart = 1;
-    if (configuration.app_port <= 0) configuration.app_port = APP_PORT;
-    if (configuration.insecure_mode_enabled < 0) configuration.insecure_mode_enabled = 1;
-    if (configuration.app_port_secure <= 0) configuration.app_port_secure = APP_PORT_SECURE;
-    if (configuration.secure_mode_enabled < 0) configuration.secure_mode_enabled = 0;
-    if (configuration.udp_port <= 0) configuration.udp_port = APP_PORT;
-    if (configuration.max_text_length <= 0) configuration.max_text_length = MAX_TEXT_LENGTH;
-#ifndef NO_WEB
-    if (configuration.web_port <= 0) configuration.web_port = WEB_PORT;
-    if (configuration.web_mode_enabled < 0) configuration.web_mode_enabled = 0;
-#endif
-#ifdef _WIN32
-    if (configuration.tray_icon < 0) configuration.tray_icon = 1;
-    if (configuration.display <= 0) configuration.display = 1;
-#endif
 
     // Parse command line arguments
     _parse_args(argc, argv, &stop);

@@ -68,7 +68,7 @@ extern void error(const char *msg);
 /*
  * Append error message to error log file and exit
  */
-extern void error_exit(const char *msg);
+extern void error_exit(const char *msg) __attribute__((noreturn));
 
 /*
  * Get copied text from clipboard.

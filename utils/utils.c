@@ -65,7 +65,7 @@ void error(const char *msg) {
     // retry with delays if failed
     for (unsigned int i = 0; i < 4; i++) {
         if (f != NULL) break;
-        struct timespec interval = {.tv_sec = 0, .tv_nsec = (long)(1 + i * 50) * 1000000l};
+        struct timespec interval = {.tv_sec = 0, .tv_nsec = (long)(1 + i * 50) * 1000000L};
         if (nanosleep(&interval, NULL)) break;
         f = fopen(ERROR_LOG_FILE, "a");
     }
@@ -78,7 +78,7 @@ void error(const char *msg) {
     }
 }
 
-void error_exit(const char *msg) {
+__attribute__((noreturn)) void error_exit(const char *msg) {
     error(msg);
     clear_config(&configuration);
     exit(1);
