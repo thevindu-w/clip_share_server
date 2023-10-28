@@ -101,13 +101,6 @@ extern int put_clipboard_text(char *data, size_t len);
 extern int get_image(char **buf_ptr, size_t *len_ptr);
 
 /*
- * Get a list of copied files from the clipboard.
- * Only regular files are included in the list.
- * returns the file list on success and NULL on failure.
- */
-extern list2 *get_copied_files(void);
-
-/*
  * Get the file size of the file from the given file pointer fp.
  * returns the file size on success and -1 on failure.
  */
@@ -147,6 +140,17 @@ extern FILE *open_file(const char *filename, const char *mode);
  * If an error occured, this will free() the *str_p and return -1.
  */
 extern ssize_t convert_eol(char **str_p, int force_lf);
+
+#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+
+/*
+ * Get a list of copied files from the clipboard.
+ * Only regular files are included in the list.
+ * returns the file list on success and NULL on failure.
+ */
+extern list2 *get_copied_files(void);
+
+#endif
 
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
 

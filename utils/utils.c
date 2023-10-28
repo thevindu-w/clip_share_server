@@ -269,6 +269,114 @@ ssize_t convert_eol(char **str_p, int force_lf) {
     return _convert_to_lf(*str_p);
 }
 
+#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+
+#ifdef __linux__
+
+list2 *get_copied_files(void) {
+    char *fnames = get_copied_files_as_str();
+    if (!fnames) {
+        return NULL;
+    }
+    char *file_path = fnames + strnlen(fnames, 8);
+
+    size_t file_cnt = 1;
+    for (char *ptr = file_path + 1; *ptr; ptr++) {
+        if (*ptr == '\n') {
+            file_cnt++;
+            *ptr = 0;
+        }
+    }
+
+    list2 *lst = init_list(file_cnt);
+    if (!lst) {
+        free(fnames);
+        return NULL;
+    }
+    char *fname = file_path + 1;
+    for (size_t i = 0; i < file_cnt; i++) {
+        size_t off = strnlen(fname, 2047) + 1;
+        if (url_decode(fname) == EXIT_FAILURE) break;
+
+        struct stat statbuf;
+        if (stat(fname, &statbuf)) {
+#ifdef DEBUG_MODE
+            puts("stat failed");
+#endif
+            fname += off;
+            continue;
+        }
+        if (!S_ISREG(statbuf.st_mode)) {
+#ifdef DEBUG_MODE
+            printf("not a file : %s\n", fname);
+#endif
+            fname += off;
+            continue;
+        }
+        append(lst, strdup(fname));
+        fname += off;
+    }
+    free(fnames);
+    return lst;
+}
+
+#elif _WIN32
+
+list2 *get_copied_files(void) {
+    if (!OpenClipboard(0)) return NULL;
+    if (!IsClipboardFormatAvailable(CF_HDROP)) {
+        CloseClipboard();
+        return NULL;
+    }
+    HGLOBAL hGlobal = (HGLOBAL)GetClipboardData(CF_HDROP);
+    if (!hGlobal) {
+        CloseClipboard();
+        return NULL;
+    }
+    HDROP hDrop = (HDROP)GlobalLock(hGlobal);
+    if (!hDrop) {
+        CloseClipboard();
+        return NULL;
+    }
+
+    size_t file_cnt = DragQueryFile(hDrop, (UINT)(-1), NULL, MAX_PATH);
+
+    if (file_cnt <= 0) {
+        GlobalUnlock(hGlobal);
+        CloseClipboard();
+        return NULL;
+    }
+    list2 *lst = init_list(file_cnt);
+    if (!lst) {
+        GlobalUnlock(hGlobal);
+        CloseClipboard();
+        return NULL;
+    }
+
+    wchar_t fileName[MAX_PATH + 1];
+    for (size_t i = 0; i < file_cnt; i++) {
+        fileName[0] = '\0';
+        DragQueryFileW(hDrop, (UINT)i, fileName, MAX_PATH);
+        DWORD attr = GetFileAttributesW(fileName);
+        DWORD dontWant =
+            FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_DEVICE | FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_OFFLINE;
+        if (attr & dontWant) {
+#ifdef DEBUG_MODE
+            wprintf(L"not a file : %s\n", fileName);
+#endif
+            continue;
+        }
+        _wappend(lst, fileName);
+    }
+    GlobalUnlock(hGlobal);
+    CloseClipboard();
+    return lst;
+}
+
+#endif
+
+#endif  // (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
 
 int rename_file(const char *old_name, const char *new_name) {
@@ -807,53 +915,6 @@ static int url_decode(char *str) {
     return EXIT_SUCCESS;
 }
 
-list2 *get_copied_files(void) {
-    char *fnames = get_copied_files_as_str();
-    if (!fnames) {
-        return NULL;
-    }
-    char *file_path = fnames + strnlen(fnames, 8);
-
-    size_t file_cnt = 1;
-    for (char *ptr = file_path + 1; *ptr; ptr++) {
-        if (*ptr == '\n') {
-            file_cnt++;
-            *ptr = 0;
-        }
-    }
-
-    list2 *lst = init_list(file_cnt);
-    if (!lst) {
-        free(fnames);
-        return NULL;
-    }
-    char *fname = file_path + 1;
-    for (size_t i = 0; i < file_cnt; i++) {
-        size_t off = strnlen(fname, 2047) + 1;
-        if (url_decode(fname) == EXIT_FAILURE) break;
-
-        struct stat statbuf;
-        if (stat(fname, &statbuf)) {
-#ifdef DEBUG_MODE
-            puts("stat failed");
-#endif
-            fname += off;
-            continue;
-        }
-        if (!S_ISREG(statbuf.st_mode)) {
-#ifdef DEBUG_MODE
-            printf("not a file : %s\n", fname);
-#endif
-            fname += off;
-            continue;
-        }
-        append(lst, strdup(fname));
-        fname += off;
-    }
-    free(fnames);
-    return lst;
-}
-
 #elif _WIN32
 
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p) {
@@ -951,57 +1012,6 @@ int get_image(char **buf_ptr, size_t *len_ptr) {
     screenCapture(buf_ptr, len_ptr);
     if (*len_ptr > 8) return EXIT_SUCCESS;
     return EXIT_FAILURE;
-}
-
-list2 *get_copied_files(void) {
-    if (!OpenClipboard(0)) return NULL;
-    if (!IsClipboardFormatAvailable(CF_HDROP)) {
-        CloseClipboard();
-        return NULL;
-    }
-    HGLOBAL hGlobal = (HGLOBAL)GetClipboardData(CF_HDROP);
-    if (!hGlobal) {
-        CloseClipboard();
-        return NULL;
-    }
-    HDROP hDrop = (HDROP)GlobalLock(hGlobal);
-    if (!hDrop) {
-        CloseClipboard();
-        return NULL;
-    }
-
-    size_t file_cnt = DragQueryFile(hDrop, (UINT)(-1), NULL, MAX_PATH);
-
-    if (file_cnt <= 0) {
-        GlobalUnlock(hGlobal);
-        CloseClipboard();
-        return NULL;
-    }
-    list2 *lst = init_list(file_cnt);
-    if (!lst) {
-        GlobalUnlock(hGlobal);
-        CloseClipboard();
-        return NULL;
-    }
-
-    wchar_t fileName[MAX_PATH + 1];
-    for (size_t i = 0; i < file_cnt; i++) {
-        fileName[0] = '\0';
-        DragQueryFileW(hDrop, (UINT)i, fileName, MAX_PATH);
-        DWORD attr = GetFileAttributesW(fileName);
-        DWORD dontWant =
-            FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_DEVICE | FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_OFFLINE;
-        if (attr & dontWant) {
-#ifdef DEBUG_MODE
-            wprintf(L"not a file : %s\n", fileName);
-#endif
-            continue;
-        }
-        _wappend(lst, fileName);
-    }
-    GlobalUnlock(hGlobal);
-    CloseClipboard();
-    return lst;
 }
 
 #endif
