@@ -16,23 +16,24 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <ctype.h>
+#include <globals.h>
+#include <openssl/err.h>
+#include <openssl/ssl.h>
+#include <openssl/x509_vfy.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <utils/list_utils.h>
+#include <utils/net_utils.h>
+#include <utils/utils.h>
+
 #ifdef __linux__
 #include <arpa/inet.h>
 #include <unistd.h>
 #elif _WIN32
 #include <winsock2.h>
 #endif
-#include <ctype.h>
-#include <globals.h>
-#include <openssl/err.h>
-#include <openssl/ssl.h>
-#include <openssl/x509_vfy.h>
-#include <utils/list_utils.h>
-#include <utils/net_utils.h>
-#include <utils/utils.h>
 
 #ifdef _WIN32
 typedef u_short in_port_t;

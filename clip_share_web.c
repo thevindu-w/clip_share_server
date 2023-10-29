@@ -16,15 +16,15 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#ifndef NO_WEB
 #include <config.h>
 #include <globals.h>
 #include <servers.h>
+#include <stdio.h>
+#include <string.h>
 #include <utils/net_utils.h>
 #include <utils/utils.h>
 
-#ifndef NO_WEB
-#include <stdio.h>
-#include <string.h>
 #ifdef __linux__
 #include <arpa/inet.h>
 #include <sys/wait.h>

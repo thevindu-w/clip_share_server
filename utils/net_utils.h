@@ -21,12 +21,11 @@
 
 #include <openssl/ssl.h>
 #include <stdlib.h>
+#include <utils/list_utils.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
 #endif
-
-#include <utils/list_utils.h>
 
 #ifdef __linux__
 typedef int sock_t;

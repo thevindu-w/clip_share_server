@@ -16,18 +16,18 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <globals.h>
+#include <servers.h>
 #include <stdio.h>
 #include <string.h>
+#include <utils/net_utils.h>
+#include <utils/utils.h>
+
 #ifdef __linux__
 #include <arpa/inet.h>
 #elif _WIN32
 #include <winsock2.h>
 #endif
-
-#include <globals.h>
-#include <servers.h>
-#include <utils/net_utils.h>
-#include <utils/utils.h>
 
 // MSG_WAITALL should not be used. Reset it to 0
 #ifdef _WIN32

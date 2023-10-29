@@ -17,23 +17,21 @@
  */
 
 #include <dirent.h>
+#include <globals.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#ifdef _WIN32
-#include <utils/win_image.h>
-#include <windows.h>
-#endif
-
-#include <globals.h>
 #include <utils/list_utils.h>
 #include <utils/utils.h>
 #include <xclip/xclip.h>
 #include <xscreenshot/xscreenshot.h>
+#ifdef _WIN32
+#include <utils/win_image.h>
+#include <windows.h>
+#endif
 
 #define MAX(x, y) (x > y ? x : y)
 

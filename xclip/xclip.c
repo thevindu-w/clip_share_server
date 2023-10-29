@@ -23,10 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef HAVE_ICONV
-#include <errno.h>
-#include <iconv.h>
-#endif
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xmu/Atoms.h>
