@@ -31,8 +31,7 @@
 #define STATUS_OK 1
 #define STATUS_NO_DATA 2
 
-#define FILE_BUF_SZ 65536           // 64 KiB
-#define MAX_FILE_SIZE 68719476736l  // 64 GiB
+#define FILE_BUF_SZ 65536  // 64 KiB
 #define MAX_FILE_NAME_LENGTH 2048
 #define MAX_IMAGE_SIZE 1073741824  // 1 GiB
 
@@ -168,7 +167,7 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
         return EXIT_FAILURE;
     }
     ssize_t file_size = get_file_size(fp);
-    if (file_size < 0 || file_size > MAX_FILE_SIZE) {
+    if (file_size < 0 || file_size > configuration.max_file_size) {
 #ifdef DEBUG_MODE
         printf("file size = %zi\n", file_size);
 #endif
@@ -260,15 +259,17 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
  * Common function to save files in send_files method of v1 and v2.
  */
 static int _save_file_common(socket_t *socket, const char *file_name) {
-    FILE *file = open_file(file_name, "wb");
-    if (!file) return EXIT_FAILURE;
-
     ssize_t file_size = read_size(socket);
 #ifdef DEBUG_MODE
     printf("data len = %zi\n", file_size);
 #endif
-    if (file_size < 0 || file_size > MAX_FILE_SIZE) {
-        fclose(file);
+    if (file_size < 0 || file_size > configuration.max_file_size) {
+        return EXIT_FAILURE;
+    }
+
+    FILE *file = open_file(file_name, "wb");
+    if (!file) {
+        error("Couldn't create some files");
         return EXIT_FAILURE;
     }
 

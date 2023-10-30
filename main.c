@@ -47,8 +47,10 @@
 // tcp
 #define WEB_PORT 4339
 #endif
-// maximum text length
+
+// maximum transfer sizes
 #define MAX_TEXT_LENGTH 4194304  // 4 MiB
+#define MAX_FILE_SIZE 68719476736l  // 64 GiB
 
 config configuration;
 
@@ -136,6 +138,7 @@ static inline void _apply_default_conf(void) {
     if (configuration.secure_mode_enabled < 0) configuration.secure_mode_enabled = 0;
     if (configuration.udp_port <= 0) configuration.udp_port = APP_PORT;
     if (configuration.max_text_length <= 0) configuration.max_text_length = MAX_TEXT_LENGTH;
+    if (configuration.max_file_size <= 0) configuration.max_file_size = MAX_FILE_SIZE;
 #ifndef NO_WEB
     if (configuration.web_port <= 0) configuration.web_port = WEB_PORT;
     if (configuration.web_mode_enabled < 0) configuration.web_mode_enabled = 0;
@@ -373,7 +376,7 @@ int main(int argc, char **argv) {
 
     parse_conf(&configuration, "clipshare.conf");
     _apply_default_conf();
-
+    printf("max text len = %u\nmax file sz = %zi\n", configuration.max_text_length, configuration.max_file_size);
     int stop = 0;
 
     // Parse command line arguments
