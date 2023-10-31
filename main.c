@@ -376,9 +376,8 @@ int main(int argc, char **argv) {
 
     parse_conf(&configuration, "clipshare.conf");
     _apply_default_conf();
-    printf("max text len = %u\nmax file sz = %zi\n", configuration.max_text_length, configuration.max_file_size);
-    int stop = 0;
 
+    int stop = 0;
     // Parse command line arguments
     _parse_args(argc, argv, &stop);
 
