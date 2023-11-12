@@ -137,7 +137,35 @@ static inline void set_is_true(const char *str, char *conf_ptr) {
  * between 1 and 2^32-1 inclusive. Otherwise, does not change the value pointed by conf_ptr
  */
 static inline void set_ssize_t(const char *str, ssize_t *conf_ptr) {
-    ssize_t value = (ssize_t)strtoull(str, NULL, 10);
+    char *end_ptr;
+    ssize_t value = (ssize_t)strtoull(str, &end_ptr, 10);
+    switch (*end_ptr) {
+        case '\0':
+            break;
+        case 'k':
+        case 'K': {
+            value *= 1000;
+            break;
+        }
+        case 'm':
+        case 'M': {
+            value *= 1000000;
+            break;
+        }
+        case 'g':
+        case 'G': {
+            value *= 1000000000;
+            break;
+        }
+        case 't':
+        case 'T': {
+            value *= 1000000000000L;
+            break;
+        }
+        default:
+            return;
+    }
+    if (*end_ptr && *(end_ptr + 1)) return;
     if (0 < value) {
         *conf_ptr = value;
     }
@@ -150,7 +178,30 @@ static inline void set_ssize_t(const char *str, ssize_t *conf_ptr) {
  * and 2^32-2 inclusive. Otherwise, does not change the value pointed by conf_ptr
  */
 static inline void set_uint(const char *str, unsigned int *conf_ptr) {
-    long long value = strtoll(str, NULL, 10);
+    char *end_ptr;
+    long long value = strtoll(str, &end_ptr, 10);
+    switch (*end_ptr) {
+        case '\0':
+            break;
+        case 'k':
+        case 'K': {
+            value *= 1000;
+            break;
+        }
+        case 'm':
+        case 'M': {
+            value *= 1000000;
+            break;
+        }
+        case 'g':
+        case 'G': {
+            value *= 1000000000;
+            break;
+        }
+        default:
+            return;
+    }
+    if (*end_ptr && *(end_ptr + 1)) return;
     if (0 < value && value <= 4294967295L) {
         *conf_ptr = (unsigned int)value;
     }
@@ -163,7 +214,9 @@ static inline void set_uint(const char *str, unsigned int *conf_ptr) {
  * and 65535 inclusive. Otherwise, does not change the value pointed by conf_ptr
  */
 static inline void set_ushort(const char *str, unsigned short *conf_ptr) {
-    long value = strtol(str, NULL, 10);
+    char *end_ptr;
+    long value = strtol(str, &end_ptr, 10);
+    if (*end_ptr) return;
     if (0 < value && value < 65536) {
         *conf_ptr = (unsigned short)value;
     }
@@ -192,10 +245,6 @@ static void parse_line(char *line, config *cfg) {
 
     const size_t value_len = strnlen(value, LINE_MAX_LEN);
     if (value_len <= 0 || value_len >= LINE_MAX_LEN) return;
-
-#ifdef DEBUG_MODE
-    printf("Key=%s : Value=%s\n", key, value);
-#endif
 
     if (!strcmp("app_port", key)) {
         set_ushort(value, &(cfg->app_port));
