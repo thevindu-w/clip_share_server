@@ -281,12 +281,12 @@ static int _save_file_common(socket_t *socket, const char *file_name) {
             puts("recieve error");
 #endif
             fclose(file);
-            remove(file_name);
+            remove_file(file_name);
             return EXIT_FAILURE;
         }
         if (fwrite(data, 1, read_len, file) < read_len) {
             fclose(file);
-            remove(file_name);
+            remove_file(file_name);
             return EXIT_FAILURE;
         }
         file_size -= (ssize_t)read_len;
@@ -438,7 +438,7 @@ int info_v1(socket_t *socket) {
 /*
  * Make parent directories for path
  */
-static inline int _make_directories(const char *path) {
+static inline int _make_directories(char *path) {
     char *base_name = strrchr(path, PATH_SEP);
     if (!base_name) return EXIT_FAILURE;
     *base_name = 0;

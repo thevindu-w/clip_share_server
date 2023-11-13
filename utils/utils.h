@@ -132,6 +132,12 @@ void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length);
 extern FILE *open_file(const char *filename, const char *mode);
 
 /*
+ * A wrapper for remove() to be platform independent.
+ * Internally converts the filename to wide char on Windows.
+ */
+extern int remove_file(const char *filename);
+
+/*
  * Converts line endings to LF or CRLF based on the platform.
  * param str_p is a valid pointer to malloced, null-terminated char * which may be realloced and returned.
  * If force_lf is non-zero, convert EOL to LF regardless of the platform

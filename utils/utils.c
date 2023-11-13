@@ -184,6 +184,18 @@ FILE *open_file(const char *filename, const char *mode) {
 #endif
 }
 
+int remove_file(const char *filename) {
+#ifdef __linux__
+    return remove(filename);
+#elif _WIN32
+    wchar_t *wfname;
+    if (utf8_to_wchar_str(filename, &wfname, NULL) != EXIT_SUCCESS) return -1;
+    int result = _wremove(wfname);
+    free(wfname);
+    return result;
+#endif
+}
+
 /*
  * Allocate the required capacity for the string with EOL=CRLF including the terminating '\0'.
  * Assign the realloced string to *str_p and the length after conversion to *len_p without the terminating '\0'.
