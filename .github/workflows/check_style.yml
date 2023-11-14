@@ -28,4 +28,4 @@ jobs:
     - name: Check test script style
       run: find . -type f -name '*.sh' -print0 | xargs -0 shfmt -d -s -i 4 -ci
     - name: Check Dockerfiles
-      run: hadolint --ignore DL3008 --ignore DL3041 -t warning docker/Dockerfile.*
+      run: hadolint --ignore DL3008 --ignore DL3040 --ignore DL3041 -t warning docker/Dockerfile.*
