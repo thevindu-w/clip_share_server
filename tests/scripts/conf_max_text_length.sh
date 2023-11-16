@@ -12,14 +12,14 @@ short_sampleDump=$(printf "${short_sample}" | bin2hex)
 
 clear_clipboard
 
-response=$(printf "${proto}${method}${length}${short_sampleDump}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(printf "${proto}${method}${length}${short_sampleDump}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
 protoAck=$(printf "\x01" | bin2hex)
 methodAck=$(printf "\x01" | bin2hex)
 
 expected="${protoAck}${methodAck}"
 
-if [ "${response}" != "${expected}" ]; then
+if [ "${responseDump}" != "${expected}" ]; then
     showStatus info "Incorrect server response."
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
@@ -41,19 +41,21 @@ method=$(printf "\x02" | bin2hex)
 length=$(printf "%016x" "${#long_sample}")
 long_sampleDump=$(printf "${long_sample}" | bin2hex)
 
-response=$(printf "${proto}${method}${length}${long_sampleDump}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(printf "${proto}${method}${length}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
 protoAck=$(printf "\x01" | bin2hex)
 methodAck=$(printf "\x01" | bin2hex)
 
 expected="${protoAck}${methodAck}"
 
-if [ "${response}" != "${expected}" ]; then
+if [ "${responseDump}" != "${expected}" ]; then
     showStatus info "Incorrect server response."
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
     exit 1
 fi
+
+printf "${proto}${method}${length}${long_sampleDump}" | hex2bin | client_tool | bin2hex | tr -d '\n'
 
 clip="$(get_copied_text || echo fail)"
 # still the clipboard should have the short text.
