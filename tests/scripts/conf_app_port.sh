@@ -14,14 +14,12 @@ if ! nc -zvn 127.0.0.1 6337 &>/dev/null; then
     exit 1
 fi
 
-sample="Sample text for conf test"
-copy_text "${sample}"
-responseDump=$(echo -n "0201" | hex2bin | nc -w 1 127.0.0.1 6337 | bin2hex | tr -d '\n')
-length=$(printf "%016x" "${#sample}")
-sampleDump=$(echo -n "${sample}" | bin2hex | tr -d '\n')
-expected="0101${length}${sampleDump}"
+responseDump=$(echo -n "7700" | hex2bin | nc -w 1 127.0.0.1 6337 | bin2hex | tr -d '\n')
+expected="03$(printf '%02x' $proto_max_version)"
 if [ "${responseDump}" != "${expected}" ]; then
     showStatus info "Incorrect server response."
+    echo 'Expected:' "$expected"
+    echo 'Received:' "$responseDump"
     exit 1
 fi
 
