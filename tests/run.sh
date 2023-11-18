@@ -9,6 +9,7 @@ dependencies=(
     printf
     realpath
     seq
+    find
     diff
     python3
     nc
