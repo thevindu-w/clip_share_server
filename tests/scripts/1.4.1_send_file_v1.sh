@@ -21,7 +21,7 @@ update_config working_dir copy
 proto=$(printf '\x01' | bin2hex)
 method=$(printf '\x04' | bin2hex)
 
-responseDump=$(printf "${proto}${method}${body}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}${body}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
 protoAck=$(printf '\x01' | bin2hex)
 methodAck=$(printf '\x01' | bin2hex)
@@ -29,7 +29,7 @@ methodAck=$(printf '\x01' | bin2hex)
 expected="${protoAck}${methodAck}"
 
 if [ "${responseDump}" != "${expected}" ]; then
-    showStatus info "Incorrect response."
+    showStatus info 'Incorrect response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
     exit 1

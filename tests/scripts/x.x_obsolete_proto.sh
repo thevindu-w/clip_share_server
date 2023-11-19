@@ -2,16 +2,16 @@
 
 . init.sh
 
-proto=$(printf "\x00" | bin2hex)
+proto=$(printf '\x00' | bin2hex)
 
-responseDump=$(printf "${proto}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf "\x02" | bin2hex)
+protoAck=$(printf '\x02' | bin2hex)
 
 expected="${protoAck}"
 
 if [ "${responseDump}" != "${expected}" ]; then
-    showStatus info "Incorrect server response."
+    showStatus info 'Incorrect server response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
     exit 1

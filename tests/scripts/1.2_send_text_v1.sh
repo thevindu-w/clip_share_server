@@ -2,24 +2,24 @@
 
 . init.sh
 
-sample="Sample text for v1 send_text"
+sample='Sample text for v1 send_text'
 
-proto=$(printf "\x01" | bin2hex)
-method=$(printf "\x02" | bin2hex)
-length=$(printf "%016x" "${#sample}")
-sampleDump=$(printf "${sample}" | bin2hex)
+proto=$(printf '\x01' | bin2hex)
+method=$(printf '\x02' | bin2hex)
+length=$(printf '%016x' "${#sample}")
+sampleDump=$(echo -n "${sample}" | bin2hex)
 
 clear_clipboard
 
-responseDump=$(printf "${proto}${method}${length}${sampleDump}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}${length}${sampleDump}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf "\x01" | bin2hex)
-methodAck=$(printf "\x01" | bin2hex)
+protoAck=$(printf '\x01' | bin2hex)
+methodAck=$(printf '\x01' | bin2hex)
 
 expected="${protoAck}${methodAck}"
 
 if [ "${responseDump}" != "${expected}" ]; then
-    showStatus info "Incorrect server response."
+    showStatus info 'Incorrect server response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
     exit 1
@@ -28,7 +28,7 @@ fi
 clip="$(get_copied_text || echo fail)"
 
 if [ "${clip}" != "${sampleDump}" ]; then
-    showStatus info "Clipcoard content not matching."
+    showStatus info 'Clipcoard content not matching.'
     echo 'Expected:' "$sampleDump"
     echo 'Received:' "$clip"
     exit 1

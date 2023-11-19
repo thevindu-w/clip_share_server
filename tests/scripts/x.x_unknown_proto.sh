@@ -2,10 +2,10 @@
 
 . init.sh
 
-proto=$(printf "\x77" | bin2hex)
-protoReject=$(printf "\x00" | bin2hex)
+proto=$(printf '\x77' | bin2hex)
+protoReject=$(printf '\x00' | bin2hex)
 
-responseDump=$(printf "${proto}${protoReject}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${protoReject}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
 protoAck=$(printf '\x03' | bin2hex)
 protoOffer=$(printf '%02x' "$proto_max_version")
@@ -13,7 +13,7 @@ protoOffer=$(printf '%02x' "$proto_max_version")
 expected="${protoAck}${protoOffer}"
 
 if [ "${responseDump}" != "${expected}" ]; then
-    showStatus info "Incorrect server response."
+    showStatus info 'Incorrect server response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
     exit 1
