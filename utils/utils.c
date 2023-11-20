@@ -47,7 +47,7 @@ static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p);
 static inline void _wappend(list2 *lst, const wchar_t *wstr);
 #endif
 
-__attribute__((__format__(gnu_printf, 3, 4))) int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
+int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     int ret = vsnprintf(dest, size, fmt, ap);
@@ -62,9 +62,8 @@ void error(const char *msg) {
     FILE *f = fopen(ERROR_LOG_FILE, "a");
     // retry with delays if failed
     for (unsigned int i = 0; i < 4; i++) {
-        if (f != NULL) break;
         struct timespec interval = {.tv_sec = 0, .tv_nsec = (long)(1 + i * 50) * 1000000L};
-        if (nanosleep(&interval, NULL)) break;
+        if (f != NULL || nanosleep(&interval, NULL)) break;
         f = fopen(ERROR_LOG_FILE, "a");
     }
     if (f) {
@@ -76,7 +75,7 @@ void error(const char *msg) {
     }
 }
 
-__attribute__((noreturn)) void error_exit(const char *msg) {
+void error_exit(const char *msg) {
     error(msg);
     clear_config(&configuration);
     exit(1);
@@ -231,8 +230,9 @@ static inline int _realloc_for_crlf(char **str_p, size_t *len_p) {
 
 static inline void _convert_to_crlf(char *str, size_t new_len) {
     // converting to CRLF expands string. Therefore, start from the end to avoid overwriting
-    size_t new_ind = new_len;
-    for (size_t cur_ind = strnlen(str, new_len + 1);; cur_ind--) {
+    size_t new_ind = new_len - 1;
+    str[new_len] = 0;  // terminating '\0'
+    for (size_t cur_ind = strnlen(str, new_len + 1) - 1;; cur_ind--) {
         char c = str[cur_ind];
         str[new_ind--] = c;
         if (c == '\n' && (cur_ind == 0 || str[cur_ind - 1] != '\n')) {
@@ -245,7 +245,7 @@ static inline void _convert_to_crlf(char *str, size_t new_len) {
 
 static inline ssize_t _convert_to_lf(char *str) {
     // converting to CRLF shrinks string. Therefore, start from the begining to avoid overwriting
-    char *old_ptr = str;
+    const char *old_ptr = str;
     char *new_ptr = str;
     char c;
     while ((c = *old_ptr)) {
@@ -469,8 +469,10 @@ int mkdirs(const char *dir_path) {
         return EXIT_FAILURE;
     }
     char path[len + 1];
-    strncpy(path, dir_path, len);
-    path[len] = 0;
+    strncpy(path, dir_path, sizeof(path));
+    if (path[sizeof(path) - 1] != 0) {
+        return EXIT_FAILURE;
+    }
 
     for (size_t i = 0; i <= len; i++) {
         if (path[i] != PATH_SEP && path[i] != 0) continue;
@@ -582,7 +584,7 @@ static void recurse_dir(const char *_path, list2 *lst, int depth) {
     while ((dir = readdir(d)) != NULL) {
         const char *filename = dir->d_name;
         if (!(strcmp(filename, ".") && strcmp(filename, ".."))) continue;
-        const size_t _fname_len = strlen(filename);
+        const size_t _fname_len = strnlen(filename, 2048);
         if (_fname_len + p_len > 2048) {
             error("Too long file name.");
             (void)closedir(d);

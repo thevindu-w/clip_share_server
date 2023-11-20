@@ -418,7 +418,7 @@ int get_image_v1(socket_t *socket) {
 
 int info_v1(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
-    const size_t len = strlen(INFO_NAME);
+    const size_t len = strnlen(INFO_NAME, 256);
     if (send_size(socket, (ssize_t)len) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
         fprintf(stderr, "send length failed\n");

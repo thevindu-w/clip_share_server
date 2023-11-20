@@ -70,7 +70,7 @@ void udp_server(void) {
     struct sockaddr_in cliaddr;
     memset(&cliaddr, 0, sizeof(cliaddr));
 
-    const size_t info_len = strlen(INFO_NAME);
+    const size_t info_len = strnlen(INFO_NAME, 256);
 
     int n;
     socklen_t len;
