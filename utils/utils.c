@@ -584,7 +584,7 @@ static void recurse_dir(const char *_path, list2 *lst, int depth) {
     while ((dir = readdir(d)) != NULL) {
         const char *filename = dir->d_name;
         if (!(strcmp(filename, ".") && strcmp(filename, ".."))) continue;
-        const size_t _fname_len = strnlen(filename, 2048);
+        const size_t _fname_len = strnlen(filename, sizeof(dir->d_name));
         if (_fname_len + p_len > 2048) {
             error("Too long file name.");
             (void)closedir(d);
