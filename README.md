@@ -194,6 +194,8 @@ pacman -S mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-libu
 
 You may need to allow incoming connections to the above ports for the client to connect to the server.
 
+Note that all TCP ports are for unicast, while `4337/udp` is used for broadcast. Therefore, the firewall rule that allows `4337/udp` should have the **broadcast** address of the interface as the destination address.
+
 <br>
 
 ### Connect the client application
