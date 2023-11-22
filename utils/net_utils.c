@@ -132,7 +132,7 @@ void open_listener_socket(listener_t *listener, const unsigned char sock_type, c
     listener->type = NULL_SOCK;
 
     sock_t listener_d = socket(PF_INET, (sock_type == UDP_SOCK ? SOCK_DGRAM : SOCK_STREAM), 0);
-    if (listener_d < 0) {
+    if (listener_d == INVALID_SOCKET) {
         error("Can\'t open socket");
         return;
     }
@@ -227,7 +227,7 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
     int address_size = (int)sizeof(client_addr);
 #endif
     sock_t connect_d = accept(listener_socket, (struct sockaddr *)&client_addr, &address_size);
-    if (connect_d < 0) {
+    if (connect_d == INVALID_SOCKET) {
         error("Can\'t open secondary socket");
         return;
     }
