@@ -132,7 +132,7 @@ void open_listener_socket(listener_t *listener, const unsigned char sock_type, c
     listener->type = NULL_SOCK;
 
     sock_t listener_d = socket(PF_INET, (sock_type == UDP_SOCK ? SOCK_DGRAM : SOCK_STREAM), 0);
-    if (listener_d == INVALID_SOCKET) {
+    if (listener_d < 0) {
         error("Can\'t open socket");
         return;
     }
@@ -202,11 +202,11 @@ int bind_port(listener_t listener, unsigned short port) {
     server_addr.sin_port = htons(port);
     server_addr.sin_addr.s_addr = configuration.bind_addr;
     int reuse = 1;
-    if (listener.type != UDP_SOCK && setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1) {
+    if (listener.type != UDP_SOCK && setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int))) {
         error("Can't set the reuse option on the socket");
         return EXIT_FAILURE;
     }
-    if (bind(socket, (const struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+    if (bind(socket, (const struct sockaddr *)&server_addr, sizeof(server_addr))) {
         char errmsg[32];
         const char *tcp_udp = listener.type == UDP_SOCK ? "UDP" : "TCP";
         snprintf_check(errmsg, 32, "Can\'t bind to %s port %hu", tcp_udp, port);
@@ -227,13 +227,15 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
     int address_size = (int)sizeof(client_addr);
 #endif
     sock_t connect_d = accept(listener_socket, (struct sockaddr *)&client_addr, &address_size);
-    struct timeval tv = {0, 100000};
-    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) == -1) {  // set timeout option to 100ms
-        error("Can't set the timeout option of the connection");
+    if (connect_d < 0) {
+        error("Can\'t open secondary socket");
         return;
     }
-    if (connect_d == INVALID_SOCKET) {
-        error("Can\'t open secondary socket");
+
+    // set timeout option to 100ms
+    struct timeval tv = {0, 100000};
+    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv))) {
+        error("Can't set the timeout option of the connection");
         return;
     }
 #ifdef DEBUG_MODE

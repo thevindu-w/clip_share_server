@@ -33,10 +33,6 @@ typedef int sock_t;
 typedef SOCKET sock_t;
 #endif
 
-#ifndef INVALID_SOCKET
-#define INVALID_SOCKET -1
-#endif
-
 #define NULL_SOCK 0
 #define PLAIN_SOCK 1
 #define SSL_SOCK 2
