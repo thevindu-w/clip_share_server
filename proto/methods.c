@@ -300,6 +300,19 @@ static int _save_file_common(socket_t *socket, const char *file_name) {
     return EXIT_SUCCESS;
 }
 
+/*
+ * Check if the file name is empty or has invalid characters \x00 to \x1f.
+ * returns EXIT_SUCCESS if the file name is valid.
+ * Otherwise, returns EXIT_FAILURE.
+ */
+static inline int _is_valid_fname(const char *fname) {
+    do {
+        if ((unsigned char)*fname < 32) return EXIT_FAILURE;
+        fname++;
+    } while (*fname);
+    return EXIT_SUCCESS;
+}
+
 #if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
 /*
  * Get only the base name
@@ -369,6 +382,12 @@ int send_file_v1(socket_t *socket) {
     if (u8_check((uint8_t *)file_name, (size_t)name_length)) {
 #ifdef DEBUG_MODE
         fputs("Invalid UTF-8\n", stderr);
+#endif
+        return EXIT_FAILURE;
+    }
+    if (_is_valid_fname(file_name) != EXIT_SUCCESS) {
+#ifdef DEBUG_MODE
+        printf("Invalid filename \'%s\'\n", file_name);
 #endif
         return EXIT_FAILURE;
     }
@@ -476,6 +495,12 @@ static int save_file(socket_t *socket, const char *dirname) {
     if (u8_check((uint8_t *)file_name, (size_t)name_length)) {
 #ifdef DEBUG_MODE
         fputs("Invalid UTF-8\n", stderr);
+#endif
+        return EXIT_FAILURE;
+    }
+    if (_is_valid_fname(file_name) != EXIT_SUCCESS) {
+#ifdef DEBUG_MODE
+        printf("Invalid filename \'%s\'\n", file_name);
 #endif
         return EXIT_FAILURE;
     }
