@@ -35,7 +35,6 @@
 
 #define MAX(x, y) (x > y ? x : y)
 
-#define ERROR_LOG_FILE "server_err.log"
 #define MAX_RECURSE_DEPTH 256
 
 #ifdef __linux__
@@ -59,24 +58,25 @@ void error(const char *msg) {
 #ifdef DEBUG_MODE
     fprintf(stderr, "%s\n", msg);
 #endif
-    FILE *f = fopen(ERROR_LOG_FILE, "a");
+    FILE *f = fopen(error_log_file, "a");
     // retry with delays if failed
     for (unsigned int i = 0; i < 4; i++) {
         struct timespec interval = {.tv_sec = 0, .tv_nsec = (long)(1 + i * 50) * 1000000L};
         if (f != NULL || nanosleep(&interval, NULL)) break;
-        f = fopen(ERROR_LOG_FILE, "a");
+        f = fopen(error_log_file, "a");
     }
     if (f) {
         fprintf(f, "%s\n", msg);
         fclose(f);
 #ifdef __linux__
-        chmod(ERROR_LOG_FILE, S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH);
+        chmod(error_log_file, S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH);
 #endif
     }
 }
 
 void error_exit(const char *msg) {
     error(msg);
+    if (error_log_file) free(error_log_file);
     clear_config(&configuration);
     exit(1);
 }

@@ -49,10 +49,13 @@
 #endif
 
 // maximum transfer sizes
-#define MAX_TEXT_LENGTH 4194304  // 4 MiB
+#define MAX_TEXT_LENGTH 4194304     // 4 MiB
 #define MAX_FILE_SIZE 68719476736l  // 64 GiB
 
+#define ERROR_LOG_FILE "server_err.log"
+
 config configuration;
+char *error_log_file = NULL;
 
 static void print_usage(const char *);
 static void kill_other_processes(const char *);
@@ -100,6 +103,35 @@ static inline void _parse_args(int argc, char **argv, int *stop_p) {
 }
 
 /*
+ * Set the error_log_file absolute path
+ */
+static inline void _set_error_log_file(const char *path) {
+    char *working_dir = getcwd(NULL, 2050);
+    if (!working_dir) exit(-1);
+    working_dir[2049] = 0;
+    size_t working_dir_len = strnlen(working_dir, 2048);
+    if (working_dir_len == 0 || working_dir_len >= 2048) {
+        free(working_dir);
+        exit(-1);
+    }
+    size_t buf_sz = working_dir_len + strlen(path) + 1;  // +1 for terminating \0
+    if (working_dir[working_dir_len - 1] != PATH_SEP) {
+        buf_sz++;  // 1 more char for PATH_SEP
+    }
+    error_log_file = malloc(buf_sz);
+    if (!error_log_file) {
+        free(working_dir);
+        exit(-1);
+    }
+    if (working_dir[working_dir_len - 1] == PATH_SEP) {
+        snprintf_check(error_log_file, buf_sz, "%s%s", working_dir, ERROR_LOG_FILE);
+    } else {
+        snprintf_check(error_log_file, buf_sz, "%s/%s", working_dir, ERROR_LOG_FILE);
+    }
+    free(working_dir);
+}
+
+/*
  * Change working directory to the directory specified in the configuration
  */
 static inline void _change_working_dir(void) {
@@ -114,12 +146,15 @@ static inline void _change_working_dir(void) {
         char err[3072];
         snprintf_check(err, 3072, "Failed changing working directory to \'%s\'", configuration.working_dir);
         fprintf(stderr, "%s\n", err);
+        free(old_work_dir);
         error_exit(err);
     }
     char *new_work_dir = getcwd(NULL, 0);
     if (old_work_dir == NULL || new_work_dir == NULL) {
         const char *err = "Error occured during changing working directory.";
         fprintf(stderr, "%s\n", err);
+        free(old_work_dir);
+        free(new_work_dir);
         error_exit(err);
     }
     // if the working directory did not change, set configuration.working_dir to NULL
@@ -373,6 +408,8 @@ int main(int argc, char **argv) {
 #ifdef DEBUG_MODE
     printf("prog_name=%s\n", prog_name);
 #endif
+
+    _set_error_log_file(ERROR_LOG_FILE);
 
     parse_conf(&configuration, "clipshare.conf");
     _apply_default_conf();

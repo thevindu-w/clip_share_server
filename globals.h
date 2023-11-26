@@ -22,5 +22,6 @@
 #include <config.h>
 
 extern config configuration;
+char *error_log_file;
 
 #endif  // GLOBALS_H_
