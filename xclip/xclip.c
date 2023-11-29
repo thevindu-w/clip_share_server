@@ -19,13 +19,13 @@
  *  2022-2023 Modified by H. Thevindu J. Wijesekera
  */
 
+#include <X11/Xatom.h>
+#include <X11/Xlib.h>
+#include <X11/Xmu/Atoms.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <X11/Xatom.h>
-#include <X11/Xlib.h>
-#include <X11/Xmu/Atoms.h>
 #include <utils/utils.h>
 #include <xclip/xcdef.h>
 #include <xclip/xclib.h>
@@ -162,7 +162,7 @@ static int doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_optio
 
     *len_ptr = sel_len;
     if (sel_len > 0) {
-        *buf_ptr = malloc(sel_len + 1);
+        *buf_ptr = xcmalloc(sel_len + 1);
         memcpy(*buf_ptr, sel_buf, sel_len);
         (*buf_ptr)[sel_len] = 0;
     }

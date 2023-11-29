@@ -27,10 +27,6 @@
 #include <utils/win_image.h>
 #include <windows.h>
 
-/* Returns pixel of bitmap at given point. */
-#define RGBPixelAtPoint(image, x, y) \
-    *(((image)->pixels) + (((image)->bytewidth * (y)) + ((x) * (image)->bytes_per_pixel)))
-
 typedef struct _RGBPixel {
     uint8_t blue;
     uint8_t green;
@@ -188,12 +184,11 @@ static int write_png_to_mem(RGBBitmap *bitmap, char **buf_ptr, size_t *len_ptr) 
     /* Initialize rows of PNG. */
     row_pointers = png_malloc(png_ptr, bitmap->height * sizeof(png_byte *));
     for (y = 0; y < bitmap->height; ++y) {
-        uint8_t *row = (uint8_t *)malloc(
-            bitmap->bytes_per_pixel * bitmap->width);  // png_malloc(png_ptr, sizeof(uint8_t)* bitmap->bytes_per_pixel);
+        uint8_t *row = (uint8_t *)malloc(bitmap->bytes_per_pixel * bitmap->width);
         row_pointers[y] = (png_byte *)row;
         for (x = 0; x < bitmap->width; ++x) {
             RGBPixel color = *(RGBPixel *)(((uint8_t *)(bitmap->pixels)) + ((bitmap->bytewidth) * y) +
-                                           (bitmap->bytes_per_pixel) * x);  // RGBPixelAtPoint(bitmap, x, y);
+                                           (bitmap->bytes_per_pixel) * x);
             *row++ = color.red;
             *row++ = color.green;
             *row++ = color.blue;

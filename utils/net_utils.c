@@ -101,14 +101,13 @@ static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *
 
 static int getClientCerts(const SSL *ssl, const list2 *allowed_clients) {
     X509 *cert;
-    char *buf;
 
     cert = SSL_get_peer_certificate(ssl); /* Get certificates (if available) */
     if (!cert) {
         return EXIT_FAILURE;
     }
     int verified = 0;
-    buf = malloc(256);
+    char buf[256];
     X509_NAME_get_text_by_NID(X509_get_subject_name(cert), NID_commonName, buf, 255);
 #ifdef DEBUG_MODE
     printf("Client Common Name: %s\n", buf);
@@ -122,7 +121,6 @@ static int getClientCerts(const SSL *ssl, const list2 *allowed_clients) {
             break;
         }
     }
-    free(buf);
     X509_free(cert);
     return verified ? EXIT_SUCCESS : EXIT_FAILURE;
 }
