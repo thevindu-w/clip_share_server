@@ -315,7 +315,8 @@ static inline int _is_valid_fname(const char *fname) {
 
 #if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
 /*
- * Get only the base name
+ * Get only the base name.
+ * Path seperator is assumed to be '/' regardless of the platform.
  */
 static inline int _get_base_name(char *file_name, size_t name_length) {
     const char *base_name = strrchr(file_name, '/');  // path separator is / when communicating with the client
@@ -323,10 +324,6 @@ static inline int _get_base_name(char *file_name, size_t name_length) {
         base_name++;                                                         // don't want the '/' before the file name
         memmove(file_name, base_name, strnlen(base_name, name_length) + 1);  // overlapping memory area
     }
-#if PATH_SEP != '/'
-    // file name must not contain PATH_SEP
-    if (strchr(file_name, PATH_SEP)) return EXIT_FAILURE;
-#endif
     return EXIT_SUCCESS;
 }
 
@@ -576,7 +573,7 @@ int send_files_v2(socket_t *socket) {
     char dirname[17];
     unsigned id = (unsigned)time(NULL);
     do {
-        if (snprintf_check(dirname, 17, "./%x", id)) return EXIT_FAILURE;
+        if (snprintf_check(dirname, 17, ".%c%x", PATH_SEP, id)) return EXIT_FAILURE;
         id = (unsigned)rand();
     } while (file_exists(dirname));
 
