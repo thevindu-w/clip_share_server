@@ -1,0 +1,76 @@
+name: Build release
+run-name: Build artefacts for ${{github.ref_name}}
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  Linux:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{github.head_ref}}
+        fetch-depth: 0
+        repository: ${{github.repository}}
+    - name: Set version
+      run: |
+        version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+        echo VERSION="$version" >> $GITHUB_ENV
+    - name: Build on Ubuntu 20
+      run: docker build -t clipshare:ubuntu20 -f docker/release/Dockerfile.ubuntu20 .
+    - name: Build on Ubuntu 22
+      run: docker build -t clipshare:ubuntu22 -f docker/release/Dockerfile.ubuntu22 .
+    - name: Build on Arch Linux
+      run: docker build -t clipshare:arch -f docker/release/Dockerfile.arch .
+    - name: Build on Fedora 39
+      run: docker build -t clipshare:fedora -f docker/release/Dockerfile.fedora .
+    - name: Copy binaries
+      run: |
+        mkdir dist
+        chmod 777 dist
+        docker run -v './dist:/home/user/src/dist' clipshare:ubuntu20
+        docker run -v './dist:/home/user/src/dist' clipshare:ubuntu22
+        docker run -v './dist:/home/user/src/dist' clipshare:arch
+        docker run -v './dist:/home/user/src/dist' clipshare:fedora
+        cd dist && sha256sum -b * >SHA2-256SUM && tar -cf - --sort=name --owner=root:0 --group=root:0 --no-same-owner . | gzip -9 >"../clip_share_server-${{env.VERSION}}-linux_x86_64.tar.gz"
+    - name: Upload Linux version
+      uses: actions/upload-artifact@v3
+      with:
+        name: "clip_share_server-${{env.VERSION}}-linux_x86_64.tar.gz"
+        path: "clip_share_server-${{env.VERSION}}-linux_x86_64.tar.gz"
+  Windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: false
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-libunistring
+    - name: Setup make
+      run: ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{github.head_ref}}
+        fetch-depth: 0
+        repository: ${{github.repository}}
+    - name: Set version
+      run: |
+        version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+        echo VERSION="$version" >> $GITHUB_ENV
+    - name: Build
+      run: |
+        make
+        mv "clip_share.exe" "clip_share_server-${{env.VERSION}}-windows64.exe"
+    - name: Upload Windows version
+      uses: actions/upload-artifact@v3
+      with:
+        name: "clip_share_server-${{env.VERSION}}-windows64.exe"
+        path: "clip_share_server-${{env.VERSION}}-windows64.exe"

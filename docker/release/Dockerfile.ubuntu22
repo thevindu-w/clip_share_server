@@ -1,0 +1,31 @@
+FROM ubuntu:jammy
+
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y apt-transport-https && \
+    apt-get update
+
+# Install dependencies
+RUN apt-get install --no-install-recommends -y coreutils gcc make libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev libunistring-dev
+
+RUN useradd -mU -s /bin/bash user
+USER user
+ENV HOME=/home/user
+
+RUN mkdir -p "$HOME/src"
+WORKDIR "$HOME/src"
+
+# Copy the source files
+COPY Makefile clip_share.c clip_share_web.c config.c main.c udp_serve.c config.h globals.h servers.h page_blob.S ./
+COPY ./html html
+RUN mkdir proto utils xclip xscreenshot
+COPY ./proto/*.c ./proto/*.h proto/
+COPY ./utils/*.c ./utils/*.h utils/
+COPY ./xclip/*.c ./xclip/*.h xclip/
+COPY ./xscreenshot/*.c ./xscreenshot/*.h xscreenshot/
+
+# Build
+RUN make clean && make all
+
+COPY --chmod=755 ./docker/release/copy_release.sh ./
+
+CMD ["./copy_release.sh"]
