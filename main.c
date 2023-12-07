@@ -106,7 +106,7 @@ static inline void _parse_args(int argc, char **argv, int *stop_p) {
  * Set the error_log_file absolute path
  */
 static inline void _set_error_log_file(const char *path) {
-    char *working_dir = getcwd(NULL, 2050);
+    char *working_dir = getcwd_wrapper(2050);
     if (!working_dir) exit(-1);
     working_dir[2049] = 0;
     size_t working_dir_len = strnlen(working_dir, 2048);
@@ -141,15 +141,15 @@ static inline void _change_working_dir(void) {
         fprintf(stderr, "%s\n", err);
         error_exit(err);
     }
-    char *old_work_dir = getcwd(NULL, 0);
-    if (chdir(configuration.working_dir)) {
+    char *old_work_dir = getcwd_wrapper(0);
+    if (chdir_wrapper(configuration.working_dir)) {
         char err[3072];
         snprintf_check(err, 3072, "Failed changing working directory to \'%s\'", configuration.working_dir);
         fprintf(stderr, "%s\n", err);
         free(old_work_dir);
         error_exit(err);
     }
-    char *new_work_dir = getcwd(NULL, 0);
+    char *new_work_dir = getcwd_wrapper(0);
     if (old_work_dir == NULL || new_work_dir == NULL) {
         const char *err = "Error occured during changing working directory.";
         fprintf(stderr, "%s\n", err);
@@ -165,6 +165,9 @@ static inline void _change_working_dir(void) {
     free(new_work_dir);
 }
 
+/*
+ * Apply default values to the configuration options that are not specified in conf file.
+ */
 static inline void _apply_default_conf(void) {
     if (configuration.restart < 0) configuration.restart = 1;
     if (configuration.app_port <= 0) configuration.app_port = APP_PORT;
@@ -265,6 +268,8 @@ static volatile char running = 1;
 
 /*
  * Attempts to kill all other processes with the name, prog_name.
+ * This does not kill itself.
+ * It is not guaranteed to kill all processes with the given name.
  */
 static void kill_other_processes(const char *prog_name) {
     DWORD this_pid = GetCurrentProcessId();

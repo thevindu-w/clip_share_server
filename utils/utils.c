@@ -29,6 +29,7 @@
 #include <xclip/xclip.h>
 #include <xscreenshot/xscreenshot.h>
 #ifdef _WIN32
+#include <direct.h>
 #include <utils/win_image.h>
 #include <windows.h>
 #endif
@@ -951,6 +952,26 @@ static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p) 
     *utf8str_p = str;
     if (len_p) *len_p = len - 1;
     return EXIT_SUCCESS;
+}
+
+int chdir_wrapper(const char *path) {
+    wchar_t *wpath;
+    if (utf8_to_wchar_str(path, &wpath, NULL) != EXIT_SUCCESS) return -1;
+    int result = _wchdir(wpath);
+    free(wpath);
+    return result;
+}
+
+char *getcwd_wrapper(int len) {
+    wchar_t *wcwd = _wgetcwd(NULL, len / 2);
+    if (!wcwd) return NULL;
+    char *utf8path;
+    if (wchar_to_utf8_str(wcwd, &utf8path, NULL) != EXIT_SUCCESS) {
+        free(wcwd);
+        return NULL;
+    }
+    free(wcwd);
+    return utf8path;
 }
 
 /*

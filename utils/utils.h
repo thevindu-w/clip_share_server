@@ -147,6 +147,14 @@ extern int remove_file(const char *filename);
  */
 extern ssize_t convert_eol(char **str_p, int force_lf);
 
+#ifdef __linux__
+#define chdir_wrapper(path) chdir(path)
+#define getcwd_wrapper(len) getcwd(NULL, len);
+#elif _WIN32
+extern int chdir_wrapper(const char *path);
+extern char *getcwd_wrapper(int len);
+#endif
+
 #if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
 
 /*
