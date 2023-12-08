@@ -126,6 +126,28 @@ extern int is_directory(const char *path, int follow_symlinks);
 void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length);
 
 /*
+ * Converts line endings to LF or CRLF based on the platform.
+ * param str_p is a valid pointer to malloced, null-terminated char * which may be realloced and returned.
+ * If force_lf is non-zero, convert EOL to LF regardless of the platform
+ * Else, convert EOL of str to LF
+ * Returns the length of the new string without the terminating '\0'.
+ * If an error occured, this will free() the *str_p and return -1.
+ */
+extern ssize_t convert_eol(char **str_p, int force_lf);
+
+#ifdef __linux__
+
+#define open_file(filename, mode) fopen(filename, mode)
+#define remove_file(filename) remove(filename)
+#define chdir_wrapper(path) chdir(path)
+#define getcwd_wrapper(len) getcwd(NULL, len)
+
+#elif _WIN32
+
+extern int chdir_wrapper(const char *path);
+extern char *getcwd_wrapper(int len);
+
+/*
  * A wrapper for fopen() to be platform independent.
  * Internally converts the filename to wide char on Windows.
  */
@@ -137,22 +159,6 @@ extern FILE *open_file(const char *filename, const char *mode);
  */
 extern int remove_file(const char *filename);
 
-/*
- * Converts line endings to LF or CRLF based on the platform.
- * param str_p is a valid pointer to malloced, null-terminated char * which may be realloced and returned.
- * If force_lf is non-zero, convert EOL to LF regardless of the platform
- * Else, convert EOL of str to LF
- * Returns the length of the new string without the terminating '\0'.
- * If an error occured, this will free() the *str_p and return -1.
- */
-extern ssize_t convert_eol(char **str_p, int force_lf);
-
-#ifdef __linux__
-#define chdir_wrapper(path) chdir(path)
-#define getcwd_wrapper(len) getcwd(NULL, len);
-#elif _WIN32
-extern int chdir_wrapper(const char *path);
-extern char *getcwd_wrapper(int len);
 #endif
 
 #if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
@@ -190,6 +196,13 @@ extern list2 *list_dir(const char *dirname);
  */
 extern void get_copied_dirs_files(dir_files *dfiles_p);
 
+#ifdef __linux__
+
+#define rename_file(old_name, new_name) rename(old_name, new_name)
+#define remove_directory(path) rmdir(path)
+
+#elif _WIN32
+
 /*
  * A wrapper for rename() to be platform independent.
  * Internally converts the path names to wide char on Windows.
@@ -201,6 +214,8 @@ extern int rename_file(const char *old_name, const char *new_name);
  * Internally converts the path names to wide char on Windows.
  */
 extern int remove_directory(const char *path);
+
+#endif
 
 #endif
 

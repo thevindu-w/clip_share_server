@@ -59,12 +59,12 @@ void error(const char *msg) {
 #ifdef DEBUG_MODE
     fprintf(stderr, "%s\n", msg);
 #endif
-    FILE *f = fopen(error_log_file, "a");
+    FILE *f = open_file(error_log_file, "a");
     // retry with delays if failed
     for (unsigned int i = 0; i < 4; i++) {
         struct timespec interval = {.tv_sec = 0, .tv_nsec = (long)(1 + i * 50) * 1000000L};
         if (f != NULL || nanosleep(&interval, NULL)) break;
-        f = fopen(error_log_file, "a");
+        f = open_file(error_log_file, "a");
     }
     if (f) {
         fprintf(f, "%s\n", msg);
@@ -164,36 +164,6 @@ void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) 
     /* copy new bytes to end of buffer */
     memcpy(p->buffer + p->size, data, length);
     p->size += length;
-}
-
-FILE *open_file(const char *filename, const char *mode) {
-#ifdef __linux__
-    return fopen(filename, mode);
-#elif _WIN32
-    wchar_t *wfname;
-    wchar_t *wmode;
-    if (utf8_to_wchar_str(filename, &wfname, NULL) != EXIT_SUCCESS) return NULL;
-    if (utf8_to_wchar_str(mode, &wmode, NULL) != EXIT_SUCCESS) {
-        free(wfname);
-        return NULL;
-    }
-    FILE *fp = _wfopen(wfname, wmode);
-    free(wfname);
-    free(wmode);
-    return fp;
-#endif
-}
-
-int remove_file(const char *filename) {
-#ifdef __linux__
-    return remove(filename);
-#elif _WIN32
-    wchar_t *wfname;
-    if (utf8_to_wchar_str(filename, &wfname, NULL) != EXIT_SUCCESS) return -1;
-    int result = _wremove(wfname);
-    free(wfname);
-    return result;
-#endif
 }
 
 /*
@@ -389,36 +359,6 @@ list2 *get_copied_files(void) {
 #endif  // (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
 
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
-
-int rename_file(const char *old_name, const char *new_name) {
-#ifdef __linux__
-    return rename(old_name, new_name);
-#elif _WIN32
-    wchar_t *wold;
-    wchar_t *wnew;
-    if (utf8_to_wchar_str(old_name, &wold, NULL) != EXIT_SUCCESS) return -1;
-    if (utf8_to_wchar_str(new_name, &wnew, NULL) != EXIT_SUCCESS) {
-        free(wold);
-        return -1;
-    }
-    int result = _wrename(wold, wnew);
-    free(wold);
-    free(wnew);
-    return result;
-#endif
-}
-
-int remove_directory(const char *path) {
-#ifdef __linux__
-    return rmdir(path);
-#elif _WIN32
-    wchar_t *wpath;
-    if (utf8_to_wchar_str(path, &wpath, NULL) != EXIT_SUCCESS) return -1;
-    int result = (RemoveDirectoryW(wpath) == FALSE);
-    free(wpath);
-    return result;
-#endif
-}
 
 /*
  * Try to create the directory at path.
@@ -790,6 +730,28 @@ void get_copied_dirs_files(dir_files *dfiles_p) {
     CloseClipboard();
 }
 
+int rename_file(const char *old_name, const char *new_name) {
+    wchar_t *wold;
+    wchar_t *wnew;
+    if (utf8_to_wchar_str(old_name, &wold, NULL) != EXIT_SUCCESS) return -1;
+    if (utf8_to_wchar_str(new_name, &wnew, NULL) != EXIT_SUCCESS) {
+        free(wold);
+        return -1;
+    }
+    int result = _wrename(wold, wnew);
+    free(wold);
+    free(wnew);
+    return result;
+}
+
+int remove_directory(const char *path) {
+    wchar_t *wpath;
+    if (utf8_to_wchar_str(path, &wpath, NULL) != EXIT_SUCCESS) return -1;
+    int result = (RemoveDirectoryW(wpath) == FALSE);
+    free(wpath);
+    return result;
+}
+
 #endif
 
 #endif  // (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
@@ -963,7 +925,7 @@ int chdir_wrapper(const char *path) {
 }
 
 char *getcwd_wrapper(int len) {
-    wchar_t *wcwd = _wgetcwd(NULL, len / 2);
+    wchar_t *wcwd = _wgetcwd(NULL, len);
     if (!wcwd) return NULL;
     char *utf8path;
     if (wchar_to_utf8_str(wcwd, &utf8path, NULL) != EXIT_SUCCESS) {
@@ -972,6 +934,28 @@ char *getcwd_wrapper(int len) {
     }
     free(wcwd);
     return utf8path;
+}
+
+FILE *open_file(const char *filename, const char *mode) {
+    wchar_t *wfname;
+    wchar_t *wmode;
+    if (utf8_to_wchar_str(filename, &wfname, NULL) != EXIT_SUCCESS) return NULL;
+    if (utf8_to_wchar_str(mode, &wmode, NULL) != EXIT_SUCCESS) {
+        free(wfname);
+        return NULL;
+    }
+    FILE *fp = _wfopen(wfname, wmode);
+    free(wfname);
+    free(wmode);
+    return fp;
+}
+
+int remove_file(const char *filename) {
+    wchar_t *wfname;
+    if (utf8_to_wchar_str(filename, &wfname, NULL) != EXIT_SUCCESS) return -1;
+    int result = _wremove(wfname);
+    free(wfname);
+    return result;
 }
 
 /*

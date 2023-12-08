@@ -454,7 +454,7 @@ int info_v1(socket_t *socket) {
 /*
  * Make parent directories for path
  */
-static inline int _make_directories(char *path) {
+static inline int _make_directories(const char *path) {
     char *base_name = strrchr(path, PATH_SEP);
     if (!base_name) return EXIT_FAILURE;
     *base_name = 0;
