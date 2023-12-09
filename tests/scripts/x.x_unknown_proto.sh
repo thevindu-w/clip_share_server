@@ -7,8 +7,8 @@ protoReject=$(printf '\x00' | bin2hex)
 
 responseDump=$(echo -n "${proto}${protoReject}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x03' | bin2hex)
-protoOffer=$(printf '%02x' "$proto_max_version")
+protoAck="$PROTO_UNKNOWN"
+protoOffer="$PROTO_MAX_VERSION"
 
 expected="${protoAck}${protoOffer}"
 

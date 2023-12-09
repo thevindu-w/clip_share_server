@@ -2,15 +2,15 @@
 
 . init.sh
 
-proto=$(printf '\x01' | bin2hex)
-method=$(printf '\x05' | bin2hex)
+proto="$PROTO_V1"
+method="$METHOD_GET_IMAGE"
 
 clear_clipboard
 
 responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x01' | bin2hex)
-methodAck=$(printf '\x01' | bin2hex)
+protoAck="$PROTO_SUPPORTED"
+methodAck="$METHOD_OK"
 
 expected_proto_method_ack="${protoAck}${methodAck}"
 len_expected_header="${#expected_proto_method_ack}"

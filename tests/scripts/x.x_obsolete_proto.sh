@@ -6,7 +6,7 @@ proto=$(printf '\x00' | bin2hex)
 
 responseDump=$(echo -n "${proto}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x02' | bin2hex)
+protoAck="$PROTO_OBSOLETE"
 
 expected="${protoAck}"
 

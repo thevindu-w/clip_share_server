@@ -8,13 +8,13 @@ dfc0f828c0e0522b1809c0000000049454e44ae426082"
 
 copy_image "${imgSample}"
 
-proto=$(printf '\x01' | bin2hex)
-method=$(printf '\x05' | bin2hex)
+proto="$PROTO_V1"
+method="$METHOD_GET_IMAGE"
 
 responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x01' | bin2hex)
-methodAck=$(printf '\x01' | bin2hex)
+protoAck="$PROTO_SUPPORTED"
+methodAck="$METHOD_OK"
 length=$(printf '%016x' $(("${#imgSample}" / 2)))
 
 expected="${protoAck}${methodAck}${length}${imgSample}"

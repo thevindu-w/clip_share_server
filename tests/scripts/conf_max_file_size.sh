@@ -24,14 +24,14 @@ cd ..
 mkdir -p copies
 update_config working_dir copies
 
-proto=$(printf '\x02' | bin2hex)
-method=$(printf '\x04' | bin2hex)
+proto="$PROTO_V2"
+method="$METHOD_SEND_FILES"
 fileCount=$(printf '%016x' 2)
 
 responseDump=$(echo -n "${proto}${method}${fileCount}${chunks}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x01' | bin2hex)
-methodAck=$(printf '\x01' | bin2hex)
+protoAck="$PROTO_SUPPORTED"
+methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 
@@ -55,8 +55,8 @@ update_config max_file_size 20
 
 responseDump=$(echo -n "${proto}${method}${fileCount}${chunks}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x01' | bin2hex)
-methodAck=$(printf '\x01' | bin2hex)
+protoAck="$PROTO_SUPPORTED"
+methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 

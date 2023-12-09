@@ -1,7 +1,6 @@
 set -e
 
 program=$1
-proto_max_version=2
 
 shopt -s expand_aliases
 

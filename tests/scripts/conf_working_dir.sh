@@ -14,13 +14,13 @@ fileSize=$(printf '%016x' "${#fileContent}")
 content=$(echo -n "$fileContent" | bin2hex | tr -d '\n')
 body="${nameLength}$(echo -n "${fileName}" | bin2hex)${fileSize}${content}"
 
-proto=$(printf '\x01' | bin2hex)
-method=$(printf '\x04' | bin2hex)
+proto="$PROTO_V1"
+method="$METHOD_SEND_FILES"
 
 responseDump=$(echo -n "${proto}${method}${body}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x01' | bin2hex)
-methodAck=$(printf '\x01' | bin2hex)
+protoAck="$PROTO_SUPPORTED"
+methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 

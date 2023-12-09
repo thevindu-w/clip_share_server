@@ -15,7 +15,7 @@ if ! nc -zvn 127.0.0.1 6337 &>/dev/null; then
 fi
 
 responseDump=$(echo -n '7700' | hex2bin | nc -w 1 127.0.0.1 6337 | bin2hex | tr -d '\n')
-expected="03$(printf '%02x' $proto_max_version)"
+expected="${PROTO_UNKNOWN}${PROTO_MAX_VERSION}"
 if [ "${responseDump}" != "${expected}" ]; then
     showStatus info 'Incorrect server response.'
     echo 'Expected:' "$expected"

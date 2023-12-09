@@ -29,13 +29,13 @@ file_list=(original/*)
 shopt -u nullglob
 copy_files "${file_list[@]}"
 
-proto=$(printf '\x01' | bin2hex)
-method=$(printf '\x03' | bin2hex)
+proto="$PROTO_V1"
+method="$METHOD_GET_FILES"
 
 responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x01' | bin2hex)
-methodAck=$(printf '\x01' | bin2hex)
+protoAck="$PROTO_SUPPORTED"
+methodAck="$METHOD_OK"
 fileCount=$(printf '%016x' $(echo -n "${#files[@]}"))
 
 expected="${protoAck}${methodAck}${fileCount}${chunks}"

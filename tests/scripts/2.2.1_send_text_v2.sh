@@ -4,8 +4,8 @@
 
 sample="send_text 範例文字 1"
 
-proto=$(printf '\x02' | bin2hex)
-method=$(printf '\x02' | bin2hex)
+proto="$PROTO_V2"
+method="$METHOD_SEND_TEXT"
 printf -v _ '%s%n' "$sample" utf8len
 length="$(printf '%016x' $utf8len)"
 sampleDump=$(echo -n "$sample" | bin2hex)
@@ -14,8 +14,8 @@ clear_clipboard
 
 responseDump=$(echo -n "${proto}${method}${length}${sampleDump}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x01' | bin2hex)
-methodAck=$(printf '\x01' | bin2hex)
+protoAck="$PROTO_SUPPORTED"
+methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 

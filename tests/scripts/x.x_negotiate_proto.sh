@@ -3,15 +3,15 @@
 . init.sh
 
 proto=$(printf '\x77' | bin2hex)
-protoAccept=$(printf '%02x' "$proto_max_version")
-method=$(printf '\x01' | bin2hex)
+protoAccept="$PROTO_MAX_VERSION"
+method="$METHOD_GET_TEXT"
 
 clear_clipboard
 
 responseDump=$(echo -n "${proto}${protoAccept}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x03\x02' | bin2hex)
-methodAck=$(printf '\x02' | bin2hex)
+protoAck="${PROTO_UNKNOWN}${protoAccept}"
+methodAck="$METHOD_NO_DATA"
 
 expected="${protoAck}${methodAck}"
 

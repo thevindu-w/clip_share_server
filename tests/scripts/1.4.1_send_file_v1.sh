@@ -18,13 +18,13 @@ cd ..
 mkdir -p copy
 update_config working_dir copy
 
-proto=$(printf '\x01' | bin2hex)
-method=$(printf '\x04' | bin2hex)
+proto="$PROTO_V1"
+method="$METHOD_SEND_FILES"
 
 responseDump=$(echo -n "${proto}${method}${body}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x01' | bin2hex)
-methodAck=$(printf '\x01' | bin2hex)
+protoAck="$PROTO_SUPPORTED"
+methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 

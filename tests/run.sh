@@ -200,6 +200,32 @@ update_config() {
     sleep 0.1
 }
 
+# Define constants
+
+# Proto
+export PROTO_V1=$(printf '\x01' | bin2hex)
+export PROTO_V2=$(printf '\x02' | bin2hex)
+export PROTO_MAX_VERSION="$PROTO_V2"
+
+# Methods
+export METHOD_GET_TEXT=$(printf '\x01' | bin2hex)
+export METHOD_SEND_TEXT=$(printf '\x02' | bin2hex)
+export METHOD_GET_FILES=$(printf '\x03' | bin2hex)
+export METHOD_SEND_FILES=$(printf '\x04' | bin2hex)
+export METHOD_GET_IMAGE=$(printf '\x05' | bin2hex)
+
+# Proto ack
+export PROTO_SUPPORTED=$(printf '\x01' | bin2hex)
+export PROTO_OBSOLETE=$(printf '\x02' | bin2hex)
+export PROTO_UNKNOWN=$(printf '\x03' | bin2hex)
+
+# Method ack
+export METHOD_OK=$(printf '\x01' | bin2hex)
+export METHOD_NO_DATA=$(printf '\x02' | bin2hex)
+export METHOD_UNKNOWN_METHOD=$(printf '\x03' | bin2hex)
+export METHOD_NOT_IMPLEMENTED=$(printf '\x04' | bin2hex)
+
+# Export variables and functions
 export DETECTED_OS
 export -f setColor showStatus copy_text get_copied_text copy_files copy_image clear_clipboard update_config
 

@@ -2,13 +2,13 @@
 
 . init.sh
 
-proto=$(printf '\x01' | bin2hex)
+proto="$PROTO_V1"
 method=$(printf '\x06' | bin2hex)
 
 responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x01' | bin2hex)
-methodAck=$(printf '\x03' | bin2hex)
+protoAck="$PROTO_SUPPORTED"
+methodAck="$METHOD_UNKNOWN_METHOD"
 
 expected="${protoAck}${methodAck}"
 

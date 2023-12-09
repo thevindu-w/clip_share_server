@@ -6,13 +6,13 @@ export SECURE=1
 
 clear_clipboard
 
-proto=$(printf '\x02' | bin2hex)
-method=$(printf '\x01' | bin2hex)
+proto="$PROTO_V2"
+method="$METHOD_GET_TEXT"
 
 responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool 2>/dev/null | bin2hex | tr -d '\n')
 
-protoAck=$(printf '\x01' | bin2hex)
-methodAck=$(printf '\x02' | bin2hex)
+protoAck="$PROTO_SUPPORTED"
+methodAck="$METHOD_NO_DATA"
 
 expected="${protoAck}${methodAck}"
 
