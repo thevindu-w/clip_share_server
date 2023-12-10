@@ -928,11 +928,13 @@ char *getcwd_wrapper(int len) {
     wchar_t *wcwd = _wgetcwd(NULL, len);
     if (!wcwd) return NULL;
     char *utf8path;
-    if (wchar_to_utf8_str(wcwd, &utf8path, NULL) != EXIT_SUCCESS) {
+    int alloc_len;
+    if (wchar_to_utf8_str(wcwd, &utf8path, &alloc_len) != EXIT_SUCCESS) {
         free(wcwd);
         return NULL;
     }
     free(wcwd);
+    if (alloc_len < len) utf8path = realloc(utf8path, (size_t)len);
     return utf8path;
 }
 
