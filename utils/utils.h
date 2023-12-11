@@ -26,13 +26,13 @@
 
 #ifdef __linux__
 #include <png.h>
-#elif _WIN32
+#elif defined(_WIN32)
 #include <libpng16/png.h>
 #endif
 
 #ifdef __linux__
 #define PATH_SEP '/'
-#elif _WIN32
+#elif defined(_WIN32)
 #define PATH_SEP '\\'
 #endif
 
@@ -142,7 +142,7 @@ extern ssize_t convert_eol(char **str_p, int force_lf);
 #define chdir_wrapper(path) chdir(path)
 #define getcwd_wrapper(len) getcwd(NULL, len)
 
-#elif _WIN32
+#elif defined(_WIN32)
 
 extern int chdir_wrapper(const char *path);
 extern char *getcwd_wrapper(int len);
@@ -201,7 +201,7 @@ extern void get_copied_dirs_files(dir_files *dfiles_p);
 #define rename_file(old_name, new_name) rename(old_name, new_name)
 #define remove_directory(path) rmdir(path)
 
-#elif _WIN32
+#elif defined(_WIN32)
 
 /*
  * A wrapper for rename() to be platform independent.

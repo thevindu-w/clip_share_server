@@ -31,7 +31,7 @@
 #include <dirent.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#elif _WIN32
+#elif defined(_WIN32)
 #include <openssl/md5.h>
 #include <shellapi.h>
 #include <tlhelp32.h>
@@ -257,7 +257,7 @@ static void kill_other_processes(const char *prog_name) {
     return;
 }
 
-#elif _WIN32
+#elif defined(_WIN32)
 
 #define TRAY_CB_MSG (WM_USER + 0x100)
 
@@ -474,7 +474,7 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-#elif _WIN32
+#elif defined(_WIN32)
 
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {

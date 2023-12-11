@@ -29,7 +29,7 @@
 
 #ifdef __linux__
 typedef int sock_t;
-#elif _WIN32
+#elif defined(_WIN32)
 typedef SOCKET sock_t;
 #endif
 

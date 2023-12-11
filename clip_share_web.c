@@ -29,7 +29,7 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#elif _WIN32
+#elif defined(_WIN32)
 #include <io.h>
 #include <windows.h>
 #endif
@@ -234,7 +234,7 @@ int web_server(void) {
             close_socket(&connect_sock);
             break;
         }
-#elif _WIN32
+#elif defined(_WIN32)
         socket_t *connect_ptr = malloc(sizeof(socket_t));
         memcpy(connect_ptr, &connect_sock, sizeof(socket_t));
         HANDLE serveThread = CreateThread(NULL, 0, webServerThreadFn, (LPDWORD)connect_ptr, 0, NULL);

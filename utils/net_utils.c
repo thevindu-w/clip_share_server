@@ -31,7 +31,7 @@
 #ifdef __linux__
 #include <arpa/inet.h>
 #include <unistd.h>
-#elif _WIN32
+#elif defined(_WIN32)
 #include <winsock2.h>
 #endif
 
@@ -176,7 +176,7 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
     struct in_addr addr;
 #ifdef __linux__
     if (inet_aton(address_str, &addr) != 1) {
-#elif _WIN32
+#elif defined(_WIN32)
     if ((addr.s_addr = inet_addr(address_str)) == INADDR_NONE) {
 #endif
 #ifdef DEBUG_MODE
@@ -186,7 +186,7 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
     }
 #ifdef __linux__
     *address_ptr = addr.s_addr;
-#elif _WIN32
+#elif defined(_WIN32)
     *address_ptr = (uint32_t)addr.s_addr;
 #endif
     return EXIT_SUCCESS;
@@ -221,7 +221,7 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
     struct sockaddr_in client_addr;
 #ifdef __linux__
     unsigned int address_size = sizeof(client_addr);
-#elif _WIN32
+#elif defined(_WIN32)
     int address_size = (int)sizeof(client_addr);
 #endif
     sock_t connect_d = accept(listener_socket, (struct sockaddr *)&client_addr, &address_size);
@@ -296,22 +296,23 @@ void close_socket(socket_t *socket) {
         case PLAIN_SOCK: {
 #ifdef __linux__
             close(socket->socket.plain);
-#elif _WIN32
+#elif defined(_WIN32)
             closesocket(socket->socket.plain);
 #endif
             break;
         }
 
         case SSL_SOCK: {
+            sock_t sd;
 #ifdef _WIN32
-            sock_t sd = (sock_t)SSL_get_fd(socket->socket.ssl); /* get socket connection */
+            sd = (sock_t)SSL_get_fd(socket->socket.ssl); /* get socket connection */
 #else
-            sock_t sd = SSL_get_fd(socket->socket.ssl); /* get socket connection */
+            sd = SSL_get_fd(socket->socket.ssl); /* get socket connection */
 #endif
             SSL_free(socket->socket.ssl); /* release SSL state */
 #ifdef __linux__
             close(sd);
-#elif _WIN32
+#elif defined(_WIN32)
             closesocket(sd);
 #endif
             break;

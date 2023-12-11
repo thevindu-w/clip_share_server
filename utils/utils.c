@@ -41,7 +41,7 @@
 #ifdef __linux__
 static int url_decode(char *);
 static char *get_copied_files_as_str(void);
-#elif _WIN32
+#elif defined(_WIN32)
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p);
 static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p);
 static inline void _wappend(list2 *lst, const wchar_t *wstr);
@@ -87,7 +87,7 @@ int file_exists(const char *file_name) {
     int f_ok;
 #ifdef __linux__
     f_ok = access(file_name, F_OK);
-#elif _WIN32
+#elif defined(_WIN32)
     wchar_t *wfname;
     if (utf8_to_wchar_str(file_name, &wfname, NULL) != EXIT_SUCCESS) return -1;
     f_ok = _waccess(wfname, F_OK);
@@ -126,7 +126,7 @@ int is_directory(const char *path, int follow_symlinks) {
     } else {
         stat_result = lstat(path, &sb);
     }
-#elif _WIN32
+#elif defined(_WIN32)
     (void)follow_symlinks;
     wchar_t *wpath;
     if (utf8_to_wchar_str(path, &wpath, NULL) != EXIT_SUCCESS) return -1;
@@ -234,7 +234,7 @@ ssize_t convert_eol(char **str_p, int force_lf) {
     int crlf;
 #ifdef __linux__
     crlf = 0;
-#elif _WIN32
+#elif defined(_WIN32)
     crlf = 1;
 #endif
     if (force_lf) crlf = 0;
@@ -301,7 +301,7 @@ list2 *get_copied_files(void) {
     return lst;
 }
 
-#elif _WIN32
+#elif defined(_WIN32)
 
 list2 *get_copied_files(void) {
     if (!OpenClipboard(0)) return NULL;
@@ -375,7 +375,7 @@ static int _mkdir_check(const char *path) {
         int status;  // success=0 and failure=non-zero
 #ifdef __linux__
         status = mkdir(path, S_IRWXU | S_IRWXG);
-#elif _WIN32
+#elif defined(_WIN32)
         wchar_t *wpath;
         if (utf8_to_wchar_str(path, &wpath, NULL) == EXIT_SUCCESS) {
             status = CreateDirectoryW(wpath, NULL) != TRUE;
@@ -429,7 +429,7 @@ int mkdirs(const char *dir_path) {
 list2 *list_dir(const char *dirname) {
 #ifdef __linux__
     DIR *d = opendir(dirname);
-#elif _WIN32
+#elif defined(_WIN32)
     wchar_t *wdname;
     if (utf8_to_wchar_str(dirname, &wdname, NULL) != EXIT_SUCCESS) {
         return NULL;
@@ -449,7 +449,7 @@ list2 *list_dir(const char *dirname) {
 #ifdef __linux__
         const struct dirent *dir = readdir(d);
         const char *filename;
-#elif _WIN32
+#elif defined(_WIN32)
         const struct _wdirent *dir = _wreaddir(d);
         const wchar_t *filename;
 #endif
@@ -458,7 +458,7 @@ list2 *list_dir(const char *dirname) {
 #ifdef __linux__
         if (!(strcmp(filename, ".") && strcmp(filename, ".."))) continue;
         append(lst, strdup(filename));
-#elif _WIN32
+#elif defined(_WIN32)
         if (!(wcscmp(filename, L".") && wcscmp(filename, L".."))) continue;
         char *utf8fname;
         if (wchar_to_utf8_str(filename, &utf8fname, NULL) != EXIT_SUCCESS) continue;
@@ -467,7 +467,7 @@ list2 *list_dir(const char *dirname) {
     }
 #ifdef __linux__
     (void)closedir(d);
-#elif _WIN32
+#elif defined(_WIN32)
     (void)_wclosedir(d);
 #endif
     return lst;
@@ -601,7 +601,7 @@ void get_copied_dirs_files(dir_files *dfiles_p) {
     free(fnames);
 }
 
-#elif _WIN32
+#elif defined(_WIN32)
 
 /*
  * Check if the path is a file or a directory.
@@ -890,7 +890,7 @@ static int url_decode(char *str) {
     return EXIT_SUCCESS;
 }
 
-#elif _WIN32
+#elif defined(_WIN32)
 
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p) {
     int wlen = MultiByteToWideChar(CP_UTF8, 0, utf8str, -1, NULL, 0);
