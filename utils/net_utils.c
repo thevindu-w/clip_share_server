@@ -17,6 +17,7 @@
  */
 
 #include <ctype.h>
+#include <errno.h>
 #include <globals.h>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
@@ -324,36 +325,73 @@ void close_socket(socket_t *socket) {
     socket->type = NULL_SOCK;
 }
 
+static inline ssize_t _read_plain(sock_t sock, char *buf, size_t size, int *fatal_p) {
+    ssize_t sz_read;
+#ifdef _WIN32
+    sz_read = recv(sock, buf, (int)size, 0);
+    if (sz_read <= 0) {
+        int err_code = WSAGetLastError();
+        if (err_code == WSAEBADF || err_code == WSAECONNREFUSED || err_code == WSAECONNRESET ||
+            err_code == WSAECONNABORTED || err_code == WSAESHUTDOWN || err_code == WSAEDISCON ||
+            err_code == WSAEHOSTDOWN || err_code == WSAEHOSTUNREACH || err_code == WSAENETRESET ||
+            err_code == WSAENETDOWN || err_code == WSAENETUNREACH || err_code == WSAEFAULT || err_code == WSAEINVAL ||
+            err_code == WSA_NOT_ENOUGH_MEMORY || err_code == WSAENOTCONN || err_code == WSASYSCALLFAILURE ||
+            err_code == WSAENOTSOCK) {
+            *fatal_p = 1;
+        }
+    }
+#else
+    errno = 0;
+    sz_read = recv(sock, buf, size, 0);
+    if (sz_read == 0 ||
+        (sz_read < 0 && (errno == EBADF || errno == ECONNREFUSED || errno == ECONNRESET || errno == ECONNABORTED ||
+                         errno == ESHUTDOWN || errno == EHOSTDOWN || errno == EHOSTUNREACH || errno == ENETRESET ||
+                         errno == ENETDOWN || errno == ENETUNREACH || errno == EFAULT || errno == EINVAL ||
+                         errno == ENOMEM || errno == ENOTCONN || errno == ENOTSOCK))) {
+        *fatal_p = 1;
+    }
+#endif
+    return sz_read;
+}
+
+static inline int _read_SSL(SSL *ssl, char *buf, int size, int *fatal_p) {
+    int sz_read = SSL_read(ssl, buf, size);
+    if (sz_read <= 0) {
+        int err_code = SSL_get_error(ssl, sz_read);
+        if (err_code == SSL_ERROR_ZERO_RETURN || err_code == SSL_ERROR_SYSCALL || err_code == SSL_ERROR_SSL) {
+            *fatal_p = 1;
+        }
+    }
+    return sz_read;
+}
+
 int read_sock(socket_t *socket, char *buf, size_t size) {
     int cnt = 0;
-    size_t read = 0;
+    size_t total_sz_read = 0;
     char *ptr = buf;
-    while (read < size) {
-        ssize_t r;
+    while (total_sz_read < size) {
+        ssize_t sz_read;
+        int fatal = 1;
         switch (socket->type) {
             case PLAIN_SOCK: {
-#ifdef _WIN32
-                r = recv(socket->socket.plain, ptr, (int)(size - read), 0);
-#else
-                r = recv(socket->socket.plain, ptr, size - read, 0);
-#endif
+                sz_read = _read_plain(socket->socket.plain, ptr, size - total_sz_read, &fatal);
                 break;
             }
 
             case SSL_SOCK: {
-                r = SSL_read(socket->socket.ssl, ptr, (int)(size - read));
+                sz_read = _read_SSL(socket->socket.ssl, ptr, (int)(size - total_sz_read), &fatal);
                 break;
             }
 
             default:
                 return EXIT_FAILURE;
         }
-        if (r > 0) {
-            read += (size_t)r;
+        if (sz_read > 0) {
+            total_sz_read += (size_t)sz_read;
             cnt = 0;
-            ptr += r;
+            ptr += sz_read;
         } else {
-            if (cnt++ > 50) {
+            if (cnt++ > 50 || fatal) {
 #ifdef DEBUG_MODE
                 fputs("Read sock failed\n", stderr);
 #endif
@@ -387,33 +425,33 @@ int read_sock_no_wait(socket_t *socket, char *buf, size_t size) {
 
 int write_sock(socket_t *socket, const char *buf, size_t size) {
     int cnt = 0;
-    size_t written = 0;
+    size_t total_written = 0;
     const char *ptr = buf;
-    while (written < size) {
-        ssize_t r;
+    while (total_written < size) {
+        ssize_t sz_written;
         switch (socket->type) {
             case PLAIN_SOCK: {
 #ifdef _WIN32
-                r = send(socket->socket.plain, ptr, (int)size, 0);
+                sz_written = send(socket->socket.plain, ptr, (int)size, 0);
 #else
-                r = send(socket->socket.plain, ptr, size, 0);
+                sz_written = send(socket->socket.plain, ptr, size, 0);
 #endif
                 break;
             }
 
             case SSL_SOCK: {
-                r = SSL_write(socket->socket.ssl, ptr, (int)size);
+                sz_written = SSL_write(socket->socket.ssl, ptr, (int)size);
                 break;
             }
 
             default:
                 return EXIT_FAILURE;
         }
-        if (r > 0) {
-            written += (size_t)r;
+        if (sz_written > 0) {
+            total_written += (size_t)sz_written;
             cnt = 0;
-            ptr += r;
-        } else if (r == 0) {
+            ptr += sz_written;
+        } else if (sz_written == 0) {
             if (cnt++ > 50) {
 #ifdef DEBUG_MODE
                 fputs("Write sock failed\n", stderr);

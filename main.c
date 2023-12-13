@@ -548,6 +548,7 @@ int main(int argc, char **argv) {
 #ifndef NO_WEB
     if (webThread != NULL) WaitForSingleObject(webThread, INFINITE);
 #endif
+    WSACleanup();
 
     remove_tray_icon();
     CloseHandle(instance);
