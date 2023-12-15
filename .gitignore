@@ -18,3 +18,4 @@ cert_keys/
 test
 .vscode/
 .trash/
+.DS_Store

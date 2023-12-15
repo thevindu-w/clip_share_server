@@ -22,7 +22,7 @@ PROGRAM_NAME_WEB=clip_share_web
 INFO_NAME=clip_share
 
 CC=gcc
-CFLAGS=-c -pipe -I. -Wall -Wextra -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wshift-overflow=2 -Wswitch-default -Wstrict-overflow=4 -Wstringop-overflow -Walloc-zero -Wconversion -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wexpansion-to-defined -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wjump-misses-init -Wlogical-op -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Wvla-larger-than=65536 -Woverlength-strings --std=gnu11 -fstack-protector -fstack-protector-all -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=2
+CFLAGS=-c -pipe -I. --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wexpansion-to-defined -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Woverlength-strings
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 
 OBJS=main.o clip_share.o udp_serve.o proto/server.o proto/versions.o proto/methods.o utils/utils.o utils/net_utils.o utils/list_utils.o config.o
@@ -31,7 +31,7 @@ _WEB_OBJS_C=clip_share_web.o
 _WEB_OBJS_S=page_blob.o
 
 OTHER_DEPENDENCIES=
-LINK_FLAGS_BUILD=-no-pie
+LINK_FLAGS_BUILD=
 
 ifeq ($(OS),Windows_NT)
     detected_OS := Windows
@@ -41,21 +41,28 @@ endif
 
 ifeq ($(detected_OS),Linux)
 	OBJS+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
+	CFLAGS+= -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS_OPTIM=-Os
 	LDLIBS=-lunistring -lssl -lcrypto -lX11 -lXmu -lpng
-	LINK_FLAGS_BUILD+= -Wl,-s,--gc-sections
+	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections
 else ifeq ($(detected_OS),Windows)
 	OBJS+= utils/win_image.o win_getopt/getopt.o
+	CFLAGS+= -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
+	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	CFLAGS_OPTIM=-O3
 	OTHER_DEPENDENCIES+= winres/app.res
 	LDLIBS=-l:libunistring.a -l:libssl.a -l:libcrypto.a -l:libpthread.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a
-	LINK_FLAGS_BUILD+= -mwindows
-	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
+	LINK_FLAGS_BUILD=-no-pie -mwindows
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
 	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB).exe
+else ifeq ($(detected_OS),Darwin)
+	CFLAGS_OPTIM=-O3
+	LDLIBS=-lunistring -lssl -lcrypto -lpng
+	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 else
 $(error ClipShare is not supported on this platform!)
 endif
+CFLAGS+= -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=2
 CFLAGS_OPTIM+= -Werror
 
 # append '_web' to objects for clip_share_web to prevent overwriting objects for clip_share

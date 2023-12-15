@@ -69,7 +69,7 @@ void error(const char *msg) {
     if (f) {
         fprintf(f, "%s\n", msg);
         fclose(f);
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
         chmod(error_log_file, S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH);
 #endif
     }
@@ -85,7 +85,7 @@ void error_exit(const char *msg) {
 int file_exists(const char *file_name) {
     if (file_name[0] == 0) return 0;  // empty path
     int f_ok;
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
     f_ok = access(file_name, F_OK);
 #elif defined(_WIN32)
     wchar_t *wfname;
@@ -120,7 +120,7 @@ int is_directory(const char *path, int follow_symlinks) {
     if (path[0] == 0) return 0;  // empty path
     struct stat sb;
     int stat_result;
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
     if (follow_symlinks) {
         stat_result = stat(path, &sb);
     } else {
@@ -232,7 +232,7 @@ static inline ssize_t _convert_to_lf(char *str) {
 
 ssize_t convert_eol(char **str_p, int force_lf) {
     int crlf;
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
     crlf = 0;
 #elif defined(_WIN32)
     crlf = 1;
@@ -354,6 +354,13 @@ list2 *get_copied_files(void) {
     return lst;
 }
 
+#elif defined(__APPLE__)
+
+list2 *get_copied_files(void) {
+    // TODO(thevindu-w): Implement
+    return NULL;
+}
+
 #endif
 
 #endif  // (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
@@ -373,7 +380,7 @@ static int _mkdir_check(const char *path) {
         if (!is_directory(path, 0)) return EXIT_FAILURE;
     } else {
         int status;  // success=0 and failure=non-zero
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
         status = mkdir(path, S_IRWXU | S_IRWXG);
 #elif defined(_WIN32)
         wchar_t *wpath;
@@ -427,7 +434,7 @@ int mkdirs(const char *dir_path) {
 }
 
 list2 *list_dir(const char *dirname) {
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
     DIR *d = opendir(dirname);
 #elif defined(_WIN32)
     wchar_t *wdname;
@@ -446,7 +453,7 @@ list2 *list_dir(const char *dirname) {
     list2 *lst = init_list(2);
     if (!lst) return NULL;
     while (1) {
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
         const struct dirent *dir = readdir(d);
         const char *filename;
 #elif defined(_WIN32)
@@ -455,7 +462,7 @@ list2 *list_dir(const char *dirname) {
 #endif
         if (dir == NULL) break;
         filename = dir->d_name;
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
         if (!(strcmp(filename, ".") && strcmp(filename, ".."))) continue;
         append(lst, strdup(filename));
 #elif defined(_WIN32)
@@ -465,7 +472,7 @@ list2 *list_dir(const char *dirname) {
         append(lst, utf8fname);
 #endif
     }
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
     (void)closedir(d);
 #elif defined(_WIN32)
     (void)_wclosedir(d);
@@ -752,6 +759,14 @@ int remove_directory(const char *path) {
     return result;
 }
 
+#elif defined(__APPLE__)
+
+void get_copied_dirs_files(dir_files *dfiles_p) {
+    dfiles_p->lst = NULL;
+    dfiles_p->path_len = 0;
+    // TODO(thevindu-w): Implement
+}
+
 #endif
 
 #endif  // (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
@@ -1030,6 +1045,29 @@ int get_image(char **buf_ptr, size_t *len_ptr) {
     if (*len_ptr > 8) return EXIT_SUCCESS;
     screenCapture(buf_ptr, len_ptr);
     if (*len_ptr > 8) return EXIT_SUCCESS;
+    return EXIT_FAILURE;
+}
+
+#elif defined(__APPLE__)
+
+int get_clipboard_text(char **buf_ptr, size_t *len_ptr) {
+    *buf_ptr = NULL;
+    *len_ptr = 0;
+    // TODO: Implement
+    return EXIT_FAILURE;
+}
+
+int put_clipboard_text(char *data, size_t len) {
+    (void)data;
+    (void)len;
+    // TODO(thevindu-w): Implement
+    return EXIT_FAILURE;
+}
+
+int get_image(char **buf_ptr, size_t *len_ptr) {
+    *buf_ptr = NULL;
+    *len_ptr = 0;
+    // TODO(thevindu-w): Implement
     return EXIT_FAILURE;
 }
 

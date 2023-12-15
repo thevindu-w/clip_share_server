@@ -22,10 +22,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
-#include <unistr.h>
 #include <utils/net_utils.h>
 #include <utils/utils.h>
+
+#ifndef __GLIBC__
+#define __GLIBC__ 0
+#endif
+#ifndef __NO_INLINE__
+#define __NO_INLINE__
+#endif
+#include <unistr.h>
 
 // status codes
 #define STATUS_OK 1

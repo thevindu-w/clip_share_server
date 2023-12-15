@@ -29,8 +29,9 @@
 #include <utils/net_utils.h>
 #include <utils/utils.h>
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 #include <arpa/inet.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #elif defined(_WIN32)
 #include <winsock2.h>
@@ -175,7 +176,7 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
         return EXIT_FAILURE;
     }
     struct in_addr addr;
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
     if (inet_aton(address_str, &addr) != 1) {
 #elif defined(_WIN32)
     if ((addr.s_addr = inet_addr(address_str)) == INADDR_NONE) {
@@ -185,7 +186,7 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
 #endif
         return EXIT_FAILURE;
     }
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
     *address_ptr = addr.s_addr;
 #elif defined(_WIN32)
     *address_ptr = (uint32_t)addr.s_addr;
@@ -220,7 +221,7 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
     if (listener.type == NULL_SOCK) return;
     sock_t listener_socket = listener.socket;
     struct sockaddr_in client_addr;
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
     unsigned int address_size = sizeof(client_addr);
 #elif defined(_WIN32)
     int address_size = (int)sizeof(client_addr);
@@ -295,7 +296,7 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
 void close_socket(socket_t *socket) {
     switch (socket->type) {
         case PLAIN_SOCK: {
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
             close(socket->socket.plain);
 #elif defined(_WIN32)
             closesocket(socket->socket.plain);
@@ -311,7 +312,7 @@ void close_socket(socket_t *socket) {
             sd = SSL_get_fd(socket->socket.ssl); /* get socket connection */
 #endif
             SSL_free(socket->socket.ssl); /* release SSL state */
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
             close(sd);
 #elif defined(_WIN32)
             closesocket(sd);

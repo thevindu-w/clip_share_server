@@ -20,6 +20,7 @@
 #define CONFIG_H_
 
 #include <stdint.h>
+#include <sys/types.h>
 #include <utils/list_utils.h>
 
 typedef struct _config {

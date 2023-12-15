@@ -20,14 +20,15 @@
 #define UTILS_NET_UTILS_H_
 
 #include <openssl/ssl.h>
-#include <stdlib.h>
+#include <sys/types.h>
+#include <stddef.h>
 #include <utils/list_utils.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
 #endif
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 typedef int sock_t;
 #elif defined(_WIN32)
 typedef SOCKET sock_t;

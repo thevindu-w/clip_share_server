@@ -225,6 +225,8 @@ int web_server(void) {
             continue;
         }
 #ifdef __linux__
+        fflush(stdout);
+        fflush(stderr);
         pid_t p1 = fork();
         if (p1) {
             close_socket(&connect_sock);

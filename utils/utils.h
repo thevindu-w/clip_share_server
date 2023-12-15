@@ -20,17 +20,12 @@
 #define UTILS_UTILS_H_
 
 #include <globals.h>
+#include <libpng16/png.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <unistd.h>
 #include <utils/list_utils.h>
 
-#ifdef __linux__
-#include <png.h>
-#elif defined(_WIN32)
-#include <libpng16/png.h>
-#endif
-
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 #define PATH_SEP '/'
 #elif defined(_WIN32)
 #define PATH_SEP '\\'
@@ -140,7 +135,7 @@ void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length);
  */
 extern ssize_t convert_eol(char **str_p, int force_lf);
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 
 #define open_file(filename, mode) fopen(filename, mode)
 #define remove_file(filename) remove(filename)
@@ -201,7 +196,7 @@ extern list2 *list_dir(const char *dirname);
  */
 extern void get_copied_dirs_files(dir_files *dfiles_p);
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 
 #define rename_file(old_name, new_name) rename(old_name, new_name)
 #define remove_directory(path) rmdir(path)

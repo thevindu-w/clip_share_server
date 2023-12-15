@@ -20,16 +20,16 @@
 #include <globals.h>
 #include <proto/server.h>
 #include <servers.h>
-#include <stdlib.h>
 #include <utils/net_utils.h>
 #include <utils/utils.h>
-
-#ifdef __linux__
-#include <arpa/inet.h>
-#include <sys/wait.h>
+#if defined(__linux__) || defined(__APPLE__)
+#include <signal.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #elif defined(_WIN32)
 #include <io.h>
+#include <stdlib.h>
+#include <string.h>
 #include <windows.h>
 #endif
 
@@ -75,7 +75,7 @@ int clip_share(const int is_secure) {
         error("Can\'t listen");
         return EXIT_FAILURE;
     }
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
     signal(SIGCHLD, SIG_IGN);
 #endif
     while (1) {
@@ -85,7 +85,9 @@ int clip_share(const int is_secure) {
             close_socket(&connect_sock);
             continue;
         }
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
+        fflush(stdout);
+        fflush(stderr);
         pid_t pid = fork();
         if (pid) {
             close_socket(&connect_sock);

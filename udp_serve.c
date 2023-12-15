@@ -23,8 +23,9 @@
 #include <utils/net_utils.h>
 #include <utils/utils.h>
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 #include <arpa/inet.h>
+#include <sys/socket.h>
 #elif defined(_WIN32)
 #include <winsock2.h>
 #endif

@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <utils/net_utils.h>
 #include <utils/utils.h>
 
@@ -30,7 +31,6 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <sys/wait.h>
-#include <unistd.h>
 #elif defined(_WIN32)
 #include <openssl/md5.h>
 #include <shellapi.h>
@@ -397,6 +397,13 @@ static LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wParam, LPARAM 
     return DefWindowProc(window, msg, wParam, lParam);
 }
 
+#elif defined(__APPLE__)
+
+static void kill_other_processes(const char *prog_name) {
+    // TODO(thevindu-w): Implement
+    printf("Not killing in MacOS %s\n", prog_name);
+}
+
 #endif
 
 /*
@@ -446,14 +453,18 @@ int main(int argc, char **argv) {
 
     if (configuration.working_dir) _change_working_dir();
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
     if (configuration.insecure_mode_enabled) {
+        fflush(stdout);
+        fflush(stderr);
         pid_t p_clip = fork();
         if (p_clip == 0) {
             return clip_share(INSECURE);
         }
     }
     if (configuration.secure_mode_enabled) {
+        fflush(stdout);
+        fflush(stderr);
         pid_t p_clip_ssl = fork();
         if (p_clip_ssl == 0) {
             return clip_share(SECURE);
@@ -461,6 +472,8 @@ int main(int argc, char **argv) {
     }
 #ifndef NO_WEB
     if (configuration.web_mode_enabled) {
+        fflush(stdout);
+        fflush(stderr);
         pid_t p_web = fork();
         if (p_web == 0) {
             return web_server();
@@ -468,6 +481,8 @@ int main(int argc, char **argv) {
     }
 #endif
     puts("Server Started");
+    fflush(stdout);
+    fflush(stderr);
     pid_t p_scan = fork();
     if (p_scan == 0) {
         udp_server();
