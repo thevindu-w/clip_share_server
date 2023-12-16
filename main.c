@@ -35,7 +35,6 @@
 #include <openssl/md5.h>
 #include <shellapi.h>
 #include <tlhelp32.h>
-#include <win_getopt/getopt.h>
 #include <winres/resource.h>
 #endif
 

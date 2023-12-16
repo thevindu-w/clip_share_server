@@ -46,7 +46,7 @@ ifeq ($(detected_OS),Linux)
 	LDLIBS=-lunistring -lssl -lcrypto -lX11 -lXmu -lpng
 	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections
 else ifeq ($(detected_OS),Windows)
-	OBJS+= utils/win_image.o win_getopt/getopt.o
+	OBJS+= utils/win_image.o
 	CFLAGS+= -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	CFLAGS_OPTIM=-O3
