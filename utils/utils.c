@@ -1050,13 +1050,6 @@ int get_image(char **buf_ptr, size_t *len_ptr) {
 
 #elif defined(__APPLE__)
 
-int get_clipboard_text(char **buf_ptr, size_t *len_ptr) {
-    *buf_ptr = NULL;
-    *len_ptr = 0;
-    // TODO: Implement
-    return EXIT_FAILURE;
-}
-
 int put_clipboard_text(char *data, size_t len) {
     (void)data;
     (void)len;

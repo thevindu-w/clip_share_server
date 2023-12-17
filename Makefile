@@ -29,6 +29,7 @@ OBJS=main.o clip_share.o udp_serve.o proto/server.o proto/versions.o proto/metho
 
 _WEB_OBJS_C=clip_share_web.o
 _WEB_OBJS_S=page_blob.o
+OBJS_M=
 
 OTHER_DEPENDENCIES=
 LINK_FLAGS_BUILD=
@@ -56,8 +57,9 @@ else ifeq ($(detected_OS),Windows)
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
 	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB).exe
 else ifeq ($(detected_OS),Darwin)
+	OBJS_M=utils/mac_utils.o
 	CFLAGS_OPTIM=-O3
-	LDLIBS=-lunistring -lssl -lcrypto -lpng
+	LDLIBS=-framework AppKit -lunistring -lssl -lcrypto -lpng -lobjc
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 else
 $(error ClipShare is not supported on this platform!)
@@ -75,13 +77,16 @@ DEBUG_OBJS_C=$(OBJS:.o=_debug.o) $(_WEB_OBJS_C:.o=_debug.o)
 DEBUG_OBJS_S=$(_WEB_OBJS_S:.o=_debug.o)
 DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_S)
 
-$(PROGRAM_NAME): $(OBJS) $(OTHER_DEPENDENCIES)
+$(PROGRAM_NAME): $(OBJS) $(OBJS_M) $(OTHER_DEPENDENCIES)
 	$(CC) -Werror $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
 
 $(PROGRAM_NAME_WEB): $(WEB_OBJS) $(OTHER_DEPENDENCIES)
 	$(CC) -Werror $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
 
 $(OBJS): %.o: %.c
+	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_WEB -fno-pie $^ -o $@
+
+$(OBJS_M): %.o: %.m
 	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_WEB -fno-pie $^ -o $@
 
 $(WEB_OBJS_C): %_web.o: %.c
