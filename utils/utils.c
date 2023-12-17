@@ -38,9 +38,10 @@
 
 #define MAX_RECURSE_DEPTH 256
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
+static inline char hex2char(char h);
 static int url_decode(char *);
-static char *get_copied_files_as_str(void);
+static char *get_copied_files_as_str(int *offset);
 #elif defined(_WIN32)
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p);
 static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p);
@@ -252,17 +253,18 @@ ssize_t convert_eol(char **str_p, int force_lf) {
 
 #if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 
 list2 *get_copied_files(void) {
-    char *fnames = get_copied_files_as_str();
+    int offset = 0;
+    char *fnames = get_copied_files_as_str(&offset);
     if (!fnames) {
         return NULL;
     }
-    char *file_path = fnames + strnlen(fnames, 8);
+    char *file_path = fnames + offset;
 
     size_t file_cnt = 1;
-    for (char *ptr = file_path + 1; *ptr; ptr++) {
+    for (char *ptr = file_path; *ptr; ptr++) {
         if (*ptr == '\n') {
             file_cnt++;
             *ptr = 0;
@@ -274,7 +276,7 @@ list2 *get_copied_files(void) {
         free(fnames);
         return NULL;
     }
-    char *fname = file_path + 1;
+    char *fname = file_path;
     for (size_t i = 0; i < file_cnt; i++) {
         size_t off = strnlen(fname, 2047) + 1;
         if (url_decode(fname) == EXIT_FAILURE) break;
@@ -352,13 +354,6 @@ list2 *get_copied_files(void) {
     GlobalUnlock(hGlobal);
     CloseClipboard();
     return lst;
-}
-
-#elif defined(__APPLE__)
-
-list2 *get_copied_files(void) {
-    // TODO(thevindu-w): Implement
-    return NULL;
 }
 
 #endif
@@ -480,7 +475,7 @@ list2 *list_dir(const char *dirname) {
     return lst;
 }
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 
 /*
  * Check if the path is a file or a directory.
@@ -550,14 +545,15 @@ static void recurse_dir(const char *_path, list2 *lst, int depth) {
 void get_copied_dirs_files(dir_files *dfiles_p) {
     dfiles_p->lst = NULL;
     dfiles_p->path_len = 0;
-    char *fnames = get_copied_files_as_str();
+    int offset = 0;
+    char *fnames = get_copied_files_as_str(&offset);
     if (!fnames) {
         return;
     }
-    char *file_path = fnames + strnlen(fnames, 8);
+    char *file_path = fnames + offset;
 
     size_t file_cnt = 1;
-    for (char *ptr = file_path + 1; *ptr; ptr++) {
+    for (char *ptr = file_path; *ptr; ptr++) {
         if (*ptr == '\n') {
             file_cnt++;
             *ptr = 0;
@@ -570,7 +566,7 @@ void get_copied_dirs_files(dir_files *dfiles_p) {
         return;
     }
     dfiles_p->lst = lst;
-    char *fname = file_path + 1;
+    char *fname = file_path;
     for (size_t i = 0; i < file_cnt; i++) {
         const size_t off = strnlen(fname, 2047) + 1;
         if (url_decode(fname) == EXIT_FAILURE) break;
@@ -759,17 +755,50 @@ int remove_directory(const char *path) {
     return result;
 }
 
-#elif defined(__APPLE__)
-
-void get_copied_dirs_files(dir_files *dfiles_p) {
-    dfiles_p->lst = NULL;
-    dfiles_p->path_len = 0;
-    // TODO(thevindu-w): Implement
-}
-
 #endif
 
 #endif  // (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
+
+#if defined(__linux__) || defined(__APPLE__)
+
+static inline char hex2char(char h) {
+    if ('0' <= h && h <= '9') return (char)((int)h - '0');
+    if ('A' <= h && h <= 'F') return (char)((int)h - 'A' + 10);
+    if ('a' <= h && h <= 'f') return (char)((int)h - 'a' + 10);
+    return -1;
+}
+
+static int url_decode(char *str) {
+    if (strncmp("file://", str, 7)) return EXIT_FAILURE;
+    char *ptr1 = str;
+    const char *ptr2 = strstr(str, "://");
+    if (!ptr2) return EXIT_FAILURE;
+    ptr2 += 3;
+    do {
+        char c;
+        if (*ptr2 == '%') {
+            ptr2++;
+            char tmp = *ptr2;
+            char c1 = hex2char(tmp);
+            if (c1 < 0) return EXIT_FAILURE;  // invalid url
+            c = (char)(c1 << 4);
+            ptr2++;
+            tmp = *ptr2;
+            c1 = hex2char(tmp);
+            if (c1 < 0) return EXIT_FAILURE;  // invalid url
+            c |= c1;
+        } else {
+            c = *ptr2;
+        }
+        *ptr1 = c;
+        ptr1++;
+        ptr2++;
+    } while (*ptr2);
+    *ptr1 = 0;
+    return EXIT_SUCCESS;
+}
+
+#endif
 
 #ifdef __linux__
 
@@ -815,14 +844,7 @@ int get_image(char **buf_ptr, size_t *len_ptr) {
     return EXIT_SUCCESS;
 }
 
-static inline char hex2char(char h) {
-    if ('0' <= h && h <= '9') return (char)((int)h - '0');
-    if ('A' <= h && h <= 'F') return (char)((int)h - 'A' + 10);
-    if ('a' <= h && h <= 'f') return (char)((int)h - 'a' + 10);
-    return -1;
-}
-
-static char *get_copied_files_as_str(void) {
+static char *get_copied_files_as_str(int *offset) {
     const char *const expected_target = "x-special/gnome-copied-files";
     char *targets;
     size_t targets_len;
@@ -872,37 +894,8 @@ static char *get_copied_files_as_str(void) {
         free(fnames);
         return NULL;
     }
+    *offset = (int)(file_path - fnames) + 1;
     return fnames;
-}
-
-static int url_decode(char *str) {
-    if (strncmp("file://", str, 7)) return EXIT_FAILURE;
-    char *ptr1 = str;
-    const char *ptr2 = strstr(str, "://");
-    if (!ptr2) return EXIT_FAILURE;
-    ptr2 += 3;
-    do {
-        char c;
-        if (*ptr2 == '%') {
-            ptr2++;
-            char tmp = *ptr2;
-            char c1 = hex2char(tmp);
-            if (c1 < 0) return EXIT_FAILURE;  // invalid url
-            c = (char)(c1 << 4);
-            ptr2++;
-            tmp = *ptr2;
-            c1 = hex2char(tmp);
-            if (c1 < 0) return EXIT_FAILURE;  // invalid url
-            c |= c1;
-        } else {
-            c = *ptr2;
-        }
-        *ptr1 = c;
-        ptr1++;
-        ptr2++;
-    } while (*ptr2);
-    *ptr1 = 0;
-    return EXIT_SUCCESS;
 }
 
 #elif defined(_WIN32)
@@ -1049,6 +1042,12 @@ int get_image(char **buf_ptr, size_t *len_ptr) {
 }
 
 #elif defined(__APPLE__)
+
+static char *get_copied_files_as_str(int *offset) {
+    (void)offset;
+    // TODO(thevindu-w): Implement
+    return NULL;
+}
 
 int put_clipboard_text(char *data, size_t len) {
     (void)data;
