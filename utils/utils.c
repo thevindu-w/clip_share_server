@@ -1049,13 +1049,6 @@ static char *get_copied_files_as_str(int *offset) {
     return NULL;
 }
 
-int put_clipboard_text(char *data, size_t len) {
-    (void)data;
-    (void)len;
-    // TODO(thevindu-w): Implement
-    return EXIT_FAILURE;
-}
-
 int get_image(char **buf_ptr, size_t *len_ptr) {
     *buf_ptr = NULL;
     *len_ptr = 0;

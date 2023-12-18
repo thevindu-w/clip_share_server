@@ -19,3 +19,17 @@ int get_clipboard_text(char **bufptr, size_t *lenptr) {
     (*bufptr)[*lenptr] = 0;
     return EXIT_SUCCESS;
 }
+
+int put_clipboard_text(char *data, size_t len) {
+    char c = data[len];
+    data[len] = 0;
+    NSString *str_data = @(data);
+    data[len] = c;
+    NSPasteboard* pasteBoard = [NSPasteboard generalPasteboard];
+    [pasteBoard clearContents];
+    BOOL status = [pasteBoard setString:str_data forType:NSPasteboardTypeString];
+    if (status != YES) {
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
