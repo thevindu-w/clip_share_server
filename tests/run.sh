@@ -8,6 +8,7 @@ dependencies=(
     pwd
     printf
     realpath
+    head
     seq
     find
     diff
