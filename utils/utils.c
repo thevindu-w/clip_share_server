@@ -462,9 +462,7 @@ list2 *list_dir(const char *dirname) {
         append(lst, strdup(filename));
 #elif defined(_WIN32)
         if (!(wcscmp(filename, L".") && wcscmp(filename, L".."))) continue;
-        char *utf8fname;
-        if (wchar_to_utf8_str(filename, &utf8fname, NULL) != EXIT_SUCCESS) continue;
-        append(lst, utf8fname);
+        _wappend(lst, filename);
 #endif
     }
 #if defined(__linux__) || defined(__APPLE__)
