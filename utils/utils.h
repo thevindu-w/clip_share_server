@@ -142,6 +142,8 @@ extern ssize_t convert_eol(char **str_p, int force_lf);
 #define chdir_wrapper(path) chdir(path)
 #define getcwd_wrapper(len) getcwd(NULL, len)
 
+extern char *get_copied_files_as_str(int *offset);
+
 #elif defined(_WIN32)
 
 extern int chdir_wrapper(const char *path);

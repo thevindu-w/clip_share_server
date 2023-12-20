@@ -1,8 +1,11 @@
 #import <AppKit/NSPasteboard.h>
 #import <globals.h>
 #import <objc/Object.h>
+#import <stddef.h>
 #import <string.h>
 #import <utils/utils.h>
+
+#define MIN_OF(x, y) (x < y ? x : y)
 
 int get_clipboard_text(char **bufptr, size_t *lenptr) {
     NSPasteboard* pasteBoard = [NSPasteboard generalPasteboard];
@@ -32,4 +35,37 @@ int put_clipboard_text(char *data, size_t len) {
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
+}
+
+char *get_copied_files_as_str(int *offset) {
+    *offset = 0;
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    NSArray *classes = [NSArray arrayWithObject:[NSURL class]];
+    NSDictionary *options =
+        [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] forKey:NSPasteboardURLReadingFileURLsOnlyKey];
+    NSArray *fileURLs = [pasteboard readObjectsForClasses:classes options:options];
+    size_t tot_len = 0;
+    for (NSURL *fileURL in fileURLs) {
+        const char *cstring = [[fileURL absoluteString] UTF8String];
+        tot_len += strnlen(cstring, 2047) + 1;
+    }
+
+    char *all_files = malloc(tot_len);
+    if (!all_files) return NULL;
+    char *ptr = all_files;
+    for (NSURL *fileURL in fileURLs) {
+        const char *cstring = [[fileURL absoluteString] UTF8String];
+        strncpy(ptr, cstring, MIN_OF(tot_len, 2047));
+    size_t url_len = strnlen(cstring, 2047);
+        ptr += strnlen(cstring, 2047);
+        *ptr = '\n';
+        ptr++;
+        tot_len -= url_len + 1;
+    }
+    ptr--;
+    *ptr = 0;
+#ifdef DEBUG_MODE
+    puts(all_files);
+#endif
+    return all_files;
 }

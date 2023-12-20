@@ -41,7 +41,6 @@
 #if defined(__linux__) || defined(__APPLE__)
 static inline char hex2char(char h);
 static int url_decode(char *);
-static char *get_copied_files_as_str(int *offset);
 #elif defined(_WIN32)
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p);
 static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p);
@@ -568,8 +567,11 @@ void get_copied_dirs_files(dir_files *dfiles_p) {
     for (size_t i = 0; i < file_cnt; i++) {
         const size_t off = strnlen(fname, 2047) + 1;
         if (url_decode(fname) == EXIT_FAILURE) break;
-
+        // fname has changed after url_decode
         if (i == 0) {
+            size_t fname_len = strnlen(fname, 2047);
+            if (fname_len == 0) break;  // empty file name
+            if (fname[fname_len - 1] == PATH_SEP) fname[fname_len - 1] = 0;  // if directory, remove ending /
             const char *sep_ptr = strrchr(fname, PATH_SEP);
             if (sep_ptr > fname) {
                 dfiles_p->path_len = (size_t)sep_ptr - (size_t)fname + 1;
@@ -842,7 +844,7 @@ int get_image(char **buf_ptr, size_t *len_ptr) {
     return EXIT_SUCCESS;
 }
 
-static char *get_copied_files_as_str(int *offset) {
+char *get_copied_files_as_str(int *offset) {
     const char *const expected_target = "x-special/gnome-copied-files";
     char *targets;
     size_t targets_len;
@@ -1040,12 +1042,6 @@ int get_image(char **buf_ptr, size_t *len_ptr) {
 }
 
 #elif defined(__APPLE__)
-
-static char *get_copied_files_as_str(int *offset) {
-    (void)offset;
-    // TODO(thevindu-w): Implement
-    return NULL;
-}
 
 int get_image(char **buf_ptr, size_t *len_ptr) {
     *buf_ptr = NULL;
