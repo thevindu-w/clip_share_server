@@ -1,3 +1,4 @@
+#import <AppKit/AppKit.h>
 #import <AppKit/NSPasteboard.h>
 #import <globals.h>
 #import <objc/Object.h>
@@ -68,4 +69,22 @@ char *get_copied_files_as_str(int *offset) {
     puts(all_files);
 #endif
     return all_files;
+}
+
+int get_image(char **buf_ptr, size_t *len_ptr) {
+    *len_ptr = 0;
+    *buf_ptr = NULL;
+    CGImageRef screenshot = CGWindowListCreateImage(CGRectInfinite, kCGWindowListOptionOnScreenOnly, kCGNullWindowID, kCGWindowImageDefault);
+    if (!screenshot) return EXIT_FAILURE;
+    NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithCGImage:screenshot];
+    NSData *data = [bitmap representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
+    NSUInteger size = [data length];
+    char *buf = malloc((size_t)size);
+    if (!buf) return EXIT_FAILURE;
+    [data getBytes:buf length:size];
+    [bitmap release];
+    CGImageRelease(screenshot);
+    *buf_ptr = buf;
+    *len_ptr = (size_t)size;
+    return EXIT_SUCCESS;
 }

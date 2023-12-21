@@ -1041,13 +1041,4 @@ int get_image(char **buf_ptr, size_t *len_ptr) {
     return EXIT_FAILURE;
 }
 
-#elif defined(__APPLE__)
-
-int get_image(char **buf_ptr, size_t *len_ptr) {
-    *buf_ptr = NULL;
-    *len_ptr = 0;
-    // TODO(thevindu-w): Implement
-    return EXIT_FAILURE;
-}
-
 #endif
