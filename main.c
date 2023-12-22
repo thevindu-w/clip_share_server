@@ -30,12 +30,18 @@
 #ifdef __linux__
 #include <ctype.h>
 #include <dirent.h>
+#include <signal.h>
 #include <sys/wait.h>
 #elif defined(_WIN32)
 #include <openssl/md5.h>
 #include <shellapi.h>
 #include <tlhelp32.h>
 #include <winres/resource.h>
+#elif defined(__APPLE__)
+#include <errno.h>
+#include <libproc.h>
+#include <signal.h>
+#include <sys/sysctl.h>
 #endif
 
 // tcp and udp
@@ -203,7 +209,6 @@ static void kill_other_processes(const char *prog_name) {
     char buf[128];
     buf[127] = 0;
     dir = opendir("/proc");
-    int cnt = 0;
     const pid_t this_pid = getpid();
     if (dir == NULL) {
 #ifdef DEBUG_MODE
@@ -244,7 +249,6 @@ static void kill_other_processes(const char *prog_name) {
                 fprintf(stderr, "killed %s\n", dir_ptr->d_name);
 #endif
                 kill(pid, SIGTERM);
-                cnt++;
             }
         }
         fclose(fp);
@@ -399,8 +403,60 @@ static LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wParam, LPARAM 
 #elif defined(__APPLE__)
 
 static void kill_other_processes(const char *prog_name) {
-    // TODO(thevindu-w): Implement
-    printf("Not killing in MacOS %s\n", prog_name);
+    struct kinfo_proc *procs = NULL;
+    size_t count = 0;
+    int name[] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0};
+    int done = 0;
+    size_t length;
+    int err;
+    do {
+        length = 0;
+        err = sysctl(name, (sizeof(name)/sizeof(*name))-1, NULL, &length, NULL, 0);
+        if (err == -1) err = errno;
+        if (err == 0) {
+            length += 4096;
+            procs = malloc(length);
+            if (procs == NULL) {
+                err = ENOMEM;
+            }
+        }
+        if (err == 0) {
+            err = sysctl(name, (sizeof(name)/sizeof(*name))-1, procs, &length, NULL, 0);
+            if (err == -1) {
+                err = errno;
+            }
+            if (err == 0) {
+                done = 1;
+            } else if (err == ENOMEM) {
+                if (procs) free(procs);
+                procs = NULL;
+                err = 0;
+            }
+        }
+    } while (err == 0 && !done);
+    if (err == 0) {
+        count = length / sizeof(struct kinfo_proc);
+    } else {
+        if (procs) free(procs);
+        return;
+    }
+
+    pid_t this_pid = getpid();
+    char pname[32];
+    for (size_t i = 0; i < count; i++) {
+        pid_t pid = procs[i].kp_proc.p_pid;
+        pname[0] = 0;
+        proc_name(pid, pname, sizeof(pname));
+        if (!strncmp(prog_name, pname, 32)) {
+            if (pid != this_pid) {
+#ifdef DEBUG_MODE
+                fprintf(stderr, "killed %i\n", pid);
+#endif
+                kill(pid, SIGTERM);
+            }
+        }
+    }
+    free(procs);
 }
 
 #endif
