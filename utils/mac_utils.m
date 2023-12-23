@@ -6,7 +6,13 @@
 #import <string.h>
 #import <utils/utils.h>
 
+#if  ! __has_feature(objc_arc)
+    #error This file must be compiled with ARC.
+#endif
+
 #define MIN_OF(x, y) (x < y ? x : y)
+
+static NSBitmapImageRep *get_copied_image(void);
 
 int get_clipboard_text(char **bufptr, size_t *lenptr) {
     NSPasteboard* pasteBoard = [NSPasteboard generalPasteboard];
@@ -71,19 +77,37 @@ char *get_copied_files_as_str(int *offset) {
     return all_files;
 }
 
+static NSBitmapImageRep *get_copied_image() {
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    NSImage *img = [[NSImage alloc] initWithPasteboard:pasteboard];
+    if (!img) return NULL;
+    CGImageRef cgRef = [img CGImageForProposedRect:NULL context:NULL hints:NULL];
+    NSBitmapImageRep *imgRep = [[NSBitmapImageRep alloc] initWithCGImage:cgRef];
+    if (!imgRep) {
+        CGImageRelease(cgRef);
+        return NULL;
+    }
+    [imgRep setSize:[img size]];
+    CGImageRelease(cgRef);
+    return imgRep;
+}
+
 int get_image(char **buf_ptr, size_t *len_ptr) {
     *len_ptr = 0;
     *buf_ptr = NULL;
-    CGImageRef screenshot = CGWindowListCreateImage(CGRectInfinite, kCGWindowListOptionOnScreenOnly, kCGNullWindowID, kCGWindowImageDefault);
-    if (!screenshot) return EXIT_FAILURE;
-    NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithCGImage:screenshot];
+    NSBitmapImageRep *bitmap = get_copied_image();
+    if (!bitmap) {
+        CGImageRef screenshot = CGWindowListCreateImage(CGRectInfinite, kCGWindowListOptionOnScreenOnly, kCGNullWindowID, kCGWindowImageDefault);
+        if (!screenshot) return EXIT_FAILURE;
+        bitmap = [[NSBitmapImageRep alloc] initWithCGImage:screenshot];
+        CGImageRelease(screenshot);
+    }
+    if (!bitmap) return EXIT_FAILURE;
     NSData *data = [bitmap representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
     NSUInteger size = [data length];
     char *buf = malloc((size_t)size);
     if (!buf) return EXIT_FAILURE;
     [data getBytes:buf length:size];
-    [bitmap release];
-    CGImageRelease(screenshot);
     *buf_ptr = buf;
     *len_ptr = (size_t)size;
     return EXIT_SUCCESS;

@@ -58,6 +58,7 @@ else ifeq ($(detected_OS),Windows)
 	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB).exe
 else ifeq ($(detected_OS),Darwin)
 	OBJS_M=utils/mac_utils.o
+	CFLAGS+= -fobjc-arc
 	CFLAGS_OPTIM=-O3
 	LDLIBS=-framework AppKit -lunistring -lssl -lcrypto -lpng -lobjc
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
