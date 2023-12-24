@@ -570,7 +570,7 @@ void get_copied_dirs_files(dir_files *dfiles_p) {
         // fname has changed after url_decode
         if (i == 0) {
             size_t fname_len = strnlen(fname, 2047);
-            if (fname_len == 0) break;  // empty file name
+            if (fname_len == 0) break;                                       // empty file name
             if (fname[fname_len - 1] == PATH_SEP) fname[fname_len - 1] = 0;  // if directory, remove ending /
             const char *sep_ptr = strrchr(fname, PATH_SEP);
             if (sep_ptr > fname) {

@@ -411,7 +411,7 @@ static void kill_other_processes(const char *prog_name) {
     int err;
     do {
         length = 0;
-        err = sysctl(name, (sizeof(name)/sizeof(*name))-1, NULL, &length, NULL, 0);
+        err = sysctl(name, (sizeof(name) / sizeof(*name)) - 1, NULL, &length, NULL, 0);
         if (err == -1) err = errno;
         if (err == 0) {
             length += 4096;
@@ -421,7 +421,7 @@ static void kill_other_processes(const char *prog_name) {
             }
         }
         if (err == 0) {
-            err = sysctl(name, (sizeof(name)/sizeof(*name))-1, procs, &length, NULL, 0);
+            err = sysctl(name, (sizeof(name) / sizeof(*name)) - 1, procs, &length, NULL, 0);
             if (err == -1) {
                 err = errno;
             }

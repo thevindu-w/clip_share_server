@@ -6,8 +6,8 @@
 #import <string.h>
 #import <utils/utils.h>
 
-#if  ! __has_feature(objc_arc)
-    #error This file must be compiled with ARC.
+#if !__has_feature(objc_arc)
+#error This file must be compiled with ARC.
 #endif
 
 #define MIN_OF(x, y) (x < y ? x : y)
@@ -15,8 +15,8 @@
 static NSBitmapImageRep *get_copied_image(void);
 
 int get_clipboard_text(char **bufptr, size_t *lenptr) {
-    NSPasteboard* pasteBoard = [NSPasteboard generalPasteboard];
-    NSString* copiedString = [pasteBoard stringForType:NSPasteboardTypeString];
+    NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
+    NSString *copiedString = [pasteBoard stringForType:NSPasteboardTypeString];
     if (!copiedString) {
         *lenptr = 0;
         if (*bufptr) free(*bufptr);
@@ -35,7 +35,7 @@ int put_clipboard_text(char *data, size_t len) {
     data[len] = 0;
     NSString *str_data = @(data);
     data[len] = c;
-    NSPasteboard* pasteBoard = [NSPasteboard generalPasteboard];
+    NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
     [pasteBoard clearContents];
     BOOL status = [pasteBoard setString:str_data forType:NSPasteboardTypeString];
     if (status != YES) {
@@ -48,8 +48,8 @@ char *get_copied_files_as_str(int *offset) {
     *offset = 0;
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
     NSArray *classes = [NSArray arrayWithObject:[NSURL class]];
-    NSDictionary *options =
-        [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] forKey:NSPasteboardURLReadingFileURLsOnlyKey];
+    NSDictionary *options = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES]
+                                                        forKey:NSPasteboardURLReadingFileURLsOnlyKey];
     NSArray *fileURLs = [pasteboard readObjectsForClasses:classes options:options];
     size_t tot_len = 0;
     for (NSURL *fileURL in fileURLs) {
@@ -63,7 +63,7 @@ char *get_copied_files_as_str(int *offset) {
     for (NSURL *fileURL in fileURLs) {
         const char *cstring = [[fileURL absoluteString] UTF8String];
         strncpy(ptr, cstring, MIN_OF(tot_len, 2047));
-    size_t url_len = strnlen(cstring, 2047);
+        size_t url_len = strnlen(cstring, 2047);
         ptr += strnlen(cstring, 2047);
         *ptr = '\n';
         ptr++;
@@ -97,7 +97,8 @@ int get_image(char **buf_ptr, size_t *len_ptr) {
     *buf_ptr = NULL;
     NSBitmapImageRep *bitmap = get_copied_image();
     if (!bitmap) {
-        CGImageRef screenshot = CGWindowListCreateImage(CGRectInfinite, kCGWindowListOptionOnScreenOnly, kCGNullWindowID, kCGWindowImageDefault);
+        CGImageRef screenshot = CGWindowListCreateImage(CGRectInfinite, kCGWindowListOptionOnScreenOnly,
+                                                        kCGNullWindowID, kCGWindowImageDefault);
         if (!screenshot) return EXIT_FAILURE;
         bitmap = [[NSBitmapImageRep alloc] initWithCGImage:screenshot];
         CGImageRelease(screenshot);

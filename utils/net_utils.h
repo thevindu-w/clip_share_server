@@ -20,8 +20,8 @@
 #define UTILS_NET_UTILS_H_
 
 #include <openssl/ssl.h>
-#include <sys/types.h>
 #include <stddef.h>
+#include <sys/types.h>
 #include <utils/list_utils.h>
 
 #ifdef _WIN32
