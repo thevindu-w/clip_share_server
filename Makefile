@@ -123,6 +123,6 @@ install: $(PROGRAM_NAME)
 	@echo
 
 clean:
-	$(RM) $(OBJS) $(WEB_OBJS) $(DEBUG_OBJS)
+	$(RM) $(OBJS) $(OBJS_M) $(WEB_OBJS) $(DEBUG_OBJS)
 	$(RM) $(PROGRAM_NAME)
 	$(RM) $(PROGRAM_NAME_WEB)
