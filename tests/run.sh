@@ -257,7 +257,7 @@ for script in scripts/*.sh; do
         passCnt=$(("$passCnt" + 1))
     else
         exitCode=1
-        failCnt=$(("$failCnt" + 1))
+        failCnt="$((failCnt + 1))"
         showStatus "${script}" fail
     fi
     "${program}" -s &>/dev/null

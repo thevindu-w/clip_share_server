@@ -73,12 +73,12 @@ mkdir -p copies && cd copies
 
 body="${responseDump:${#expectedHead}}"
 for _ in $(seq "${#files[@]}"); do
-    nameLength="$((0x"${body::16}"))"
+    nameLength="$((0x${body::16}))"
     if [ "$nameLength" -gt "1024" ]; then
         showStatus info "File name too long. Length=${nameLength}."
         exit 1
     fi
-    fileName="$(echo "${body:16:$(("$nameLength" * 2))}" | hex2bin)"
+    fileName="$(echo "${body:16:$((nameLength * 2))}" | hex2bin)"
     body="${body:$((16 + "$nameLength" * 2))}"
 
     fileSize="$((0x"${body::16}"))"
