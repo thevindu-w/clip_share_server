@@ -8,7 +8,7 @@ alias showStatus="showStatus $0"
 if [ "${SECURE}" = '1' ]; then
     alias client_tool='openssl s_client -tls1_3 -quiet -verify_quiet -noservername -connect 127.0.0.1:4338 -CAfile testCA.crt -cert testClient_cert.pem -key testClient_key.pem'
 else
-    alias client_tool='nc -w 1 127.0.0.1 4337'
+    alias client_tool='nc -w 2 127.0.0.1 4337'
 fi
 
 cur_dir="$(pwd)"

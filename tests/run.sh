@@ -27,6 +27,8 @@ elif [ "$(uname)" = 'Linux' ]; then
     dependencies+=(xclip)
 elif [ "$(uname)" = 'Darwin' ]; then
     DETECTED_OS='MacOS'
+    dependencies+=(pbcopy pbpaste)
+    export PATH="/usr/local/opt/coreutils/libexec/gnubin:/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
 else
     DETECTED_OS='unknown'
 fi
@@ -39,12 +41,19 @@ for dependency in "${dependencies[@]}"; do
     fi
 done
 
+if [ "$DETECTED_OS" = 'MacOS' ]; then
+    for lcvar in $(env | grep '^LC_' | sed 's/=.*//g'); do
+        unset "$lcvar"
+    done
+    export LC_CTYPE='UTF-8'
+fi
+
 # Get the absolute path of clip_share executable
 program="$(realpath "../${program}")"
 
 shopt -s expand_aliases
-TEST_ROOT="$(pwd)"
-if type 'xxd' &>/dev/null && [ "$DETECTED_OS" = 'Linux' ]; then
+export TEST_ROOT="$(pwd)"
+if type 'xxd' &>/dev/null && ([ "$DETECTED_OS" = 'Linux' ] || [ "$DETECTED_OS" = 'MacOS' ]); then
     alias bin2hex='xxd -p -c 512 2>/dev/null'
     alias hex2bin='xxd -p -r 2>/dev/null'
 else
@@ -117,6 +126,8 @@ copy_text() {
         echo -n "$1" | xclip -in -sel clip &>/dev/null
     elif [ "$DETECTED_OS" = 'Windows' ]; then
         powershell -c "Set-Clipboard -Value '$1'"
+    elif [ "$DETECTED_OS" = 'MacOS' ]; then
+        echo -n "$1" | pbcopy -pboard general &>/dev/null
     else
         echo "Copy text is not available for OS: $DETECTED_OS"
         exit 1
@@ -139,6 +150,8 @@ get_copied_text() {
             copied_text="${copied_text:6}"
         fi
         echo -n "$copied_text"
+    elif [ "$DETECTED_OS" = 'MacOS' ]; then
+        pbpaste -pboard general -Prefer txt | bin2hex
     else
         echo "Get copied text is not available for OS: $DETECTED_OS"
         exit 1
@@ -159,6 +172,13 @@ copy_files() {
     elif [ "$DETECTED_OS" = 'Windows' ]; then
         local files_str="$(printf ", '%s'" "${files[@]}")"
         powershell -c "Set-Clipboard -Path ${files_str:2}"
+    elif [ "$DETECTED_OS" = 'MacOS' ]; then
+        local absFiles=()
+        for f in "${files[@]}"; do
+            local absPath="$(realpath "${f}")"
+            absFiles+=("$absPath")
+        done
+        osascript "${TEST_ROOT}/utils/setcopiedfiles.applescript" "${absFiles[@]}" >/dev/null
     else
         echo "Copy files is not available for OS: $DETECTED_OS"
         exit 1
@@ -172,6 +192,10 @@ copy_image() {
     elif [ "$DETECTED_OS" = 'Windows' ]; then
         hex2bin <<<"$1" >image.png
         powershell -ExecutionPolicy Bypass ../utils/copy_image.ps1
+    elif [ "$DETECTED_OS" = 'MacOS' ]; then
+        hex2bin <<<"$1" >image.png
+        local absPath="$(realpath image.png)"
+        osascript "${TEST_ROOT}/utils/setcopiedimage.applescript" "$absPath" >/dev/null
     else
         echo "Copy image is not available for OS: $DETECTED_OS"
         exit 1
@@ -185,6 +209,8 @@ clear_clipboard() {
         xclip -out -sel clip &>/dev/null
     elif [ "$DETECTED_OS" = 'Windows' ]; then
         powershell -c 'Set-Clipboard -Value $null'
+    elif [ "$DETECTED_OS" = 'MacOS' ]; then
+        pbcopy </dev/null
     else
         echo "Clear clipboard is not available for OS: $DETECTED_OS"
         exit 1
@@ -254,7 +280,7 @@ for script in scripts/*.sh; do
         showStatus "${script}" warn "$attemt_msg"
     done
     if [ "$passed" = '1' ]; then
-        passCnt=$(("$passCnt" + 1))
+        passCnt="$((passCnt + 1))"
     else
         exitCode=1
         failCnt="$((failCnt + 1))"
@@ -266,7 +292,7 @@ done
 
 clear_clipboard
 
-totalTests=$(("$passCnt" + "$failCnt"))
+totalTests="$((passCnt + failCnt))"
 test_s='tests'
 if [ "$totalTests" = '1' ]; then
     test_s='test'

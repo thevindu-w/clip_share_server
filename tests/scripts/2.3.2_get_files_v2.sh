@@ -79,9 +79,9 @@ for _ in $(seq "${#files[@]}"); do
         exit 1
     fi
     fileName="$(echo "${body:16:$((nameLength * 2))}" | hex2bin)"
-    body="${body:$((16 + "$nameLength" * 2))}"
+    body="${body:$((16 + nameLength * 2))}"
 
-    fileSize="$((0x"${body::16}"))"
+    fileSize="$((0x${body::16}))"
     if [ "$fileSize" -gt "1048576" ]; then
         showStatus info "File is too large. size=${fileSize}."
         exit 1
@@ -89,8 +89,8 @@ for _ in $(seq "${#files[@]}"); do
     if [[ $fileName == */* ]]; then
         mkdir -p "${fileName%/*}"
     fi
-    echo "${body:16:$(("$fileSize" * 2))}" | hex2bin >"$fileName"
-    body="${body:$((16 + "$fileSize" * 2))}"
+    echo "${body:16:$((fileSize * 2))}" | hex2bin >"$fileName"
+    body="${body:$((16 + fileSize * 2))}"
 done
 
 if [ "${body}" != "" ]; then

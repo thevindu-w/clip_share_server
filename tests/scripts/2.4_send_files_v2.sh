@@ -34,7 +34,7 @@ appendToChunks() {
         nameLength=$(printf '%016x' "${#fname}")
         fileSize=$(printf '%016x' $(stat -c '%s' "${fname}"))
         content=$(cat "${fname}" | bin2hex | tr -d '\n')
-        chunks+="${nameLength}$(echo -n "${fname}" | bin2hex)${fileSize}${content}"
+        chunks+="${nameLength}$(echo -n "$fname" | bin2hex)${fileSize}${content}"
     fi
 }
 

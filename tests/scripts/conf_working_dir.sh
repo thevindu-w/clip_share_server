@@ -12,7 +12,7 @@ update_config working_dir "$workdir"
 nameLength=$(printf '%016x' "${#fileName}")
 fileSize=$(printf '%016x' "${#fileContent}")
 content=$(echo -n "$fileContent" | bin2hex | tr -d '\n')
-body="${nameLength}$(echo -n "${fileName}" | bin2hex)${fileSize}${content}"
+body="${nameLength}$(echo -n "$fileName" | bin2hex)${fileSize}${content}"
 
 proto="$PROTO_V1"
 method="$METHOD_SEND_FILES"
@@ -55,7 +55,7 @@ update_config working_dir "$workdir"
 
 printf -v _ '%s%n' "$fileName" utf8len
 nameLength="$(printf '%016x' $utf8len)"
-body="${nameLength}$(echo -n "${fileName}" | bin2hex)${fileSize}${content}"
+body="${nameLength}$(echo -n "$fileName" | bin2hex)${fileSize}${content}"
 
 responseDump=$(echo -n "${proto}${method}${body}" | hex2bin | client_tool | bin2hex | tr -d '\n')
 
