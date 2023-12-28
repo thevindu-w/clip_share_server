@@ -12,8 +12,6 @@
 
 #define MIN_OF(x, y) (x < y ? x : y)
 
-static NSBitmapImageRep *get_copied_image(void);
-
 int get_clipboard_text(char **bufptr, size_t *lenptr) {
     NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
     NSString *copiedString = [pasteBoard stringForType:NSPasteboardTypeString];
@@ -77,7 +75,7 @@ char *get_copied_files_as_str(int *offset) {
     return all_files;
 }
 
-static NSBitmapImageRep *get_copied_image() {
+static inline NSBitmapImageRep *get_copied_image(void) {
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
     NSImage *img = [[NSImage alloc] initWithPasteboard:pasteboard];
     if (!img) return NULL;

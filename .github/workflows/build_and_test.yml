@@ -78,3 +78,25 @@ jobs:
         make web
     - name: Test
       run: make test
+  Build-and-Test-on-MacOS-x86_64:
+    runs-on: macos-13
+    steps:
+    - name: Install build dependencies
+      run: brew install openssl@3 libpng libunistring
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{github.head_ref}}
+        fetch-depth: 0
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+    - name: Build
+      run: make
+    - name: Install test dependencies
+      run: |
+        brew install coreutils gnu-sed
+        echo "$(brew --prefix coreutils)"'/libexec/gnubin' >> $GITHUB_PATH
+        echo "$(brew --prefix gnu-sed)"'/libexec/gnubin' >> $GITHUB_PATH
+    - name: Test
+      run: |
+        export TERM=xterm-256color
+        make test
