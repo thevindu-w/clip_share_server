@@ -19,7 +19,7 @@ jobs:
     - name: Set version
       run: |
         version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-        echo VERSION="$version" >> $GITHUB_ENV
+        echo ARCHIVE_NAME="clip_share_server-${version}-linux_x86_64.tar.gz" >> $GITHUB_ENV
     - name: Build on Ubuntu 20
       run: docker build -t clipshare:ubuntu20 -f docker/release/Dockerfile.ubuntu20 .
     - name: Build on Ubuntu 22
@@ -36,12 +36,12 @@ jobs:
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu22
         docker run -v './dist:/home/user/src/dist' clipshare:arch
         docker run -v './dist:/home/user/src/dist' clipshare:fedora
-        cd dist && sha256sum -b * >SHA2-256SUM && tar -cf - --sort=name --owner=root:0 --group=root:0 --no-same-owner . | gzip -9 >"../clip_share_server-${{env.VERSION}}-linux_x86_64.tar.gz"
+        cd dist && sha256sum -b * >SHA2-256SUM && tar -cf - --sort=name --owner=root:0 --group=root:0 --no-same-owner . | gzip -9 >"../${{env.ARCHIVE_NAME}}"
     - name: Upload Linux version
       uses: actions/upload-artifact@v3
       with:
-        name: "clip_share_server-${{env.VERSION}}-linux_x86_64.tar.gz"
-        path: "clip_share_server-${{env.VERSION}}-linux_x86_64.tar.gz"
+        name: "${{env.ARCHIVE_NAME}}"
+        path: "${{env.ARCHIVE_NAME}}"
   Windows:
     runs-on: windows-latest
     defaults:
@@ -64,13 +64,43 @@ jobs:
     - name: Set version
       run: |
         version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-        echo VERSION="$version" >> $GITHUB_ENV
+        filename="clip_share_server-${version}-windows64.exe"
+        echo FILE_NAME="$filename" >> $GITHUB_ENV
     - name: Build
       run: |
         make
-        mv "clip_share.exe" "clip_share_server-${{env.VERSION}}-windows64.exe"
+        mv "clip_share.exe" "${{env.FILE_NAME}}"
     - name: Upload Windows version
       uses: actions/upload-artifact@v3
       with:
-        name: "clip_share_server-${{env.VERSION}}-windows64.exe"
-        path: "clip_share_server-${{env.VERSION}}-windows64.exe"
+        name: "${{env.FILE_NAME}}"
+        path: "${{env.FILE_NAME}}"
+  MacOS-x86_64:
+    runs-on: macos-13
+    steps:
+    - name: Install build dependencies
+      run: |
+        brew install openssl@3 libpng libunistring gnu-tar
+        echo "$(brew --prefix gnu-tar)"'/libexec/gnubin' >> $GITHUB_PATH
+    - name: Check out repository code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{github.head_ref}}
+        fetch-depth: 0
+        repository: ${{github.repository}}
+    - name: Set version
+      run: |
+        version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+        filename="clip_share_server-${version}-macos_x86_64"
+        echo FILE_NAME="$filename" >> $GITHUB_ENV
+        echo ARCHIVE_NAME="${filename}.tar.gz" >> $GITHUB_ENV
+    - name: Build
+      run: |
+        make
+        mv "clip_share" "${{env.FILE_NAME}}"
+        tar -cf - --owner=root:0 --group=root:0 --no-same-owner "${{env.FILE_NAME}}" | gzip -9 >"${{env.ARCHIVE_NAME}}"
+    - name: Upload MacOS Intel version
+      uses: actions/upload-artifact@v3
+      with:
+        name: "${{env.ARCHIVE_NAME}}"
+        path: "${{env.ARCHIVE_NAME}}"
