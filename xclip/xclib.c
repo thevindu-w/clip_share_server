@@ -32,9 +32,9 @@
 /* wrapper for malloc that checks for errors */
 void *xcmalloc(size_t size) {
     if (!size) error_exit("malloc zero");
-    void *mem;
+    if (size > configuration.max_text_length) error_exit("malloc too large");
 
-    mem = malloc(size);
+    void *mem = malloc(size);
     if (!mem) error_exit("malloc failed");
 
     return mem;
@@ -43,9 +43,9 @@ void *xcmalloc(size_t size) {
 /* wrapper for realloc that checks for errors */
 void *xcrealloc(void *ptr, size_t size) {
     if (!size) error_exit("realloc zero");
-    void *mem;
+    if (size > configuration.max_text_length) error_exit("realloc too large");
 
-    mem = realloc(ptr, size);
+    void *mem = realloc(ptr, size);
     if (!mem) {
         free(ptr);
         error_exit("realloc failed");
