@@ -104,7 +104,7 @@ extern int get_image(char **buf_ptr, size_t *len_ptr);
  * Get the file size of the file from the given file pointer fp.
  * returns the file size on success and -1 on failure.
  */
-extern ssize_t get_file_size(FILE *fp);
+extern int64_t get_file_size(FILE *fp);
 
 /*
  * Check if a file exists at the path given by file_name.
@@ -133,7 +133,7 @@ void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length);
  * Returns the length of the new string without the terminating '\0'.
  * If an error occured, this will free() the *str_p and return -1.
  */
-extern ssize_t convert_eol(char **str_p, int force_lf);
+extern int64_t convert_eol(char **str_p, int force_lf);
 
 #if defined(__linux__) || defined(__APPLE__)
 

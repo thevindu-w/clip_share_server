@@ -58,7 +58,7 @@ static inline int _check_path(const char *path) {
 }
 
 int get_text_v1(socket_t *socket) {
-    size_t length = 0;
+    uint64_t length = 0;
     char *buf = NULL;
     if (get_clipboard_text(&buf, &length) != EXIT_SUCCESS || length <= 0 ||
         length > configuration.max_text_length) {  // do not change the order
@@ -76,7 +76,7 @@ int get_text_v1(socket_t *socket) {
         puts("");
     }
 #endif
-    ssize_t new_len = convert_eol(&buf, 1);
+    int64_t new_len = convert_eol(&buf, 1);
     if (new_len < 0) {
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         return EXIT_SUCCESS;
@@ -99,15 +99,15 @@ int get_text_v1(socket_t *socket) {
 
 int send_text_v1(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
-    ssize_t length = read_size(socket);
+    int64_t length = read_size(socket);
 #ifdef DEBUG_MODE
     printf("Len = %zi\n", length);
 #endif
     // limit maximum length to 4 MiB
     if (length <= 0 || length > configuration.max_text_length) return EXIT_FAILURE;
 
-    char *data = malloc((size_t)length + 1);
-    if (read_sock(socket, data, (size_t)length) == EXIT_FAILURE) {
+    char *data = malloc((uint64_t)length + 1);
+    if (read_sock(socket, data, (uint64_t)length) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
         fputs("Read data failed\n", stderr);
 #endif
@@ -136,6 +136,7 @@ int send_text_v1(socket_t *socket) {
 static int _transfer_single_file(int version, socket_t *socket, const char *file_path, size_t path_len) {
     const char *tmp_fname;
     switch (version) {
+#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
         case 1: {
             tmp_fname = strrchr(file_path, PATH_SEP);
             if (tmp_fname == NULL) {
@@ -145,10 +146,13 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
             }
             break;
         }
+#endif
+#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
         case 2: {
             tmp_fname = file_path + path_len;
             break;
         }
+#endif
         default: {
             return EXIT_FAILURE;
         }
@@ -172,7 +176,7 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
         error("Couldn't open some files");
         return EXIT_FAILURE;
     }
-    ssize_t file_size = get_file_size(fp);
+    int64_t file_size = get_file_size(fp);
     if (file_size < 0 || file_size > configuration.max_file_size) {
 #ifdef DEBUG_MODE
         printf("file size = %zi\n", file_size);
@@ -181,7 +185,7 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
         return EXIT_FAILURE;
     }
 
-    if (send_size(socket, (ssize_t)fname_len) == EXIT_FAILURE) {
+    if (send_size(socket, (int64_t)fname_len) == EXIT_FAILURE) {
         fclose(fp);
         return EXIT_FAILURE;
     }
@@ -238,7 +242,7 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
         return EXIT_FAILURE;
     }
 
-    if (send_size(socket, (ssize_t)file_cnt) == EXIT_FAILURE) {
+    if (send_size(socket, (int64_t)file_cnt) == EXIT_FAILURE) {
         free_list(file_list);
         return EXIT_FAILURE;
     }
@@ -265,7 +269,7 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
  * Common function to save files in send_files method of v1 and v2.
  */
 static int _save_file_common(socket_t *socket, const char *file_name) {
-    ssize_t file_size = read_size(socket);
+    int64_t file_size = read_size(socket);
 #ifdef DEBUG_MODE
     printf("data len = %zi\n", file_size);
 #endif
@@ -295,7 +299,7 @@ static int _save_file_common(socket_t *socket, const char *file_name) {
             remove_file(file_name);
             return EXIT_FAILURE;
         }
-        file_size -= (ssize_t)read_len;
+        file_size -= (int64_t)read_len;
     }
 
     fclose(file);
@@ -361,7 +365,7 @@ int get_files_v1(socket_t *socket) {
 
 int send_file_v1(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
-    const ssize_t name_length = read_size(socket);
+    const int64_t name_length = read_size(socket);
 #ifdef DEBUG_MODE
     printf("name_len = %zi\n", name_length);
 #endif
@@ -369,13 +373,13 @@ int send_file_v1(socket_t *socket) {
         return EXIT_FAILURE;
     }
 
-    const size_t name_max_len = (size_t)(name_length + 16);
+    const uint64_t name_max_len = (uint64_t)(name_length + 16);
     if (name_max_len > MAX_FILE_NAME_LENGTH) {
         error("Too long file name.");
         return EXIT_FAILURE;
     }
     char file_name[name_max_len + 1];
-    if (read_sock(socket, file_name, (size_t)name_length) == EXIT_FAILURE) {
+    if (read_sock(socket, file_name, (uint64_t)name_length) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
         fputs("Read file name failed\n", stderr);
 #endif
@@ -426,7 +430,7 @@ int get_image_v1(socket_t *socket) {
         free(buf);
         return EXIT_FAILURE;
     }
-    if (send_size(socket, (ssize_t)length) == EXIT_FAILURE) {
+    if (send_size(socket, (int64_t)length) == EXIT_FAILURE) {
         free(buf);
         return EXIT_FAILURE;
     }
@@ -441,7 +445,7 @@ int get_image_v1(socket_t *socket) {
 int info_v1(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
     const size_t len = sizeof(INFO_NAME) - 1;
-    if (send_size(socket, (ssize_t)len) == EXIT_FAILURE) {
+    if (send_size(socket, (int64_t)len) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
         fprintf(stderr, "send length failed\n");
 #endif
@@ -479,7 +483,7 @@ int get_files_v2(socket_t *socket) {
 }
 
 static int save_file(socket_t *socket, const char *dirname) {
-    ssize_t name_length = read_size(socket);
+    int64_t name_length = read_size(socket);
 #ifdef DEBUG_MODE
     printf("name_len = %zi\n", name_length);
 #endif
@@ -574,7 +578,7 @@ static int _check_and_rename(const char *filename, const char *dirname) {
 
 int send_files_v2(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
-    ssize_t cnt = read_size(socket);
+    int64_t cnt = read_size(socket);
     if (cnt <= 0) return EXIT_FAILURE;
     char dirname[17];
     unsigned id = (unsigned)time(NULL);
@@ -585,7 +589,7 @@ int send_files_v2(socket_t *socket) {
 
     if (mkdirs(dirname) != EXIT_SUCCESS) return EXIT_FAILURE;
 
-    for (ssize_t file_num = 0; file_num < cnt; file_num++) {
+    for (int64_t file_num = 0; file_num < cnt; file_num++) {
         if (save_file(socket, dirname) != EXIT_SUCCESS) {
             return EXIT_FAILURE;
         }

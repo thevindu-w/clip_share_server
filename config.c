@@ -136,9 +136,9 @@ static inline void set_is_true(const char *str, char *conf_ptr) {
  * Sets the value pointed by conf_ptr to the unsigned 64-bit value given as a string in str if that is a valid value
  * between 1 and 2^32-1 inclusive. Otherwise, does not change the value pointed by conf_ptr
  */
-static inline void set_ssize_t(const char *str, ssize_t *conf_ptr) {
+static inline void set_int64(const char *str, int64_t *conf_ptr) {
     char *end_ptr;
-    ssize_t value = (ssize_t)strtoull(str, &end_ptr, 10);
+    int64_t value = (ssize_t)strtoull(str, &end_ptr, 10);
     switch (*end_ptr) {
         case '\0':
             break;
@@ -177,7 +177,7 @@ static inline void set_ssize_t(const char *str, ssize_t *conf_ptr) {
  * Sets the value pointed by conf_ptr to the unsigned int given as a string in str if that is a valid value between 1
  * and 2^32-2 inclusive. Otherwise, does not change the value pointed by conf_ptr
  */
-static inline void set_uint(const char *str, unsigned int *conf_ptr) {
+static inline void set_uint32(const char *str, uint32_t *conf_ptr) {
     char *end_ptr;
     long long value = strtoll(str, &end_ptr, 10);
     switch (*end_ptr) {
@@ -203,7 +203,7 @@ static inline void set_uint(const char *str, unsigned int *conf_ptr) {
     }
     if (*end_ptr && *(end_ptr + 1)) return;
     if (0 < value && value <= 4294967295L) {
-        *conf_ptr = (unsigned int)value;
+        *conf_ptr = (uint32_t)value;
     }
 }
 
@@ -283,9 +283,9 @@ static void parse_line(char *line, config *cfg) {
     } else if (!strcmp("restart", key)) {
         set_is_true(value, &(cfg->restart));
     } else if (!strcmp("max_text_length", key)) {
-        set_uint(value, &(cfg->max_text_length));
+        set_uint32(value, &(cfg->max_text_length));
     } else if (!strcmp("max_file_size", key)) {
-        set_ssize_t(value, &(cfg->max_file_size));
+        set_int64(value, &(cfg->max_file_size));
 #ifdef _WIN32
     } else if (!strcmp("tray_icon", key)) {
         set_is_true(value, &(cfg->tray_icon));

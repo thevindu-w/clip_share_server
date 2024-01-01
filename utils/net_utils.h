@@ -99,7 +99,7 @@ extern void close_socket(socket_t *socket);
  * Waits until all the bytes are read. If reading failed before num bytes, returns EXIT_FAILURE
  * Otherwise, returns EXIT_SUCCESS.
  */
-extern int read_sock(socket_t *socket, char *buf, size_t num);
+extern int read_sock(socket_t *socket, char *buf, uint64_t num);
 
 #ifndef NO_WEB
 /*
@@ -118,18 +118,18 @@ extern int read_sock_no_wait(socket_t *socket, char *buf, size_t num);
  * Waits until all the bytes are written. If writing failed before num bytes, returns EXIT_FAILURE
  * Otherwise, returns EXIT_SUCCESS.
  */
-extern int write_sock(socket_t *socket, const char *buf, size_t num);
+extern int write_sock(socket_t *socket, const char *buf, uint64_t num);
 
 /*
  * Sends a 64-bit signed integer num to socket as big-endian encoded 8 bytes.
  * returns EXIT_SUCCESS on success. Otherwise, returns EXIT_FAILURE on error.
  */
-extern int send_size(socket_t *socket, ssize_t num);
+extern int send_size(socket_t *socket, int64_t num);
 
 /*
  * Reads a 64-bit signed integer from socket as big-endian encoded 8 bytes.
  * returns the read value on success. Otherwise, returns -1 on error.
  */
-extern ssize_t read_size(socket_t *socket);
+extern int64_t read_size(socket_t *socket);
 
 #endif  // UTILS_NET_UTILS_H_

@@ -366,9 +366,9 @@ static inline int _read_SSL(SSL *ssl, char *buf, int size, int *fatal_p) {
     return sz_read;
 }
 
-int read_sock(socket_t *socket, char *buf, size_t size) {
+int read_sock(socket_t *socket, char *buf, uint64_t size) {
     int cnt = 0;
-    size_t total_sz_read = 0;
+    uint64_t total_sz_read = 0;
     char *ptr = buf;
     while (total_sz_read < size) {
         ssize_t sz_read;
@@ -388,7 +388,7 @@ int read_sock(socket_t *socket, char *buf, size_t size) {
                 return EXIT_FAILURE;
         }
         if (sz_read > 0) {
-            total_sz_read += (size_t)sz_read;
+            total_sz_read += (uint64_t)sz_read;
             cnt = 0;
             ptr += sz_read;
         } else {
@@ -424,9 +424,9 @@ int read_sock_no_wait(socket_t *socket, char *buf, size_t size) {
 }
 #endif
 
-int write_sock(socket_t *socket, const char *buf, size_t size) {
+int write_sock(socket_t *socket, const char *buf, uint64_t size) {
     int cnt = 0;
-    size_t total_written = 0;
+    uint64_t total_written = 0;
     const char *ptr = buf;
     while (total_written < size) {
         ssize_t sz_written;
@@ -449,7 +449,7 @@ int write_sock(socket_t *socket, const char *buf, size_t size) {
                 return EXIT_FAILURE;
         }
         if (sz_written > 0) {
-            total_written += (size_t)sz_written;
+            total_written += (uint64_t)sz_written;
             cnt = 0;
             ptr += sz_written;
         } else if (sz_written == 0) {
@@ -469,9 +469,9 @@ int write_sock(socket_t *socket, const char *buf, size_t size) {
     return EXIT_SUCCESS;
 }
 
-int send_size(socket_t *socket, ssize_t size) {
+int send_size(socket_t *socket, int64_t size) {
     char sz_buf[8];
-    ssize_t sz = size;
+    int64_t sz = size;
     for (int i = sizeof(sz_buf) - 1; i >= 0; i--) {
         sz_buf[i] = (char)(sz & 0xff);
         sz >>= 8;
@@ -479,7 +479,7 @@ int send_size(socket_t *socket, ssize_t size) {
     return write_sock(socket, sz_buf, sizeof(sz_buf));
 }
 
-ssize_t read_size(socket_t *socket) {
+int64_t read_size(socket_t *socket) {
     unsigned char sz_buf[8];
     if (read_sock(socket, (char *)sz_buf, sizeof(sz_buf)) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
@@ -487,7 +487,7 @@ ssize_t read_size(socket_t *socket) {
 #endif
         return -1;
     }
-    ssize_t size = 0;
+    int64_t size = 0;
     for (unsigned i = 0; i < sizeof(sz_buf); i++) {
         size = (size << 8) | sz_buf[i];
     }

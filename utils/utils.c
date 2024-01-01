@@ -96,7 +96,7 @@ int file_exists(const char *file_name) {
     return f_ok == 0;
 }
 
-ssize_t get_file_size(FILE *fp) {
+int64_t get_file_size(FILE *fp) {
     struct stat statbuf;
     if (fstat(fileno(fp), &statbuf)) {
 #ifdef DEBUG_MODE
@@ -111,7 +111,7 @@ ssize_t get_file_size(FILE *fp) {
         return -1;
     }
     fseek(fp, 0L, SEEK_END);
-    ssize_t file_size = ftell(fp);
+    int64_t file_size = ftell(fp);
     rewind(fp);
     return file_size;
 }
@@ -173,7 +173,7 @@ void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) 
  * Returns 1 if conversion is needed and it will increase the length.
  * Returns -1 if realloc failed.
  */
-static inline int _realloc_for_crlf(char **str_p, size_t *len_p) {
+static inline int _realloc_for_crlf(char **str_p, uint64_t *len_p) {
     char *str = *str_p;
     size_t increase = 0;
     size_t ind;
@@ -187,7 +187,7 @@ static inline int _realloc_for_crlf(char **str_p, size_t *len_p) {
         *len_p = ind;
         return 0;
     }
-    size_t req_len = ind + increase;
+    uint64_t req_len = ind + increase;
     char *re_str = realloc(str, req_len + 1);  // +1 for terminating '\0'
     if (!re_str) {
         free(str);
@@ -199,7 +199,7 @@ static inline int _realloc_for_crlf(char **str_p, size_t *len_p) {
     return 1;
 }
 
-static inline void _convert_to_crlf(char *str, size_t new_len) {
+static inline void _convert_to_crlf(char *str, uint64_t new_len) {
     // converting to CRLF expands string. Therefore, start from the end to avoid overwriting
     size_t new_ind = new_len - 1;
     str[new_len] = 0;  // terminating '\0'
@@ -214,7 +214,7 @@ static inline void _convert_to_crlf(char *str, size_t new_len) {
     }
 }
 
-static inline ssize_t _convert_to_lf(char *str) {
+static inline int64_t _convert_to_lf(char *str) {
     // converting to CRLF shrinks string. Therefore, start from the begining to avoid overwriting
     const char *old_ptr = str;
     char *new_ptr = str;
@@ -230,7 +230,7 @@ static inline ssize_t _convert_to_lf(char *str) {
     return new_ptr - str;
 }
 
-ssize_t convert_eol(char **str_p, int force_lf) {
+int64_t convert_eol(char **str_p, int force_lf) {
     int crlf;
 #if defined(__linux__) || defined(__APPLE__)
     crlf = 0;
@@ -240,12 +240,12 @@ ssize_t convert_eol(char **str_p, int force_lf) {
     if (force_lf) crlf = 0;
     // realloc if available capacity is not enough
     if (crlf) {
-        size_t new_len;
+        uint64_t new_len;
         int status = _realloc_for_crlf(str_p, &new_len);
-        if (status == 0) return (ssize_t)new_len;  // no conversion needed
+        if (status == 0) return (int64_t)new_len;  // no conversion needed
         if (status < 0 || !*str_p) return -1;      // realloc failed
         _convert_to_crlf(*str_p, new_len);
-        return (ssize_t)new_len;
+        return (int64_t)new_len;
     }
     return _convert_to_lf(*str_p);
 }

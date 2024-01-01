@@ -45,7 +45,14 @@ void free_list(list2 *lst) {
 
 void append(list2 *lst, void *elem) {
     if (lst->len >= lst->capacity) {
-        size_t new_cap = lst->capacity * 2;
+        size_t new_cap;
+        if (lst->capacity < 0x80000000L) {
+            new_cap = lst->capacity * 2;
+        } else if (lst->capacity >= 0xFFFFFFFFL) {
+            return;
+        } else {
+            new_cap = 0xFFFFFFFFL;
+        }
         void **new_arr = (void **)realloc(lst->array, sizeof(void *) * new_cap);
         if (!new_arr) return;
         lst->array = new_arr;
