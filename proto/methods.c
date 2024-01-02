@@ -60,7 +60,7 @@ static inline int _check_path(const char *path) {
 int get_text_v1(socket_t *socket) {
     uint64_t length = 0;
     char *buf = NULL;
-    if (get_clipboard_text(&buf, &length) != EXIT_SUCCESS || length <= 0 ||
+    if (get_clipboard_text(&buf, (size_t *)&length) != EXIT_SUCCESS || length <= 0 ||
         length > configuration.max_text_length) {  // do not change the order
 #ifdef DEBUG_MODE
         printf("clipboard read text failed. len = %zu\n", length);
