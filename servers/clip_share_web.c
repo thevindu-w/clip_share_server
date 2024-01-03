@@ -1,5 +1,5 @@
 /*
- *  clip_share_web.c - web server of the application
+ *  servers/clip_share_web.c - web server of the application
  *  Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,9 +17,9 @@
  */
 
 #ifndef NO_WEB
-#include <config.h>
+#include <utils/config.h>
 #include <globals.h>
-#include <servers.h>
+#include <servers/servers.h>
 #include <stdio.h>
 #include <string.h>
 #include <utils/net_utils.h>

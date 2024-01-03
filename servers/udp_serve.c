@@ -1,5 +1,5 @@
 /*
- *  udp_serve.c - UDP server for scanning
+ *  servers/udp_serve.c - UDP server for scanning
  *  Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
  */
 
 #include <globals.h>
-#include <servers.h>
+#include <servers/servers.h>
 #include <stdio.h>
 #include <string.h>
 #include <utils/net_utils.h>

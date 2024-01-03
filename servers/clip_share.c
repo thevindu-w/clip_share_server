@@ -1,5 +1,5 @@
 /*
- *  clip_share.c - server which communicates with client app to share data
+ *  servers/clip_share.c - server which communicates with client app to share data
  *  Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,10 +16,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <config.h>
+#include <utils/config.h>
 #include <globals.h>
 #include <proto/server.h>
-#include <servers.h>
+#include <servers/servers.h>
 #include <utils/net_utils.h>
 #include <utils/utils.h>
 #if defined(__linux__) || defined(__APPLE__)

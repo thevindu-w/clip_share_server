@@ -1,5 +1,5 @@
 /*
- *  servers.h - header defining supported servers
+ *  servers/servers.h - header defining supported servers
  *  Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,10 +16,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SERVERS_H_
-#define SERVERS_H_
+#ifndef SERVERS_SERVERS_H_
+#define SERVERS_SERVERS_H_
 
-#include <config.h>
+#include <utils/config.h>
 
 #define INSECURE 0
 #define SECURE 1
@@ -42,4 +42,4 @@ extern int web_server(void);
  */
 extern void udp_server(void);
 
-#endif  // SERVERS_H_
+#endif  // SERVERS_SERVERS_H_

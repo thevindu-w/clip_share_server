@@ -25,10 +25,10 @@ CC=gcc
 CFLAGS=-c -pipe -I. --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wexpansion-to-defined -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Woverlength-strings
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 
-OBJS=main.o clip_share.o udp_serve.o proto/server.o proto/versions.o proto/methods.o utils/utils.o utils/net_utils.o utils/list_utils.o config.o
+OBJS=main.o servers/clip_share.o servers/udp_serve.o proto/server.o proto/versions.o proto/methods.o utils/utils.o utils/net_utils.o utils/list_utils.o utils/config.o
 
-_WEB_OBJS_C=clip_share_web.o
-_WEB_OBJS_S=page_blob.o
+_WEB_OBJS_C=servers/clip_share_web.o
+_WEB_OBJS_S=servers/page_blob.o
 OBJS_M=
 
 OTHER_DEPENDENCIES=

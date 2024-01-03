@@ -16,8 +16,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#ifndef UTILS_CONFIG_H_
+#define UTILS_CONFIG_H_
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -60,4 +60,4 @@ extern void parse_conf(config *cfg, const char *file_name);
  */
 extern void clear_config(config *conf);
 
-#endif  // CONFIG_H_
+#endif  // UTILS_CONFIG_H_

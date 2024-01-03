@@ -20,10 +20,11 @@ RUN mkdir -p "$HOME/src"
 WORKDIR "$HOME/src"
 
 # Copy the source files
-COPY Makefile clip_share.c clip_share_web.c config.c main.c udp_serve.c config.h globals.h servers.h page_blob.S ./
+COPY Makefile main.c globals.h ./
 COPY ./html html
-RUN mkdir proto utils xclip xscreenshot
+RUN mkdir proto servers utils xclip xscreenshot
 COPY ./proto/*.c ./proto/*.h proto/
+COPY ./servers/*.c ./servers/*.h servers/
 COPY ./utils/*.c ./utils/*.h utils/
 COPY ./xclip/*.c ./xclip/*.h xclip/
 COPY ./xscreenshot/*.c ./xscreenshot/*.h xscreenshot/

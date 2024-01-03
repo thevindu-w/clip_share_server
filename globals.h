@@ -19,7 +19,7 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
-#include <config.h>
+#include <utils/config.h>
 
 extern config configuration;
 extern char *error_log_file;

@@ -16,14 +16,14 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <config.h>
 #include <fcntl.h>
 #include <globals.h>
-#include <servers.h>
+#include <servers/servers.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <utils/config.h>
 #include <utils/net_utils.h>
 #include <utils/utils.h>
 
