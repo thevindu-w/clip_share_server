@@ -75,7 +75,7 @@ jobs:
       with:
         name: "${{env.FILE_NAME}}"
         path: "${{env.FILE_NAME}}"
-  MacOS-x86_64:
+  macOS-x86_64:
     runs-on: macos-13
     steps:
     - name: Install build dependencies
@@ -99,7 +99,7 @@ jobs:
         make
         mv "clip_share" "${{env.FILE_NAME}}"
         tar -cf - --owner=root:0 --group=root:0 --no-same-owner "${{env.FILE_NAME}}" | gzip -9 >"${{env.ARCHIVE_NAME}}"
-    - name: Upload MacOS Intel version
+    - name: Upload macOS Intel version
       uses: actions/upload-artifact@v3
       with:
         name: "${{env.ARCHIVE_NAME}}"

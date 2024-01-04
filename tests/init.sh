@@ -24,5 +24,10 @@ fi
 rm -rf tmp
 cp -r config tmp
 cd tmp
-"${program}" -r &>/dev/null &
+if [ "$DETECTED_OS" = 'Windows' ]; then
+    "$program" -r &>/dev/null &
+    sleep 0.1
+else
+    "$program" -r &>/dev/null
+fi
 sleep 0.1

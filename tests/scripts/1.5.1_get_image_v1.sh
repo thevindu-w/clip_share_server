@@ -33,7 +33,7 @@ elif [ "$DETECTED_OS" = 'Windows' ]; then
         echo 'Received:' "${responseDump::20} ..."
         exit 1
     fi
-elif [ "$DETECTED_OS" = 'MacOS' ]; then
+elif [ "$DETECTED_OS" = 'macOS' ]; then
     if [ "${responseDump::17}" != "${expected::17}" ]; then
         showStatus info 'Incorrect server response.'
         echo 'Expected:' "${expected::17} ..."

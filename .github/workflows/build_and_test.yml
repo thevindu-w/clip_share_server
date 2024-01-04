@@ -78,7 +78,7 @@ jobs:
         make web
     - name: Test
       run: make test
-  Build-and-Test-on-MacOS-x86_64:
+  Build-and-Test-on-macOS-x86_64:
     runs-on: macos-13
     steps:
     - name: Install build dependencies

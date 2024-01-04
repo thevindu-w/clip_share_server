@@ -26,7 +26,7 @@ elif [ "$(uname)" = 'Linux' ]; then
     DETECTED_OS='Linux'
     dependencies+=(xclip)
 elif [ "$(uname)" = 'Darwin' ]; then
-    DETECTED_OS='MacOS'
+    DETECTED_OS='macOS'
     dependencies+=(pbcopy pbpaste)
     export PATH="/usr/local/opt/coreutils/libexec/gnubin:/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
 else
@@ -41,7 +41,7 @@ for dependency in "${dependencies[@]}"; do
     fi
 done
 
-if [ "$DETECTED_OS" = 'MacOS' ]; then
+if [ "$DETECTED_OS" = 'macOS' ]; then
     for lcvar in $(env | grep '^LC_' | sed 's/=.*//g'); do
         unset "$lcvar"
     done
@@ -53,7 +53,7 @@ program="$(realpath "../${program}")"
 
 shopt -s expand_aliases
 export TEST_ROOT="$(pwd)"
-if type 'xxd' &>/dev/null && ([ "$DETECTED_OS" = 'Linux' ] || [ "$DETECTED_OS" = 'MacOS' ]); then
+if type 'xxd' &>/dev/null && ([ "$DETECTED_OS" = 'Linux' ] || [ "$DETECTED_OS" = 'macOS' ]); then
     alias bin2hex='xxd -p -c 512 2>/dev/null'
     alias hex2bin='xxd -p -r 2>/dev/null'
 else
@@ -126,7 +126,7 @@ copy_text() {
         echo -n "$1" | xclip -in -sel clip &>/dev/null
     elif [ "$DETECTED_OS" = 'Windows' ]; then
         powershell -c "Set-Clipboard -Value '$1'"
-    elif [ "$DETECTED_OS" = 'MacOS' ]; then
+    elif [ "$DETECTED_OS" = 'macOS' ]; then
         echo -n "$1" | pbcopy -pboard general &>/dev/null
     else
         echo "Copy text is not available for OS: $DETECTED_OS"
@@ -139,7 +139,7 @@ get_copied_text() {
     if [ "$DETECTED_OS" = 'Linux' ]; then
         xclip -out -sel clip | bin2hex
     elif [ "$DETECTED_OS" = 'Windows' ]; then
-        prev_dir="$(pwd)"
+        local prev_dir="$(pwd)"
         cd /tmp
         powershell -c 'Get-Clipboard -Raw | Out-File "clip.txt" -Encoding utf8'
         local copied_text="$(cat 'clip.txt')"
@@ -150,7 +150,7 @@ get_copied_text() {
             copied_text="${copied_text:6}"
         fi
         echo -n "$copied_text"
-    elif [ "$DETECTED_OS" = 'MacOS' ]; then
+    elif [ "$DETECTED_OS" = 'macOS' ]; then
         pbpaste -pboard general -Prefer txt | bin2hex
     else
         echo "Get copied text is not available for OS: $DETECTED_OS"
@@ -172,7 +172,7 @@ copy_files() {
     elif [ "$DETECTED_OS" = 'Windows' ]; then
         local files_str="$(printf ", '%s'" "${files[@]}")"
         powershell -c "Set-Clipboard -Path ${files_str:2}"
-    elif [ "$DETECTED_OS" = 'MacOS' ]; then
+    elif [ "$DETECTED_OS" = 'macOS' ]; then
         local absFiles=()
         for f in "${files[@]}"; do
             local absPath="$(realpath "${f}")"
@@ -190,12 +190,18 @@ copy_image() {
     if [ "$DETECTED_OS" = 'Linux' ]; then
         hex2bin <<<"$1" | xclip -in -sel clip -t image/png
     elif [ "$DETECTED_OS" = 'Windows' ]; then
+        local prev_dir="$(pwd)"
+        cd /tmp
         hex2bin <<<"$1" >image.png
         powershell -ExecutionPolicy Bypass ../utils/copy_image.ps1
-    elif [ "$DETECTED_OS" = 'MacOS' ]; then
+        cd "$prev_dir"
+    elif [ "$DETECTED_OS" = 'macOS' ]; then
+        local prev_dir="$(pwd)"
+        cd /tmp
         hex2bin <<<"$1" >image.png
         local absPath="$(realpath image.png)"
         osascript "${TEST_ROOT}/utils/setcopiedimage.applescript" "$absPath" >/dev/null
+        cd "$prev_dir"
     else
         echo "Copy image is not available for OS: $DETECTED_OS"
         exit 1
@@ -209,7 +215,7 @@ clear_clipboard() {
         xclip -out -sel clip &>/dev/null
     elif [ "$DETECTED_OS" = 'Windows' ]; then
         powershell -c 'Set-Clipboard -Value $null'
-    elif [ "$DETECTED_OS" = 'MacOS' ]; then
+    elif [ "$DETECTED_OS" = 'macOS' ]; then
         pbcopy </dev/null
     else
         echo "Clear clipboard is not available for OS: $DETECTED_OS"
