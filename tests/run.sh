@@ -193,7 +193,7 @@ copy_image() {
         local prev_dir="$(pwd)"
         cd /tmp
         hex2bin <<<"$1" >image.png
-        powershell -ExecutionPolicy Bypass ../utils/copy_image.ps1
+        powershell -ExecutionPolicy Bypass "${TEST_ROOT}/utils/copy_image.ps1"
         cd "$prev_dir"
     elif [ "$DETECTED_OS" = 'macOS' ]; then
         local prev_dir="$(pwd)"
