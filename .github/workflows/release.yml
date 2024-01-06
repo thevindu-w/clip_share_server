@@ -78,7 +78,7 @@ jobs:
   macOS-x86_64:
     runs-on: macos-13
     steps:
-    - name: Install build dependencies
+    - name: Install dependencies
       run: |
         brew install openssl@3 libpng libunistring gnu-tar
         echo "$(brew --prefix gnu-tar)"'/libexec/gnubin' >> $GITHUB_PATH

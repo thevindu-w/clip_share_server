@@ -40,9 +40,11 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
   - [Build tools](#build-tools)
     - [Linux](#linux)
     - [Windows](#windows)
+    - [macOS](#macos)
   - [Dependencies](#dependencies)
     - [Linux](#linux-1)
     - [Windows](#windows-1)
+    - [macOS](#macos-1)
   - [Compiling](#compiling)
 - [How to Use](#how-to-use)
   - [Run the server](#run-the-server)
@@ -67,7 +69,7 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
 
 #### Linux
 
-  On Linux, they can be installed with the following command:
+  On Linux, these tools can be installed with the following command:
 
 * On Debian-based or Ubuntu-based distros,
   ```bash
@@ -92,6 +94,10 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
   pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-make
   ```
   You may need to rename (or copy) the `<MSYS2 directory>/mingw64/bin/mingw32-make.exe` to `<MSYS2 directory>/mingw64/bin/make.exe` before running the command `make`
+
+#### macOS
+
+  On macOS, these tools are installed with Xcode Command Line Tools.
 
 <br>
 
@@ -146,6 +152,20 @@ In an [MSYS2](https://www.msys2.org/) environment, these tools can be installed 
 ```bash
 pacman -S mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-libunistring
 ```
+
+#### macOS
+
+  The following development libraries are required.
+
+* [openssl](https://formulae.brew.sh/formula/openssl@3)
+* [libpng](https://formulae.brew.sh/formula/libpng)
+* [libunistring](https://formulae.brew.sh/formula/libunistring)
+
+These tools can be installed using [Homebrew](https://brew.sh) with the following command:
+```bash
+brew install openssl@3 libpng libunistring
+```
+
 <br>
 
 ### Compiling
@@ -177,7 +197,7 @@ pacman -S mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-libu
 
 - You can run the server from a terminal or the GUI (if the file manager supports executing programs by double-clicking on it)
 - When the server starts, it will not open any visible window. Instead, it will run in the background.
-- On Linux, if you start the program from the terminal, it should return immediately (the server will continue to run in the background).
+- On Linux or macOS, if you start the program from the terminal, it should return immediately (the server will continue to run in the background).
 - On Windows, it will show a tray icon unless disabled from the configuration file. You can click on it to stop the server.
 - If something goes wrong, it will create a `server_err.log` file. That file will contain what went wrong.
 
@@ -194,7 +214,7 @@ pacman -S mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-libu
 
 You may need to allow incoming connections to the above ports for the client to connect to the server.
 
-Note that all TCP ports are for unicast, while `4337/udp` is used for broadcast. Therefore, the firewall rule that allows `4337/udp` should have the **broadcast** address of the interface as the destination address.
+Note that all TCP ports are for unicast, while `4337/udp` is used to receive broadcast. Therefore, the firewall rule that allows `4337/udp` should have the **broadcast** address of the interface as the destination address.
 
 <br>
 
@@ -220,11 +240,11 @@ The following files should be created, and their paths should be specified in th
 
 You may use the helper script `keygen.sh` in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory to generate TLS keys and certificates for both the server and the client. Keep the `clipshare.ext` file in the same directory as the `keygen.sh` script when running the script.
 ```bash
-# If you downloaded/cloned the repository and run the script from the repository root,
+# If you download/clone the repository and run the script from the repository root,
 chmod +x helper_tools/keygen.sh
 helper_tools/keygen.sh
 
-# If you downloaded the script separately and run the script from within the same directory,
+# If you download the script separately and run the script from within the same directory,
 chmod +x keygen.sh
 ./keygen.sh
 ```
@@ -298,7 +318,7 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `server_key` | The TLS private key file of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the private key file | \<Unspecified\> |
 | `server_cert` | The TLS certificate file of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the server's TLS certificate file | \<Unspecified\> |
 | `ca_cert` | The TLS certificate file of the CA that signed the TLS certificate of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the TLS certificate file of the CA | \<Unspecified\> |
-| `allowed_clients` | The text file containing a list of allowed clients (Common Name of client certificate), one name per each line. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the allowed-clients file | \<Unspecified\> |
+| `allowed_clients` | The text file containing a list of allowed clients (Common Name of client certificate), one name per line. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the allowed-clients file | \<Unspecified\> |
 | `working_dir` | The working directory where the application should run. All the files, that are sent from a client, will be saved in this directory. It will follow symlinks if this is a path to a symlink. The user running this application should have write access to the directory | Absolute or relative path to an existing directory | `.` (i.e. Current directory) |
 | `bind_address` | The address of the interface to which the application should bind when listening for connections. It will listen on all interfaces if this is set to `0.0.0.0` | IPv4 address of an interface in dot-decimal notation (ex: `192.168.37.5`) or `0.0.0.0` | `0.0.0.0` |
 | `restart` | Whether the application should start or restart by default. The values `true` or `1` will make the server restart by default, while `false` or `0` will make it just start without stopping any running instances of the server. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
