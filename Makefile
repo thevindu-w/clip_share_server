@@ -22,7 +22,7 @@ PROGRAM_NAME_WEB=clip_share_web
 INFO_NAME=clip_share
 
 CC=gcc
-CFLAGS=-c -pipe -I. --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wexpansion-to-defined -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Woverlength-strings
+CFLAGS=-c -pipe -I. --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Woverlength-strings
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 
 OBJS=main.o servers/clip_share.o servers/udp_serve.o proto/server.o proto/versions.o proto/methods.o utils/utils.o utils/net_utils.o utils/list_utils.o utils/config.o
@@ -42,13 +42,13 @@ endif
 
 ifeq ($(detected_OS),Linux)
 	OBJS+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
-	CFLAGS+= -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
+	CFLAGS+= -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS_OPTIM=-Os
 	LDLIBS=-lunistring -lssl -lcrypto -lX11 -lXmu -lpng
 	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections
 else ifeq ($(detected_OS),Windows)
 	OBJS+= utils/win_image.o
-	CFLAGS+= -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
+	CFLAGS+= -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	CFLAGS_OPTIM=-O3
 	OTHER_DEPENDENCIES+= winres/app.res
