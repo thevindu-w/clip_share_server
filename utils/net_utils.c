@@ -372,7 +372,7 @@ int read_sock(socket_t *socket, char *buf, uint64_t size) {
     char *ptr = buf;
     while (total_sz_read < size) {
         ssize_t sz_read;
-        int fatal = 1;
+        int fatal = 0;
         switch (socket->type) {
             case PLAIN_SOCK: {
                 sz_read = _read_plain(socket->socket.plain, ptr, size - total_sz_read, &fatal);
