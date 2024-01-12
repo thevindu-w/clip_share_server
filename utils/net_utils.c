@@ -403,7 +403,7 @@ int read_sock(socket_t *socket, char *buf, uint64_t size) {
     return EXIT_SUCCESS;
 }
 
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
 int read_sock_no_wait(socket_t *socket, char *buf, size_t size) {
     switch (socket->type) {
         case PLAIN_SOCK: {

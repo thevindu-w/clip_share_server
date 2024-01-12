@@ -48,7 +48,7 @@
 #define APP_PORT 4337
 // tcp
 #define APP_PORT_SECURE 4338
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
 // tcp
 #define WEB_PORT 4339
 #endif
@@ -182,7 +182,7 @@ static inline void _apply_default_conf(void) {
     if (configuration.udp_port <= 0) configuration.udp_port = APP_PORT;
     if (configuration.max_text_length <= 0) configuration.max_text_length = MAX_TEXT_LENGTH;
     if (configuration.max_file_size <= 0) configuration.max_file_size = MAX_FILE_SIZE;
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
     if (configuration.web_port <= 0) configuration.web_port = WEB_PORT;
     if (configuration.web_mode_enabled < 0) configuration.web_mode_enabled = 0;
 #endif
@@ -309,7 +309,7 @@ static DWORD WINAPI appSecureThreadFn(void *arg) {
     return EXIT_SUCCESS;
 }
 
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
 static DWORD WINAPI webThreadFn(void *arg) {
     (void)arg;
     web_server();
@@ -525,7 +525,7 @@ int main(int argc, char **argv) {
             return clip_share(SECURE);
         }
     }
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
     if (configuration.web_mode_enabled) {
         fflush(stdout);
         fflush(stderr);
@@ -553,7 +553,7 @@ int main(int argc, char **argv) {
     }
     HANDLE insecureThread = NULL;
     HANDLE secureThread = NULL;
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
     HANDLE webThread = NULL;
 #endif
     if (configuration.insecure_mode_enabled) {
@@ -574,7 +574,7 @@ int main(int argc, char **argv) {
 #endif
     }
 
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
     if (configuration.web_mode_enabled) {
         webThread = CreateThread(NULL, 0, webThreadFn, NULL, 0, NULL);
 #ifdef DEBUG_MODE
@@ -608,14 +608,14 @@ int main(int argc, char **argv) {
         }
         if (insecureThread != NULL) TerminateThread(insecureThread, 0);
         if (secureThread != NULL) TerminateThread(secureThread, 0);
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
         if (webThread != NULL) TerminateThread(webThread, 0);
 #endif
     }
 
     if (insecureThread != NULL) WaitForSingleObject(insecureThread, INFINITE);
     if (secureThread != NULL) WaitForSingleObject(secureThread, INFINITE);
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
     if (webThread != NULL) WaitForSingleObject(webThread, INFINITE);
 #endif
     WSACleanup();

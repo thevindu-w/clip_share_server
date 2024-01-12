@@ -30,7 +30,7 @@
  */
 extern int clip_share(const int is_secure);
 
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
 /*
  * Start TCP web server.
  */

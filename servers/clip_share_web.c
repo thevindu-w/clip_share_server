@@ -16,7 +16,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
 #include <utils/config.h>
 #include <globals.h>
 #include <servers/servers.h>

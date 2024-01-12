@@ -71,32 +71,32 @@ CFLAGS_OPTIM+= -Werror
 # append '_web' to objects for clip_share_web to prevent overwriting objects for clip_share
 WEB_OBJS_C=$(OBJS:.o=_web.o) $(_WEB_OBJS_C:.o=_web.o)
 WEB_OBJS_S=$(_WEB_OBJS_S:.o=_web.o)
-WEB_OBJS=$(WEB_OBJS_C) $(WEB_OBJS_S)
+WEB_OBJS_M=$(OBJS_M:.o=_web.o)
+WEB_OBJS=$(WEB_OBJS_C) $(WEB_OBJS_S) $(WEB_OBJS_M)
 
 # append '_debug' to objects for clip_share debug executable to prevent overwriting objects for clip_share
 DEBUG_OBJS_C=$(OBJS:.o=_debug.o) $(_WEB_OBJS_C:.o=_debug.o)
-DEBUG_OBJS_S=$(_WEB_OBJS_S:.o=_debug.o)
-DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_S)
+DEBUG_OBJS_M=$(OBJS_M:.o=_debug.o)
+DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_M)
 
 $(PROGRAM_NAME): $(OBJS) $(OBJS_M) $(OTHER_DEPENDENCIES)
-	$(CC) -Werror $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
-
 $(PROGRAM_NAME_WEB): $(WEB_OBJS) $(OTHER_DEPENDENCIES)
+$(PROGRAM_NAME) $(PROGRAM_NAME_WEB):
 	$(CC) -Werror $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
 
 $(OBJS): %.o: %.c
-	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_WEB -fno-pie $^ -o $@
-
 $(OBJS_M): %.o: %.m
-	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_WEB -fno-pie $^ -o $@
-
-$(WEB_OBJS_C): %_web.o: %.c
-$(WEB_OBJS_S): %_web.o: %.S
-$(WEB_OBJS):
+$(OBJS) $(OBJS_M):
 	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -fno-pie $^ -o $@
 
+$(WEB_OBJS_C): %_web.o: %.c
+$(WEB_OBJS_M): %_web.o: %.m
+$(WEB_OBJS_S): %_web.o: %.S
+$(WEB_OBJS):
+	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DWEB_ENABLED -fno-pie $^ -o $@
+
 $(DEBUG_OBJS_C): %_debug.o: %.c
-$(DEBUG_OBJS_S): %_debug.o: %.S
+$(DEBUG_OBJS_M): %_debug.o: %.m
 $(DEBUG_OBJS):
 	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $^ -o $@
 

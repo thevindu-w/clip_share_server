@@ -29,7 +29,7 @@ typedef struct _config {
     unsigned short udp_port;
     char insecure_mode_enabled;
     char secure_mode_enabled;
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
     unsigned short web_port;
     char web_mode_enabled;
 #endif

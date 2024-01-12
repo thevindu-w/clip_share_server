@@ -101,7 +101,7 @@ extern void close_socket(socket_t *socket);
  */
 extern int read_sock(socket_t *socket, char *buf, uint64_t num);
 
-#ifndef NO_WEB
+#ifdef WEB_ENABLED
 /*
  * Reads num bytes from the socket into buf.
  * buf should be writable and should have a capacitiy of at least num bytes.
