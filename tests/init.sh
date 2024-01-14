@@ -6,7 +6,7 @@ shopt -s expand_aliases
 
 alias showStatus="showStatus $0"
 if [ "${SECURE}" = '1' ]; then
-    alias client_tool='openssl s_client -tls1_3 -quiet -verify_quiet -noservername -connect 127.0.0.1:4338 -CAfile testCA.crt -cert testClient_cert.pem -key testClient_key.pem 2>/dev/null | sed "/Connecting to/d"'
+    alias client_tool='openssl s_client -tls1_3 -quiet -verify_quiet -noservername -connect 127.0.0.1:4338 -CAfile testCA.crt -cert testClient_cert.pem -key testClient_key.pem 2>/dev/null | sed "s/Connecting to 127.0.0.1//g" | tr -d "\r\n"'
 else
     alias client_tool='nc -w 2 127.0.0.1 4337 2>/dev/null'
 fi

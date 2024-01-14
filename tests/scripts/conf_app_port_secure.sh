@@ -14,7 +14,7 @@ if ! nc -zvn 127.0.0.1 6338 &>/dev/null; then
     exit 1
 fi
 
-responseDump=$(echo -n '7700' | hex2bin | openssl s_client -tls1_3 -quiet -verify_quiet -noservername -connect 127.0.0.1:6338 -CAfile testCA.crt -cert testClient_cert.pem -key testClient_key.pem 2>/dev/null | sed '/Connecting to/d' | bin2hex | tr -d '\r\n')
+responseDump=$(echo -n '7700' | hex2bin | openssl s_client -tls1_3 -quiet -verify_quiet -noservername -connect 127.0.0.1:6338 -CAfile testCA.crt -cert testClient_cert.pem -key testClient_key.pem 2>/dev/null | sed 's/Connecting to 127.0.0.1//g' | tr -d '\r\n' | bin2hex | tr -d '\n')
 expected="${PROTO_UNKNOWN}${PROTO_MAX_VERSION}"
 if [ "${responseDump}" != "${expected}" ]; then
     showStatus info 'Incorrect server response.'
