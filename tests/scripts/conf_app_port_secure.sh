@@ -14,7 +14,7 @@ if ! nc -zvn 127.0.0.1 6338 &>/dev/null; then
     exit 1
 fi
 
-responseDump=$(echo -n '7700' | hex2bin | openssl s_client -tls1_3 -quiet -verify_quiet -noservername -connect 127.0.0.1:6338 -CAfile testCA.crt -cert testClient_cert.pem -key testClient_key.pem 2>/dev/null | sed 's/Connecting to 127.0.0.1//g' | tr -d '\r\n' | bin2hex | tr -d '\n')
+responseDump=$(echo -n '7700' | hex2bin | client_tool -s -p 6338)
 expected="${PROTO_UNKNOWN}${PROTO_MAX_VERSION}"
 if [ "${responseDump}" != "${expected}" ]; then
     showStatus info 'Incorrect server response.'
@@ -28,7 +28,7 @@ if ! nc -zvn 127.0.0.1 4337 &>/dev/null; then
     exit 1
 fi
 
-responseDump="$(echo -n 'in' | timeout 1 nc -w 1 -u 127.0.0.1 4337 | head -n 1 | bin2hex | tr -d '\n')"
+responseDump="$(echo -n 'in' | client_tool -u)"
 expected="$(echo -n 'clip_share' | bin2hex | tr -d '\n')"
 if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Not listening on 4337/udp'

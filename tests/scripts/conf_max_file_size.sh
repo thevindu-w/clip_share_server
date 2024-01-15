@@ -28,7 +28,7 @@ proto="$PROTO_V2"
 method="$METHOD_SEND_FILES"
 fileCount=$(printf '%016x' 2)
 
-responseDump=$(echo -n "${proto}${method}${fileCount}${chunks}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}${fileCount}${chunks}" | hex2bin | client_tool)
 
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"
@@ -53,7 +53,7 @@ rm -f copies/*
 
 update_config max_file_size 20
 
-responseDump=$(echo -n "${proto}${method}${fileCount}${chunks}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}${fileCount}${chunks}" | hex2bin | client_tool)
 
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"

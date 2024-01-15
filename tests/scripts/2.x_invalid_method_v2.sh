@@ -5,7 +5,7 @@
 proto="$PROTO_V2"
 method=$(printf '\x06' | bin2hex)
 
-responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool)
 
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_UNKNOWN_METHOD"

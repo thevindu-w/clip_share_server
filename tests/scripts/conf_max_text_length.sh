@@ -12,7 +12,7 @@ short_sampleDump=$(echo -n "$short_sample" | bin2hex)
 
 clear_clipboard
 
-responseDump=$(echo -n "${proto}${method}${length}${short_sampleDump}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}${length}${short_sampleDump}" | hex2bin | client_tool)
 
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"
@@ -41,7 +41,7 @@ method="$METHOD_SEND_TEXT"
 length=$(printf '%016x' "${#long_sample}")
 long_sampleDump=$(echo -n "$long_sample" | bin2hex)
 
-responseDump=$(echo -n "${proto}${method}${length}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}${length}" | hex2bin | client_tool)
 
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"

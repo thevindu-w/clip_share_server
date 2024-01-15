@@ -5,7 +5,7 @@
 proto=$(printf '\x77' | bin2hex)
 protoReject=$(printf '\x00' | bin2hex)
 
-responseDump=$(echo -n "${proto}${protoReject}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${protoReject}" | hex2bin | client_tool)
 
 protoAck="$PROTO_UNKNOWN"
 protoOffer="$PROTO_MAX_VERSION"

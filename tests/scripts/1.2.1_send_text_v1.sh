@@ -12,7 +12,7 @@ sampleDump=$(echo -n "${sample}" | bin2hex)
 
 clear_clipboard
 
-responseDump=$(echo -n "${proto}${method}${length}${sampleDump}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}${length}${sampleDump}" | hex2bin | client_tool)
 
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"

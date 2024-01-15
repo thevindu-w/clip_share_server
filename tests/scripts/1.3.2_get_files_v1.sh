@@ -32,7 +32,7 @@ copy_files "${file_list[@]}"
 proto="$PROTO_V1"
 method="$METHOD_GET_FILES"
 
-responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool)
 
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"

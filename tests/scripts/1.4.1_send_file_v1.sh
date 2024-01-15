@@ -21,7 +21,7 @@ update_config working_dir copy
 proto="$PROTO_V1"
 method="$METHOD_SEND_FILES"
 
-responseDump=$(echo -n "${proto}${method}${body}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}${body}" | hex2bin | client_tool)
 
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"

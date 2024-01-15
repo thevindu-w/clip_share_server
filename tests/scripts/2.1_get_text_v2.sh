@@ -9,7 +9,7 @@ copy_text "${sample}"
 proto="$PROTO_V2"
 method="$METHOD_GET_TEXT"
 
-responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool)
 
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"

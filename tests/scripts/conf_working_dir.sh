@@ -17,7 +17,7 @@ body="${nameLength}$(echo -n "$fileName" | bin2hex)${fileSize}${content}"
 proto="$PROTO_V1"
 method="$METHOD_SEND_FILES"
 
-responseDump=$(echo -n "${proto}${method}${body}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}${body}" | hex2bin | client_tool)
 
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"
@@ -57,7 +57,7 @@ printf -v _ '%s%n' "$fileName" utf8len
 nameLength="$(printf '%016x' $utf8len)"
 body="${nameLength}$(echo -n "$fileName" | bin2hex)${fileSize}${content}"
 
-responseDump=$(echo -n "${proto}${method}${body}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${method}${body}" | hex2bin | client_tool)
 
 if [ "${responseDump}" != "${expected}" ]; then
     showStatus info 'Incorrect response for non-ascii.'

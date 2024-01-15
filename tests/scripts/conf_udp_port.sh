@@ -4,13 +4,13 @@
 
 update_config udp_port 6337
 
-responseDump="$(echo -n 'in' | timeout 1 nc -w 1 -u 127.0.0.1 4337 | bin2hex | tr -d '\n')"
+responseDump="$(echo -n 'in' | client_tool -u)"
 if [ ! -z "$responseDump" ]; then
     showStatus info 'Still listening on 4337/udp'
     exit 1
 fi
 
-responseDump="$(echo -n 'in' | timeout 1 nc -w 1 -u 127.0.0.1 6337 | head -n 1 | bin2hex | tr -d '\n')"
+responseDump="$(echo -n 'in' | client_tool -u -p 6337)"
 expected="$(echo -n 'clip_share' | bin2hex | tr -d '\n')"
 if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Not listening on 6337/udp'

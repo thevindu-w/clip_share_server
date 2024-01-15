@@ -4,7 +4,7 @@
 
 proto=$(printf '\x00' | bin2hex)
 
-responseDump=$(echo -n "${proto}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}" | hex2bin | client_tool)
 
 protoAck="$PROTO_OBSOLETE"
 

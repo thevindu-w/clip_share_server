@@ -8,7 +8,7 @@ method="$METHOD_GET_TEXT"
 
 clear_clipboard
 
-responseDump=$(echo -n "${proto}${protoAccept}${method}" | hex2bin | client_tool | bin2hex | tr -d '\n')
+responseDump=$(echo -n "${proto}${protoAccept}${method}" | hex2bin | client_tool)
 
 protoAck="${PROTO_UNKNOWN}${protoAccept}"
 methodAck="$METHOD_NO_DATA"

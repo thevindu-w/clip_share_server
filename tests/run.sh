@@ -4,17 +4,23 @@ program=$1
 
 dependencies=(
     "../${program}"
-    stat
-    pwd
-    printf
-    realpath
+    cat
+    chmod
+    cp
+    env
     head
+    printf
+    pwd
+    realpath
     seq
+    sleep
+    stat
+    timeout
+    tr
     find
     diff
     python3
     nc
-    timeout
     openssl
     sed
 )
@@ -27,7 +33,7 @@ elif [ "$(uname)" = 'Linux' ]; then
     dependencies+=(xclip)
 elif [ "$(uname)" = 'Darwin' ]; then
     DETECTED_OS='macOS'
-    dependencies+=(pbcopy pbpaste)
+    dependencies+=(pbcopy pbpaste osascript)
     export PATH="/usr/local/opt/coreutils/libexec/gnubin:/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
 else
     DETECTED_OS='unknown'
@@ -117,6 +123,39 @@ showStatus() {
         printf '%-27s %s\n' "$name" "$3"
     else
         setColor reset
+    fi
+}
+
+# Use nc or openssl s_client as the client
+client_tool() {
+    local arg secure udp port
+    while getopts 'sup:' arg; do
+        case ${arg} in
+            s) secure=1 ;;
+            u) udp=1 ;;
+            p) port=${OPTARG} ;;
+        esac
+    done
+    OPTIND=1
+    udp="${udp:-0}"
+    secure="${secure:-0}"
+    if [ "$udp" = '1' ]; then
+        # Ignore secure mode setting for UDP
+        secure=0
+    fi
+
+    local default_port=4337
+    if [ "$secure" = '1' ]; then
+        default_port=4338
+    fi
+    port="${port:-$default_port}"
+
+    if [ "$udp" = '1' ]; then
+        timeout 1 nc -w 1 -u 127.0.0.1 "$port" | head -n 1 | bin2hex | tr -d '\n'
+    elif [ "$secure" = '1' ]; then
+        openssl s_client -tls1_3 -quiet -verify_quiet -noservername -connect 127.0.0.1:"$port" -CAfile testCA.crt -cert testClient_cert.pem -key testClient_key.pem 2>/dev/null | sed 's/Connecting to 127.0.0.1//g' | tr -d '\r\n' | bin2hex | tr -d '\n'
+    else
+        nc -w 2 127.0.0.1 "$port" 2>/dev/null | bin2hex | tr -d '\n'
     fi
 }
 
@@ -260,7 +299,7 @@ export METHOD_NOT_IMPLEMENTED=$(printf '\x04' | bin2hex)
 
 # Export variables and functions
 export DETECTED_OS
-export -f setColor showStatus copy_text get_copied_text copy_files copy_image clear_clipboard update_config
+export -f setColor showStatus client_tool copy_text get_copied_text copy_files copy_image clear_clipboard update_config
 
 exitCode=0
 passCnt=0
