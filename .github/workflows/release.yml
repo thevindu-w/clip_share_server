@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: ${{github.head_ref}}
         fetch-depth: 0
@@ -38,7 +38,7 @@ jobs:
         docker run -v './dist:/home/user/src/dist' clipshare:fedora
         cd dist && sha256sum -b * >SHA2-256SUM && tar -cf - --sort=name --owner=root:0 --group=root:0 --no-same-owner . | gzip -9 >"../${{env.ARCHIVE_NAME}}"
     - name: Upload Linux version
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: "${{env.ARCHIVE_NAME}}"
         path: "${{env.ARCHIVE_NAME}}"
@@ -56,7 +56,7 @@ jobs:
     - name: Setup make
       run: ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: ${{github.head_ref}}
         fetch-depth: 0
@@ -71,7 +71,7 @@ jobs:
         make
         mv "clip_share.exe" "${{env.FILE_NAME}}"
     - name: Upload Windows version
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: "${{env.FILE_NAME}}"
         path: "${{env.FILE_NAME}}"
@@ -83,7 +83,7 @@ jobs:
         brew install openssl@3 libpng libunistring gnu-tar
         echo "$(brew --prefix gnu-tar)"'/libexec/gnubin' >> $GITHUB_PATH
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: ${{github.head_ref}}
         fetch-depth: 0
@@ -100,7 +100,7 @@ jobs:
         mv "clip_share" "${{env.FILE_NAME}}"
         tar -cf - --owner=root:0 --group=root:0 --no-same-owner "${{env.FILE_NAME}}" | gzip -9 >"${{env.ARCHIVE_NAME}}"
     - name: Upload macOS Intel version
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: "${{env.ARCHIVE_NAME}}"
         path: "${{env.ARCHIVE_NAME}}"

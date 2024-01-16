@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: ${{github.head_ref}}
         fetch-depth: 0
@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: ${{github.head_ref}}
         fetch-depth: 0
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: ${{github.head_ref}}
         fetch-depth: 0
@@ -67,7 +67,7 @@ jobs:
     - name: Setup make
       run: ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: ${{github.head_ref}}
         fetch-depth: 0
@@ -84,7 +84,7 @@ jobs:
     - name: Install build dependencies
       run: brew install openssl@3 libpng libunistring
     - name: Check out repository code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: ${{github.head_ref}}
         fetch-depth: 0
