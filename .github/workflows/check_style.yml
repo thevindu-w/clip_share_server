@@ -12,6 +12,9 @@ on:
 jobs:
   Style-Check:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -19,15 +22,20 @@ jobs:
         ref: ${{github.head_ref}}
         fetch-depth: 0
         repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
     - name: Install tools
       run: |
         sudo apt-get update && sudo apt-get install -y --no-install-recommends cpplint shfmt yamllint
         sudo wget https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -O /bin/hadolint && sudo chmod +x /bin/hadolint
+
     - name: Check Dockerfiles
       run: find . -type f -name 'Dockerfile*' -print0 | xargs -0 hadolint --ignore DL3008 --ignore DL3040 --ignore DL3041 -t warning
+
     - name: Check test script style
       run: find . -type f -name '*.sh' -print0 | xargs -0 shfmt -d -s -i 4 -ci
+
     - name: Check C code style
       run: cpplint --linelength=120 --filter=-runtime/int,-runtime/arrays,-readability/casting,-legal/copyright --extensions=c,h,m,cc,hh,cpp,hpp,c++,h++,cxx,hxx --recursive .
+
     - name: Check yaml style
       run: yamllint .
