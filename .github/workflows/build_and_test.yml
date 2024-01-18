@@ -22,8 +22,7 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        ref: ${{github.head_ref}}
-        fetch-depth: 0
+        ref: ${{ github.head_ref || github.ref_name }}
         repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
     - name: Build
       run: docker build -t clipshare -f "docker/Dockerfile.${{matrix.distro}}" .
@@ -47,8 +46,7 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        ref: ${{github.head_ref}}
-        fetch-depth: 0
+        ref: ${{ github.head_ref || github.ref_name }}
         repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
     - name: Build
       run: |
@@ -65,8 +63,7 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        ref: ${{github.head_ref}}
-        fetch-depth: 0
+        ref: ${{ github.head_ref || github.ref_name }}
         repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
     - name: Build
       run: make

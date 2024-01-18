@@ -9,6 +9,10 @@ on:
     branches:
     - master
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   Style-Check:
     runs-on: ubuntu-latest
@@ -19,13 +23,12 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
-        ref: ${{github.head_ref}}
-        fetch-depth: 0
+        ref: ${{ github.head_ref || github.ref_name }}
         repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
 
     - name: Install tools
       run: |
-        sudo apt-get update && sudo apt-get install -y --no-install-recommends cpplint shfmt yamllint
+        sudo apt-get update && sudo apt-get install -y --no-install-recommends cpplint shfmt yamllint clang-format
         sudo wget https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -O /bin/hadolint && sudo chmod +x /bin/hadolint
 
     - name: Check Dockerfiles
@@ -39,3 +42,27 @@ jobs:
 
     - name: Check yaml style
       run: yamllint .
+
+    - name: Format C code and bash scripts
+      if: github.event_name == 'push'
+      run: |
+        find . -type f \( -name '*.c' -o -name '*.h' -o -name '*.m' \) -print0 | xargs -0 clang-format -i
+        find . -type f -name '*.sh' -print0 | xargs -0 shfmt -w -s -i 4 -ci
+
+    - name: Creat pull request
+      if: github.event_name == 'push'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        [[ -z "$(git status -s)" ]] && echo No changes && exit 0
+        curr_branch="${{ github.head_ref || github.ref_name }}"
+        new_branch="auto-format-$(git rev-parse HEAD | head -c 8)"
+        author_name="$(git log -1 --pretty=format:'%an')"
+        author_email="$(git log -1 --pretty=format:'%ae')"
+        git checkout -b "$new_branch" && git merge "$curr_branch"
+        git config user.name "$author_name"
+        git config user.email "$author_email"
+        git remote set-url origin "https://github.com/${{ github.repository }}"
+        git commit -am 'Apply formatting automatically from actions'
+        git push origin "$new_branch"
+        gh pr create -B "$curr_branch" -H "$new_branch" --title "Merge \`$new_branch\` into \`$curr_branch\`" --body 'Apply code formatting [generated automatically]'

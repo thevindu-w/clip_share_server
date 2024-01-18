@@ -16,10 +16,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <utils/config.h>
 #include <globals.h>
 #include <proto/server.h>
 #include <servers/servers.h>
+#include <utils/config.h>
 #include <utils/net_utils.h>
 #include <utils/utils.h>
 #if defined(__linux__) || defined(__APPLE__)

@@ -17,11 +17,11 @@
  */
 
 #ifdef WEB_ENABLED
-#include <utils/config.h>
 #include <globals.h>
 #include <servers/servers.h>
 #include <stdio.h>
 #include <string.h>
+#include <utils/config.h>
 #include <utils/net_utils.h>
 #include <utils/utils.h>
 
