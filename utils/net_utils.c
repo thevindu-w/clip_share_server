@@ -330,14 +330,16 @@ static inline ssize_t _read_plain(sock_t sock, char *buf, size_t size, int *fata
     ssize_t sz_read;
 #ifdef _WIN32
     sz_read = recv(sock, buf, (int)size, 0);
-    if (sz_read <= 0) {
+    if (sz_read == 0) {
+        *fatal_p = 1;
+    } else if (sz_read < 0) {
         int err_code = WSAGetLastError();
         if (err_code == WSAEBADF || err_code == WSAECONNREFUSED || err_code == WSAECONNRESET ||
             err_code == WSAECONNABORTED || err_code == WSAESHUTDOWN || err_code == WSAEDISCON ||
             err_code == WSAEHOSTDOWN || err_code == WSAEHOSTUNREACH || err_code == WSAENETRESET ||
             err_code == WSAENETDOWN || err_code == WSAENETUNREACH || err_code == WSAEFAULT || err_code == WSAEINVAL ||
-            err_code == WSA_NOT_ENOUGH_MEMORY || err_code == WSAENOTCONN || err_code == WSASYSCALLFAILURE ||
-            err_code == WSAENOTSOCK) {
+            err_code == WSA_NOT_ENOUGH_MEMORY || err_code == WSAENOTCONN || err_code == WSANOTINITIALISED ||
+            err_code == WSASYSCALLFAILURE || err_code == WSAEOPNOTSUPP || err_code == WSAENOTSOCK) {
             *fatal_p = 1;
         }
     }
@@ -348,7 +350,7 @@ static inline ssize_t _read_plain(sock_t sock, char *buf, size_t size, int *fata
         (sz_read < 0 && (errno == EBADF || errno == ECONNREFUSED || errno == ECONNRESET || errno == ECONNABORTED ||
                          errno == ESHUTDOWN || errno == EHOSTDOWN || errno == EHOSTUNREACH || errno == ENETRESET ||
                          errno == ENETDOWN || errno == ENETUNREACH || errno == EFAULT || errno == EINVAL ||
-                         errno == ENOMEM || errno == ENOTCONN || errno == ENOTSOCK))) {
+                         errno == ENOMEM || errno == ENOTCONN || errno == EOPNOTSUPP || errno == ENOTSOCK))) {
         *fatal_p = 1;
     }
 #endif
@@ -391,13 +393,11 @@ int read_sock(socket_t *socket, char *buf, uint64_t size) {
             total_sz_read += (uint64_t)sz_read;
             cnt = 0;
             ptr += sz_read;
-        } else {
-            if (cnt++ > 50 || fatal) {
+        } else if (cnt++ > 50 || fatal) {
 #ifdef DEBUG_MODE
-                fputs("Read sock failed\n", stderr);
+            fputs("Read sock failed\n", stderr);
 #endif
-                return EXIT_FAILURE;
-            }
+            return EXIT_FAILURE;
         }
     }
     return EXIT_SUCCESS;
@@ -424,24 +424,62 @@ int read_sock_no_wait(socket_t *socket, char *buf, size_t size) {
 }
 #endif
 
+static inline ssize_t _write_plain(sock_t sock, const char *buf, size_t size, int *fatal_p) {
+    ssize_t sz_written;
+#ifdef _WIN32
+    sz_written = send(sock, buf, (int)size, 0);
+    if (sz_written < 0) {
+        int err_code = WSAGetLastError();
+        if (err_code == WSAEBADF || err_code == WSAECONNREFUSED || err_code == WSAECONNRESET ||
+            err_code == WSAECONNABORTED || err_code == WSAESHUTDOWN || errno == EPIPE || errno == WSAEISCONN ||
+            errno == WSAEDESTADDRREQ || err_code == WSAEDISCON || err_code == WSAEHOSTDOWN ||
+            err_code == WSAEHOSTUNREACH || err_code == WSAENETRESET || err_code == WSAENETDOWN ||
+            err_code == WSAENETUNREACH || err_code == WSAEFAULT || err_code == WSAEINVAL ||
+            err_code == WSA_NOT_ENOUGH_MEMORY || err_code == WSAENOTCONN || err_code == WSANOTINITIALISED ||
+            err_code == WSASYSCALLFAILURE || err_code == WSAEOPNOTSUPP || err_code == WSAENOTSOCK) {
+            *fatal_p = 1;
+        }
+    }
+#else
+    errno = 0;
+    sz_written = send(sock, buf, size, 0);
+    if (sz_written < 0 &&
+        (errno == EBADF || errno == ECONNREFUSED || errno == ECONNRESET || errno == ECONNABORTED ||
+         errno == ESHUTDOWN || errno == EPIPE || errno == EISCONN || errno == EDESTADDRREQ || errno == EHOSTDOWN ||
+         errno == EHOSTUNREACH || errno == ENETRESET || errno == ENETDOWN || errno == ENETUNREACH || errno == EFAULT ||
+         errno == EINVAL || errno == ENOMEM || errno == ENOTCONN || errno == EOPNOTSUPP || errno == ENOTSOCK)) {
+        *fatal_p = 1;
+    }
+#endif
+    return sz_written;
+}
+
+static inline int _write_SSL(SSL *ssl, const char *buf, int size, int *fatal_p) {
+    int sz_written = SSL_write(ssl, buf, size);
+    if (sz_written <= 0) {
+        int err_code = SSL_get_error(ssl, sz_written);
+        if (err_code == SSL_ERROR_ZERO_RETURN || err_code == SSL_ERROR_SYSCALL || err_code == SSL_ERROR_SSL) {
+            *fatal_p = 1;
+        }
+    }
+    return sz_written;
+}
+
 int write_sock(socket_t *socket, const char *buf, uint64_t size) {
     int cnt = 0;
     uint64_t total_written = 0;
     const char *ptr = buf;
     while (total_written < size) {
         ssize_t sz_written;
+        int fatal = 0;
         switch (socket->type) {
             case PLAIN_SOCK: {
-#ifdef _WIN32
-                sz_written = send(socket->socket.plain, ptr, (int)size, 0);
-#else
-                sz_written = send(socket->socket.plain, ptr, size, 0);
-#endif
+                sz_written = _write_plain(socket->socket.plain, ptr, size - total_written, &fatal);
                 break;
             }
 
             case SSL_SOCK: {
-                sz_written = SSL_write(socket->socket.ssl, ptr, (int)size);
+                sz_written = _write_SSL(socket->socket.ssl, ptr, (int)(size - total_written), &fatal);
                 break;
             }
 
@@ -452,14 +490,7 @@ int write_sock(socket_t *socket, const char *buf, uint64_t size) {
             total_written += (uint64_t)sz_written;
             cnt = 0;
             ptr += sz_written;
-        } else if (sz_written == 0) {
-            if (cnt++ > 50) {
-#ifdef DEBUG_MODE
-                fputs("Write sock failed\n", stderr);
-#endif
-                return EXIT_FAILURE;
-            }
-        } else {
+        } else if (cnt++ > 50 || fatal) {
 #ifdef DEBUG_MODE
             fputs("Write sock failed\n", stderr);
 #endif
