@@ -12,6 +12,7 @@ on:
 jobs:
   Build-and-Test-on-Linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       matrix:
         distro:
@@ -31,6 +32,7 @@ jobs:
 
   Build-and-Test-on-Windows:
     runs-on: windows-latest
+    timeout-minutes: 10
     defaults:
       run:
         shell: msys2 {0}
@@ -57,6 +59,7 @@ jobs:
 
   Build-and-Test-on-macOS-x86_64:
     runs-on: macos-latest
+    timeout-minutes: 10
     steps:
     - name: Install build dependencies
       run: brew install openssl@3 libpng libunistring

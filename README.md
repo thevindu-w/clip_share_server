@@ -1,5 +1,6 @@
 ![Build and Test](https://github.com/thevindu-w/clip_share_server/actions/workflows/build_and_test.yml/badge.svg?branch=master)
 ![Check Style](https://github.com/thevindu-w/clip_share_server/actions/workflows/check_style.yml/badge.svg?branch=master)
+![CodeQL](https://github.com/thevindu-w/clip_share_server/actions/workflows/codeql.yml/badge.svg?branch=master)
 ![Last commit](https://img.shields.io/github/last-commit/thevindu-w/clip_share_server.svg?color=yellow)
 ![License](https://img.shields.io/github/license/thevindu-w/clip_share_server.svg?color=blue)
 

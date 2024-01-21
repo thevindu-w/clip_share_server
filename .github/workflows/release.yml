@@ -10,6 +10,7 @@ jobs:
 
   Linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
     - name: Check out repository code
@@ -50,6 +51,7 @@ jobs:
 
   Windows:
     runs-on: windows-latest
+    timeout-minutes: 10
 
     defaults:
       run:
@@ -87,6 +89,7 @@ jobs:
 
   macOS-x86_64:
     runs-on: macos-latest
+    timeout-minutes: 10
 
     steps:
     - name: Install dependencies
