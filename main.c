@@ -188,6 +188,8 @@ static inline void _apply_default_conf(void) {
 #endif
 #ifdef _WIN32
     if (configuration.tray_icon < 0) configuration.tray_icon = 1;
+#endif
+#if defined(_WIN32) || defined(__APPLE__)
     if (configuration.display <= 0) configuration.display = 1;
 #endif
 }

@@ -289,6 +289,8 @@ static void parse_line(char *line, config *cfg) {
 #ifdef _WIN32
     } else if (!strcmp("tray_icon", key)) {
         set_is_true(value, &(cfg->tray_icon));
+#endif
+#if defined(_WIN32) || defined(__APPLE__)
     } else if (!strcmp("display", key)) {
         set_ushort(value, &(cfg->display));
 #endif
@@ -323,6 +325,8 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->max_file_size = 0;
 #ifdef _WIN32
     cfg->tray_icon = -1;
+#endif
+#if defined(_WIN32) || defined(__APPLE__)
     cfg->display = 0;
 #endif
     if (ipv4_aton(NULL, &(cfg->bind_addr)) != EXIT_SUCCESS) error_exit("Error initializing bind address");

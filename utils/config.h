@@ -44,6 +44,8 @@ typedef struct _config {
     int64_t max_file_size;
 #ifdef _WIN32
     char tray_icon;
+#endif
+#if defined(_WIN32) || defined(__APPLE__)
     unsigned short display;
 #endif
 } config;

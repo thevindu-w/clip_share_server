@@ -10,7 +10,8 @@
 #error This file must be compiled with ARC.
 #endif
 
-#define MIN_OF(x, y) (x < y ? x : y)
+static inline CGDirectDisplayID get_display_id(void);
+static inline NSBitmapImageRep *get_copied_image(void);
 
 int get_clipboard_text(char **bufptr, size_t *lenptr) {
     NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
@@ -60,7 +61,7 @@ char *get_copied_files_as_str(int *offset) {
     char *ptr = all_files;
     for (NSURL *fileURL in fileURLs) {
         const char *cstring = [[fileURL absoluteString] UTF8String];
-        strncpy(ptr, cstring, MIN_OF(tot_len, 2047));
+        strncpy(ptr, cstring, MIN(tot_len, 2047));
         size_t url_len = strnlen(cstring, 2047);
         ptr += strnlen(cstring, 2047);
         *ptr = '\n';
@@ -75,7 +76,7 @@ char *get_copied_files_as_str(int *offset) {
     return all_files;
 }
 
-static inline NSBitmapImageRep *get_copied_image(void) {
+static inline NSBitmapImageRep *get_copied_image() {
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
     NSImage *img = [[NSImage alloc] initWithPasteboard:pasteboard];
     if (!img) return NULL;
@@ -90,13 +91,24 @@ static inline NSBitmapImageRep *get_copied_image(void) {
     return imgRep;
 }
 
+static inline CGDirectDisplayID get_display_id() {
+    CGDirectDisplayID disp_ids[65536];
+    uint32_t disp_cnt;
+    if (CGGetOnlineDisplayList(65536, disp_ids, &disp_cnt)) {
+        return CGMainDisplayID();
+    }
+    if (disp_cnt >= configuration.display) {
+        return disp_ids[configuration.display - 1];
+    }
+    return CGMainDisplayID();
+}
+
 int get_image(char **buf_ptr, size_t *len_ptr) {
     *len_ptr = 0;
     *buf_ptr = NULL;
     NSBitmapImageRep *bitmap = get_copied_image();
     if (!bitmap) {
-        CGImageRef screenshot = CGWindowListCreateImage(CGRectInfinite, kCGWindowListOptionOnScreenOnly,
-                                                        kCGNullWindowID, kCGWindowImageDefault);
+        CGImageRef screenshot = CGDisplayCreateImage(get_display_id());
         if (!screenshot) return EXIT_FAILURE;
         bitmap = [[NSBitmapImageRep alloc] initWithCGImage:screenshot];
         CGImageRelease(screenshot);
