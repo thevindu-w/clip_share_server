@@ -57,6 +57,8 @@ else ifeq ($(detected_OS),Windows)
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
 	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB).exe
 else ifeq ($(detected_OS),Darwin)
+export CPATH=$(shell brew --prefix)/include
+export LIBRARY_PATH=$(shell brew --prefix)/lib
 	OBJS_M=utils/mac_utils.o
 	CFLAGS+= -fobjc-arc
 	CFLAGS_OPTIM=-O3
@@ -82,7 +84,7 @@ DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_M)
 $(PROGRAM_NAME): $(OBJS) $(OBJS_M) $(OTHER_DEPENDENCIES)
 $(PROGRAM_NAME_WEB): $(WEB_OBJS) $(OTHER_DEPENDENCIES)
 $(PROGRAM_NAME) $(PROGRAM_NAME_WEB):
-	$(CC) -Werror $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
+	$(CC) $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
 
 $(OBJS): %.o: %.c
 $(OBJS_M): %.o: %.m
