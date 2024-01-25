@@ -1,6 +1,6 @@
 /*
- *  utils/list_utils.c - platform independent implementation of 2d list
- *  Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
+ * utils/list_utils.c - platform independent implementation of 2d list
+ * Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -1,6 +1,6 @@
 /*
- *  config.h - header for conf_parse.c
- *  Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
+ * config.h - header for conf_parse.c
+ * Copyright (C) 2022-2024 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

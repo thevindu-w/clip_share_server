@@ -1,6 +1,6 @@
-/* see LICENSE / README for more info
- *
- * 2022 Modified by H. Thevindu J. Wijesekera
+/* see LICENSE / README for more info */
+/*
+ * 2022-2023 Modified by H. Thevindu J. Wijesekera
  */
 
 #include <X11/X.h>
