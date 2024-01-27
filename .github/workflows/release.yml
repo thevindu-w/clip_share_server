@@ -7,10 +7,29 @@ on:
     - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
+  Checks:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{github.head_ref}}
+        fetch-depth: 0
+        repository: ${{github.repository}}
+
+    - name: Set version
+      run: |
+        echo VERSION="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')" >> $GITHUB_ENV
+
+    - name: Check app.rc version
+      run: |
+        [ $(grep "${{env.VERSION}}" winres/app.rc | grep -iE '(File|Product)Version' | wc -l) = 4 ]
 
   Linux:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: Checks
 
     steps:
     - name: Check out repository code
@@ -52,6 +71,7 @@ jobs:
   Windows:
     runs-on: windows-latest
     timeout-minutes: 10
+    needs: Checks
 
     defaults:
       run:
@@ -90,6 +110,7 @@ jobs:
   macOS-x86_64:
     runs-on: macos-latest
     timeout-minutes: 10
+    needs: Checks
 
     steps:
     - name: Install dependencies
