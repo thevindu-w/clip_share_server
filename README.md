@@ -37,7 +37,7 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
 
 ## Table of Contents
 
-- [Building](#building)
+- [Build](#build)
   - [Build tools](#build-tools)
     - [Linux](#linux)
     - [Windows](#windows)
@@ -48,6 +48,7 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
     - [macOS](#macos-1)
   - [Compiling](#compiling)
 - [How to Use](#how-to-use)
+  - [Install dependencies](#install-dependencies)
   - [Run the server](#run-the-server)
   - [Allow through firewall](#allow-through-firewall)
   - [Connect the client application](#connect-the-client-application)
@@ -57,7 +58,7 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
 
 <br>
 
-## Building
+## Build
 
 **Note:** If you prefer using the pre-built binaries from [Releases](https://github.com/thevindu-w/clip_share_server/releases), you may skip this section and start from the [How to Use](#how-to-use) section.
 
@@ -194,10 +195,28 @@ brew install openssl@3 libpng libunistring
 
 ## How to Use
 
+### Install dependencies
+
+**Note**: This section is required only on macOS.
+
+ClipShare needs the following libraries to run,
+
+* [libunistring](https://formulae.brew.sh/formula/libunistring)
+* [libssl](https://formulae.brew.sh/formula/openssl@3)
+* [libpng](https://formulae.brew.sh/formula/libpng)
+
+These libraries can be installed using [Homebrew](https://brew.sh) with the following command:
+```bash
+brew install libunistring openssl@3 libpng
+```
+
+<br>
+
 ### Run the server
 
 - You can run the server from a terminal or the GUI (if the file manager supports executing programs by double-clicking on it)
-- When the server starts, it will not open any visible window. Instead, it will run in the background.
+- On macOS, if you run the server from the GUI (by double-clicking it on Finder), it may open a terminal window. But you can close this window. The server will continue running in the background.
+- When the server starts, it will not display any visible window. Instead, it will run in the background.
 - On Linux or macOS, if you start the program from the terminal, it should return immediately (the server will continue to run in the background).
 - On Windows, it will show a tray icon unless disabled from the configuration file. You can click on it to stop the server.
 - If something goes wrong, it will create a `server_err.log` file. That file will contain what went wrong.
@@ -298,8 +317,10 @@ restart=true
 max_text_length=4194304
 max_file_size=68719476736
 
-# Windows only
+# Windows and macOS only
 display=1
+
+# Windows only
 tray_icon=true
 ```
 
@@ -326,7 +347,7 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `max_text_length` | The maximum length of text that can be transferred. This is the number of bytes of the text encoded in UTF-8. | Any integer between 1 and 4294967295 (nearly 4 GiB) inclusive. Suffixes K, M, and G (case insensitive) denote x10<sup>3</sup>, x10<sup>6</sup>, and x10<sup>9</sup>, respectively. | 4194304 (i.e. 4 MiB) |
 | `max_file_size` | The maximum size of a single file in bytes that can be transferred. | Any integer between 1 and 9223372036854775807 (nearly 8 EiB) inclusive. Suffixes K, M, G, and T (case insensitive) denote x10<sup>3</sup>, x10<sup>6</sup>, x10<sup>9</sup>, and x10<sup>12</sup>, respectively. | 68719476736 (i.e. 64 GiB) |
 | `tray_icon` | Whether the application should display a system tray icon. This option is available only on Windows. The values `true` or `1` will display a tray icon, while `false` or `0` will prevent displaying a tray icon. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
-| `display` | The display that should be used for screenshots.  This option is available only on Windows. | Display number (1 - 65535) | `1` |
+| `display` | The display that should be used for screenshots. This option is available only on Windows and macOS. | Display number (1 - 65535) | `1` |
 
 <br>
 
