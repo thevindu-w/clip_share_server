@@ -219,7 +219,9 @@ static void kill_other_processes(const char *prog_name) {
         return;
     }
     while ((dir_ptr = readdir(dir)) != NULL) {
-        if ((strcmp(dir_ptr->d_name, ".") == 0) || (strcmp(dir_ptr->d_name, "..") == 0)) continue;
+        if ((strcmp(dir_ptr->d_name, ".") == 0) || (strcmp(dir_ptr->d_name, "..") == 0) || dir_ptr->d_name[0] > '9' ||
+            dir_ptr->d_name[0] < '0')
+            continue;
         if (DT_DIR != dir_ptr->d_type) continue;
         for (const char *dname = dir_ptr->d_name; *dname; dname++) {
             if (!isdigit(*dname)) {
@@ -243,7 +245,7 @@ static void kill_other_processes(const char *prog_name) {
             fclose(fp);
             continue;
         }
-        sscanf(buf, "%*s %15s", cur_task_name);
+        sscanf(buf, "%*s %15[^\n]", cur_task_name);
         if (!strncmp(prog_name, cur_task_name, 15)) {  // /proc/<pid>/status truncates executable name to 15 chars
             pid_t pid = (pid_t)strtoul(dir_ptr->d_name, NULL, 10);
             if (pid != this_pid) {
