@@ -143,7 +143,7 @@ int is_directory(const char *path, int follow_symlinks) {
     return 0;
 }
 
-void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) {
+void png_mem_write_data(const png_struct *png_ptr, png_bytep data, png_size_t length) {
     struct mem_file *p = (struct mem_file *)png_get_io_ptr(png_ptr);
     size_t nsize = p->size + length;
 
@@ -566,7 +566,7 @@ void get_copied_dirs_files(dir_files *dfiles_p) {
     char *fname = file_path;
     for (size_t i = 0; i < file_cnt; i++) {
         const size_t off = strnlen(fname, 2047) + 1;
-        if (url_decode(fname) == EXIT_FAILURE) break;
+        if (url_decode(fname) != EXIT_SUCCESS) break;
         // fname has changed after url_decode
         if (i == 0) {
             size_t fname_len = strnlen(fname, 2047);
@@ -771,9 +771,8 @@ static inline char hex2char(char h) {
 static int url_decode(char *str) {
     if (strncmp("file://", str, 7)) return EXIT_FAILURE;
     char *ptr1 = str;
-    const char *ptr2 = strstr(str, "://");
+    const char *ptr2 = str + 7;
     if (!ptr2) return EXIT_FAILURE;
-    ptr2 += 3;
     do {
         char c;
         if (*ptr2 == '%') {

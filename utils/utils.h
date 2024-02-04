@@ -123,7 +123,7 @@ extern int is_directory(const char *path, int follow_symlinks);
  * image into a memory buffer instead of a file. This will allocate memory for
  * the struct mem_file buffer.
  */
-void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length);
+void png_mem_write_data(const png_struct *png_ptr, png_bytep data, png_size_t length);
 
 /*
  * Converts line endings to LF or CRLF based on the platform.
