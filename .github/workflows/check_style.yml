@@ -17,8 +17,6 @@ jobs:
   Style-Check:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    strategy:
-      fail-fast: false
 
     steps:
     - name: Check out repository code
@@ -35,17 +33,18 @@ jobs:
     - name: Check Dockerfiles
       run: find . -type f -name 'Dockerfile*' -print0 | xargs -0 hadolint --ignore DL3008 --ignore DL3040 --ignore DL3041 -t warning
 
-    - name: Check test script style
-      run: find . -type f -name '*.sh' -print0 | xargs -0 shfmt -d -s -i 4 -ci
+    - name: Check yaml style
+      run: yamllint .
 
     - name: Check C code style
       run: cpplint --linelength=120 --filter=-runtime/int,-runtime/arrays,-readability/casting,-legal/copyright --extensions=c,h,m,cc,hh,cpp,hpp,c++,h++,cxx,hxx --recursive .
 
-    - name: Check yaml style
-      run: yamllint .
+    - name: Check test script style
+      if: ${{ success() || failure() }}
+      run: find . -type f -name '*.sh' -print0 | xargs -0 shfmt -d -s -i 4 -ci
 
     - name: Format C code and bash scripts
-      if: github.event_name == 'push'
+      if: ${{ (github.event_name == 'push') && (success() || failure()) }}
       run: |
         find . -type f \( -name '*.c' -o -name '*.h' -o -name '*.m' \) -print0 | xargs -0 clang-format -i
         find . -type f -name '*.sh' -print0 | xargs -0 shfmt -w -s -i 4 -ci
