@@ -1,22 +1,5 @@
 #!/bin/bash
 
-. init.sh
-
 proto="$PROTO_V2"
-method="$METHOD_GET_TEXT"
 
-clear_clipboard
-
-responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool)
-
-protoAck="$PROTO_SUPPORTED"
-methodAck="$METHOD_NO_DATA"
-
-expected="${protoAck}${methodAck}"
-
-if [ "${responseDump}" != "${expected}" ]; then
-    showStatus info 'Incorrect server response.'
-    echo 'Expected:' "$expected"
-    echo 'Received:' "$responseDump"
-    exit 1
-fi
+. scripts/common/x.1.1_get_text.sh
