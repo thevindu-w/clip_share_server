@@ -15,8 +15,8 @@ echo "$large_sample" >"$large_file"
 chunks=''
 for fname in *; do
     nameLength=$(printf '%016x' "${#fname}")
-    fileSize=$(printf '%016x' $(stat -c '%s' "${fname}"))
-    content=$(cat "${fname}" | bin2hex | tr -d '\n')
+    fileSize=$(printf '%016x' $(stat -c '%s' "$fname"))
+    content=$(cat "$fname" | bin2hex | tr -d '\n')
     chunks+="${nameLength}$(echo -n "$fname" | bin2hex)${fileSize}${content}"
 done
 
@@ -35,7 +35,7 @@ methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 
-if [ "${responseDump}" != "${expected}" ]; then
+if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
@@ -43,7 +43,7 @@ if [ "${responseDump}" != "${expected}" ]; then
 fi
 
 diffOutput=$(diff -rq original copies 2>&1 || echo failed)
-if [ ! -z "${diffOutput}" ]; then
+if [ ! -z "$diffOutput" ]; then
     showStatus info 'Files do not match before limiting max file size.'
     exit 1
 fi
@@ -60,7 +60,7 @@ methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 
-if [ "${responseDump}" != "${expected}" ]; then
+if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
@@ -68,7 +68,7 @@ if [ "${responseDump}" != "${expected}" ]; then
 fi
 
 findOutput=$(find copies -type f -size -21c 2>&1 || echo failed)
-if [ ! -z "${findOutput}" ]; then
+if [ ! -z "$findOutput" ]; then
     showStatus info 'Large file is also saved.'
     exit 1
 fi

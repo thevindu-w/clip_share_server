@@ -19,7 +19,7 @@ methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 
-if [ "${responseDump}" != "${expected}" ]; then
+if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect server response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
@@ -28,7 +28,7 @@ fi
 
 clip="$(get_copied_text || echo fail)"
 
-if [ "${clip}" != "${short_sampleDump}" ]; then
+if [ "$clip" != "$short_sampleDump" ]; then
     showStatus info 'Not accepting short text.'
     echo 'Expected:' "$short_sampleDump"
     echo 'Received:' "$clip"
@@ -48,7 +48,7 @@ methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 
-if [ "${responseDump}" != "${expected}" ]; then
+if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect server response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
@@ -60,7 +60,7 @@ echo -n "${proto}${method}${length}${long_sampleDump}" | hex2bin | client_tool &
 clip="$(get_copied_text || echo fail)"
 # still the clipboard should have the short text.
 # It should not be replaced by long text as the long text is rejected by the server.
-if [ "${clip}" != "${short_sampleDump}" ]; then
+if [ "$clip" != "$short_sampleDump" ]; then
     showStatus info 'Not accepting short text.'
     echo 'Expected:' "$short_sampleDump"
     echo 'Received:' "$clip"

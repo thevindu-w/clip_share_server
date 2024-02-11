@@ -14,7 +14,7 @@ methodAck="$METHOD_NO_DATA"
 
 expected="${protoAck}${methodAck}"
 
-if [ "${responseDump}" != "${expected}" ]; then
+if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect server response.'
     exit 1
 fi

@@ -8,7 +8,7 @@ echo 'abc'$'\n'"$fileName"$'\n''file content' >"$fileName"
 
 printf -v _ '%s%n' "$fileName" utf8nameLen
 nameLength="$(printf '%016x' $utf8nameLen)"
-fileSize=$(printf '%016x' $(stat -c '%s' "${fileName}"))
+fileSize=$(printf '%016x' $(stat -c '%s' "$fileName"))
 content=$(cat "$fileName" | bin2hex | tr -d '\n')
 body="${nameLength}$(echo -n "$fileName" | bin2hex)${fileSize}${content}"
 
@@ -26,7 +26,7 @@ methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 
-if [ "${responseDump}" != "${expected}" ]; then
+if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
@@ -34,7 +34,7 @@ if [ "${responseDump}" != "${expected}" ]; then
 fi
 
 diffOutput=$(diff -rq original copy 2>&1 || echo failed)
-if [ ! -z "${diffOutput}" ]; then
+if [ ! -z "$diffOutput" ]; then
     showStatus info 'File does not match.'
     exit 1
 fi

@@ -15,7 +15,7 @@ else
     alias hex2bin="python3 -u ${cur_dir}/utils/bin2hex.py -r 2>/dev/null"
 fi
 
-"${program}" -s &>/dev/null
+"$program" -s &>/dev/null
 rm -rf tmp
 cp -r config tmp
 cd tmp

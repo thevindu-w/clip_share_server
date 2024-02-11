@@ -13,7 +13,7 @@ methodAck="$METHOD_NO_DATA"
 
 expected="${protoAck}${methodAck}"
 
-if [ "${responseDump}" != "${expected}" ]; then
+if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect server response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"

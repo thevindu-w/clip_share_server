@@ -24,7 +24,7 @@ methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 
-if [ "${responseDump}" != "${expected}" ]; then
+if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
@@ -43,8 +43,8 @@ if [ "$(cat "${workdir}/${fileName}")" != "$fileContent" ]; then
     exit 1
 fi
 
-"${program}" -s &>/dev/null
-rm -rf "${workdir}"
+"$program" -s &>/dev/null
+rm -rf "$workdir"
 
 # Non-ASCII file name and directory
 fileName='文件 1.txt'
@@ -59,7 +59,7 @@ body="${nameLength}$(echo -n "$fileName" | bin2hex)${fileSize}${content}"
 
 responseDump=$(echo -n "${proto}${method}${body}" | hex2bin | client_tool)
 
-if [ "${responseDump}" != "${expected}" ]; then
+if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect response for non-ascii.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"

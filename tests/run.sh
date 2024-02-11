@@ -203,9 +203,9 @@ copy_files() {
     if [ "$DETECTED_OS" = 'Linux' ]; then
         local urls=''
         for f in "${files[@]}"; do
-            local absPath="$(realpath "${f}")"
-            local fPathUrl="$(python3 -c 'from urllib import parse;print(parse.quote(input()))' <<<"${absPath}")"
-            urls+=$'\n'"file://${fPathUrl}"
+            local absPath="$(realpath "$f")"
+            local fPathUrl="$(python3 -c 'from urllib import parse;print(parse.quote(input()))' <<<"$absPath")"
+            urls+=$'\n'"file://$fPathUrl"
         done
         echo -n "copy${urls}" | xclip -in -sel clip -t x-special/gnome-copied-files &>/dev/null
     elif [ "$DETECTED_OS" = 'Windows' ]; then
@@ -214,7 +214,7 @@ copy_files() {
     elif [ "$DETECTED_OS" = 'macOS' ]; then
         local absFiles=()
         for f in "${files[@]}"; do
-            local absPath="$(realpath "${f}")"
+            local absPath="$(realpath "$f")"
             absFiles+=("$absPath")
         done
         osascript "${TEST_ROOT}/utils/setcopiedfiles.applescript" "${absFiles[@]}" >/dev/null
@@ -267,7 +267,7 @@ update_config() {
     local key="$1"
     local value="$2"
     [[ $key =~ ^[A-Za-z0-9_]+$ ]]
-    sed -i -E '/^(\s|#)*'"${key}"'\s*=/c\'"${key}=${value}"'\' clipshare.conf
+    sed -i -E '/^(\s|#)*'"$key"'\s*=/c\'"${key}=${value}"'\' clipshare.conf
     "$program" -r &>/dev/null &
     sleep 0.1
 }
@@ -305,33 +305,33 @@ exitCode=0
 passCnt=0
 failCnt=0
 for script in scripts/*.sh; do
-    chmod +x "${script}"
+    chmod +x "$script"
     passed=
     attempts=3 # number of retries before failure
     for attempt in $(seq "$attempts"); do
-        if timeout 60 "${script}" "$program"; then
+        if timeout 60 "$script" "$program"; then
             passed=1
-            showStatus "${script}" pass
+            showStatus "$script" pass
             break
         fi
         scriptExitCode="${PIPESTATUS[0]}"
         if [ "$scriptExitCode" == '124' ]; then
-            showStatus "${script}" info 'Test timeout'
+            showStatus "$script" info 'Test timeout'
         fi
         attemt_msg="Attempt ${attempt} / ${attempts} failed."
         if [ "$attempt" != "$attempts" ]; then
             attemt_msg="${attemt_msg} trying again ..."
         fi
-        showStatus "${script}" warn "$attemt_msg"
+        showStatus "$script" warn "$attemt_msg"
     done
     if [ "$passed" = '1' ]; then
         passCnt="$((passCnt + 1))"
     else
         exitCode=1
         failCnt="$((failCnt + 1))"
-        showStatus "${script}" fail
+        showStatus "$script" fail
     fi
-    "${program}" -s &>/dev/null
+    "$program" -s &>/dev/null
     rm -rf tmp
 done
 

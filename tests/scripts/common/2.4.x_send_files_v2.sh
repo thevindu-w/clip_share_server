@@ -8,28 +8,28 @@ for f in "${files[@]}"; do
     if [[ $f == */* ]]; then
         mkdir -p "${f%/*}"
     fi
-    echo "${f}"$'\n''abc' >"$f"
+    echo "$f"$'\n''abc' >"$f"
 done
 
 chunks=''
 
 appendToChunks() {
     fname="$1"
-    if [ -d "${fname}" ]; then
-        for f in "${fname}"/*; do
-            appendToChunks "${f}"
+    if [ -d "$fname" ]; then
+        for f in "$fname"/*; do
+            appendToChunks "$f"
         done
-    elif [ -f "${fname}" ]; then
+    elif [ -f "$fname" ]; then
         printf -v _ '%s%n' "$fname" utf8nameLen
         nameLength="$(printf '%016x' $utf8nameLen)"
-        fileSize=$(printf '%016x' $(stat -c '%s' "${fname}"))
-        content=$(cat "${fname}" | bin2hex | tr -d '\n')
+        fileSize=$(printf '%016x' $(stat -c '%s' "$fname"))
+        content=$(cat "$fname" | bin2hex | tr -d '\n')
         chunks+="${nameLength}$(echo -n "$fname" | bin2hex)${fileSize}${content}"
     fi
 }
 
 for f in *; do
-    appendToChunks "${f}"
+    appendToChunks "$f"
 done
 
 cd ..
@@ -47,7 +47,7 @@ methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 
-if [ "${responseDump}" != "${expected}" ]; then
+if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
@@ -55,7 +55,7 @@ if [ "${responseDump}" != "${expected}" ]; then
 fi
 
 diffOutput=$(diff -rq original copies 2>&1 || echo failed)
-if [ ! -z "${diffOutput}" ]; then
+if [ ! -z "$diffOutput" ]; then
     showStatus info 'Files do not match.'
     exit 1
 fi

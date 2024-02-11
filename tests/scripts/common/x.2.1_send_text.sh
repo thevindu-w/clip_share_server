@@ -7,7 +7,7 @@ sample="send_text 範例文字 1"
 method="$METHOD_SEND_TEXT"
 printf -v _ '%s%n' "$sample" utf8len
 length="$(printf '%016x' $utf8len)"
-sampleDump=$(echo -n "${sample}" | bin2hex)
+sampleDump=$(echo -n "$sample" | bin2hex)
 
 clear_clipboard
 
@@ -18,7 +18,7 @@ methodAck="$METHOD_OK"
 
 expected="${protoAck}${methodAck}"
 
-if [ "${responseDump}" != "${expected}" ]; then
+if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect server response.'
     echo 'Expected:' "$expected"
     echo 'Received:' "$responseDump"
@@ -27,7 +27,7 @@ fi
 
 clip="$(get_copied_text || echo fail)"
 
-if [ "${clip}" != "${sampleDump}" ]; then
+if [ "$clip" != "$sampleDump" ]; then
     showStatus info "Clipcoard content not matching."
     echo 'Expected:' "$sampleDump"
     echo 'Received:' "$clip"
