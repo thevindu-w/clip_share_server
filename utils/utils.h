@@ -142,11 +142,27 @@ extern int64_t convert_eol(char **str_p, int force_lf);
 #define chdir_wrapper(path) chdir(path)
 #define getcwd_wrapper(len) getcwd(NULL, len)
 
+/**
+ * Get a list of copied files and directories as a single string.
+ * The output string is allocated with malloc, and contains the list of URL-encoded file/dir names, separated by '\n'
+ * (new-line character). The offset is set to the starting offset (in bytes) of the file list.
+ * Returns the string of file list on success or NULL on error.
+ */
 extern char *get_copied_files_as_str(int *offset);
 
 #elif defined(_WIN32)
 
+/*
+ * A wrapper for chdir() to be platform independent.
+ * Internally converts the filename to wide char on Windows.
+ */
 extern int chdir_wrapper(const char *path);
+
+/**
+ * Get the pathname of the current working directory. If successful, returns an array which is allocated with malloc;
+ * the array is at least len bytes long.
+ * Returns NULL if the directory couldn't be determined.
+ */
 extern char *getcwd_wrapper(int len);
 
 /*
