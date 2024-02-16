@@ -50,7 +50,7 @@ jobs:
         find . -type f -name '*.sh' -print0 | xargs -0 shfmt -w -s -i 4 -ci
 
     - name: Creat pull request
-      if: github.event_name == 'push'
+      if: ${{ (github.event_name == 'push') && (success() || failure()) }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
