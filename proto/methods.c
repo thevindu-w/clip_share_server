@@ -57,6 +57,30 @@ static inline int _check_path(const char *path) {
     return EXIT_SUCCESS;
 }
 
+/*
+ * Common function to get files in v1 and v2.
+ */
+static int _get_files_common(int version, socket_t *socket, list2 *file_list, size_t path_len);
+
+/*
+ * Common function to save files in send_files method of v1 and v2.
+ */
+static int _save_file_common(socket_t *socket, const char *file_name);
+
+/*
+ * Common function to get image in v1 and v3.
+ */
+static inline int _get_image_common(socket_t *socket, int mode);
+
+/*
+ * Check if the file name is empty or has invalid characters \x00 to \x1f.
+ * returns EXIT_SUCCESS if the file name is valid.
+ * Otherwise, returns EXIT_FAILURE.
+ */
+static inline int _is_valid_fname(const char *fname);
+
+static int _transfer_single_file(int version, socket_t *socket, const char *file_path, size_t path_len);
+
 int get_text_v1(socket_t *socket) {
     size_t length = 0;
     char *buf = NULL;
@@ -114,7 +138,6 @@ int send_text_v1(socket_t *socket) {
         free(data);
         return EXIT_FAILURE;
     }
-    close_socket(socket);
     data[length] = 0;
     if (u8_check((uint8_t *)data, (size_t)length)) {
 #ifdef DEBUG_MODE
@@ -128,6 +151,7 @@ int send_text_v1(socket_t *socket) {
 #endif
     length = convert_eol(&data, 0);
     if (length < 0) return EXIT_FAILURE;
+    close_socket(socket);
     put_clipboard_text(data, (size_t)length);
     free(data);
     return EXIT_SUCCESS;
@@ -222,9 +246,6 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
     return EXIT_SUCCESS;
 }
 
-/*
- * Common function to get files in v1 and v2.
- */
 static int _get_files_common(int version, socket_t *socket, list2 *file_list, size_t path_len) {
     if (!file_list || file_list->len == 0) {
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
@@ -265,9 +286,6 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
     return EXIT_SUCCESS;
 }
 
-/*
- * Common function to save files in send_files method of v1 and v2.
- */
 static int _save_file_common(socket_t *socket, const char *file_name) {
     int64_t file_size = read_size(socket);
 #ifdef DEBUG_MODE
@@ -310,11 +328,6 @@ static int _save_file_common(socket_t *socket, const char *file_name) {
     return EXIT_SUCCESS;
 }
 
-/*
- * Check if the file name is empty or has invalid characters \x00 to \x1f.
- * returns EXIT_SUCCESS if the file name is valid.
- * Otherwise, returns EXIT_FAILURE.
- */
 static inline int _is_valid_fname(const char *fname) {
     do {
         if ((unsigned char)*fname < 32) return EXIT_FAILURE;
@@ -411,10 +424,10 @@ int send_file_v1(socket_t *socket) {
 }
 #endif
 
-int get_image_v1(socket_t *socket) {
+static inline int _get_image_common(socket_t *socket, int mode) {
     size_t length = 0;
     char *buf = NULL;
-    if (get_image(&buf, &length) == EXIT_FAILURE || length == 0 ||
+    if (get_image(&buf, &length, mode) == EXIT_FAILURE || length == 0 ||
         length > MAX_IMAGE_SIZE) {  // do not change the order
 #ifdef DEBUG_MODE
         printf("get image failed. len = %zu\n", length);
@@ -441,6 +454,8 @@ int get_image_v1(socket_t *socket) {
     free(buf);
     return EXIT_SUCCESS;
 }
+
+int get_image_v1(socket_t *socket) { return _get_image_common(socket, IMG_ANY); }
 
 int info_v1(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
@@ -605,4 +620,10 @@ int send_files_v2(socket_t *socket) {
     if (status == EXIT_SUCCESS && remove_directory(dirname)) status = EXIT_FAILURE;
     return status;
 }
+#endif
+
+#if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
+int get_copied_image_v3(socket_t *socket) { return _get_image_common(socket, IMG_COPIED_ONLY); }
+
+int get_screenshot_v3(socket_t *socket) { return _get_image_common(socket, IMG_SCRN_ONLY); }
 #endif

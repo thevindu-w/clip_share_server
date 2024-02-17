@@ -31,6 +31,10 @@
 #define PATH_SEP '\\'
 #endif
 
+#define IMG_ANY 0
+#define IMG_COPIED_ONLY 1
+#define IMG_SCRN_ONLY 2
+
 /*
  * In-memory file to write png image
  */
@@ -89,7 +93,10 @@ extern int get_clipboard_text(char **bufptr, size_t *lenptr);
 extern int put_clipboard_text(char *data, size_t len);
 
 /*
- * Get copied image from clipboard. If there is no image, get a screenshot instead.
+ * Get copied image from clipboard or a screenshot.
+ * If mode is IMG_ANY, get copied image from clipboard, and if there is no image, get a screenshot instead.
+ * If mode is IMG_COPIED_ONLY, get copied image from clipboard if available.
+ * If mode is IMG_SCRN_ONLY, get a screenshot.
  * Places the image data in a buffer and sets the buf_ptr to point the buffer.
  * buf_ptr must be a valid pointer to a char * variable.
  * Caller should free the buffer after using.
@@ -98,7 +105,7 @@ extern int put_clipboard_text(char *data, size_t len);
  * On failure, buffer is set to NULL.
  * returns EXIT_SUCCESS on success and EXIT_FAILURE on failure.
  */
-extern int get_image(char **buf_ptr, size_t *len_ptr);
+extern int get_image(char **buf_ptr, size_t *len_ptr, int mode);
 
 /*
  * Get the file size of the file from the given file pointer fp.

@@ -123,11 +123,14 @@ static inline CGDirectDisplayID get_display_id(void) {
     return CGMainDisplayID();
 }
 
-int get_image(char **buf_ptr, size_t *len_ptr) {
+int get_image(char **buf_ptr, size_t *len_ptr, int mode) {
     *len_ptr = 0;
     *buf_ptr = NULL;
-    NSBitmapImageRep *bitmap = get_copied_image();
-    if (!bitmap) {
+    NSBitmapImageRep *bitmap;
+    if (mode != IMG_SCRN_ONLY) {
+        bitmap = get_copied_image();
+    }
+    if (mode != IMG_COPIED_ONLY && !bitmap) {
         CGImageRef screenshot = CGDisplayCreateImage(get_display_id());
         if (!screenshot) return EXIT_FAILURE;
         bitmap = [[NSBitmapImageRep alloc] initWithCGImage:screenshot];

@@ -97,7 +97,7 @@ static void receiver_web(socket_t *sock) {
         } else if (!strcmp(path, "/img")) {
             size_t len = 0;
             char *clip_buf;
-            if (get_image(&clip_buf, &len) == EXIT_FAILURE || len <= 0) {
+            if (get_image(&clip_buf, &len, IMG_ANY) == EXIT_FAILURE || len <= 0) {
                 say("HTTP/1.0 404 Not Found\r\n\r\n", sock);
                 return;
             }

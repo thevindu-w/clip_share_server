@@ -68,6 +68,7 @@ void server(socket_t *socket) {
             return;
         }
     }
+
     switch (version) {
         case 0:  // version 0 is for testing purposes
             break;
@@ -80,6 +81,12 @@ void server(socket_t *socket) {
 #if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
         case 2: {
             version_2(socket);
+            break;
+        }
+#endif
+#if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
+        case 3: {
+            version_3(socket);
             break;
         }
 #endif

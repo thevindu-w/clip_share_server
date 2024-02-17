@@ -29,6 +29,8 @@
 #define METHOD_GET_FILE 3
 #define METHOD_SEND_FILE 4
 #define METHOD_GET_IMAGE 5
+#define METHOD_GET_COPIED_IMAGE 6
+#define METHOD_GET_SCREENSHOT 7
 #define METHOD_INFO 125
 
 // status codes
@@ -97,6 +99,51 @@ int version_2(socket_t *socket) {
         }
         case METHOD_GET_IMAGE: {
             return get_image_v1(socket);
+        }
+        case METHOD_INFO: {
+            return info_v1(socket);
+        }
+        default: {  // unknown method
+#ifdef DEBUG_MODE
+            fprintf(stderr, "Unknown method\n");
+#endif
+            write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
+            return EXIT_FAILURE;
+        }
+    }
+    return EXIT_SUCCESS;
+}
+#endif
+
+#if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
+
+int version_3(socket_t *socket) {
+    unsigned char method;
+    if (read_sock(socket, (char *)&method, 1) == EXIT_FAILURE) {
+        return EXIT_FAILURE;
+    }
+
+    switch (method) {
+        case METHOD_GET_TEXT: {
+            return get_text_v1(socket);
+        }
+        case METHOD_SEND_TEXT: {
+            return send_text_v1(socket);
+        }
+        case METHOD_GET_FILE: {
+            return get_files_v2(socket);
+        }
+        case METHOD_SEND_FILE: {
+            return send_files_v2(socket);
+        }
+        case METHOD_GET_IMAGE: {
+            return get_image_v1(socket);
+        }
+        case METHOD_GET_COPIED_IMAGE: {
+            return get_copied_image_v3(socket);
+        }
+        case METHOD_GET_SCREENSHOT: {
+            return get_screenshot_v3(socket);
         }
         case METHOD_INFO: {
             return info_v1(socket);

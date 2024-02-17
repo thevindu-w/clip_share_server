@@ -40,4 +40,14 @@ extern int version_1(socket_t *socket);
 extern int version_2(socket_t *socket);
 #endif
 
+#if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
+/*
+ * Accepts a socket connection after the protocol version 3 is selected
+ * after the negotiation phase.
+ * Reads the method code from the client and pass the control to the respective
+ * method handler.
+ */
+extern int version_3(socket_t *socket);
+#endif
+
 #endif  // PROTO_VERSIONS_H_

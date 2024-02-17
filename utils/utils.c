@@ -823,24 +823,32 @@ int put_clipboard_text(char *data, size_t len) {
     return EXIT_SUCCESS;
 }
 
-int get_image(char **buf_ptr, size_t *len_ptr) {
+int get_image(char **buf_ptr, size_t *len_ptr, int mode) {
     *buf_ptr = NULL;
-    if (xclip_util(XCLIP_OUT, "image/png", len_ptr, buf_ptr) || *len_ptr == 0) {  // do not change the order
-#ifdef DEBUG_MODE
-        printf("xclip failed to get image/png. len = %zu\nCapturing screenshot ...\n", *len_ptr);
-#endif
-        *buf_ptr = NULL;
-        *len_ptr = 0;
-        if (screenshot_util(len_ptr, buf_ptr) || *len_ptr == 0) {  // do not change the order
-#ifdef DEBUG_MODE
-            fputs("Get screenshot failed\n", stderr);
-#endif
-            if (*buf_ptr) free(*buf_ptr);
-            *len_ptr = 0;
-            return EXIT_FAILURE;
-        }
+
+    // Try to get copied image unless the mode is screenshot only
+    if (mode != IMG_SCRN_ONLY && xclip_util(XCLIP_OUT, "image/png", len_ptr, buf_ptr) == EXIT_SUCCESS &&
+        *len_ptr > 8) {  // do not change the order
+        return EXIT_SUCCESS;
     }
-    return EXIT_SUCCESS;
+#ifdef DEBUG_MODE
+    printf("xclip failed to get image/png. len = %zu\nCapturing screenshot ...\n", *len_ptr);
+#endif
+    *buf_ptr = NULL;
+    *len_ptr = 0;
+
+    // Try to get screenshot unless the mode is copied image only
+    if (mode != IMG_COPIED_ONLY && screenshot_util(len_ptr, buf_ptr) == EXIT_SUCCESS &&
+        *len_ptr > 8) {  // do not change the order
+        return EXIT_SUCCESS;
+    }
+#ifdef DEBUG_MODE
+    fputs("Get screenshot failed\n", stderr);
+#endif
+    if (*buf_ptr) free(*buf_ptr);
+    *buf_ptr = NULL;
+    *len_ptr = 0;
+    return EXIT_FAILURE;
 }
 
 char *get_copied_files_as_str(int *offset) {
@@ -1032,11 +1040,15 @@ int put_clipboard_text(char *data, size_t len) {
     return (res == NULL ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
-int get_image(char **buf_ptr, size_t *len_ptr) {
-    getCopiedImage(buf_ptr, len_ptr);
-    if (*len_ptr > 8) return EXIT_SUCCESS;
-    screenCapture(buf_ptr, len_ptr);
-    if (*len_ptr > 8) return EXIT_SUCCESS;
+int get_image(char **buf_ptr, size_t *len_ptr, int mode) {
+    if (mode != IMG_SCRN_ONLY) {
+        getCopiedImage(buf_ptr, len_ptr);
+        if (*len_ptr > 8) return EXIT_SUCCESS;
+    }
+    if (mode != IMG_COPIED_ONLY) {
+        screenCapture(buf_ptr, len_ptr);
+        if (*len_ptr > 8) return EXIT_SUCCESS;
+    }
     return EXIT_FAILURE;
 }
 
