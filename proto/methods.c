@@ -157,44 +157,7 @@ int send_text_v1(socket_t *socket) {
     return EXIT_SUCCESS;
 }
 
-static int _transfer_single_file(int version, socket_t *socket, const char *file_path, size_t path_len) {
-    const char *tmp_fname;
-    switch (version) {
-#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
-        case 1: {
-            tmp_fname = strrchr(file_path, PATH_SEP);
-            if (tmp_fname == NULL) {
-                tmp_fname = file_path;
-            } else {
-                tmp_fname++;  // remove '/'
-            }
-            break;
-        }
-#endif
-#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
-        case 2: {
-            tmp_fname = file_path + path_len;
-            break;
-        }
-#endif
-        default: {
-            return EXIT_FAILURE;
-        }
-    }
-
-    const size_t _tmp_len = strnlen(tmp_fname, MAX_FILE_NAME_LENGTH);
-    if (_tmp_len > MAX_FILE_NAME_LENGTH) {
-        error("Too long file name.");
-        return EXIT_FAILURE;
-    }
-    char filename[_tmp_len + 1];
-    strncpy(filename, tmp_fname, _tmp_len);
-    filename[_tmp_len] = 0;
-    const size_t fname_len = strnlen(filename, _tmp_len);
-    if (fname_len > MIN(_tmp_len, MAX_FILE_NAME_LENGTH)) {
-        return EXIT_FAILURE;
-    }
-
+static int _transfer_regular_file(socket_t *socket, const char *file_path, char *filename, size_t fname_len) {
     FILE *fp = open_file(file_path, "rb");
     if (!fp) {
         error("Couldn't open some files");
@@ -213,15 +176,6 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
         fclose(fp);
         return EXIT_FAILURE;
     }
-
-#if PATH_SEP != '/'
-    if (version != 1) {
-        // path separator is always / when communicating with the client
-        for (size_t ind = 0; ind < fname_len; ind++) {
-            if (filename[ind] == PATH_SEP) filename[ind] = '/';
-        }
-    }
-#endif
 
     if (write_sock(socket, filename, fname_len) == EXIT_FAILURE) {
         fclose(fp);
@@ -244,6 +198,81 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
     }
     fclose(fp);
     return EXIT_SUCCESS;
+}
+
+#if PROTOCOL_MAX >= 3
+static int _transfer_directory(socket_t *socket, char *filename, size_t fname_len) {
+    if (send_size(socket, (int64_t)fname_len) == EXIT_FAILURE) {
+        return EXIT_FAILURE;
+    }
+
+    if (write_sock(socket, filename, fname_len) == EXIT_FAILURE) {
+        return EXIT_FAILURE;
+    }
+    if (send_size(socket, -1) == EXIT_FAILURE) {
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+#endif
+
+static int _transfer_single_file(int version, socket_t *socket, const char *file_path, size_t path_len) {
+    const char *tmp_fname;
+    switch (version) {
+#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+        case 1: {
+            tmp_fname = strrchr(file_path, PATH_SEP);
+            if (tmp_fname == NULL) {
+                tmp_fname = file_path;
+            } else {
+                tmp_fname++;  // remove '/'
+            }
+            break;
+        }
+#endif
+#if (PROTOCOL_MIN <= 3) && (2 <= PROTOCOL_MAX)
+        case 2:
+        case 3: {
+            tmp_fname = file_path + path_len;
+            break;
+        }
+#else
+        (void)path_len;
+#endif
+        default: {
+            return EXIT_FAILURE;
+        }
+    }
+
+    const size_t _tmp_len = strnlen(tmp_fname, MAX_FILE_NAME_LENGTH);
+    if (_tmp_len > MAX_FILE_NAME_LENGTH) {
+        error("Too long file name.");
+        return EXIT_FAILURE;
+    }
+    char filename[_tmp_len + 1];
+    strncpy(filename, tmp_fname, _tmp_len);
+    filename[_tmp_len] = 0;
+    const size_t fname_len = strnlen(filename, _tmp_len);
+    if (fname_len > MIN(_tmp_len, MAX_FILE_NAME_LENGTH)) {
+        return EXIT_FAILURE;
+    }
+
+#if PATH_SEP != '/'
+    if (version > 1) {
+        // path separator is always / when communicating with the client
+        for (size_t ind = 0; ind < fname_len; ind++) {
+            if (filename[ind] == PATH_SEP) filename[ind] = '/';
+        }
+    }
+#endif
+
+#if PROTOCOL_MAX >= 3
+    if (filename[fname_len - 1] == '/') {  // filename is converted to have / as path separator on all platforms
+        filename[fname_len - 1] = 0;
+        return _transfer_directory(socket, filename, fname_len - 1);
+    }
+#endif
+    return _transfer_regular_file(socket, file_path, filename, fname_len);
 }
 
 static int _get_files_common(int version, socket_t *socket, list2 *file_list, size_t path_len) {
@@ -493,7 +522,7 @@ static inline int _make_directories(const char *path) {
 
 int get_files_v2(socket_t *socket) {
     dir_files copied_dir_files;
-    get_copied_dirs_files(&copied_dir_files);
+    get_copied_dirs_files(&copied_dir_files, 0);
     return _get_files_common(2, socket, copied_dir_files.lst, copied_dir_files.path_len);
 }
 
@@ -620,10 +649,19 @@ int send_files_v2(socket_t *socket) {
     if (status == EXIT_SUCCESS && remove_directory(dirname)) status = EXIT_FAILURE;
     return status;
 }
+
 #endif
 
 #if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
+
 int get_copied_image_v3(socket_t *socket) { return _get_image_common(socket, IMG_COPIED_ONLY); }
 
 int get_screenshot_v3(socket_t *socket) { return _get_image_common(socket, IMG_SCRN_ONLY); }
+
+int get_files_v3(socket_t *socket) {
+    dir_files copied_dir_files;
+    get_copied_dirs_files(&copied_dir_files, 1);
+    return _get_files_common(2, socket, copied_dir_files.lst, copied_dir_files.path_len);
+}
+
 #endif

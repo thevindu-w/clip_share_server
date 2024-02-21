@@ -131,7 +131,7 @@ int version_3(socket_t *socket) {
             return send_text_v1(socket);
         }
         case METHOD_GET_FILE: {
-            return get_files_v2(socket);
+            return get_files_v3(socket);
         }
         case METHOD_SEND_FILE: {
             return send_files_v2(socket);

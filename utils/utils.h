@@ -219,7 +219,7 @@ extern list2 *list_dir(const char *dirname);
  * Set the path_len to the length of path name of the directory which the files are copied.
  * Sets directories and files in dfiles_p on success and sets the path_len to 0 and file list to NULL on failure.
  */
-extern void get_copied_dirs_files(dir_files *dfiles_p);
+extern void get_copied_dirs_files(dir_files *dfiles_p, int include_leaf_dirs);
 
 #if defined(__linux__) || defined(__APPLE__)
 

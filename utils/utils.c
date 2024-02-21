@@ -476,29 +476,29 @@ list2 *list_dir(const char *dirname) {
 
 /*
  * Check if the path is a file or a directory.
- * If the path is a directory, calls recurse_dir() on that.
+ * If the path is a directory, calls _recurse_dir() on that.
  * Otherwise, appends the path to the list
  */
-static void _process_path(const char *path, list2 *lst, int depth);
+static void _process_path(const char *path, list2 *lst, int depth, int include_leaf_dirs);
 
 /*
  * Recursively append all file paths in the directory and its subdirectories
  * to the list.
  * maximum recursion depth is limited to MAX_RECURSE_DEPTH
  */
-static void recurse_dir(const char *_path, list2 *lst, int depth);
+static void _recurse_dir(const char *_path, list2 *lst, int depth, int include_leaf_dirs);
 
-static void _process_path(const char *path, list2 *lst, int depth) {
+static void _process_path(const char *path, list2 *lst, int depth, int include_leaf_dirs) {
     struct stat sb;
     if (lstat(path, &sb) != 0) return;
     if (S_ISDIR(sb.st_mode)) {
-        recurse_dir(path, lst, depth + 1);
+        _recurse_dir(path, lst, depth + 1, include_leaf_dirs);
     } else if (S_ISREG(sb.st_mode)) {
         append(lst, strdup(path));
     }
 }
 
-static void recurse_dir(const char *_path, list2 *lst, int depth) {
+static void _recurse_dir(const char *_path, list2 *lst, int depth, int include_leaf_dirs) {
     if (depth > MAX_RECURSE_DEPTH) return;
     DIR *d = opendir(_path);
     if (!d) {
@@ -521,9 +521,11 @@ static void recurse_dir(const char *_path, list2 *lst, int depth) {
         path[p_len] = '\0';
     }
     const struct dirent *dir;
+    int is_empty = 1;
     while ((dir = readdir(d)) != NULL) {
         const char *filename = dir->d_name;
         if (!(strcmp(filename, ".") && strcmp(filename, ".."))) continue;
+        is_empty = 0;
         const size_t _fname_len = strnlen(filename, sizeof(dir->d_name));
         if (_fname_len + p_len > 2048) {
             error("Too long file name.");
@@ -534,12 +536,15 @@ static void recurse_dir(const char *_path, list2 *lst, int depth) {
         strncpy(pathname, path, p_len);
         strncpy(pathname + p_len, filename, _fname_len + 1);
         pathname[p_len + _fname_len] = 0;
-        _process_path(pathname, lst, depth);
+        _process_path(pathname, lst, depth, include_leaf_dirs);
+    }
+    if (include_leaf_dirs && is_empty) {
+        append(lst, strdup(path));
     }
     (void)closedir(d);
 }
 
-void get_copied_dirs_files(dir_files *dfiles_p) {
+void get_copied_dirs_files(dir_files *dfiles_p, int include_leaf_dirs) {
     dfiles_p->lst = NULL;
     dfiles_p->path_len = 0;
     int offset = 0;
@@ -587,19 +592,12 @@ void get_copied_dirs_files(dir_files *dfiles_p) {
             continue;
         }
         if (S_ISDIR(statbuf.st_mode)) {
-            recurse_dir(fname, lst, 1);
+            _recurse_dir(fname, lst, 1, include_leaf_dirs);
             fname += off;
-            continue;
-        }
-        if (!S_ISREG(statbuf.st_mode)) {
-#ifdef DEBUG_MODE
-            printf("not a file : %s\n", fname);
-#endif
+        } else if (S_ISREG(statbuf.st_mode)) {
+            append(lst, strdup(fname));
             fname += off;
-            continue;
         }
-        append(lst, strdup(fname));
-        fname += off;
     }
     free(fnames);
 }
@@ -608,7 +606,7 @@ void get_copied_dirs_files(dir_files *dfiles_p) {
 
 /*
  * Check if the path is a file or a directory.
- * If the path is a directory, calls recurse_dir() on that.
+ * If the path is a directory, calls _recurse_dir() on that.
  * Otherwise, appends the path to the list
  */
 static void _process_path(const wchar_t *path, list2 *lst, int depth);
@@ -618,19 +616,19 @@ static void _process_path(const wchar_t *path, list2 *lst, int depth);
  * to the list.
  * maximum recursion depth is limited to MAX_RECURSE_DEPTH
  */
-static void recurse_dir(const wchar_t *_path, list2 *lst, int depth);
+static void _recurse_dir(const wchar_t *_path, list2 *lst, int depth);
 
 static void _process_path(const wchar_t *path, list2 *lst, int depth) {
     struct stat sb;
     if (wstat(path, &sb) != 0) return;
     if (S_ISDIR(sb.st_mode)) {
-        recurse_dir(path, lst, depth + 1);
+        _recurse_dir(path, lst, depth + 1);
     } else if (S_ISREG(sb.st_mode)) {
         _wappend(lst, path);
     }
 }
 
-static void recurse_dir(const wchar_t *_path, list2 *lst, int depth) {
+static void _recurse_dir(const wchar_t *_path, list2 *lst, int depth) {
     if (depth > MAX_RECURSE_DEPTH) return;
     _WDIR *d = _wopendir(_path);
     if (!d) {
@@ -724,7 +722,7 @@ void get_copied_dirs_files(dir_files *dfiles_p) {
             }
         }
         if (attr & FILE_ATTRIBUTE_DIRECTORY) {
-            recurse_dir(fileName, lst, 1);
+            _recurse_dir(fileName, lst, 1);
         } else {  // regular file
             _wappend(lst, fileName);
         }

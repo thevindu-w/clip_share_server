@@ -39,6 +39,7 @@ extern int send_files_v2(socket_t *socket);
 
 // Version 3 methods
 #if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
+extern int get_files_v3(socket_t *socket);
 extern int get_copied_image_v3(socket_t *socket);
 extern int get_screenshot_v3(socket_t *socket);
 #endif
