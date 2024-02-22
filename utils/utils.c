@@ -609,26 +609,26 @@ void get_copied_dirs_files(dir_files *dfiles_p, int include_leaf_dirs) {
  * If the path is a directory, calls _recurse_dir() on that.
  * Otherwise, appends the path to the list
  */
-static void _process_path(const wchar_t *path, list2 *lst, int depth);
+static void _process_path(const wchar_t *path, list2 *lst, int depth, int include_leaf_dirs);
 
 /*
  * Recursively append all file paths in the directory and its subdirectories
  * to the list.
  * maximum recursion depth is limited to MAX_RECURSE_DEPTH
  */
-static void _recurse_dir(const wchar_t *_path, list2 *lst, int depth);
+static void _recurse_dir(const wchar_t *_path, list2 *lst, int depth, int include_leaf_dirs);
 
-static void _process_path(const wchar_t *path, list2 *lst, int depth) {
+static void _process_path(const wchar_t *path, list2 *lst, int depth, int include_leaf_dirs) {
     struct stat sb;
     if (wstat(path, &sb) != 0) return;
     if (S_ISDIR(sb.st_mode)) {
-        _recurse_dir(path, lst, depth + 1);
+        _recurse_dir(path, lst, depth + 1, include_leaf_dirs);
     } else if (S_ISREG(sb.st_mode)) {
         _wappend(lst, path);
     }
 }
 
-static void _recurse_dir(const wchar_t *_path, list2 *lst, int depth) {
+static void _recurse_dir(const wchar_t *_path, list2 *lst, int depth, int include_leaf_dirs) {
     if (depth > MAX_RECURSE_DEPTH) return;
     _WDIR *d = _wopendir(_path);
     if (!d) {
@@ -651,9 +651,11 @@ static void _recurse_dir(const wchar_t *_path, list2 *lst, int depth) {
         path[p_len] = '\0';
     }
     const struct _wdirent *dir;
+    int is_empty = 1;
     while ((dir = _wreaddir(d)) != NULL) {
         const wchar_t *filename = dir->d_name;
         if (!(wcscmp(filename, L".") && wcscmp(filename, L".."))) continue;
+        is_empty = 0;
         const size_t _fname_len = wcslen(filename);
         if (_fname_len + p_len > 2048) {
             error("Too long file name.");
@@ -664,12 +666,15 @@ static void _recurse_dir(const wchar_t *_path, list2 *lst, int depth) {
         wcsncpy(pathname, path, p_len);
         wcsncpy(pathname + p_len, filename, _fname_len + 1);
         pathname[p_len + _fname_len] = 0;
-        _process_path(pathname, lst, depth);
+        _process_path(pathname, lst, depth, include_leaf_dirs);
+    }
+    if (include_leaf_dirs && is_empty) {
+        _wappend(lst, wcsdup(path));
     }
     (void)_wclosedir(d);
 }
 
-void get_copied_dirs_files(dir_files *dfiles_p) {
+void get_copied_dirs_files(dir_files *dfiles_p, int include_leaf_dirs) {
     dfiles_p->lst = NULL;
     dfiles_p->path_len = 0;
 
@@ -722,7 +727,7 @@ void get_copied_dirs_files(dir_files *dfiles_p) {
             }
         }
         if (attr & FILE_ATTRIBUTE_DIRECTORY) {
-            _recurse_dir(fileName, lst, 1);
+            _recurse_dir(fileName, lst, 1, include_leaf_dirs);
         } else {  // regular file
             _wappend(lst, fileName);
         }
