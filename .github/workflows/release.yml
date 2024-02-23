@@ -9,6 +9,7 @@ on:
 jobs:
   Checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
 
     steps:
     - name: Check out repository code
@@ -56,13 +57,19 @@ jobs:
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu22
         docker run -v './dist:/home/user/src/dist' clipshare:arch
         docker run -v './dist:/home/user/src/dist' clipshare:fedora
-        cd dist && sha256sum -b * >SHA2-256SUM && tar -cf - --sort=name --owner=root:0 --group=root:0 --no-same-owner . | gzip -9 >"../${{env.ARCHIVE_NAME}}"
+        cd dist && \
+        sha256sum -b * >SHA2-256SUM && \
+        tar -cf - --sort=name --owner=root:0 --group=root:0 --no-same-owner . | \
+        gzip -9 >"../${{env.ARCHIVE_NAME}}"
 
     - name: Upload Linux version
       uses: actions/upload-artifact@v4
       with:
         name: "${{env.ARCHIVE_NAME}}"
         path: "${{env.ARCHIVE_NAME}}"
+        retention-days: 3
+        if-no-files-found: error
+        compression-level: 0
 
   Windows:
     runs-on: windows-latest
@@ -78,7 +85,12 @@ jobs:
       with:
         msystem: MINGW64
         update: false
-        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-libunistring
+        install: >-
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-make
+          mingw-w64-x86_64-openssl
+          mingw-w64-x86_64-libpng
+          mingw-w64-x86_64-libunistring
 
     - name: Setup make
       run: ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
@@ -102,6 +114,9 @@ jobs:
       with:
         name: "${{env.FILE_NAME}}"
         path: "${{env.FILE_NAME}}"
+        retention-days: 3
+        if-no-files-found: error
+        compression-level: 9
 
   macOS-x86_64:
     runs-on: macos-latest
@@ -135,3 +150,6 @@ jobs:
       with:
         name: "${{env.ARCHIVE_NAME}}"
         path: "${{env.ARCHIVE_NAME}}"
+        retention-days: 3
+        if-no-files-found: error
+        compression-level: 0

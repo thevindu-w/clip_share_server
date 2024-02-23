@@ -21,7 +21,8 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install --no-install-recommends -y apt-transport-https
-        sudo apt-get install --no-install-recommends -y coreutils gcc make libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev libunistring-dev
+        sudo apt-get install --no-install-recommends -y coreutils gcc make \
+        libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev libunistring-dev
 
     - name: Check out repository code
       uses: actions/checkout@v4
