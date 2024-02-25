@@ -123,7 +123,8 @@ int get_text_v1(socket_t *socket) {
 
 int send_text_v1(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
-    int64_t length = read_size(socket);
+    int64_t length;
+    if (read_size(socket, &length) != EXIT_SUCCESS) return EXIT_FAILURE;
 #ifdef DEBUG_MODE
     printf("Len = %zi\n", (ssize_t)length);
 #endif
@@ -316,7 +317,8 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
 }
 
 static int _save_file_common(socket_t *socket, const char *file_name) {
-    int64_t file_size = read_size(socket);
+    int64_t file_size;
+    if (read_size(socket, &file_size) != EXIT_SUCCESS) return EXIT_FAILURE;
 #ifdef DEBUG_MODE
     printf("data len = %lli\n", (long long)file_size);
 #endif
@@ -407,13 +409,13 @@ int get_files_v1(socket_t *socket) {
 
 int send_file_v1(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
-    const int64_t name_length = read_size(socket);
+    int64_t name_length;
+    if (read_size(socket, &name_length) != EXIT_SUCCESS) return EXIT_FAILURE;
 #ifdef DEBUG_MODE
     printf("name_len = %zi\n", (ssize_t)name_length);
 #endif
-    if (name_length <= 0 || name_length > MAX_FILE_NAME_LENGTH) {  // limit file name length to 1024 chars
-        return EXIT_FAILURE;
-    }
+    // limit file name length to 1024 chars
+    if (name_length <= 0 || name_length > MAX_FILE_NAME_LENGTH) return EXIT_FAILURE;
 
     const uint64_t name_max_len = (uint64_t)(name_length + 16);
     if (name_max_len > MAX_FILE_NAME_LENGTH) {
@@ -527,13 +529,15 @@ int get_files_v2(socket_t *socket) {
 }
 
 static int save_file(socket_t *socket, const char *dirname) {
-    int64_t name_length = read_size(socket);
+    int64_t fname_size;
+    if (read_size(socket, &fname_size) != EXIT_SUCCESS) return EXIT_FAILURE;
 #ifdef DEBUG_MODE
-    printf("name_len = %zi\n", (ssize_t)name_length);
+    printf("name_len = %zi\n", (ssize_t)fname_size);
 #endif
     // limit file name length to 1024 chars
-    if (name_length < 0 || name_length > MAX_FILE_NAME_LENGTH) return EXIT_FAILURE;
+    if (fname_size < 0 || fname_size > MAX_FILE_NAME_LENGTH) return EXIT_FAILURE;
 
+    const uint64_t name_length = (uint64_t)fname_size;
     char file_name[name_length + 1];
     if (read_sock(socket, file_name, (size_t)name_length) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
@@ -622,7 +626,8 @@ static int _check_and_rename(const char *filename, const char *dirname) {
 
 int send_files_v2(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
-    int64_t cnt = read_size(socket);
+    int64_t cnt;
+    if (read_size(socket, &cnt) != EXIT_SUCCESS) return EXIT_FAILURE;
     if (cnt <= 0) return EXIT_FAILURE;
     char dirname[17];
     unsigned id = (unsigned)time(NULL);

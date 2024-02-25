@@ -128,8 +128,9 @@ extern int send_size(socket_t *socket, int64_t num);
 
 /*
  * Reads a 64-bit signed integer from socket as big-endian encoded 8 bytes.
- * returns the read value on success. Otherwise, returns -1 on error.
+ * Stores the value of the read integer in the address given by size_ptr.
+ * returns EXIT_SUCCESS on success. Otherwise, returns EXIT_FAILURE on error.
  */
-extern int64_t read_size(socket_t *socket);
+extern int read_size(socket_t *socket, int64_t *size_ptr);
 
 #endif  // UTILS_NET_UTILS_H_

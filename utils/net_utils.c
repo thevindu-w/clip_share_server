@@ -510,17 +510,18 @@ int send_size(socket_t *socket, int64_t size) {
     return write_sock(socket, sz_buf, sizeof(sz_buf));
 }
 
-int64_t read_size(socket_t *socket) {
+int read_size(socket_t *socket, int64_t *size_ptr) {
     unsigned char sz_buf[8];
-    if (read_sock(socket, (char *)sz_buf, sizeof(sz_buf)) == EXIT_FAILURE) {
+    if (read_sock(socket, (char *)sz_buf, sizeof(sz_buf)) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         fputs("Read size failed\n", stderr);
 #endif
-        return -1;
+        return EXIT_FAILURE;
     }
     int64_t size = 0;
     for (unsigned i = 0; i < sizeof(sz_buf); i++) {
         size = (size << 8) | sz_buf[i];
     }
-    return size;
+    *size_ptr = size;
+    return EXIT_SUCCESS;
 }
