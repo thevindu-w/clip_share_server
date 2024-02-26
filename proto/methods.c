@@ -562,7 +562,7 @@ static int save_file(socket_t *socket, const char *dirname) {
 
 #if PATH_SEP != '/'
     // replace '/' with PATH_SEP
-    for (ssize_t ind = 0; ind < name_length; ind++) {
+    for (size_t ind = 0; ind < name_length; ind++) {
         if (file_name[ind] == '/') {
             file_name[ind] = PATH_SEP;
             if (ind > 0 && file_name[ind - 1] == PATH_SEP) return EXIT_FAILURE;  // "//" in path not allowed
