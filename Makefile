@@ -19,6 +19,8 @@ MAKEFLAGS += -j4
 PROGRAM_NAME=clip_share
 PROGRAM_NAME_WEB=clip_share_web
 
+MIN_PROTO=1
+MAX_PROTO=2
 INFO_NAME=clip_share
 
 CC=gcc
@@ -67,7 +69,7 @@ export LIBRARY_PATH=$(shell brew --prefix)/lib
 else
 $(error ClipShare is not supported on this platform!)
 endif
-CFLAGS+= -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=1 -DPROTOCOL_MAX=2
+CFLAGS+= -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=$(MIN_PROTO) -DPROTOCOL_MAX=$(MAX_PROTO)
 CFLAGS_OPTIM+= -Werror
 
 # append '_web' to objects for clip_share_web to prevent overwriting objects for clip_share
@@ -115,7 +117,7 @@ debug: $(DEBUG_OBJS) $(OTHER_DEPENDENCIES)
 web: $(PROGRAM_NAME_WEB)
 
 test: $(PROGRAM_NAME)
-	@chmod +x tests/run.sh && cd tests && ./run.sh $(PROGRAM_NAME)
+	@chmod +x tests/run.sh && cd tests && MIN_PROTO=$(MIN_PROTO) MAX_PROTO=$(MAX_PROTO) ./run.sh $(PROGRAM_NAME)
 
 check: test
 

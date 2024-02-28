@@ -54,6 +54,16 @@ if [ "$DETECTED_OS" = 'macOS' ]; then
     export LC_CTYPE='UTF-8'
 fi
 
+if [[ ! $MAX_PROTO =~ ^[0-9]+$ ]]; then
+    echo 'MAX_PROTO variable must be set to a valid protocol version'
+    exit 1
+fi
+
+if [[ ! $MIN_PROTO =~ ^[0-9]+$ ]]; then
+    echo 'MIN_PROTO variable must be set to a valid protocol version'
+    exit 1
+fi
+
 # Get the absolute path of clip_share executable
 program="$(realpath "../${program}")"
 
@@ -275,9 +285,10 @@ update_config() {
 # Define constants
 
 # Proto
-export PROTO_V1=$(printf '\x01' | bin2hex)
-export PROTO_V2=$(printf '\x02' | bin2hex)
-export PROTO_MAX_VERSION="$PROTO_V2"
+for v in $(seq 1 "$MAX_PROTO"); do
+    declare -r -x "PROTO_V$v"=$(printf '%02x' "$v")
+done
+export PROTO_MAX_VERSION="$(printf '%02x' "$MAX_PROTO")"
 
 # Methods
 export METHOD_GET_TEXT=$(printf '\x01' | bin2hex)
