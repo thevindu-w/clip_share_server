@@ -37,7 +37,7 @@
 #define STATUS_UNKNOWN_METHOD 3
 #define STATUS_METHOD_NOT_IMPLEMENTED 4
 
-#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+#if PROTOCOL_MIN <= 1
 
 int version_1(socket_t *socket) {
     unsigned char method;
@@ -134,7 +134,7 @@ int version_3(socket_t *socket) {
             return get_files_v3(socket);
         }
         case METHOD_SEND_FILE: {
-            return send_files_v2(socket);
+            return send_files_v3(socket);
         }
         case METHOD_GET_IMAGE: {
             return get_image_v1(socket);

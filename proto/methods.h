@@ -24,7 +24,7 @@
 // Version 1 methods
 extern int get_text_v1(socket_t *socket);
 extern int send_text_v1(socket_t *socket);
-#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+#if PROTOCOL_MIN <= 1
 extern int get_files_v1(socket_t *socket);
 extern int send_file_v1(socket_t *socket);
 #endif
@@ -40,6 +40,7 @@ extern int send_files_v2(socket_t *socket);
 // Version 3 methods
 #if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
 extern int get_files_v3(socket_t *socket);
+extern int send_files_v3(socket_t *socket);
 extern int get_copied_image_v3(socket_t *socket);
 extern int get_screenshot_v3(socket_t *socket);
 #endif

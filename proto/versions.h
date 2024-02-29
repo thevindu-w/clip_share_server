@@ -20,7 +20,7 @@
 
 #include <utils/net_utils.h>
 
-#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+#if PROTOCOL_MIN <= 1
 /*
  * Accepts a socket connection after the protocol version 1 is selected
  * after the negotiation phase.

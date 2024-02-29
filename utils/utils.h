@@ -186,7 +186,7 @@ extern int remove_file(const char *filename);
 
 #endif
 
-#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+#if PROTOCOL_MIN <= 1
 
 /*
  * Get a list of copied files from the clipboard.
@@ -197,7 +197,7 @@ extern list2 *get_copied_files(void);
 
 #endif
 
-#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
+#if (PROTOCOL_MIN <= 3) && (2 <= PROTOCOL_MAX)
 
 /*
  * Creates the directory given by the path and all its parent directories if missing.

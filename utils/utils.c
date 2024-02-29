@@ -250,7 +250,7 @@ int64_t convert_eol(char **str_p, int force_lf) {
     return _convert_to_lf(*str_p);
 }
 
-#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+#if PROTOCOL_MIN <= 1
 
 #if defined(__linux__) || defined(__APPLE__)
 
@@ -357,9 +357,9 @@ list2 *get_copied_files(void) {
 
 #endif
 
-#endif  // (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+#endif  // PROTOCOL_MIN <= 1
 
-#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
+#if (PROTOCOL_MIN <= 3) && (2 <= PROTOCOL_MAX)
 
 /*
  * Try to create the directory at path.
@@ -760,7 +760,7 @@ int remove_directory(const char *path) {
 
 #endif
 
-#endif  // (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
+#endif  // (PROTOCOL_MIN <= 3) && (2 <= PROTOCOL_MAX)
 
 #if defined(__linux__) || defined(__APPLE__)
 

@@ -63,9 +63,9 @@ static inline int _check_path(const char *path) {
 static int _get_files_common(int version, socket_t *socket, list2 *file_list, size_t path_len);
 
 /*
- * Common function to save files in send_files method of v1 and v2.
+ * Common function to save files in send_files method of v1, v2, and v3.
  */
-static int _save_file_common(socket_t *socket, const char *file_name);
+static int _save_file_common(int version, socket_t *socket, const char *file_name);
 
 /*
  * Common function to get image in v1 and v3.
@@ -73,11 +73,12 @@ static int _save_file_common(socket_t *socket, const char *file_name);
 static inline int _get_image_common(socket_t *socket, int mode);
 
 /*
- * Check if the file name is empty or has invalid characters \x00 to \x1f.
+ * Check if the file name is valid.
+ * A file name is valid only if it's a valid UTF-8 non-empty string, and contains no invalid characters \x00 to \x1f.
  * returns EXIT_SUCCESS if the file name is valid.
  * Otherwise, returns EXIT_FAILURE.
  */
-static inline int _is_valid_fname(const char *fname);
+static inline int _is_valid_fname(const char *fname, size_t name_length);
 
 static int _transfer_single_file(int version, socket_t *socket, const char *file_path, size_t path_len);
 
@@ -158,7 +159,7 @@ int send_text_v1(socket_t *socket) {
     return EXIT_SUCCESS;
 }
 
-static int _transfer_regular_file(socket_t *socket, const char *file_path, char *filename, size_t fname_len) {
+static int _transfer_regular_file(socket_t *socket, const char *file_path, const char *filename, size_t fname_len) {
     FILE *fp = open_file(file_path, "rb");
     if (!fp) {
         error("Couldn't open some files");
@@ -202,7 +203,7 @@ static int _transfer_regular_file(socket_t *socket, const char *file_path, char 
 }
 
 #if PROTOCOL_MAX >= 3
-static int _transfer_directory(socket_t *socket, char *filename, size_t fname_len) {
+static int _transfer_directory(socket_t *socket, const char *filename, size_t fname_len) {
     if (send_size(socket, (int64_t)fname_len) == EXIT_FAILURE) {
         return EXIT_FAILURE;
     }
@@ -220,7 +221,7 @@ static int _transfer_directory(socket_t *socket, char *filename, size_t fname_le
 static int _transfer_single_file(int version, socket_t *socket, const char *file_path, size_t path_len) {
     const char *tmp_fname;
     switch (version) {
-#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+#if PROTOCOL_MIN <= 1
         case 1: {
             tmp_fname = strrchr(file_path, PATH_SEP);
             if (tmp_fname == NULL) {
@@ -316,13 +317,24 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
     return EXIT_SUCCESS;
 }
 
-static int _save_file_common(socket_t *socket, const char *file_name) {
+static int _save_file_common(int version, socket_t *socket, const char *file_name) {
     int64_t file_size;
     if (read_size(socket, &file_size) != EXIT_SUCCESS) return EXIT_FAILURE;
 #ifdef DEBUG_MODE
     printf("data len = %lli\n", (long long)file_size);
 #endif
-    if (file_size < 0 || file_size > configuration.max_file_size) {
+    if (file_size > configuration.max_file_size) {
+        return EXIT_FAILURE;
+    }
+
+#if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
+    if (file_size == -1 && version == 3) {
+        return mkdirs(file_name);
+    }
+#else
+    (void)version;
+#endif
+    if (file_size < 0) {
         return EXIT_FAILURE;
     }
 
@@ -359,7 +371,13 @@ static int _save_file_common(socket_t *socket, const char *file_name) {
     return EXIT_SUCCESS;
 }
 
-static inline int _is_valid_fname(const char *fname) {
+static inline int _is_valid_fname(const char *fname, size_t name_length) {
+    if (u8_check((const uint8_t *)fname, name_length)) {
+#ifdef DEBUG_MODE
+        fputs("Invalid UTF-8\n", stderr);
+#endif
+        return EXIT_FAILURE;
+    }
     do {
         if ((unsigned char)*fname < 32) return EXIT_FAILURE;
         fname++;
@@ -367,7 +385,7 @@ static inline int _is_valid_fname(const char *fname) {
     return EXIT_SUCCESS;
 }
 
-#if (PROTOCOL_MIN <= 1) && (1 <= PROTOCOL_MAX)
+#if PROTOCOL_MIN <= 1
 /*
  * Get only the base name.
  * Path seperator is assumed to be '/' regardless of the platform.
@@ -430,13 +448,7 @@ int send_file_v1(socket_t *socket) {
         return EXIT_FAILURE;
     }
     file_name[name_length] = 0;
-    if (u8_check((uint8_t *)file_name, (size_t)name_length)) {
-#ifdef DEBUG_MODE
-        fputs("Invalid UTF-8\n", stderr);
-#endif
-        return EXIT_FAILURE;
-    }
-    if (_is_valid_fname(file_name) != EXIT_SUCCESS) {
+    if (_is_valid_fname(file_name, (size_t)name_length) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         printf("Invalid filename \'%s\'\n", file_name);
 #endif
@@ -451,7 +463,7 @@ int send_file_v1(socket_t *socket) {
     // if file already exists, use a different file name
     if (_rename_if_exists(file_name, name_max_len) != EXIT_SUCCESS) return EXIT_FAILURE;
 
-    return _save_file_common(socket, file_name);
+    return _save_file_common(1, socket, file_name);
 }
 #endif
 
@@ -506,7 +518,7 @@ int info_v1(socket_t *socket) {
     return EXIT_SUCCESS;
 }
 
-#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
+#if (PROTOCOL_MIN <= 3) && (2 <= PROTOCOL_MAX)
 /*
  * Make parent directories for path
  */
@@ -522,13 +534,7 @@ static inline int _make_directories(const char *path) {
     return EXIT_SUCCESS;
 }
 
-int get_files_v2(socket_t *socket) {
-    dir_files copied_dir_files;
-    get_copied_dirs_files(&copied_dir_files, 0);
-    return _get_files_common(2, socket, copied_dir_files.lst, copied_dir_files.path_len);
-}
-
-static int save_file(socket_t *socket, const char *dirname) {
+static int save_file(int version, socket_t *socket, const char *dirname) {
     int64_t fname_size;
     if (read_size(socket, &fname_size) != EXIT_SUCCESS) return EXIT_FAILURE;
 #ifdef DEBUG_MODE
@@ -539,7 +545,7 @@ static int save_file(socket_t *socket, const char *dirname) {
 
     const uint64_t name_length = (uint64_t)fname_size;
     char file_name[name_length + 1];
-    if (read_sock(socket, file_name, (size_t)name_length) != EXIT_SUCCESS) {
+    if (read_sock(socket, file_name, name_length) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         fputs("Read file name failed\n", stderr);
 #endif
@@ -547,13 +553,7 @@ static int save_file(socket_t *socket, const char *dirname) {
     }
 
     file_name[name_length] = 0;
-    if (u8_check((uint8_t *)file_name, (size_t)name_length)) {
-#ifdef DEBUG_MODE
-        fputs("Invalid UTF-8\n", stderr);
-#endif
-        return EXIT_FAILURE;
-    }
-    if (_is_valid_fname(file_name) != EXIT_SUCCESS) {
+    if (_is_valid_fname(file_name, name_length) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         printf("Invalid filename \'%s\'\n", file_name);
 #endif
@@ -572,10 +572,9 @@ static int save_file(socket_t *socket, const char *dirname) {
 
     char new_path[name_length + 20];
     if (file_name[0] == PATH_SEP) {
-        if (snprintf_check(new_path, (size_t)(name_length + 20), "%s%s", dirname, file_name)) return EXIT_FAILURE;
+        if (snprintf_check(new_path, name_length + 20, "%s%s", dirname, file_name)) return EXIT_FAILURE;
     } else {
-        if (snprintf_check(new_path, (size_t)(name_length + 20), "%s%c%s", dirname, PATH_SEP, file_name))
-            return EXIT_FAILURE;
+        if (snprintf_check(new_path, name_length + 20, "%s%c%s", dirname, PATH_SEP, file_name)) return EXIT_FAILURE;
     }
 
     // path must not contain /../ (goto parent dir)
@@ -587,7 +586,7 @@ static int save_file(socket_t *socket, const char *dirname) {
     // check if file exists
     if (file_exists(new_path)) return EXIT_FAILURE;
 
-    return _save_file_common(socket, new_path);
+    return _save_file_common(version, socket, new_path);
 }
 
 static int _check_and_rename(const char *filename, const char *dirname) {
@@ -624,7 +623,7 @@ static int _check_and_rename(const char *filename, const char *dirname) {
     return EXIT_SUCCESS;
 }
 
-int send_files_v2(socket_t *socket) {
+static int _send_files_dirs(int version, socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
     int64_t cnt;
     if (read_size(socket, &cnt) != EXIT_SUCCESS) return EXIT_FAILURE;
@@ -639,7 +638,7 @@ int send_files_v2(socket_t *socket) {
     if (mkdirs(dirname) != EXIT_SUCCESS) return EXIT_FAILURE;
 
     for (int64_t file_num = 0; file_num < cnt; file_num++) {
-        if (save_file(socket, dirname) != EXIT_SUCCESS) {
+        if (save_file(version, socket, dirname) != EXIT_SUCCESS) {
             return EXIT_FAILURE;
         }
     }
@@ -657,6 +656,16 @@ int send_files_v2(socket_t *socket) {
 
 #endif
 
+#if (PROTOCOL_MIN <= 2) && (2 <= PROTOCOL_MAX)
+int get_files_v2(socket_t *socket) {
+    dir_files copied_dir_files;
+    get_copied_dirs_files(&copied_dir_files, 0);
+    return _get_files_common(2, socket, copied_dir_files.lst, copied_dir_files.path_len);
+}
+
+int send_files_v2(socket_t *socket) { return _send_files_dirs(2, socket); }
+#endif
+
 #if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
 
 int get_copied_image_v3(socket_t *socket) { return _get_image_common(socket, IMG_COPIED_ONLY); }
@@ -668,5 +677,7 @@ int get_files_v3(socket_t *socket) {
     get_copied_dirs_files(&copied_dir_files, 1);
     return _get_files_common(2, socket, copied_dir_files.lst, copied_dir_files.path_len);
 }
+
+int send_files_v3(socket_t *socket) { return _send_files_dirs(3, socket); }
 
 #endif
