@@ -30,16 +30,20 @@
 #ifdef __linux__
 #include <ctype.h>
 #include <dirent.h>
+#include <pwd.h>
 #include <signal.h>
 #include <sys/wait.h>
 #elif defined(_WIN32)
 #include <openssl/md5.h>
+#include <processthreadsapi.h>
 #include <shellapi.h>
 #include <tlhelp32.h>
+#include <userenv.h>
 #include <winres/resource.h>
 #elif defined(__APPLE__)
 #include <errno.h>
 #include <libproc.h>
+#include <pwd.h>
 #include <signal.h>
 #include <sys/sysctl.h>
 #endif
@@ -58,12 +62,15 @@
 #define MAX_FILE_SIZE 68719476736l  // 64 GiB
 
 #define ERROR_LOG_FILE "server_err.log"
+#define CONFIG_FILE "clipshare.conf"
 
 config configuration;
 char *error_log_file = NULL;
 
 static void print_usage(const char *);
 static void kill_other_processes(const char *);
+static char *get_user_home(void);
+static char *get_conf_file(void);
 
 static void print_usage(const char *prog_name) {
 #ifdef _WIN32
@@ -404,6 +411,40 @@ static LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wParam, LPARAM 
     return DefWindowProc(window, msg, wParam, lParam);
 }
 
+static char *get_user_home(void) {
+    DWORD pid = GetCurrentProcessId();
+    HANDLE procHndl = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    HANDLE token;
+    if (!OpenProcessToken(procHndl, TOKEN_QUERY, &token)) {
+        CloseHandle(procHndl);
+        return NULL;
+    }
+    DWORD wlen;
+    GetUserProfileDirectoryW(token, NULL, &wlen);
+    CloseHandle(token);
+    if (wlen >= 512) return NULL;
+    wchar_t whome[wlen];
+    if (!OpenProcessToken(procHndl, TOKEN_QUERY, &token)) {
+        CloseHandle(procHndl);
+        return NULL;
+    }
+    if (!GetUserProfileDirectoryW(token, whome, &wlen)) {
+        CloseHandle(procHndl);
+        CloseHandle(token);
+        return NULL;
+    }
+    CloseHandle(token);
+    CloseHandle(procHndl);
+    char *home = NULL;
+    int len;
+    if (!wchar_to_utf8_str(whome, &home, &len) == EXIT_SUCCESS) return NULL;
+    if (len >= 512 && home) {
+        free(home);
+        return NULL;
+    }
+    return home;
+}
+
 #elif defined(__APPLE__)
 
 static void kill_other_processes(const char *prog_name) {
@@ -465,6 +506,39 @@ static void kill_other_processes(const char *prog_name) {
 
 #endif
 
+#if defined(__linux__) || defined(__APPLE__)
+
+static char *get_user_home(void) {
+    const char *home = getenv("HOME");
+    if (!home) {
+        struct passwd pw;
+        struct passwd *result = NULL;
+        const size_t buf_sz = 2048;
+        char buf[buf_sz];
+        if (getpwuid_r(getuid(), &pw, buf, buf_sz, &result) || result == NULL) return NULL;
+        home = result->pw_dir;
+    }
+    if (home) return strndup(home, 512);
+    return NULL;
+}
+
+#endif
+
+static char *get_conf_file(void) {
+    if (file_exists(CONFIG_FILE)) return strdup(CONFIG_FILE);
+
+    char *home = get_user_home();
+    if (!home) return NULL;
+    size_t home_len = strnlen(home, 512);
+    char *conf_path = realloc(home, home_len + sizeof(CONFIG_FILE) + 3);
+    if (!conf_path) {
+        free(home);
+        return NULL;
+    }
+    snprintf(conf_path + home_len, sizeof(CONFIG_FILE) + 2, "%c%s", PATH_SEP, CONFIG_FILE);
+    return conf_path;
+}
+
 /*
  * The main entrypoint of the application
  */
@@ -482,18 +556,23 @@ int main(int argc, char **argv) {
 
     _set_error_log_file(ERROR_LOG_FILE);
 
-    parse_conf(&configuration, "clipshare.conf");
-    _apply_default_conf();
-
-    int stop = 0;
-    // Parse command line arguments
-    _parse_args(argc, argv, &stop);
-
 #ifdef _WIN32
     // initialize instance and guid
     instance = GetModuleHandle(NULL);
     setGUID();
 #endif
+
+    char *conf_path = get_conf_file();
+    if (!conf_path) {
+        exit(EXIT_FAILURE);
+    }
+    parse_conf(&configuration, conf_path);
+    free(conf_path);
+    _apply_default_conf();
+
+    int stop = 0;
+    // Parse command line arguments
+    _parse_args(argc, argv, &stop);
 
     /* stop other instances of this process if any.
     Stop this process if stop flag is set */

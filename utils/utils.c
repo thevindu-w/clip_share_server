@@ -43,7 +43,6 @@ static inline char hex2char(char h);
 static int url_decode(char *);
 #elif defined(_WIN32)
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p);
-static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p);
 static inline void _wappend(list2 *lst, const wchar_t *wstr);
 #endif
 
@@ -56,6 +55,7 @@ int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
 }
 
 void error(const char *msg) {
+    if (!error_log_file) return;
 #ifdef DEBUG_MODE
     fprintf(stderr, "%s\n", msg);
 #endif
@@ -922,7 +922,7 @@ static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p)
     return EXIT_SUCCESS;
 }
 
-static int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p) {
+int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p) {
     int len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
     if (len <= 0) return EXIT_FAILURE;
     char *str = malloc((size_t)len);

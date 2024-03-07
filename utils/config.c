@@ -341,9 +341,6 @@ void parse_conf(config *cfg, const char *file_name) {
 
     FILE *f = fopen(file_name, "r");
     if (!f) {
-#ifdef DEBUG_MODE
-        printf("Error opening conf file\n");
-#endif
         puts("Using default configurations");
         return;
     }

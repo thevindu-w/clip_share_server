@@ -184,6 +184,8 @@ extern FILE *open_file(const char *filename, const char *mode);
  */
 extern int remove_file(const char *filename);
 
+extern int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p);
+
 #endif
 
 #if PROTOCOL_MIN <= 1
