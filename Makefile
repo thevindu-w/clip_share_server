@@ -121,10 +121,9 @@ test: $(PROGRAM_NAME)
 
 check: test
 
-install: $(PROGRAM_NAME)
+install: $(PROGRAM_NAME) helper_tools/install.sh
 	@echo
-	@echo "No need to install. Just move the $(PROGRAM_NAME) to anywhere and run it."
-	@echo
+	@chmod +x helper_tools/install.sh && helper_tools/install.sh
 
 clean:
 	$(RM) $(OBJS) $(OBJS_M) $(WEB_OBJS) $(DEBUG_OBJS)
