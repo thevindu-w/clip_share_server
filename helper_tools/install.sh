@@ -3,8 +3,8 @@
 set -e
 
 if [ "$(id -u)" = 0 ]; then
-	echo 'Do not run install with sudo.'
-	echo 'Aborted.'
+    echo 'Do not run install with sudo.'
+    echo 'Aborted.'
     exit 1
 fi
 
