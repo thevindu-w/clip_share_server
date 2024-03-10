@@ -37,6 +37,9 @@ jobs:
         version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
         echo ARCHIVE_NAME="clip_share_server-${version}-linux_x86_64.tar.gz" >> $GITHUB_ENV
 
+    - name: Build on Ubuntu 18
+      run: docker build -t clipshare:ubuntu18 -f docker/release/Dockerfile.ubuntu18 .
+
     - name: Build on Ubuntu 20
       run: docker build -t clipshare:ubuntu20 -f docker/release/Dockerfile.ubuntu20 .
 
@@ -53,6 +56,7 @@ jobs:
       run: |
         mkdir dist
         chmod 777 dist
+        docker run -v './dist:/home/user/src/dist' clipshare:ubuntu18
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu20
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu22
         docker run -v './dist:/home/user/src/dist' clipshare:arch
