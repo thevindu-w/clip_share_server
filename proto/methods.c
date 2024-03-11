@@ -469,7 +469,7 @@ int send_file_v1(socket_t *socket) {
     char *cwd = getcwd_wrapper(0);
     if (!cwd) return EXIT_FAILURE;
     size_t cwd_len = strnlen(cwd, 2048);
-    char *path = (char *)realloc(cwd ,cwd_len + name_max_len + 2); // for PATH_SEP and null terminator
+    char *path = (char *)realloc(cwd, cwd_len + name_max_len + 2);  // for PATH_SEP and null terminator
     path[cwd_len++] = PATH_SEP;
     strncpy(path + cwd_len, file_name, name_max_len + 1);
     list2 *files = init_list(1);
