@@ -201,12 +201,10 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
         return EXIT_FAILURE;
     }
 
-    // Xmu
-
     /* parse selection command line option */
     options.sseln = XA_CLIPBOARD(options.dpy);
 
-    /* parse noutf8 and target command line options */
+    /* parse target options */
     if (atom_name == NULL) {
         options.target = XA_UTF8_STRING(options.dpy);
     } else {

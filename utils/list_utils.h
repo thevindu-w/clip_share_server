@@ -28,7 +28,7 @@ typedef struct _list {
 } list2;
 
 /*
- * Initialize a list2 with initial size len
+ * Initialize a list2 with initial capacity len
  * returns NULL on error
  */
 extern list2 *init_list(size_t len);

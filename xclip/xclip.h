@@ -6,12 +6,12 @@
 
 /*
  * Get or set clipboard data
- * Allocates a memory buffer and set the pointer in get mode.
- * Reads data from the provided memory buffer in set mode.
- * Gets or sets the size of the buffer in bytes.
+ * Allocates a memory buffer and set the pointer to buf_ptr in get mode.
+ * Reads data from the provided memory buffer pointed by buf_ptr in set mode.
+ * Gets or sets the size of the buffer in bytes from/to len_ptr.
  * Returns 0 on success.
  * Returns -1 if an error occured.
  */
-extern int xclip_util(int, const char *, unsigned long *, char **);
+extern int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf_ptr);
 
 #endif  // XCLIP_XCLIP_H_

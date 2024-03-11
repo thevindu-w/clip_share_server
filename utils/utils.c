@@ -41,6 +41,7 @@
 #if defined(__linux__) || defined(__APPLE__)
 static inline char hex2char(char h);
 static int url_decode(char *);
+static unsigned int url_encode(char *, char **url_p);
 #elif defined(_WIN32)
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p);
 static inline void _wappend(list2 *lst, const wchar_t *wstr);
@@ -800,6 +801,47 @@ static int url_decode(char *str) {
     return EXIT_SUCCESS;
 }
 
+static unsigned int url_encode(char *str, char **url_p) {
+    unsigned int url_len = 1;  // 1 for null terminator
+    char *p = str;
+    while (*p) {
+        if (('a' <= *p && *p <= 'z') || ('@' <= *p && *p <= 'Z') || ('&' <= *p && *p <= ':') || *p == '_' ||
+            *p == '=' || *p == '!' || *p == '~') {
+            url_len++;
+        } else {
+            url_len += 3;
+        }
+        p++;
+    }
+    char *url = (char *)malloc(url_len);
+    if (!url) return 0;
+    p = url;
+    while (*str) {
+        if (('a' <= *str && *str <= 'z') || ('@' <= *str && *str <= 'Z') || ('&' <= *str && *str <= ':') ||
+            *str == '_' || *str == '=' || *str == '!' || *p == '~') {
+            *p++ = *str;
+        } else {
+            *p++ = '%';
+            unsigned char c = *(unsigned char *)str;
+            unsigned a = c >> 4;  // first 4 bits
+            if (a < 10)
+                a += '0';
+            else
+                a += 55;  // 55 = 'A' - 10;
+            *p++ = (char)a;
+            a = c & 0xf;  // last 4 bits
+            if (a < 10)
+                a += '0';
+            else
+                a += 55;  // 55 = 'A' - 10;
+            *p++ = (char)a;
+        }
+        str++;
+    }
+    *p = 0;
+    *url_p = url;
+    return url_len - 1;  // without null terminator
+}
 #endif
 
 #ifdef __linux__
@@ -906,6 +948,38 @@ char *get_copied_files_as_str(int *offset) {
     }
     *offset = (int)(file_path - fnames) + 1;
     return fnames;
+}
+
+int set_clipboard_cut_files(list2 *paths) {
+    list2 *lst_url = init_list(paths->len);
+    size_t tot_len = 4;  // "cut" + null terminator
+    for (size_t i = 0; i < paths->len; i++) {
+        char *url;
+        unsigned int len = url_encode((char *)(paths->array[i]), &url);
+        if (len == 0) continue;
+        tot_len += len + 8;  // 1 for \n and 7 for "file://"
+        append(lst_url, url);
+    }
+    char *buf = (char *)malloc(tot_len);
+    if (!buf) {
+        free_list(lst_url);
+        return EXIT_FAILURE;
+    }
+    strncpy(buf, "cut", 4);
+    char *p = buf + 3;
+    for (size_t i = 0; i < lst_url->len; i++) {
+        strncpy(p, "\nfile://", 9);
+        p += 8;
+        char *url = lst_url->array[i];
+        size_t len = strnlen(url, 4096);
+        strncpy(p, url, len + 1);
+        p += len;
+    }
+    *p = 0;
+    free_list(lst_url);
+    xclip_util(XCLIP_IN, "x-special/gnome-copied-files", &tot_len, &buf);
+    free(buf);
+    return EXIT_SUCCESS;
 }
 
 #elif defined(_WIN32)
