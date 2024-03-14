@@ -825,7 +825,8 @@ int put_clipboard_text(char *data, size_t len) {
     return EXIT_SUCCESS;
 }
 
-int get_image(char **buf_ptr, size_t *len_ptr, int mode) {
+int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
+    (void)disp;
     *buf_ptr = NULL;
 
     // Try to get copied image unless the mode is screenshot only
@@ -1116,13 +1117,14 @@ int put_clipboard_text(char *data, size_t len) {
     return (res == NULL ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
-int get_image(char **buf_ptr, size_t *len_ptr, int mode) {
+int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
     if (mode != IMG_SCRN_ONLY) {
         getCopiedImage(buf_ptr, len_ptr);
         if (*len_ptr > 8) return EXIT_SUCCESS;
     }
     if (mode != IMG_COPIED_ONLY) {
-        screenCapture(buf_ptr, len_ptr);
+        if (disp <= 0 || !configuration.client_selects_display) disp = (int)configuration.display;
+        screenCapture(buf_ptr, len_ptr, disp);
         if (*len_ptr > 8) return EXIT_SUCCESS;
     }
     return EXIT_FAILURE;

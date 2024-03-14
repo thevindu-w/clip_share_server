@@ -70,7 +70,7 @@ static int _save_file_common(int version, socket_t *socket, const char *file_nam
 /*
  * Common function to get image in v1 and v3.
  */
-static inline int _get_image_common(socket_t *socket, int mode);
+static inline int _get_image_common(socket_t *socket, int mode, int disp);
 
 /*
  * Check if the file name is valid.
@@ -480,10 +480,10 @@ int send_file_v1(socket_t *socket) {
 }
 #endif
 
-static inline int _get_image_common(socket_t *socket, int mode) {
+static inline int _get_image_common(socket_t *socket, int mode, int disp) {
     size_t length = 0;
     char *buf = NULL;
-    if (get_image(&buf, &length, mode) == EXIT_FAILURE || length == 0 ||
+    if (get_image(&buf, &length, mode, disp) == EXIT_FAILURE || length == 0 ||
         length > MAX_IMAGE_SIZE) {  // do not change the order
 #ifdef DEBUG_MODE
         printf("get image failed. len = %zu\n", length);
@@ -511,7 +511,7 @@ static inline int _get_image_common(socket_t *socket, int mode) {
     return EXIT_SUCCESS;
 }
 
-int get_image_v1(socket_t *socket) { return _get_image_common(socket, IMG_ANY); }
+int get_image_v1(socket_t *socket) { return _get_image_common(socket, IMG_ANY, -1); }
 
 int info_v1(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
@@ -680,10 +680,14 @@ int send_files_v2(socket_t *socket) { return _send_files_dirs(2, socket); }
 #endif
 
 #if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
+int get_copied_image_v3(socket_t *socket) { return _get_image_common(socket, IMG_COPIED_ONLY, -1); }
 
-int get_copied_image_v3(socket_t *socket) { return _get_image_common(socket, IMG_COPIED_ONLY); }
-
-int get_screenshot_v3(socket_t *socket) { return _get_image_common(socket, IMG_SCRN_ONLY); }
+int get_screenshot_v3(socket_t *socket) {
+    int64_t disp;
+    if (read_size(socket, &disp) != EXIT_SUCCESS) return EXIT_FAILURE;
+    if (disp <= 0 || disp > 65536) disp = -1;
+    return _get_image_common(socket, IMG_SCRN_ONLY, (int)disp);
+}
 
 int get_files_v3(socket_t *socket) {
     dir_files copied_dir_files;
@@ -692,5 +696,4 @@ int get_files_v3(socket_t *socket) {
 }
 
 int send_files_v3(socket_t *socket) { return _send_files_dirs(3, socket); }
-
 #endif

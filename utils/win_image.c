@@ -48,6 +48,7 @@ typedef struct _buf_len_ptr {
 } buf_len_ptr;
 
 static unsigned short current_display;
+static unsigned short selected_display;
 
 static int write_png_to_mem(RGBBitmap *, char **, size_t *);
 static void write_image(HBITMAP, char **, size_t *);
@@ -112,7 +113,7 @@ static void write_image(HBITMAP hBitmap3, char **buf_ptr, size_t *len_ptr) {
 
 static BOOL CALLBACK enumCallback(HMONITOR monitor, HDC hdcSource, LPRECT lprect, LPARAM lparam) {
     (void)lprect;
-    if (current_display++ != configuration.display) return TRUE;
+    if (current_display++ != selected_display) return TRUE;
 
     MONITORINFO info;
     info.cbSize = sizeof(MONITORINFO);
@@ -137,10 +138,12 @@ static BOOL CALLBACK enumCallback(HMONITOR monitor, HDC hdcSource, LPRECT lprect
     return TRUE;
 }
 
-void screenCapture(char **buf_ptr, size_t *len_ptr) {
+void screenCapture(char **buf_ptr, size_t *len_ptr, int disp) {
     HDC hdcSource = GetDC(NULL);
     buf_len_ptr buf_len = {.buf_ptr = buf_ptr, .len_ptr = len_ptr};
     current_display = 1;
+    // TODO(thevindu-w): prevent multiple threads modifying selected_display variable
+    selected_display = (unsigned short)disp;
     if (EnumDisplayMonitors(hdcSource, NULL, enumCallback, (LPARAM)&buf_len) == 0) {
         if (*buf_ptr) free(*buf_ptr);
         *buf_ptr = NULL;

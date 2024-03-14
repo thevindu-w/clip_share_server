@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 
-extern void screenCapture(char **, size_t *);
+extern void screenCapture(char **, size_t *, int);
 extern void getCopiedImage(char **, size_t *);
 
 #endif

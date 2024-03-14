@@ -42,6 +42,8 @@ typedef struct _config {
     char restart;
     uint32_t max_text_length;
     int64_t max_file_size;
+
+    char client_selects_display;
 #ifdef _WIN32
     char tray_icon;
 #endif

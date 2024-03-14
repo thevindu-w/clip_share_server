@@ -30,7 +30,7 @@
 #error This file must be compiled with ARC.
 #endif
 
-static inline CGDirectDisplayID get_display_id(void);
+static inline CGDirectDisplayID get_display_id(int disp);
 static inline NSBitmapImageRep *get_copied_image(void);
 
 int get_clipboard_text(char **bufptr, size_t *lenptr) {
@@ -111,27 +111,29 @@ static inline NSBitmapImageRep *get_copied_image(void) {
     return imgRep;
 }
 
-static inline CGDirectDisplayID get_display_id(void) {
+static inline CGDirectDisplayID get_display_id(int disp) {
     CGDirectDisplayID disp_ids[65536];
     uint32_t disp_cnt;
     if (CGGetOnlineDisplayList(65536, disp_ids, &disp_cnt)) {
         return CGMainDisplayID();
     }
-    if (disp_cnt >= configuration.display) {
-        return disp_ids[configuration.display - 1];
+    if (disp_cnt >= (uint32_t)disp) {
+        return disp_ids[disp - 1];
     }
     return CGMainDisplayID();
 }
 
-int get_image(char **buf_ptr, size_t *len_ptr, int mode) {
+int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
     *len_ptr = 0;
     *buf_ptr = NULL;
-    NSBitmapImageRep *bitmap;
+    NSBitmapImageRep *bitmap = NULL;
     if (mode != IMG_SCRN_ONLY) {
         bitmap = get_copied_image();
     }
     if (mode != IMG_COPIED_ONLY && !bitmap) {
-        CGImageRef screenshot = CGDisplayCreateImage(get_display_id());
+        // If configured to force use the display from conf, override the disp value
+        if (disp <= 0 || !configuration.client_selects_display) disp = (int)configuration.display;
+        CGImageRef screenshot = CGDisplayCreateImage(get_display_id(disp));
         if (!screenshot) return EXIT_FAILURE;
         bitmap = [[NSBitmapImageRep alloc] initWithCGImage:screenshot];
         CGImageRelease(screenshot);

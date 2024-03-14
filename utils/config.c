@@ -286,6 +286,8 @@ static void parse_line(char *line, config *cfg) {
         set_uint32(value, &(cfg->max_text_length));
     } else if (!strcmp("max_file_size", key)) {
         set_int64(value, &(cfg->max_file_size));
+    } else if (!strcmp("client_selects_display", key)) {
+        set_is_true(value, &(cfg->client_selects_display));
 #ifdef _WIN32
     } else if (!strcmp("tray_icon", key)) {
         set_is_true(value, &(cfg->tray_icon));
@@ -323,6 +325,7 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->restart = -1;
     cfg->max_text_length = 0;
     cfg->max_file_size = 0;
+    cfg->client_selects_display = -1;
 #ifdef _WIN32
     cfg->tray_icon = -1;
 #endif
