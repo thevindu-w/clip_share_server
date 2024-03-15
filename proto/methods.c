@@ -466,12 +466,12 @@ int send_file_v1(socket_t *socket) {
     if (_save_file_common(1, socket, file_name) != EXIT_SUCCESS) return EXIT_FAILURE;
     close_socket(socket);
 
-    char *cwd = getcwd_wrapper(0);
-    if (!cwd) return EXIT_FAILURE;
-    size_t cwd_len = strnlen(cwd, 2048);
-    char *path = (char *)realloc(cwd, cwd_len + name_max_len + 2);  // for PATH_SEP and null terminator
-    path[cwd_len++] = PATH_SEP;
-    strncpy(path + cwd_len, file_name, name_max_len + 1);
+    char *path = (char *)malloc(cwd_len + name_max_len + 2);  // for PATH_SEP and null terminator
+    strncpy(path, cwd, cwd_len + 1);
+    size_t p_len = cwd_len;
+    path[p_len++] = PATH_SEP;
+    strncpy(path + p_len, file_name, name_max_len + 1);
+    path[cwd_len + name_max_len + 1] = 0;
     list2 *files = init_list(1);
     append(files, path);
     set_clipboard_cut_files(files);
@@ -602,38 +602,46 @@ static int save_file(int version, socket_t *socket, const char *dirname) {
     return _save_file_common(version, socket, new_path);
 }
 
-static int _check_and_rename(const char *filename, const char *dirname) {
+static char *_check_and_rename(const char *filename, const char *dirname) {
     const size_t name_len = strnlen(filename, MAX_FILE_NAME_LENGTH);
     if (name_len > MAX_FILE_NAME_LENGTH) {
         error("Too long file name.");
-        return EXIT_FAILURE;
+        return NULL;
     }
-    char old_path[name_len + 20];
-    if (snprintf_check(old_path, name_len + 20, "%s%c%s", dirname, PATH_SEP, filename)) return EXIT_FAILURE;
+    const size_t name_max_len = name_len + 20;
+    char old_path[name_max_len];
+    if (snprintf_check(old_path, name_max_len, "%s%c%s", dirname, PATH_SEP, filename)) return NULL;
 
-    char new_path[name_len + 20];
+    char new_path[name_max_len];
     if (configuration.working_dir != NULL || strcmp(filename, "clipshare.conf")) {
         // "./" is important to prevent file names like "C:\path"
-        if (snprintf_check(new_path, name_len + 20, ".%c%s", PATH_SEP, filename)) return EXIT_FAILURE;
+        if (snprintf_check(new_path, name_max_len, ".%c%s", PATH_SEP, filename)) return NULL;
     } else {
         // do not create file named clipshare.conf. "./" is important to prevent file names like "C:\path"
-        if (snprintf_check(new_path, name_len + 20, ".%c1_%s", PATH_SEP, filename)) return EXIT_FAILURE;
+        if (snprintf_check(new_path, name_max_len, ".%c1_%s", PATH_SEP, filename)) return NULL;
     }
 
     // if new_path already exists, use a different file name
     int n = 1;
     while (file_exists(new_path)) {
-        if (n > 999999) return EXIT_FAILURE;
-        if (snprintf_check(new_path, name_len + 20, ".%c%i_%s", PATH_SEP, n++, filename)) return EXIT_FAILURE;
+        if (n > 999999) return NULL;
+        if (snprintf_check(new_path, name_max_len, ".%c%i_%s", PATH_SEP, n++, filename)) return NULL;
     }
 
     if (rename_file(old_path, new_path)) {
 #ifdef DEBUG_MODE
         printf("Rename failed : %s\n", new_path);
 #endif
-        return EXIT_FAILURE;
+        return NULL;
     }
-    return EXIT_SUCCESS;
+
+    char *path = (char *)malloc(cwd_len + name_max_len + 2);  // for PATH_SEP and null terminator
+    strncpy(path, cwd, cwd_len + 1);
+    size_t p_len = cwd_len;
+    path[p_len++] = PATH_SEP;
+    strncpy(path + p_len, new_path + 2, name_max_len + 1);  // +2 for ./ (new_path always starts with ./)
+    path[cwd_len + name_max_len + 1] = 0;
+    return path;
 }
 
 static int _send_files_dirs(int version, socket_t *socket) {
@@ -655,15 +663,27 @@ static int _send_files_dirs(int version, socket_t *socket) {
             return EXIT_FAILURE;
         }
     }
+    close_socket(socket);
     list2 *files = list_dir(dirname);
     if (!files) return EXIT_FAILURE;
     int status = EXIT_SUCCESS;
+    list2 *dest_files = init_list(files->len);
+    if (!dest_files) {
+        free_list(files);
+        return EXIT_FAILURE;
+    }
     for (size_t i = 0; i < files->len; i++) {
         const char *filename = files->array[i];
-        if (_check_and_rename(filename, dirname) != EXIT_SUCCESS) status = EXIT_FAILURE;
+        char *new_path = _check_and_rename(filename, dirname);
+        if (new_path)
+            append(dest_files, new_path);
+        else
+            status = EXIT_FAILURE;
     }
     free_list(files);
     if (status == EXIT_SUCCESS && remove_directory(dirname)) status = EXIT_FAILURE;
+    if (status == EXIT_SUCCESS && set_clipboard_cut_files(dest_files) != EXIT_SUCCESS) status = EXIT_FAILURE;
+    free_list(dest_files);
     return status;
 }
 

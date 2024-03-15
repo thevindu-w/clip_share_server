@@ -79,6 +79,7 @@ void error_exit(const char *msg) {
     error(msg);
     if (error_log_file) free(error_log_file);
     clear_config(&configuration);
+    if (cwd) free(cwd);
     exit(1);
 }
 
@@ -925,7 +926,7 @@ static unsigned int url_encode(char *str, char **url_p) {
     p = url;
     while (*str) {
         if (('a' <= *str && *str <= 'z') || ('@' <= *str && *str <= 'Z') || ('&' <= *str && *str <= ':') ||
-            *str == '_' || *str == '=' || *str == '!' || *p == '~') {
+            *str == '_' || *str == '=' || *str == '!' || *str == '~') {
             *p++ = *str;
         } else {
             *p++ = '%';

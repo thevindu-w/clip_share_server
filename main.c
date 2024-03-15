@@ -66,6 +66,8 @@
 
 config configuration;
 char *error_log_file = NULL;
+char *cwd = NULL;
+size_t cwd_len = 0;
 
 static void print_usage(const char *);
 static void kill_other_processes(const char *);
@@ -158,15 +160,15 @@ static inline void _change_working_dir(void) {
         char err[3072];
         snprintf_check(err, 3072, "Failed changing working directory to \'%s\'", configuration.working_dir);
         fprintf(stderr, "%s\n", err);
-        free(old_work_dir);
+        if (old_work_dir) free(old_work_dir);
         error_exit(err);
     }
     char *new_work_dir = getcwd_wrapper(0);
     if (old_work_dir == NULL || new_work_dir == NULL) {
         const char *err = "Error occured during changing working directory.";
         fprintf(stderr, "%s\n", err);
-        free(old_work_dir);
-        free(new_work_dir);
+        if (old_work_dir) free(old_work_dir);
+        if (new_work_dir) free(new_work_dir);
         error_exit(err);
     }
     // if the working directory did not change, set configuration.working_dir to NULL
@@ -591,6 +593,8 @@ int main(int argc, char **argv) {
     }
 
     if (configuration.working_dir) _change_working_dir();
+    cwd = getcwd_wrapper(0);
+    cwd_len = strnlen(cwd, 2048);
 
 #if defined(__linux__) || defined(__APPLE__)
     if (configuration.insecure_mode_enabled) {
