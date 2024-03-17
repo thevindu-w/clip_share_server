@@ -47,6 +47,7 @@ typedef struct _buf_len_ptr {
     size_t *len_ptr;
 } buf_len_ptr;
 
+static HANDLE ssMutex = NULL;
 static unsigned short current_display;
 static unsigned short selected_display;
 
@@ -141,14 +142,30 @@ static BOOL CALLBACK enumCallback(HMONITOR monitor, HDC hdcSource, LPRECT lprect
 void screenCapture(char **buf_ptr, size_t *len_ptr, int disp) {
     HDC hdcSource = GetDC(NULL);
     buf_len_ptr buf_len = {.buf_ptr = buf_ptr, .len_ptr = len_ptr};
+    if (ssMutex == NULL) {
+        ssMutex = CreateMutex(NULL, FALSE, NULL);
+        if (ssMutex == NULL) {
+#ifdef DEBUG_MODE
+            fputs("Error creating mutex", stderr);
+#endif
+            return;
+        }
+    }
+    DWORD dwWaitResult = WaitForSingleObject(ssMutex, INFINITE);
+    if (dwWaitResult != WAIT_OBJECT_0) {
+#ifdef DEBUG_MODE
+        fputs("Error waiting on mutex", stderr);
+#endif
+        return;
+    }
     current_display = 1;
-    // TODO(thevindu-w): prevent multiple threads modifying selected_display variable
     selected_display = (unsigned short)disp;
     if (EnumDisplayMonitors(hdcSource, NULL, enumCallback, (LPARAM)&buf_len) == 0) {
         if (*buf_ptr) free(*buf_ptr);
         *buf_ptr = NULL;
         *len_ptr = 0;
     }
+    ReleaseMutex(ssMutex);
 }
 
 /* Attempts to save PNG to file; returns 0 on success, non-zero on error. */
