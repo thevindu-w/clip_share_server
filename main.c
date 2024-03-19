@@ -597,10 +597,15 @@ int main(int argc, char **argv) {
     cwd_len = strnlen(cwd, 2048);
 
 #if defined(__linux__) || defined(__APPLE__)
+    pid_t p_clip = 0;
+    pid_t p_clip_ssl = 0;
+#ifdef WEB_ENABLED
+    pid_t p_web = 0;
+#endif
     if (configuration.insecure_mode_enabled) {
         fflush(stdout);
         fflush(stderr);
-        pid_t p_clip = fork();
+        p_clip = fork();
         if (p_clip == 0) {
             return clip_share(INSECURE);
         }
@@ -608,7 +613,7 @@ int main(int argc, char **argv) {
     if (configuration.secure_mode_enabled) {
         fflush(stdout);
         fflush(stderr);
-        pid_t p_clip_ssl = fork();
+        p_clip_ssl = fork();
         if (p_clip_ssl == 0) {
             return clip_share(SECURE);
         }
@@ -617,7 +622,7 @@ int main(int argc, char **argv) {
     if (configuration.web_mode_enabled) {
         fflush(stdout);
         fflush(stderr);
-        pid_t p_web = fork();
+        p_web = fork();
         if (p_web == 0) {
             return web_server();
         }
@@ -631,6 +636,13 @@ int main(int argc, char **argv) {
         udp_server();
         return 0;
     }
+
+    if (p_clip > 0) waitpid(p_clip, NULL, 0);
+    if (p_clip_ssl > 0) waitpid(p_clip_ssl, NULL, 0);
+    if (p_scan > 0) waitpid(p_scan, NULL, 0);
+#ifdef WEB_ENABLED
+    if (p_web > 0) waitpid(p_web, NULL, 0);
+#endif
 
 #elif defined(_WIN32)
 
