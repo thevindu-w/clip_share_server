@@ -80,15 +80,15 @@ static void print_usage(const char *prog_name) {
         freopen("CONOUT$", "w", stderr);
     }
 #endif
-    fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-R]\n", prog_name);
+    fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-R] [-d] [-D]\n", prog_name);
 }
 
 /*
  * Parse command line arguments and set corresponding variables
  */
-static inline void _parse_args(int argc, char **argv, int *stop_p) {
+static inline void _parse_args(int argc, char **argv, int *stop_p, int *daemonize_p) {
     int opt;
-    while ((opt = getopt(argc, argv, "hsrR")) != -1) {
+    while ((opt = getopt(argc, argv, "hsrRdD")) != -1) {
         switch (opt) {
             case 'h': {  // help
                 print_usage(argv[0]);
@@ -105,6 +105,14 @@ static inline void _parse_args(int argc, char **argv, int *stop_p) {
             }
             case 'R': {  // no-restart
                 configuration.restart = 0;
+                break;
+            }
+            case 'd': {  // stop
+                *daemonize_p = 1;
+                break;
+            }
+            case 'D': {  // stop
+                *daemonize_p = 0;
                 break;
             }
             default: {
@@ -574,8 +582,9 @@ int main(int argc, char **argv) {
     _apply_default_conf();
 
     int stop = 0;
+    int daemonize = 1;
     // Parse command line arguments
-    _parse_args(argc, argv, &stop);
+    _parse_args(argc, argv, &stop, &daemonize);
 
     /* stop other instances of this process if any.
     Stop this process if stop flag is set */
@@ -637,12 +646,14 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    if (p_clip > 0) waitpid(p_clip, NULL, 0);
-    if (p_clip_ssl > 0) waitpid(p_clip_ssl, NULL, 0);
-    if (p_scan > 0) waitpid(p_scan, NULL, 0);
+    if (!daemonize) {
+        if (p_clip > 0) waitpid(p_clip, NULL, 0);
+        if (p_clip_ssl > 0) waitpid(p_clip_ssl, NULL, 0);
+        if (p_scan > 0) waitpid(p_scan, NULL, 0);
 #ifdef WEB_ENABLED
-    if (p_web > 0) waitpid(p_web, NULL, 0);
+        if (p_web > 0) waitpid(p_web, NULL, 0);
 #endif
+    }
 
 #elif defined(_WIN32)
 
