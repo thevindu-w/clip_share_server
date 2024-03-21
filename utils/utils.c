@@ -1133,7 +1133,7 @@ int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
 
 #endif
 
-#ifndef __linux__
+#ifdef _WIN32
 // TODO(thevindu-w): implement
 int set_clipboard_cut_files(list2 *paths) {
     (void)paths;
