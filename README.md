@@ -217,7 +217,7 @@ brew install libunistring openssl@3 libpng
 - You can run the server from a terminal or the GUI (if the file manager supports executing programs by double-clicking on it)
 - On macOS, if you run the server from the GUI (by double-clicking it on Finder), it may open a terminal window. But you can close this window. The server will continue running in the background.
 - When the server starts, it will not display any visible window. Instead, it will run in the background.
-- On Linux or macOS, if you start the program from the terminal, it should return immediately (the server will continue to run in the background).
+- On Linux or macOS, if you start the program from the terminal, it should return immediately unless the `-D` flag (no-daemonize) is used. The server will continue to run in the background.
 - On Windows, it will show a tray icon unless disabled from the configuration file. You can click on it to stop the server.
 - If something goes wrong, it will create a `server_err.log` file. That file will contain what went wrong.
 
@@ -277,22 +277,30 @@ Refer to the [OpenSSL manual](https://www.openssl.org/docs/manmaster/man1/openss
 
 ### Command line options
 ```
-./clip_share [-h] [-s] [-r] [-R]
+./clip_share [-h] [-s] [-r] [-R] [-d] [-D]
 
-  -h     Help       - Display usage and exit.
+  -h   Help         - Display usage and exit.
                       This takes priority over all other options.
 
-  -s     Stop       - Stop all instances of the server if any.
+  -s   Stop         - Stop all instances of the server if any.
                       This takes priority over -r and -R.
 
-  -r     Restart    - Stop other instances of the server if any,
+  -r   Restart      - Stop other instances of the server if any,
                       and restart the server. This option takes
                       precedence over the restart value in the
                       configuration file.
 
-  -R     No-Restart - Start the server without restarting. This
+  -R   No-Restart   - Start the server without restarting. This
                       option takes precedence over the restart
                       value in the configuration file.
+
+  -d   Daemonize    - Exit the main process after creating child
+                      processes. This option is effective only on
+                      Linux and macOS. (default)
+
+  -D   No-Daemonize - Do not exit the main process after creating
+                      child processes. This option is effective
+                      only on Linux and macOS.
 ```
 
 ### Configuration
