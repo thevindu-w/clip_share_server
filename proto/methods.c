@@ -466,17 +466,20 @@ int send_file_v1(socket_t *socket) {
     if (_save_file_common(1, socket, file_name) != EXIT_SUCCESS) return EXIT_FAILURE;
     close_socket(socket);
 
-    char *path = (char *)malloc(cwd_len + name_max_len + 2);  // for PATH_SEP and null terminator
-    strncpy(path, cwd, cwd_len + 1);
-    size_t p_len = cwd_len;
-    path[p_len++] = PATH_SEP;
-    strncpy(path + p_len, file_name, name_max_len + 1);
-    path[cwd_len + name_max_len + 1] = 0;
-    list2 *files = init_list(1);
-    append(files, path);
-    set_clipboard_cut_files(files);
-    free_list(files);
-    return EXIT_SUCCESS;
+    int status = EXIT_SUCCESS;
+    if (configuration.cut_sent_files) {
+        char *path = (char *)malloc(cwd_len + name_max_len + 2);  // for PATH_SEP and null terminator
+        strncpy(path, cwd, cwd_len + 1);
+        size_t p_len = cwd_len;
+        path[p_len++] = PATH_SEP;
+        strncpy(path + p_len, file_name, name_max_len + 1);
+        path[cwd_len + name_max_len + 1] = 0;
+        list2 *files = init_list(1);
+        append(files, path);
+        status = set_clipboard_cut_files(files);
+        free_list(files);
+    }
+    return status;
 }
 #endif
 
@@ -682,7 +685,9 @@ static int _send_files_dirs(int version, socket_t *socket) {
     }
     free_list(files);
     if (status == EXIT_SUCCESS && remove_directory(dirname)) status = EXIT_FAILURE;
-    if (status == EXIT_SUCCESS && set_clipboard_cut_files(dest_files) != EXIT_SUCCESS) status = EXIT_FAILURE;
+    if (configuration.cut_sent_files) {
+        if (status == EXIT_SUCCESS && set_clipboard_cut_files(dest_files) != EXIT_SUCCESS) status = EXIT_FAILURE;
+    }
     free_list(dest_files);
     return status;
 }
