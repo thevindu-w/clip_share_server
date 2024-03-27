@@ -18,14 +18,15 @@ fi
 
 exec_names=(
     clip_share
-    clip_share_GLIBC*
-    clip_share_web
-    clip_share_web_GLIBC*
+    clip_share-arm64
+    clip_share-x86_64
 )
 
 exec_not_found=1
 for exec_name in "${exec_names[@]}"; do
     if [ -f "$exec_name" ]; then
+        chmod +x "$exec_name"
+        "./$exec_name" -h &>/dev/null || continue
         exec_not_found=0
         mkdir -p ~/.local/bin/
         mv "$exec_name" ~/.local/bin/
@@ -50,6 +51,15 @@ if [ ! -f clipshare.conf ]; then
 fi
 
 mkdir -p Library/LaunchAgents/
+
+if [ -f Library/LaunchAgents/clipshare.plist ]; then
+    echo 'A previous installation of ClipShare is available.'
+    read -p 'Update? [y/n] ' confirm_update
+    if [ "${confirm_update}" != 'y' ] && [ "${confirm_update}" != 'Y' ]; then
+        echo 'Aborted.'
+        exit 0
+    fi
+fi
 
 cat >Library/LaunchAgents/clipshare.plist <<EOF
 <?xml version="1.0" encoding="utf-8"?>
