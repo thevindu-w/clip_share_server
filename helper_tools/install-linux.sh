@@ -19,13 +19,16 @@ fi
 exec_names=(
     clip_share
     clip_share_GLIBC*
-    clip_share_web
-    clip_share_web_GLIBC*
 )
+
+IFS=$'\n' exec_names=($(sort -r <<<"${exec_names[*]}"))
+unset IFS
 
 exec_not_found=1
 for exec_name in "${exec_names[@]}"; do
     if [ -f "$exec_name" ]; then
+        chmod +x "$exec_name"
+        "./$exec_name" -h &>/dev/null || continue
         exec_not_found=0
         mkdir -p ~/.local/bin/
         mv "$exec_name" ~/.local/bin/
