@@ -30,10 +30,12 @@
 #include <xclip/xcdef.h>
 #include <xclip/xclib.h>
 
+#define MAX_BUF_LEN 16777216
+
 /* wrapper for malloc that checks for errors */
 void *xcmalloc(size_t size) {
     if (!size) error_exit("malloc zero");
-    if (size > configuration.max_text_length) error_exit("malloc too large");
+    if (size > MAX_BUF_LEN && size > configuration.max_text_length) error_exit("malloc too large");
 
     void *mem = malloc(size);
     if (!mem) error_exit("malloc failed");
@@ -44,7 +46,7 @@ void *xcmalloc(size_t size) {
 /* wrapper for realloc that checks for errors */
 void *xcrealloc(void *ptr, size_t size) {
     if (!size) error_exit("realloc zero");
-    if (size > configuration.max_text_length) error_exit("realloc too large");
+    if (size > MAX_BUF_LEN && size > configuration.max_text_length) error_exit("realloc too large");
 
     void *mem = realloc(ptr, size);
     if (!mem) {
