@@ -61,6 +61,8 @@ jobs:
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu22
         docker run -v './dist:/home/user/src/dist' clipshare:arch
         docker run -v './dist:/home/user/src/dist' clipshare:fedora
+        [ -f helper_tools/install-linux.sh ] && cp helper_tools/install-linux.sh dist/install.sh
+        chmod +x dist/*
         cd dist && \
         sha256sum -b * >SHA2-256SUM && \
         tar -cf - --sort=name --owner=root:0 --group=root:0 --no-same-owner . | \
@@ -105,19 +107,24 @@ jobs:
     - name: Set version
       run: |
         version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-        filename="clip_share_server-${version}-windows64.exe"
+        filename="clip_share.exe"
+        archive="clip_share_server-${version}-windows64.zip"
         echo FILE_NAME="$filename" >> $GITHUB_ENV
+        echo ARCHIVE_NAME="$archive" >> $GITHUB_ENV
 
     - name: Build
       run: |
         make
-        mv "clip_share.exe" "${{env.FILE_NAME}}"
+        mkdir dist
+        mv "clip_share.exe" "dist/${{env.FILE_NAME}}"
+        [ -f helper_tools/install-windows.bat ] && cp helper_tools/install-windows.bat dist/install.bat
+        cd dist && zip -9 "../${{env.ARCHIVE_NAME}}" *
 
     - name: Upload Windows version
       uses: actions/upload-artifact@v4
       with:
-        name: "${{env.FILE_NAME}}"
-        path: "${{env.FILE_NAME}}"
+        name: "${{env.ARCHIVE_NAME}}"
+        path: "${{env.ARCHIVE_NAME}}"
         retention-days: 3
         if-no-files-found: error
         compression-level: 9
@@ -139,15 +146,21 @@ jobs:
     - name: Set version
       run: |
         version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-        filename="clip_share_server-${version}-macos_x86_64"
+        filename="clip_share-x86_64"
+        archive_name="clip_share_server-${version}-macos.tar.gz"
         echo FILE_NAME="$filename" >> $GITHUB_ENV
-        echo ARCHIVE_NAME="${filename}.tar.gz" >> $GITHUB_ENV
+        echo ARCHIVE_NAME="$archive_name" >> $GITHUB_ENV
 
     - name: Build
       run: |
         make
-        mv "clip_share" "${{env.FILE_NAME}}"
-        tar -cf - --owner=root:0 --group=root:0 --no-same-owner "${{env.FILE_NAME}}" | gzip -9 >"${{env.ARCHIVE_NAME}}"
+        mkdir dist
+        mv "clip_share" "dist/${{env.FILE_NAME}}"
+        [ -f helper_tools/install-mac.sh ] && cp helper_tools/install-mac.sh dist/install.sh
+        chmod +x dist/*
+        cd dist && \
+        tar -cf - --owner=root:0 --group=root:0 --no-same-owner . | \
+        gzip -9 >"../${{env.ARCHIVE_NAME}}"
 
     - name: Upload macOS Intel version
       uses: actions/upload-artifact@v4
