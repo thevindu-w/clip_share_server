@@ -539,6 +539,19 @@ static char *get_user_home(void) {
 static char *get_conf_file(void) {
     if (file_exists(CONFIG_FILE)) return strdup(CONFIG_FILE);
 
+#if defined(__linux__) || defined(__APPLE__)
+    const char *xdg_conf = getenv("XDG_CONFIG_HOME");
+    if (xdg_conf && *xdg_conf) {
+        size_t xdg_len = strnlen(xdg_conf, 512);
+        char *conf_path = malloc(xdg_len + sizeof(CONFIG_FILE) + 3);
+        if (conf_path) {
+            snprintf(conf_path, xdg_len + sizeof(CONFIG_FILE) + 2, "%s%c%s", xdg_conf, PATH_SEP, CONFIG_FILE);
+            if (file_exists(conf_path)) return conf_path;
+            free(conf_path);
+        }
+    }
+#endif
+
     char *home = get_user_home();
     if (!home) return NULL;
     size_t home_len = strnlen(home, 512);
