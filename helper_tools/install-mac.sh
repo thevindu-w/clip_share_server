@@ -52,7 +52,7 @@ fi
 
 mkdir -p Library/LaunchAgents/
 
-if [ -f Library/LaunchAgents/clipshare.plist ]; then
+if [ -f Library/LaunchAgents/com.tw.clipshare.plist ]; then
     echo 'A previous installation of ClipShare is available.'
     read -p 'Update? [y/n] ' confirm_update
     if [ "${confirm_update}" != 'y' ] && [ "${confirm_update}" != 'Y' ]; then
@@ -61,14 +61,14 @@ if [ -f Library/LaunchAgents/clipshare.plist ]; then
     fi
 fi
 
-cat >Library/LaunchAgents/clipshare.plist <<EOF
+cat >Library/LaunchAgents/com.tw.clipshare.plist <<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
         <key>Label</key>
-        <string>clipshare</string>
+        <string>com.tw.clipshare</string>
         <key>ProgramArguments</key>
         <array>
             <string>$HOME/.local/bin/clip_share</string>
@@ -80,6 +80,6 @@ cat >Library/LaunchAgents/clipshare.plist <<EOF
 </plist>
 EOF
 
-launchctl unload ~/Library/LaunchAgents/clipshare.plist &>/dev/null || true
-launchctl load ~/Library/LaunchAgents/clipshare.plist
+launchctl unload ~/Library/LaunchAgents/com.tw.clipshare.plist &>/dev/null || true
+launchctl load ~/Library/LaunchAgents/com.tw.clipshare.plist
 echo 'Installed clip_share to run on startup. This takes effect from the next login.'
