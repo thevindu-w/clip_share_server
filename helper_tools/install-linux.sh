@@ -46,15 +46,22 @@ fi
 cd
 export HOME="$(pwd)"
 
-if [ ! -f clipshare.conf ]; then
+CONF_DIR="$HOME"
+if [ -d "$XDG_CONFIG_HOME" ] && [ -w "$XDG_CONFIG_HOME" ]; then
+    CONF_DIR="$XDG_CONFIG_HOME"
+fi
+CONF_FILE="${CONF_DIR}/clipshare.conf"
+
+if [ ! -f "$CONF_FILE" ]; then
     mkdir -p Downloads
-    echo "working_dir=${HOME}/Downloads" >clipshare.conf
-    echo "Created a new configuration file ${HOME}/clipshare.conf"
+    echo "working_dir=${HOME}/Downloads" >"$CONF_FILE"
+    echo "Created a new configuration file $CONF_FILE"
 fi
 
 mkdir -p .config/systemd/user
 
 if [ -f .config/systemd/user/clipshare.service ]; then
+    echo
     echo 'A previous installation of ClipShare is available.'
     read -p 'Update? [y/n] ' confirm_update
     if [ "${confirm_update,,}" != 'y' ] && [ "${confirm_update,,}" != 'yes' ]; then
@@ -81,6 +88,7 @@ systemctl --user daemon-reload
 systemctl --user enable clipshare.service >/dev/null
 echo 'Installed clip_share to run on startup. This takes effect from the next login.'
 
+echo
 read -p 'Start clip_share now? [y/n] ' start_now
 if [ "${start_now,,}" = 'y' ] || [ "${start_now,,}" = 'yes' ]; then
     systemctl --user start clipshare.service
