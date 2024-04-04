@@ -308,11 +308,12 @@ Refer to the [OpenSSL manual](https://www.openssl.org/docs/manmaster/man1/openss
 ClipShare server can be configured using a configuration file. The configuration file should be named `clipshare.conf`.
 The server searches for the configuration file in the following paths in the same order until it finds one.
 1. Current working directory where the server was started.
-1. Current user's home directory (also called user profile directory on Windows)
+1. `$XDG_CONFIG_HOME` directory if the directory exists (on Linux and macOS only).
+1. Current user's home directory (also called user profile directory on Windows).
 
-If it can't find a configuration file, it will use the default values mentioned in the table below.
+If it can't find a configuration file in any of the above directories, it will use the default values specified in the table below.
 
-To customize the server, create a file named &nbsp; `clipshare.conf` &nbsp; and add the following lines to that configuration file.
+To customize the server, create a file named &nbsp; `clipshare.conf` &nbsp; in any of the directories mentioned above and add the following lines to that configuration file.
 
 ```properties
 app_port=4337
