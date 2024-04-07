@@ -52,6 +52,7 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
   - [Run the server](#run-the-server)
   - [Allow through firewall](#allow-through-firewall)
   - [Connect the client application](#connect-the-client-application)
+  - [Installation](#Installation)
   - [Create SSL/TLS certificate and key files](#create-ssltls-certificate-and-key-files)
   - [Command line options](#command-line-options)
   - [Configuration](#configuration)
@@ -245,6 +246,33 @@ You can find an Android client app in [releases](https://github.com/thevindu-w/c
 - If the client supports network scanning, it can easily find the server in the network. Otherwise, enter the server's IPv4 address to the client.
 - Now the client can share clipboard data and files and get images from the server.<br>
 Note that the server should allow the client through the firewall, as mentioned in the above section.
+
+<br>
+
+### Installation
+
+**Note**: This section is optional if you prefer manually starting the server over automatically starting on login/reboot.
+
+To install the server to run on startup, use the corresponding installer script for your platform. The installer scripts are attached with the releases. They are also available in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory. You need to have the `clip_share` (or `clip_share.exe` on Windows) executable in the current working directory. Run the interactive script and follow the instructions to install ClipShare.
+
+#### Linux and macOS
+
+1. Open a terminal in the directory where the `clip_share` executable is available (the executable name may have suffixes like `_GLIBC*` on Linux or `arm64` or `x86_64` on macOS).
+1. Run the install script as shown below, and follow the instructions of it.
+```bash
+# on Linux
+chmod +x install-linux.sh
+./install-linux.sh
+
+# on macOS
+chmod +x install-mac.sh
+./install-mac.sh
+```
+
+#### Windows
+
+1. Place the `install-windows.bat` file and the `clip_share.exe` executable in the same folder. (the executable name may have suffixes)
+1. Double-click on the `install-windows.bat` installer script to run it. It will open a Command Prompt window. Follow the instructions on it to install ClipShare.
 
 <br>
 
