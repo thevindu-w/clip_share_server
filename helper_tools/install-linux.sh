@@ -24,6 +24,7 @@ exec_names=(
 IFS=$'\n' exec_names=($(sort -r <<<"${exec_names[*]}"))
 unset IFS
 
+exec_path=~/.local/bin/clip_share
 exec_not_found=1
 for exec_name in "${exec_names[@]}"; do
     if [ -f "$exec_name" ]; then
@@ -31,9 +32,9 @@ for exec_name in "${exec_names[@]}"; do
         "./$exec_name" -h &>/dev/null || continue
         exec_not_found=0
         mkdir -p ~/.local/bin/
-        mv "$exec_name" ~/.local/bin/
-        chmod +x ~/.local/bin/clip_share
-        echo Moved "$exec_name" to ~/.local/bin/clip_share
+        mv "$exec_name" "$exec_path"
+        chmod +x "$exec_path"
+        echo Moved "$exec_name" to "$exec_path"
         break
     fi
 done
@@ -76,8 +77,9 @@ Description=ClipShare
 
 [Service]
 Type=forking
-ExecStart=$HOME/.local/bin/clip_share
-ExecStop=$HOME/.local/bin/clip_share -s
+Environment="XDG_CONFIG_HOME=$CONF_DIR"
+ExecStart=$exec_path
+ExecStop=$exec_path -s
 Restart=no
 
 [Install]

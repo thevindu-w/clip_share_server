@@ -272,7 +272,7 @@ chmod +x install-mac.sh
 #### Windows
 
 1. Place the `install-windows.bat` file and the `clip_share.exe` executable in the same folder. (the executable name may have suffixes)
-1. Double-click on the `install-windows.bat` installer script to run it. It will open a Command Prompt window. Follow the instructions on it to install ClipShare.
+1. Double-click on the `install-windows.bat` installer script to run it. It will open a Command Prompt window. Follow the instructions on it to install ClipShare. (If double-clicking did not run the installer, right-click on it and select Run)
 
 <br>
 

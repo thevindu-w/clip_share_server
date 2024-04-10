@@ -22,6 +22,7 @@ exec_names=(
     clip_share-x86_64
 )
 
+exec_path=~/.local/bin/clip_share
 exec_not_found=1
 for exec_name in "${exec_names[@]}"; do
     if [ -f "$exec_name" ]; then
@@ -29,9 +30,9 @@ for exec_name in "${exec_names[@]}"; do
         "./$exec_name" -h &>/dev/null || continue
         exec_not_found=0
         mkdir -p ~/.local/bin/
-        mv "$exec_name" ~/.local/bin/
-        chmod +x ~/.local/bin/clip_share
-        echo Moved "$exec_name" to ~/.local/bin/clip_share
+        mv "$exec_name" "$exec_path"
+        chmod +x "$exec_path"
+        echo Moved "$exec_name" to "$exec_path"
         break
     fi
 done
@@ -74,11 +75,16 @@ cat >Library/LaunchAgents/com.tw.clipshare.plist <<EOF
    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
+        <key>EnvironmentVariables</key>
+        <dict>
+            <key>XDG_CONFIG_HOME</key>
+            <string>$CONF_DIR</string>
+        </dict>
         <key>Label</key>
         <string>com.tw.clipshare</string>
         <key>ProgramArguments</key>
         <array>
-            <string>$HOME/.local/bin/clip_share</string>
+            <string>$exec_path</string>
             <string>-D</string>
         </array>
         <key>RunAtLoad</key>
@@ -87,6 +93,6 @@ cat >Library/LaunchAgents/com.tw.clipshare.plist <<EOF
 </plist>
 EOF
 
-launchctl unload ~/Library/LaunchAgents/com.tw.clipshare.plist &>/dev/null || true
-launchctl load ~/Library/LaunchAgents/com.tw.clipshare.plist
+launchctl unload -w ~/Library/LaunchAgents/com.tw.clipshare.plist &>/dev/null || true
+launchctl load -w ~/Library/LaunchAgents/com.tw.clipshare.plist
 echo 'Installed clip_share to run on startup.'
