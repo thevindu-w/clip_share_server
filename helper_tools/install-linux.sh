@@ -53,6 +53,10 @@ if [ -d "$XDG_CONFIG_HOME" ] && [ -w "$XDG_CONFIG_HOME" ]; then
 fi
 CONF_FILE="${CONF_DIR}/clipshare.conf"
 
+if [ ! -d "$CONF_DIR" ]; then
+    mkdir -p "$CONF_DIR"
+fi
+
 if [ ! -f "$CONF_FILE" ]; then
     mkdir -p Downloads
     echo "working_dir=${HOME}/Downloads" >"$CONF_FILE"
