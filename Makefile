@@ -20,7 +20,7 @@ PROGRAM_NAME=clip_share
 PROGRAM_NAME_WEB=clip_share_web
 
 MIN_PROTO=1
-MAX_PROTO=2
+MAX_PROTO=3
 INFO_NAME=clip_share
 
 CC=gcc
