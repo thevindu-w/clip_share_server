@@ -2,7 +2,7 @@
 
 . init.sh
 
-method=$(printf '\x06' | bin2hex)
+method=$(printf '\x08' | bin2hex)
 
 responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool)
 
