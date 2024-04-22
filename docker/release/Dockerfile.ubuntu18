@@ -24,7 +24,7 @@ COPY ./xclip/*.c ./xclip/*.h xclip/
 COPY ./xscreenshot/*.c ./xscreenshot/*.h xscreenshot/
 
 # Build
-RUN make clean && make all
+RUN make clean && make
 
 COPY --chmod=755 ./docker/release/copy_release.sh ./
 
