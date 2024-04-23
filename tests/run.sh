@@ -296,6 +296,8 @@ export METHOD_SEND_TEXT=$(printf '\x02' | bin2hex)
 export METHOD_GET_FILES=$(printf '\x03' | bin2hex)
 export METHOD_SEND_FILES=$(printf '\x04' | bin2hex)
 export METHOD_GET_IMAGE=$(printf '\x05' | bin2hex)
+export METHOD_GET_IMAGE_ONLY=$(printf '\x06' | bin2hex)
+export METHOD_GET_SCREENSHOT=$(printf '\x07' | bin2hex)
 
 # Proto ack
 export PROTO_SUPPORTED=$(printf '\x01' | bin2hex)
@@ -307,6 +309,10 @@ export METHOD_OK=$(printf '\x01' | bin2hex)
 export METHOD_NO_DATA=$(printf '\x02' | bin2hex)
 export METHOD_UNKNOWN_METHOD=$(printf '\x03' | bin2hex)
 export METHOD_NOT_IMPLEMENTED=$(printf '\x04' | bin2hex)
+
+export imgSample="89504e470d0a1a0a0000000d4948445200000005000000050802000000020db1b20\
+00000264944415408d755cb2112002010804070fcff973168f0681bb042b99501f5ac8bbf9ad6c\
+dfc0f828c0e0522b1809c0000000049454e44ae426082"
 
 # Export variables and functions
 export DETECTED_OS
