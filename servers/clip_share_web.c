@@ -210,7 +210,7 @@ int web_server(void) {
 
     listener_t listener;
     open_listener_socket(&listener, SSL_SOCK, configuration.priv_key, configuration.server_cert, configuration.ca_cert);
-    if (bind_port(listener, configuration.web_port) != EXIT_SUCCESS) {
+    if (bind_port(listener, configuration.bind_addr, configuration.web_port) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
     if (listen(listener.socket, 10) == -1) {
