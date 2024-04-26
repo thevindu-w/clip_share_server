@@ -708,6 +708,7 @@ int send_files_v2(socket_t *socket) { return _send_files_dirs(2, socket); }
 int get_copied_image_v3(socket_t *socket) { return _get_image_common(socket, IMG_COPIED_ONLY, -1); }
 
 int get_screenshot_v3(socket_t *socket) {
+    if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
     int64_t disp;
     if (read_size(socket, &disp) != EXIT_SUCCESS) return EXIT_FAILURE;
     if (disp <= 0 || disp > 65536) disp = -1;
