@@ -78,15 +78,8 @@ extern int ipv4_aton(const char *address_str, uint32_t *address_ptr);
 
 /*
  * Binds a listener socket to a port.
- * Binds to the bind_address if it's non-zero. Otherwise, binds to INADDR_ANY.
  */
-extern int bind_port(listener_t listener, uint32_t bind_address, unsigned short port);
-
-/*
- * Joins multicast group on each interface.
- * Internally, binds the listner to the multicast address on the given port.
- */
-extern int setup_multicast(listener_t listener, unsigned short port);
+extern int bind_port(listener_t listener, unsigned short port);
 
 /*
  * Accepts a TCP connection.

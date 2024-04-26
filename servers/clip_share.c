@@ -68,7 +68,7 @@ int clip_share(const int is_secure) {
     listener_t listener;
     open_listener_socket(&listener, (is_secure ? SSL_SOCK : PLAIN_SOCK), configuration.priv_key,
                          configuration.server_cert, configuration.ca_cert);
-    if (bind_port(listener, configuration.bind_addr, port) != EXIT_SUCCESS) {
+    if (bind_port(listener, port) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
     if (listen(listener.socket, 3) == -1) {

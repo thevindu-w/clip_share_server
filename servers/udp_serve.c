@@ -59,13 +59,9 @@ void udp_server(void) {
     puts("UDP socket created");
 #endif
 
-    if (bind_port(listener, configuration.bind_addr, configuration.udp_port) != EXIT_SUCCESS) {
+    if (bind_port(listener, configuration.udp_port) != EXIT_SUCCESS) {
         return;
     }
-
-    // if (setup_multicast(listener, configuration.udp_port) != EXIT_SUCCESS) {
-    //     return;
-    // }
 
 #ifdef DEBUG_MODE
     puts("UDP bind completed");

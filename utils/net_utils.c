@@ -31,7 +31,6 @@
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <arpa/inet.h>
-#include <ifaddrs.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #elif defined(_WIN32)
@@ -195,78 +194,23 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
     return EXIT_SUCCESS;
 }
 
-int bind_port(listener_t listener, uint32_t bind_address, unsigned short port) {
+int bind_port(listener_t listener, unsigned short port) {
     if (listener.type == NULL_SOCK) return EXIT_FAILURE;
     sock_t socket = listener.socket;
+    struct sockaddr_in server_addr;
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(port);
+    server_addr.sin_addr.s_addr = configuration.bind_addr;
     int reuse = 1;
     if (listener.type != UDP_SOCK && setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int))) {
         error("Can't set the reuse option on the socket");
         return EXIT_FAILURE;
     }
-
-    struct sockaddr_in server_addr;
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-    if (bind_address)
-        server_addr.sin_addr.s_addr = bind_address;
-    else
-        server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind(socket, (const struct sockaddr *)&server_addr, sizeof(server_addr))) {
         char errmsg[32];
         const char *tcp_udp = listener.type == UDP_SOCK ? "UDP" : "TCP";
         snprintf_check(errmsg, 32, "Can\'t bind to %s port %hu", tcp_udp, port);
         error(errmsg);
-#if defined(__linux__) || defined(__APPLE__)
-        close(socket);
-#elif defined(_WIN32)
-        closesocket(socket);
-#endif
-        return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
-}
-
-static inline int join_multicast_group(sock_t socket, uint32_t multicast_addr, uint32_t interface_addr) {
-    struct ip_mreq group;
-    memset(&group, 0, sizeof(group));
-    group.imr_multiaddr.s_addr = multicast_addr;
-    group.imr_interface.s_addr = interface_addr;
-    if (setsockopt(socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&group, sizeof(group)) < 0) return EXIT_FAILURE;
-    return EXIT_SUCCESS;
-}
-
-static inline int join_multicast_groups(sock_t socket, uint32_t multicast_addr) {
-    struct ifaddrs *ptr_ifaddrs = NULL;
-    if (getifaddrs(&ptr_ifaddrs)) return EXIT_FAILURE;
-    for (struct ifaddrs *ptr_entry = ptr_ifaddrs; ptr_entry; ptr_entry = ptr_entry->ifa_next) {
-        if (!(ptr_entry->ifa_addr)) continue;
-        sa_family_t address_family = ptr_entry->ifa_addr->sa_family;
-        if (address_family != AF_INET) continue;
-        if (join_multicast_group(socket, multicast_addr,
-                                 ((struct sockaddr_in *)(ptr_entry->ifa_addr))->sin_addr.s_addr) != EXIT_SUCCESS) {
-            freeifaddrs(ptr_ifaddrs);
-            return EXIT_FAILURE;
-        }
-    }
-    freeifaddrs(ptr_ifaddrs);
-    return EXIT_SUCCESS;
-}
-
-int setup_multicast(listener_t listener, unsigned short port) {
-    const uint32_t multicast_addr = inet_addr("224.0.248.248");
-    if (bind_port(listener, multicast_addr, port) != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
-    }
-    if (listener.type == NULL_SOCK) return EXIT_FAILURE;
-    sock_t socket = listener.socket;
-    if (join_multicast_groups(socket, multicast_addr) != EXIT_SUCCESS) {
-        error("Failed joining multicast group");
-#if defined(__linux__) || defined(__APPLE__)
-        close(socket);
-#elif defined(_WIN32)
-        closesocket(socket);
-#endif
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
