@@ -17,9 +17,23 @@ if [ "${responseDump::len_expected_header}" != "$expected_proto_method_ack" ]; t
     exit 1
 fi
 
-length="$((16#${responseDump:len_expected_header:16}))"
+responseDump="${responseDump:len_expected_header}"
 
-if [ "$length" -le '512' ]; then
+if [ ! -z "$disp" ]; then
+    if [ "${responseDump::2}" != "$METHOD_OK" ]; then
+        showStatus info 'Incorrect display ack.'
+        echo 'Expected:' "$METHOD_OK"
+        echo 'Received:' "${responseDump::2}"
+        exit 1
+    fi
+    responseDump="${responseDump:2}"
+fi
+
+length="$((16#${responseDump::16}))"
+responseDump="${responseDump:16}"
+
+if [ "$length" -le '512' ] || [ "$length" != "$((${#responseDump} / 2))" ]; then
+    echo "$length" "${#responseDump}"
     showStatus info 'Invalid image length.'
     exit 1
 fi
@@ -27,7 +41,7 @@ fi
 len_expected_header="$((len_expected_header + 16))"
 
 expected_png_header="$(printf '\x89PNG\r\n\x1a\n' | bin2hex)"
-png_header="${responseDump:len_expected_header:${#expected_png_header}}"
+png_header="${responseDump::${#expected_png_header}}"
 
 if [ "$png_header" != "$expected_png_header" ]; then
     showStatus info 'Invalid image header.'
