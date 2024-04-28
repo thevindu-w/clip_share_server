@@ -139,15 +139,18 @@
         <p>
             This method is used to get a screenshot from the server to the client. Even if the server has an image
             copied to the clipboard, it will send only a screenshot of the server device. The screenshot is encoded as a
-            PNG image. Once the client requests this method code along with the display number from the server, the
-            server acknowledges the client with the status OK. Then, the server will send the screenshot. The
-            communication after protocol version negotiation happens as follows.<br>
+            PNG image. Once the client requests this method code from the server, the server acknowledges the client
+            with the status OK. Then, the client sends the display number from the server, and the server acknowledges
+            the client with the status OK. Then, the server will send the screenshot. The communication after protocol
+            version negotiation happens as follows.<br>
         <ul>
             <li>First, the client sends the method request code.</li>
+            <li>The server responds with the status OK.</li>
             <li>Next, the client sends the display number to get the screenshot. The display number can be from 1 to
                 65536 inclusive. Also, the display number can be sent as -1 to let the server use its default display.
             </li>
-            <li>The server responds with the status OK.</li>
+            <li>The server responds with the status OK if the screenshot is taken and proceeds to the next step.
+                Otherwise, it will send the status NO_DATA and terminate the connection.</li>
             <li>Then, the size of the screenshot image in bytes is sent. The image can be at most 1 GiB in size. It is
                 encoded as a numeric value, as specified in <a href="proto_v1.html#encoding-notes">data encoding
                     notes</a>.</li>
