@@ -92,8 +92,7 @@ static inline void _parse_args(int argc, char **argv, int *stop_p, int *daemoniz
         switch (opt) {
             case 'h': {  // help
                 print_usage(argv[0]);
-                clear_config(&configuration);
-                exit(EXIT_SUCCESS);
+                exit_wrapper(EXIT_SUCCESS);
             }
             case 's': {  // stop
                 *stop_p = 1;
@@ -117,8 +116,7 @@ static inline void _parse_args(int argc, char **argv, int *stop_p, int *daemoniz
             }
             default: {
                 print_usage(argv[0]);
-                clear_config(&configuration);
-                exit(EXIT_FAILURE);
+                exit_wrapper(EXIT_FAILURE);
             }
         }
     }
@@ -129,12 +127,12 @@ static inline void _parse_args(int argc, char **argv, int *stop_p, int *daemoniz
  */
 static inline void _set_error_log_file(const char *path) {
     char *working_dir = getcwd_wrapper(2050);
-    if (!working_dir) exit(-1);
+    if (!working_dir) exit_wrapper(EXIT_FAILURE);
     working_dir[2049] = 0;
     size_t working_dir_len = strnlen(working_dir, 2048);
     if (working_dir_len == 0 || working_dir_len >= 2048) {
         free(working_dir);
-        exit(-1);
+        exit_wrapper(EXIT_FAILURE);
     }
     size_t buf_sz = working_dir_len + strlen(path) + 1;  // +1 for terminating \0
     if (working_dir[working_dir_len - 1] != PATH_SEP) {
@@ -143,7 +141,7 @@ static inline void _set_error_log_file(const char *path) {
     error_log_file = malloc(buf_sz);
     if (!error_log_file) {
         free(working_dir);
-        exit(-1);
+        exit_wrapper(EXIT_FAILURE);
     }
     if (working_dir[working_dir_len - 1] == PATH_SEP) {
         snprintf_check(error_log_file, buf_sz, "%s%s", working_dir, ERROR_LOG_FILE);
@@ -589,7 +587,7 @@ int main(int argc, char **argv) {
 
     char *conf_path = get_conf_file();
     if (!conf_path) {
-        exit(EXIT_FAILURE);
+        exit_wrapper(EXIT_FAILURE);
     }
     parse_conf(&configuration, conf_path);
     free(conf_path);
@@ -610,8 +608,7 @@ int main(int argc, char **argv) {
         const char *msg = stop ? "Server Stopped" : "Server Restarting...";
         puts(msg);
         if (stop) {
-            clear_config(&configuration);
-            exit(EXIT_SUCCESS);
+            exit_wrapper(EXIT_SUCCESS);
         }
     }
 
@@ -630,7 +627,8 @@ int main(int argc, char **argv) {
         fflush(stderr);
         p_clip = fork();
         if (p_clip == 0) {
-            return clip_share(INSECURE);
+            int status = clip_share(INSECURE);
+            exit_wrapper(status);
         }
     }
     if (configuration.secure_mode_enabled) {
@@ -638,7 +636,8 @@ int main(int argc, char **argv) {
         fflush(stderr);
         p_clip_ssl = fork();
         if (p_clip_ssl == 0) {
-            return clip_share(SECURE);
+            int status = clip_share(SECURE);
+            exit_wrapper(status);
         }
     }
 #ifdef WEB_ENABLED
@@ -647,7 +646,8 @@ int main(int argc, char **argv) {
         fflush(stderr);
         p_web = fork();
         if (p_web == 0) {
-            return web_server();
+            int status = web_server();
+            exit_wrapper(status);
         }
     }
 #endif
@@ -657,7 +657,7 @@ int main(int argc, char **argv) {
     pid_t p_scan = fork();
     if (p_scan == 0) {
         udp_server();
-        return 0;
+        exit_wrapper(EXIT_SUCCESS);
     }
 
     if (!daemonize) {
@@ -673,8 +673,7 @@ int main(int argc, char **argv) {
 
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-        error("Failed WSAStartup");
-        return EXIT_FAILURE;
+        error_exit("Failed WSAStartup");
     }
     HANDLE insecureThread = NULL;
     HANDLE secureThread = NULL;
@@ -748,6 +747,5 @@ int main(int argc, char **argv) {
     remove_tray_icon();
     CloseHandle(instance);
 #endif
-    clear_config(&configuration);
-    return EXIT_SUCCESS;
+    exit_wrapper(EXIT_SUCCESS);
 }

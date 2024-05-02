@@ -77,10 +77,14 @@ void error(const char *msg) {
 
 void error_exit(const char *msg) {
     error(msg);
+    exit_wrapper(EXIT_FAILURE);
+}
+
+void exit_wrapper(int code) {
     if (error_log_file) free(error_log_file);
-    clear_config(&configuration);
     if (cwd) free(cwd);
-    exit(1);
+    clear_config(&configuration);
+    exit(code);
 }
 
 int file_exists(const char *file_name) {
@@ -805,7 +809,6 @@ static int url_decode(char *str) {
 #ifdef __linux__
 
 int get_clipboard_text(char **buf_ptr, size_t *len_ptr) {
-    *buf_ptr = NULL;
     if (xclip_util(XCLIP_OUT, NULL, len_ptr, buf_ptr) != EXIT_SUCCESS || *len_ptr <= 0) {  // do not change the order
 #ifdef DEBUG_MODE
         printf("xclip read text failed. len = %zu\n", *len_ptr);
@@ -884,7 +887,7 @@ char *get_copied_files_as_str(int *offset) {
     }
     free(targets);
 
-    char *fnames = NULL;
+    char *fnames;
     size_t fname_len;
     if (xclip_util(XCLIP_OUT, expected_target, &fname_len, &fnames) || fname_len <= 0) {  // do not change the order
 #ifdef DEBUG_MODE

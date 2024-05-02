@@ -75,6 +75,11 @@ extern void error(const char *msg);
 extern void error_exit(const char *msg) __attribute__((noreturn));
 
 /*
+ * Exit after clearing config and other memory allocations
+ */
+void exit_wrapper(int code) __attribute__((noreturn));
+
+/*
  * Get copied text from clipboard.
  * Places the text in a buffer and sets the bufptr to point the buffer.
  * bufptr must be a valid pointer to a char * variable.

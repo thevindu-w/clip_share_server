@@ -178,6 +178,11 @@ static int doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_optio
 }
 
 int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf_ptr) {
+    if (io == XCLIP_OUT) {
+        *len_ptr = 0;
+        *buf_ptr = NULL;
+    }
+
     /* Declare variables */
     Window win; /* Window */
     int exit_code;
