@@ -67,8 +67,13 @@ jobs:
     - name: Test
       run: make test
 
-  Build-and-Test-on-macOS-x86_64:
-    runs-on: macos-latest
+  Build-and-Test-on-macOS:
+    strategy:
+      matrix:
+        os:
+        - macos-latest
+        - macos-13
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
     - name: Install build dependencies

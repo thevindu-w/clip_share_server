@@ -130,40 +130,83 @@ jobs:
         if-no-files-found: error
         compression-level: 9
 
-  macOS-x86_64:
-    runs-on: macos-latest
-    timeout-minutes: 10
+  macOS:
     needs: Checks
+    strategy:
+      matrix:
+        os:
+        - macos-latest
+        - macos-13
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
 
     steps:
     - name: Install dependencies
-      run: |
-        brew install openssl@3 libpng libunistring gnu-tar
-        echo "$(brew --prefix gnu-tar)"'/libexec/gnubin' >> $GITHUB_PATH
+      run: brew install openssl@3 libpng libunistring
 
     - name: Check out repository code
       uses: actions/checkout@v4
 
     - name: Set version
       run: |
-        version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-        filename="clip_share-x86_64"
-        archive_name="clip_share_server-${version}-macos.tar.gz"
+        arch_suffix="$(uname -a | grep -q x86_64 && echo x86_64 || echo arm64)"
+        filename="clip_share-${arch_suffix}"
         echo FILE_NAME="$filename" >> $GITHUB_ENV
-        echo ARCHIVE_NAME="$archive_name" >> $GITHUB_ENV
 
     - name: Build
       run: |
         make
+        mv "clip_share" "${{env.FILE_NAME}}"
+
+    - name: Upload macOS binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: "${{env.FILE_NAME}}"
+        path: "${{env.FILE_NAME}}"
+        retention-days: 1
+        if-no-files-found: error
+        compression-level: 0
+
+  macOS_all:
+    needs: macOS
+    runs-on: macos-latest
+    timeout-minutes: 5
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: Set version
+      run: |
+        version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+        archive_name="clip_share_server-${version}-macos.zip"
+        echo ARCHIVE_NAME="$archive_name" >> $GITHUB_ENV
+        echo FILE_INTEL="clip_share-x86_64" >> $GITHUB_ENV
+        echo FILE_ARM="clip_share-arm64" >> $GITHUB_ENV
+
+    - name: Download macOS x86_64 version
+      uses: actions/download-artifact@v4
+      with:
+        name: "${{env.FILE_INTEL}}"
+        path: "${{env.FILE_INTEL}}"
+
+    - name: Download macOS ARM64 version
+      uses: actions/download-artifact@v4
+      with:
+        name: "${{env.FILE_ARM}}"
+        path: "${{env.FILE_ARM}}"
+
+    - name: Archive
+      run: |
         mkdir dist
-        mv "clip_share" "dist/${{env.FILE_NAME}}"
+        mv "${{env.FILE_INTEL}}/${{env.FILE_INTEL}}" "${{env.FILE_ARM}}/${{env.FILE_ARM}}" dist/
         [ -f helper_tools/install-mac.sh ] && cp helper_tools/install-mac.sh dist/
         chmod +x dist/*
         cd dist
-        tar -cf - --owner=root:0 --group=root:0 --no-same-owner . | \
-        gzip -9 >"../${{env.ARCHIVE_NAME}}"
+        rm -f .DS_Store
+        zip -9 "../${{env.ARCHIVE_NAME}}" *
 
-    - name: Upload macOS Intel version
+    - name: Upload macOS version
       uses: actions/upload-artifact@v4
       with:
         name: "${{env.ARCHIVE_NAME}}"
