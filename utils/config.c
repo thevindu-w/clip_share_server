@@ -352,7 +352,7 @@ void parse_conf(config *cfg, const char *file_name) {
     }
 
     char line[LINE_MAX_LEN + 1];
-    while (fscanf(f, "%2047[^\r\n]%*c", line) != EOF) {
+    while (fgets(line, LINE_MAX_LEN, f)) {
         line[LINE_MAX_LEN] = 0;
         parse_line(line, cfg);
     }
