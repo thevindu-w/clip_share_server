@@ -23,6 +23,12 @@ jobs:
       run: |
         [ $(grep "${{env.VERSION}}" winres/app.rc | grep -iE '(File|Product)Version' | wc -l) = 4 ]
 
+    - name: Check release_notes.md version
+      run: |
+        for v in $(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' .github/workflows/resources/release_notes.md); do \
+        grep -qF "${{env.VERSION}}" <<<"$v"; \
+        done
+
   Linux:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -214,3 +220,65 @@ jobs:
         retention-days: 3
         if-no-files-found: error
         compression-level: 0
+
+  Create_Release:
+    needs:
+    - Linux
+    - Windows
+    - macOS_all
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: Set variables
+      run: |
+        version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+        echo VERSION="$version" >> $GITHUB_ENV
+        echo TAG="v${version}" >> $GITHUB_ENV
+        echo TITLE="Version ${version}" >> $GITHUB_ENV
+        echo FILE_LINUX="clip_share_server-${version}-linux_x86_64.tar.gz" >> $GITHUB_ENV
+        echo FILE_WINDOWS="clip_share_server-${version}-windows64.zip" >> $GITHUB_ENV
+        echo FILE_MACOS="clip_share_server-${version}-macos.zip" >> $GITHUB_ENV
+
+    - name: Download Linux version
+      uses: actions/download-artifact@v4
+      with:
+        name: "${{env.FILE_LINUX}}"
+        path: "${{env.FILE_LINUX}}"
+
+    - name: Download Windows version
+      uses: actions/download-artifact@v4
+      with:
+        name: "${{env.FILE_WINDOWS}}"
+        path: "${{env.FILE_WINDOWS}}"
+
+    - name: Download macOS version
+      uses: actions/download-artifact@v4
+      with:
+        name: "${{env.FILE_MACOS}}"
+        path: "${{env.FILE_MACOS}}"
+
+    - name: Prepare assets
+      run: |
+        mkdir release
+        mv "${{env.FILE_LINUX}}/${{env.FILE_LINUX}}" release/
+        mv "${{env.FILE_WINDOWS}}/${{env.FILE_WINDOWS}}" release/
+        mv "${{env.FILE_MACOS}}/${{env.FILE_MACOS}}" release/
+        mv .github/workflows/resources/clipshare.conf release/
+        mv helper_tools/install-* release/
+        cd release
+        sha256sum -b * >SHA2-256SUM
+
+    - name: Create release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        cd release
+        gh release create "${{env.TAG}}" --latest --verify-tag \
+        --notes-file ../.github/workflows/resources/release_notes.md \
+        --title "${{env.TITLE}}" *
