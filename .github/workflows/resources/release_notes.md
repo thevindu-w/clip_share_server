@@ -17,7 +17,7 @@ This is Version 3.0.0 with support for protocol versions 1, 2, and 3.
 
 **Changes:**
 - Support protocol version 3
-  - Get and send files with empty directories.
+  - Get and send directory trees with empty directories.
   - The client can select the display to get the screenshot. (this can be disabled from configuration)
 - Bug and vulnerability fixes
   - Fix server start failure when the configuration file contains empty lines.
