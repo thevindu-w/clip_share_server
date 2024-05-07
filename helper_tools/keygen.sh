@@ -70,5 +70,5 @@ echo
 echo "# the server's name is $SERVER_NAME"
 echo "# the client's name is $CLIENT_NAME"
 echo
-echo 'Note: If you do not plan to create more keys in the future, you may safely delete the "ca.key" and "clipshare.ext" files. Otherwise, store the "ca.key" file securely.'
+echo 'Note: If you do not plan to create more keys in the future, you may safely delete the "ca.key" file. Otherwise, store the "ca.key" file securely.'
 rm -f keygen.log
