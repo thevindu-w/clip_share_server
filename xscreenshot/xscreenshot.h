@@ -10,6 +10,6 @@
  * Returns 0 on success.
  * Returns -1 if an error occured.
  */
-extern int screenshot_util(size_t *len_p, char **buf_p);
+extern int screenshot_util(int display, size_t *len_p, char **buf_p);
 
 #endif  // XSCREENSHOT_XSCREENSHOT_H_

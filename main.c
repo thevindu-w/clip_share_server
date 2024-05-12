@@ -198,16 +198,14 @@ static inline void _apply_default_conf(void) {
     if (configuration.max_text_length <= 0) configuration.max_text_length = MAX_TEXT_LENGTH;
     if (configuration.max_file_size <= 0) configuration.max_file_size = MAX_FILE_SIZE;
     if (configuration.cut_sent_files < 0) configuration.cut_sent_files = 0;
+    if (configuration.client_selects_display < 0) configuration.client_selects_display = 0;
+    if (configuration.display <= 0) configuration.display = 1;
 #ifdef WEB_ENABLED
     if (configuration.web_port <= 0) configuration.web_port = WEB_PORT;
     if (configuration.web_mode_enabled < 0) configuration.web_mode_enabled = 0;
 #endif
 #ifdef _WIN32
     if (configuration.tray_icon < 0) configuration.tray_icon = 1;
-#endif
-#if defined(_WIN32) || defined(__APPLE__)
-    if (configuration.client_selects_display < 0) configuration.client_selects_display = 0;
-    if (configuration.display <= 0) configuration.display = 1;
 #endif
 }
 

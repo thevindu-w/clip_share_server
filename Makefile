@@ -46,7 +46,7 @@ ifeq ($(detected_OS),Linux)
 	OBJS+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 	CFLAGS+= -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS_OPTIM=-Os
-	LDLIBS=-lunistring -lssl -lcrypto -lX11 -lXmu -lpng
+	LDLIBS=-lunistring -lssl -lcrypto -lX11 -lXmu -lxcb -lxcb-randr -lpng
 	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections
 else ifeq ($(detected_OS),Windows)
 	OBJS+= utils/win_image.o

@@ -830,7 +830,6 @@ int put_clipboard_text(char *data, size_t len) {
 }
 
 int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
-    (void)disp;
     *buf_ptr = NULL;
 
     // Try to get copied image unless the mode is screenshot only
@@ -844,8 +843,9 @@ int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
     *buf_ptr = NULL;
     *len_ptr = 0;
 
+    if (disp <= 0 || !configuration.client_selects_display) disp = (int)configuration.display;
     // Try to get screenshot unless the mode is copied image only
-    if (mode != IMG_COPIED_ONLY && screenshot_util(len_ptr, buf_ptr) == EXIT_SUCCESS &&
+    if (mode != IMG_COPIED_ONLY && screenshot_util(disp, len_ptr, buf_ptr) == EXIT_SUCCESS &&
         *len_ptr > 8) {  // do not change the order
         return EXIT_SUCCESS;
     }

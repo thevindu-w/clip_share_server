@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <utils/utils.h>
+#include <xcb/randr.h>
+#include <xcb/xcb.h>
 #include <xscreenshot/xscreenshot.h>
 
 /* LSBFirst: BGRA -> RGBA */
@@ -102,11 +104,55 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len) {
     return EXIT_SUCCESS;
 }
 
-int screenshot_util(size_t *len, char **buf) {
+int screenshot_util(int display, size_t *len, char **buf) {
+    xcb_connection_t *dsp = xcb_connect(NULL, NULL);
+    if (xcb_connection_has_error(dsp)) {
+        *len = 0;
+        return EXIT_FAILURE;
+    }
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waggregate-return"
+    xcb_window_t root = xcb_setup_roots_iterator(xcb_get_setup(dsp)).data->root;
+    xcb_randr_get_monitors_cookie_t cookie = xcb_randr_get_monitors(dsp, root, 1);
+#pragma GCC diagnostic pop
+    xcb_randr_get_monitors_reply_t *reply = xcb_randr_get_monitors_reply(dsp, cookie, NULL);
+    int cnt = xcb_randr_get_monitors_monitors_length(reply);
+    if (display > cnt) {
+        free(reply);
+        xcb_disconnect(dsp);
+        *len = 0;
+        return EXIT_FAILURE;
+    }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waggregate-return"
+    xcb_randr_monitor_info_iterator_t itr = xcb_randr_get_monitors_monitors_iterator(reply);
+#pragma GCC diagnostic pop
+
+    int x = 0, y = 0;
+    unsigned int width = 0, height = 0;
+    while (itr.rem) {
+        display--;
+        if (display == 0) {
+            xcb_randr_monitor_info_t *info = itr.data;
+            x = info->x;
+            y = info->y;
+            width = info->width;
+            height = info->height;
+            break;
+        }
+        xcb_randr_monitor_info_next(&itr);
+    }
+    free(reply);
+    xcb_disconnect(dsp);
+    if (width == 0 || height == 0) {
+        *len = 0;
+        return EXIT_FAILURE;
+    }
+
     XImage *img;
     Display *dpy;
     Window win;
-    XWindowAttributes attr;
 
     if (!(dpy = XOpenDisplay(NULL))) {
         *len = 0;
@@ -116,9 +162,8 @@ int screenshot_util(size_t *len, char **buf) {
     win = RootWindow(dpy, 0);
 
     XGrabServer(dpy);
-    XGetWindowAttributes(dpy, win, &attr);
 
-    img = XGetImage(dpy, win, 0, 0, (unsigned int)(attr.width), (unsigned int)(attr.height), 0xffffffff, ZPixmap);
+    img = XGetImage(dpy, win, x, y, width, height, AllPlanes, ZPixmap);
 
     XUngrabServer(dpy);
     XCloseDisplay(dpy);

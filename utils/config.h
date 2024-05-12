@@ -43,13 +43,11 @@ typedef struct _config {
     uint32_t max_text_length;
     int64_t max_file_size;
     char cut_sent_files;
+    char client_selects_display;
+    unsigned short display;
 
 #ifdef _WIN32
     char tray_icon;
-#endif
-#if defined(_WIN32) || defined(__APPLE__)
-    char client_selects_display;
-    unsigned short display;
 #endif
 } config;
 
