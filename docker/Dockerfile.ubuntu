@@ -4,15 +4,16 @@ RUN apt-get update && \
     apt-get install --no-install-recommends -y apt-transport-https
 
 # Install build dependencies
-RUN apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev libunistring-dev
+RUN apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev
 
 # Install test dependencies
 RUN apt-get install --no-install-recommends -y openssl xclip python3.11-minimal diffutils findutils coreutils netcat-openbsd sed
+
 RUN mkdir -p /debs
 WORKDIR /debs
-
 RUN apt-get download xvfb libunwind8 libgl1 libpixman-1-0 libxfont2 libglvnd0 libglx0 libfontenc1 libfreetype6 libbrotli1 xkb-data libxkbfile1 x11-xkb-utils && dpkg --force-depends -i ./*.deb 2>/dev/null
 RUN apt-get clean -y
+
 WORKDIR /usr/bin
 RUN ln -s python3.11 python3
 

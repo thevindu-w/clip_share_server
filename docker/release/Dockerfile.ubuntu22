@@ -4,7 +4,7 @@ RUN apt-get update && \
     apt-get install --no-install-recommends -y apt-transport-https
 
 # Install dependencies
-RUN apt-get install --no-install-recommends -y coreutils gcc make libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev libunistring-dev && apt-get clean -y
+RUN apt-get install --no-install-recommends -y coreutils gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev && apt-get clean -y
 
 RUN useradd -mU -s /bin/bash user
 USER user
