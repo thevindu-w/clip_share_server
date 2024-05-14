@@ -26,8 +26,11 @@
 #include <unistd.h>
 #include <utils/list_utils.h>
 #include <utils/utils.h>
+#ifdef __linux__
+#include <X11/Xmu/Atoms.h>
 #include <xclip/xclip.h>
 #include <xscreenshot/xscreenshot.h>
+#endif
 #ifdef _WIN32
 #include <direct.h>
 #include <utils/win_image.h>
@@ -80,10 +83,39 @@ void error_exit(const char *msg) {
     exit_wrapper(EXIT_FAILURE);
 }
 
+#ifdef __linux__
+typedef struct _DisplayRec {
+    struct _DisplayRec *next;
+    Display *dpy;
+    Atom atom;
+} DisplayRec;
+
+struct _AtomRec {
+    _Xconst char *name;
+    DisplayRec *head;
+};
+
+static void freeAtomPtr(AtomPtr atomPtr) {
+    if (atomPtr) {
+        DisplayRec *next = atomPtr->head;
+        atomPtr->head = NULL;
+        while (next) {
+            DisplayRec *tmp = next->next;
+            XtFree((char *)(next));
+            next = tmp;
+        }
+    }
+}
+#endif
+
 void exit_wrapper(int code) {
     if (error_log_file) free(error_log_file);
     if (cwd) free(cwd);
     clear_config(&configuration);
+#ifdef __linux__
+    freeAtomPtr(_XA_CLIPBOARD);
+    freeAtomPtr(_XA_UTF8_STRING);
+#endif
     exit(code);
 }
 
