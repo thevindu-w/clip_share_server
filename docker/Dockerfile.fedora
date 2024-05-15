@@ -1,4 +1,4 @@
-FROM fedora:39
+FROM fedora:41
 
 # Install build dependencies
 RUN dnf install --setopt=install_weak_deps=False -y gcc make glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel libunistring-devel
