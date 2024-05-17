@@ -20,11 +20,14 @@ fi
 responseDump="${responseDump:len_expected_header}"
 
 if [ ! -z "$disp" ]; then
-    if [ "${responseDump::2}" != "$METHOD_OK" ]; then
+    if [ "${responseDump::2}" != "$DISPLAY_ACK" ]; then
         showStatus info 'Incorrect display ack.'
-        echo 'Expected:' "$METHOD_OK"
+        echo 'Expected:' "$DISPLAY_ACK"
         echo 'Received:' "${responseDump::2}"
         exit 1
+    fi
+    if [ "$DISPLAY_ACK" = "$METHOD_NO_DATA" ]; then
+        exit 0
     fi
     responseDump="${responseDump:2}"
 fi

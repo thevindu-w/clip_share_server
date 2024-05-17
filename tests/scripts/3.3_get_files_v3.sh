@@ -12,6 +12,6 @@ files=(
     'sub_2/subsub/empty/'
 )
 
-proto="$PROTO_V2"
+proto="$PROTO_V3"
 
 . scripts/common/x.3.x_get_files.sh

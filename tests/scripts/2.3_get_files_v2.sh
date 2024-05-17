@@ -11,4 +11,6 @@ files=(
     'sub 1/subsub_2/file_8.txt'
 )
 
-. scripts/common/2.3.x_get_files_v2.sh
+proto="$PROTO_V2"
+
+. scripts/common/x.3.x_get_files.sh

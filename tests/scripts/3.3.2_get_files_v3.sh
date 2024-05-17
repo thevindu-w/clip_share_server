@@ -9,8 +9,10 @@ files=(
     '資料夾 2/子資料夾/文字檔案 6.txt'
     '資料夾 2/子資料夾/另一個文件_7.txt'
     '資料夾 2/子資料夾 2/文字檔案 8.txt'
+    '資料夾 2/資料夾 1/'
+    '資料夾_3/'
 )
 
-proto="$PROTO_V2"
+proto="$PROTO_V3"
 
 . scripts/common/x.3.x_get_files.sh

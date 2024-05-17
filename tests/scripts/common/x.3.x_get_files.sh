@@ -13,28 +13,13 @@ for f in "${files[@]}"; do
     fi
 done
 
-chunks=''
-fileCount=0
-
-appendToChunks() {
-    fname="$1"
-    if [ -d "$fname" ]; then
-        for f in "$fname"/*; do
-            appendToChunks "$f"
-        done
-    elif [ -f "$fname" ]; then
-        printf -v _ '%s%n' "$fname" utf8nameLen
-        nameLength="$(printf '%016x' $utf8nameLen)"
-        fileSize=$(printf '%016x' $(stat -c '%s' "$fname"))
-        content=$(cat "$fname" | bin2hex | tr -d '\n')
-        chunks+="${nameLength}$(echo -n "$fname" | bin2hex)${fileSize}${content}"
-        fileCount="$((fileCount + 1))"
-    fi
-}
-
-for f in *; do
-    appendToChunks "$f"
-done
+regFileCount="$(find . -type f | wc -l)"
+if [ "$proto" -gt "$PROTO_V2" ]; then
+    emptyDirCount="$(find . -type d -empty | wc -l)"
+    fileCount="$((regFileCount + emptyDirCount))"
+else
+    fileCount="$regFileCount"
+fi
 
 cd ..
 
@@ -43,7 +28,6 @@ file_list=(original/*)
 shopt -u nullglob
 copy_files "${file_list[@]}"
 
-proto="$PROTO_V2"
 method="$METHOD_GET_FILES"
 
 responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool)
@@ -79,6 +63,11 @@ for _ in $(seq "$fileCount"); do
         showStatus info "File is too large. size=${fileSize}."
         exit 1
     fi
+    if [ "$proto" -gt "$PROTO_V2" ] && [ "$fileSize" = '-1' ]; then
+        mkdir -p "$fileName"
+        body="${body:16}"
+        continue
+    fi
     if [[ $fileName == */* ]]; then
         mkdir -p "${fileName%/*}"
     fi
@@ -94,7 +83,7 @@ fi
 cd ..
 
 # Proto v2 does not get empty directories
-find original -depth -type d -empty -delete
+[ "$proto" -gt "$PROTO_V2" ] || find original -depth -type d -empty -delete
 
 diffOutput=$(diff -rq original copies 2>&1 || echo failed)
 if [ ! -z "$diffOutput" ]; then
