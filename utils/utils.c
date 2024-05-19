@@ -870,7 +870,9 @@ int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
         return EXIT_SUCCESS;
     }
 #ifdef DEBUG_MODE
-    printf("xclip failed to get image/png. len = %zu\nCapturing screenshot ...\n", *len_ptr);
+    if (mode != IMG_SCRN_ONLY) {
+        printf("xclip failed to get image/png. len = %zu\nCapturing screenshot ...\n", *len_ptr);
+    }
 #endif
     *buf_ptr = NULL;
     *len_ptr = 0;

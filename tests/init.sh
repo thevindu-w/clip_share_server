@@ -7,7 +7,7 @@ shopt -s expand_aliases
 alias showStatus="showStatus $0"
 
 cur_dir="$(pwd)"
-if type 'xxd' &>/dev/null && [ "$DETECTED_OS" = 'Linux' ]; then
+if type 'xxd' &>/dev/null && ([ "$DETECTED_OS" = 'Linux' ] || [ "$DETECTED_OS" = 'macOS' ]); then
     alias bin2hex='xxd -p -c 512 2>/dev/null'
     alias hex2bin='xxd -p -r 2>/dev/null'
 else
