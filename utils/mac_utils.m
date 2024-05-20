@@ -129,12 +129,12 @@ static inline CGDirectDisplayID get_display_id(int disp) {
     CGDirectDisplayID disp_ids[65536];
     uint32_t disp_cnt;
     if (CGGetOnlineDisplayList(65536, disp_ids, &disp_cnt)) {
-        return CGMainDisplayID();
+        return (CGDirectDisplayID)-1;
     }
     if (disp_cnt >= (uint32_t)disp) {
         return disp_ids[disp - 1];
     }
-    return CGMainDisplayID();
+    return (CGDirectDisplayID)-1;
 }
 
 int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
@@ -147,7 +147,9 @@ int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
     if (mode != IMG_COPIED_ONLY && !bitmap) {
         // If configured to force use the display from conf, override the disp value
         if (disp <= 0 || !configuration.client_selects_display) disp = (int)configuration.display;
-        CGImageRef screenshot = CGDisplayCreateImage(get_display_id(disp));
+        CGDirectDisplayID disp_id = get_display_id(disp);
+        CGImageRef screenshot = NULL;
+        if (disp_id != (CGDirectDisplayID)-1) screenshot = CGDisplayCreateImage(disp_id);
         if (!screenshot) return EXIT_FAILURE;
         bitmap = [[NSBitmapImageRep alloc] initWithCGImage:screenshot];
         CGImageRelease(screenshot);
