@@ -113,6 +113,7 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
 * libc
 * libx11
 * libxmu
+* libxcb-randr
 * libpng
 * libssl
 * libunistring
@@ -121,7 +122,7 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
 
 * On Debian-based or Ubuntu-based distros,
   ```bash
-  sudo apt-get install libc6-dev libx11-dev libxmu-dev libpng-dev libssl-dev libunistring-dev
+  sudo apt-get install libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev
   ```
 
 * On Redhat-based or Fedora-based distros,
