@@ -105,9 +105,19 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len) {
 }
 
 int screenshot_util(int display, size_t *len, char **buf) {
+    XImage *img;
+    Display *dpy;
+    Window win;
+
+    if (!(dpy = XOpenDisplay(NULL))) {
+        *len = 0;
+        return EXIT_FAILURE;
+    }
+
     xcb_connection_t *dsp = xcb_connect(NULL, NULL);
     if (xcb_connection_has_error(dsp)) {
         *len = 0;
+        XCloseDisplay(dpy);
         return EXIT_FAILURE;
     }
 #pragma GCC diagnostic push
@@ -120,6 +130,7 @@ int screenshot_util(int display, size_t *len, char **buf) {
     if (display > cnt) {
         free(reply);
         xcb_disconnect(dsp);
+        XCloseDisplay(dpy);
         *len = 0;
         return EXIT_FAILURE;
     }
@@ -147,25 +158,13 @@ int screenshot_util(int display, size_t *len, char **buf) {
     xcb_disconnect(dsp);
     if (width == 0 || height == 0) {
         *len = 0;
-        return EXIT_FAILURE;
-    }
-
-    XImage *img;
-    Display *dpy;
-    Window win;
-
-    if (!(dpy = XOpenDisplay(NULL))) {
-        *len = 0;
+        XCloseDisplay(dpy);
         return EXIT_FAILURE;
     }
 
     win = RootWindow(dpy, 0);
-
-    XGrabServer(dpy);
-
     img = XGetImage(dpy, win, x, y, width, height, AllPlanes, ZPixmap);
 
-    XUngrabServer(dpy);
     XCloseDisplay(dpy);
 
     if (!img) {
