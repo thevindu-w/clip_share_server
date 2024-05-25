@@ -1,0 +1,31 @@
+FROM ubuntu:noble
+
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y apt-transport-https
+
+# Install dependencies
+RUN apt-get install --no-install-recommends -y coreutils gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev && apt-get clean -y
+
+RUN useradd -mU -s /bin/bash user
+USER user
+ENV HOME=/home/user
+
+RUN mkdir -p "$HOME/src"
+WORKDIR "$HOME/src"
+
+# Copy the source files
+COPY Makefile main.c globals.h ./
+COPY ./html html
+RUN mkdir proto servers utils xclip xscreenshot
+COPY ./proto/*.c ./proto/*.h proto/
+COPY ./servers/*.c ./servers/*.h ./servers/*.S servers/
+COPY ./utils/*.c ./utils/*.h utils/
+COPY ./xclip/*.c ./xclip/*.h xclip/
+COPY ./xscreenshot/*.c ./xscreenshot/*.h xscreenshot/
+
+# Build
+RUN make clean && make
+
+COPY --chmod=755 ./docker/release/copy_release.sh ./
+
+CMD ["./copy_release.sh"]
