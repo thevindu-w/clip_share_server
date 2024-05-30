@@ -75,19 +75,23 @@ if [ -f .config/systemd/user/clipshare.service ]; then
     fi
 fi
 
+if [ -z "$DISPLAY" ]; then
+    export DISPLAY=:0
+fi
+
 cat >.config/systemd/user/clipshare.service <<EOF
 [Unit]
 Description=ClipShare
 
 [Service]
 Type=forking
-Environment="XDG_CONFIG_HOME=$CONF_DIR"
+Environment="XDG_CONFIG_HOME=$CONF_DIR" "DISPLAY=$DISPLAY"
 ExecStart=$exec_path
 ExecStop=$exec_path -s
 Restart=no
 
 [Install]
-WantedBy=graphical-session.target
+WantedBy=default.target
 EOF
 
 systemctl --user daemon-reload
