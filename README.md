@@ -361,8 +361,6 @@ bind_address=0.0.0.0
 restart=true
 max_text_length=4194304
 max_file_size=68719476736
-
-# Windows and macOS only
 display=1
 client_selects_display=false
 
@@ -396,9 +394,9 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `max_text_length` | The maximum length of text that can be transferred. This is the number of bytes of the text encoded in UTF-8. | Any integer between 1 and 4294967295 (nearly 4 GiB) inclusive. Suffixes K, M, and G (case insensitive) denote x10<sup>3</sup>, x10<sup>6</sup>, and x10<sup>9</sup>, respectively. | 4194304 (i.e. 4 MiB) |
 | `max_file_size` | The maximum size of a single file in bytes that can be transferred. | Any integer between 1 and 9223372036854775807 (nearly 8 EiB) inclusive. Suffixes K, M, G, and T (case insensitive) denote x10<sup>3</sup>, x10<sup>6</sup>, x10<sup>9</sup>, and x10<sup>12</sup>, respectively. | 68719476736 (i.e. 64 GiB) |
 | `tray_icon` | Whether the application should display a system tray icon. This option is available only on Windows. The values `true` or `1` will display a tray icon, while `false` or `0` will prevent displaying a tray icon. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
-| `display` | The display that should be used for screenshots. This option is available only on Windows and macOS. | Display number (1 - 65535) | `1` |
+| `display` | The display that should be used for screenshots. | Display number (1 - 65535) | `1` |
 | `cut_sent_files` | Whether to automatically cut the files into the clipboard on the _Send Files_ method. This option is available only on Linux and macOS. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
-| `client_selects_display` | Whether the client can override the default/configured display for screenshots in protocol version 3. The values `true` or `1` will allow overriding the default, while `false` or `0` will force using the default/configured display. This option is available only on Windows and macOS. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
+| `client_selects_display` | Whether the client can override the default/configured display for screenshots in protocol version 3. The values `true` or `1` will allow overriding the default, while `false` or `0` will force using the default/configured display. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
 
 <br>
 
