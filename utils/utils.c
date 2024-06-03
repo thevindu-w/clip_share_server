@@ -33,6 +33,7 @@
 #endif
 #ifdef _WIN32
 #include <direct.h>
+#include <shlobj.h>
 #include <utils/win_image.h>
 #include <windows.h>
 #endif
@@ -1168,12 +1169,65 @@ int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
     return EXIT_FAILURE;
 }
 
-#endif
-
-#ifdef _WIN32
-// TODO(thevindu-w): implement
 int set_clipboard_cut_files(list2 *paths) {
-    (void)paths;
+    if (paths->len == 0) {
+        return EXIT_SUCCESS;
+    }
+
+    // TODO(thevindu-w): convert paths to wchar
+    size_t tot_sz = sizeof(DROPFILES) + 1;  // +1 for the additional null terminator
+    for (size_t i = 0; i < paths->len; i++) {
+        tot_sz += strnlen(paths->array[i], 2048) + 1;
+    }
+
+    HGLOBAL hGlobal = GlobalAlloc(GHND | GMEM_SHARE, tot_sz);
+    if (!hGlobal) return EXIT_FAILURE;
+    char *pGlobal = (char *)GlobalLock(hGlobal);
+    if (!pGlobal) {
+        GlobalFree(hGlobal);
+        return EXIT_FAILURE;
+    }
+
+    DROPFILES *dropFiles = (DROPFILES *)pGlobal;
+    dropFiles->pFiles = sizeof(DROPFILES);
+    dropFiles->pt.x = 0;
+    dropFiles->pt.y = 0;
+    dropFiles->fNC = 0;
+    dropFiles->fWide = 0;  // change after converted to wchar
+
+    char *pFiles = pGlobal + sizeof(DROPFILES);
+    for (size_t i = 0; i < paths->len; i++) {
+        size_t len = strnlen(paths->array[i], 2048);
+        memcpy(pFiles, paths->array[i], len);
+        pFiles += len;
+        *pFiles++ = '\0';
+    }
+    *pFiles = '\0';  // additional null terminator
+    GlobalUnlock(hGlobal);
+
+    HGLOBAL hGlobalEffect = GlobalAlloc(GHND | GMEM_SHARE, sizeof(DWORD));
+    if (!hGlobalEffect) {
+        GlobalFree(hGlobal);
+        return EXIT_FAILURE;
+    }
+    DWORD *pDropEffect = (DWORD *)GlobalLock(hGlobalEffect);
+    if (!pDropEffect) {
+        GlobalFree(hGlobal);
+        GlobalFree(hGlobalEffect);
+        return EXIT_FAILURE;
+    }
+    *pDropEffect = DROPEFFECT_MOVE;
+    GlobalUnlock(hGlobalEffect);
+
+    if (!OpenClipboard(NULL)) {
+        GlobalFree(hGlobal);
+        GlobalFree(hGlobalEffect);
+        return EXIT_FAILURE;
+    }
+    EmptyClipboard();
+    SetClipboardData(CF_HDROP, hGlobal);
+    SetClipboardData(RegisterClipboardFormat(CFSTR_PREFERREDDROPEFFECT), hGlobalEffect);
+    CloseClipboard();
     return EXIT_SUCCESS;
 }
 #endif
