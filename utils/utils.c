@@ -1174,10 +1174,14 @@ int set_clipboard_cut_files(list2 *paths) {
         return EXIT_SUCCESS;
     }
 
-    // TODO(thevindu-w): convert paths to wchar
-    size_t tot_sz = sizeof(DROPFILES) + 1;  // +1 for the additional null terminator
+    // convert paths to wchar*
+    size_t tot_sz = sizeof(DROPFILES) + sizeof(wchar_t);  // +sizeof(wchar_t) for the additional null terminator
     for (size_t i = 0; i < paths->len; i++) {
-        tot_sz += strnlen(paths->array[i], 2048) + 1;
+        wchar_t *wpath;
+        int wlen;
+        if (utf8_to_wchar_str(paths->array[i], &wpath, &wlen) || wlen < 0) return EXIT_FAILURE;
+        paths->array[i] = wpath;
+        tot_sz += ((size_t)wlen + 1) * sizeof(wchar_t);
     }
 
     HGLOBAL hGlobal = GlobalAlloc(GHND | GMEM_SHARE, tot_sz);
@@ -1193,12 +1197,12 @@ int set_clipboard_cut_files(list2 *paths) {
     dropFiles->pt.x = 0;
     dropFiles->pt.y = 0;
     dropFiles->fNC = 0;
-    dropFiles->fWide = 0;  // change after converted to wchar
+    dropFiles->fWide = 1;  // for wchar_t
 
-    char *pFiles = pGlobal + sizeof(DROPFILES);
+    wchar_t *pFiles = (wchar_t *)(pGlobal + sizeof(DROPFILES));
     for (size_t i = 0; i < paths->len; i++) {
-        size_t len = strnlen(paths->array[i], 2048);
-        memcpy(pFiles, paths->array[i], len);
+        size_t len = wcsnlen(paths->array[i], 2048);
+        memcpy(pFiles, paths->array[i], len * sizeof(wchar_t));
         pFiles += len;
         *pFiles++ = '\0';
     }
