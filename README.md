@@ -6,7 +6,7 @@
 
 # ClipShare Server
 
-### Share Clipboard and Files. Copy on one device. Paste on another device
+### Share Clipboard and Files. Copy on one device. Paste on another device.
 
 <br>
 
