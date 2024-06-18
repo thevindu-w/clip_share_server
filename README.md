@@ -96,7 +96,7 @@ brew install libunistring openssl@3 libpng
 * `4337` / `TCP` &nbsp; - &nbsp; For application traffic (not encrypted)
 * `4337` / `UDP` &nbsp; - &nbsp; For network scanning. This is for UDP broadcasts
 * `4338` / `TCP` &nbsp; - &nbsp; For application traffic over TLS (encrypted)
-* `4339` / `TCP` &nbsp; - &nbsp; For the web server (if the web server is available)
+* `4339` / `TCP` &nbsp; - &nbsp; For the web server (only if the web server is available)
 
 You may need to allow incoming connections to the above ports for the client to connect to the server.
 
@@ -229,12 +229,10 @@ max_text_length=4194304
 max_file_size=68719476736
 display=1
 client_selects_display=false
+cut_sent_files=false
 
 # Windows only
 tray_icon=true
-
-# Linux and macOS only
-cut_sent_files=false
 ```
 
 Note that all the lines in the configuration file are optional. You may omit some lines if they need to get their default values.
@@ -244,25 +242,25 @@ Note that all the lines in the configuration file are optional. You may omit som
 | Property | Description | Accepted values | Default |
 |  :----:  | :--------   | :------------   |  :---:  |
 | `insecure_mode_enabled` | Whether or not the application listens for unencrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
-| `app_port` | The port on which the application listens for unencrypted TCP connections. (Values below 1024 may require superuser/admin privileges) | Any valid, unused TCP port number (1 - 65535) | `4337` |
 | `secure_mode_enabled` | Whether or not the application listens for TLS-encrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
-| `app_port_secure` | The TCP port on which the application listens for TLS-encrypted connections. (Values below 1024 may require superuser/admin privileges) | Any valid, unused TCP port number (1 - 65535) | `4338` |
-| `udp_port` | The port on which the application listens for UDP broadcasts of network scanning. (Values below 1024 may require superuser/admin privileges) | Any valid, unused UDP port number (1 - 65535) | `4337` |
 | `web_mode_enabled` | Whether or not the application listens for TLS-encrypted connections from web clients if the web mode is available. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
+| `app_port` | The port on which the application listens for unencrypted TCP connections. (Values below 1024 may require superuser/admin privileges) | Any valid, unused TCP port number (1 - 65535) | `4337` |
+| `udp_port` | The port on which the application listens for UDP broadcasts of network scanning. (Values below 1024 may require superuser/admin privileges) | Any valid, unused UDP port number (1 - 65535) | `4337` |
+| `app_port_secure` | The TCP port on which the application listens for TLS-encrypted connections. (Values below 1024 may require superuser/admin privileges) | Any valid, unused TCP port number (1 - 65535) | `4338` |
 | `web_port` | The TCP port on which the application listens for TLS-encrypted connections for web clients. This setting is used only if web mode is available. (Values below 1024 may require superuser/admin privileges) | Any valid, unused TCP port number (1 - 65535) | `4339` |
 | `server_key` | The TLS private key file of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the private key file | \<Unspecified\> |
 | `server_cert` | The TLS certificate file of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the server's TLS certificate file | \<Unspecified\> |
 | `ca_cert` | The TLS certificate file of the CA that signed the TLS certificate of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the TLS certificate file of the CA | \<Unspecified\> |
 | `allowed_clients` | The text file containing a list of allowed clients (Common Name of client certificate), one name per line. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the allowed-clients file | \<Unspecified\> |
-| `working_dir` | The working directory where the application should run. All the files, that are sent from a client, will be saved in this directory. It will follow symlinks if this is a path to a symlink. The user running this application should have write access to the directory | Absolute or relative path to an existing directory | `.` (i.e. Current directory) |
 | `bind_address` | The address of the interface to which the application should bind when listening for connections. It will listen on all interfaces if this is set to `0.0.0.0` | IPv4 address of an interface in dot-decimal notation (ex: `192.168.37.5`) or `0.0.0.0` | `0.0.0.0` |
 | `restart` | Whether the application should start or restart by default. The values `true` or `1` will make the server restart by default, while `false` or `0` will make it just start without stopping any running instances of the server. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
+| `working_dir` | The working directory where the application should run. All the files, that are sent from a client, will be saved in this directory. It will follow symlinks if this is a path to a symlink. The user running this application should have write access to the directory | Absolute or relative path to an existing directory | `.` (i.e. Current directory) |
 | `max_text_length` | The maximum length of text that can be transferred. This is the number of bytes of the text encoded in UTF-8. | Any integer between 1 and 4294967295 (nearly 4 GiB) inclusive. Suffixes K, M, and G (case insensitive) denote x10<sup>3</sup>, x10<sup>6</sup>, and x10<sup>9</sup>, respectively. | 4194304 (i.e. 4 MiB) |
 | `max_file_size` | The maximum size of a single file in bytes that can be transferred. | Any integer between 1 and 9223372036854775807 (nearly 8 EiB) inclusive. Suffixes K, M, G, and T (case insensitive) denote x10<sup>3</sup>, x10<sup>6</sup>, x10<sup>9</sup>, and x10<sup>12</sup>, respectively. | 68719476736 (i.e. 64 GiB) |
-| `tray_icon` | Whether the application should display a system tray icon. This option is available only on Windows. The values `true` or `1` will display a tray icon, while `false` or `0` will prevent displaying a tray icon. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
 | `display` | The display that should be used for screenshots. | Display number (1 - 65535) | `1` |
-| `cut_sent_files` | Whether to automatically cut the files into the clipboard on the _Send Files_ method. This option is available only on Linux and macOS. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
+| `cut_sent_files` | Whether to automatically cut the files into the clipboard on the _Send Files_ method. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
 | `client_selects_display` | Whether the client can override the default/configured display for screenshots in protocol version 3. The values `true` or `1` will allow overriding the default, while `false` or `0` will force using the default/configured display. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
+| `tray_icon` | Whether the application should display a system tray icon. This option is available only on Windows. The values `true` or `1` will display a tray icon, while `false` or `0` will prevent displaying a tray icon. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
 
 <br>
 
