@@ -557,7 +557,7 @@ static int save_file(int version, socket_t *socket, const char *dirname) {
     printf("name_len = %zi\n", (ssize_t)fname_size);
 #endif
     // limit file name length to 1024 chars
-    if (fname_size < 0 || fname_size > MAX_FILE_NAME_LENGTH) return EXIT_FAILURE;
+    if (fname_size <= 0 || fname_size > MAX_FILE_NAME_LENGTH) return EXIT_FAILURE;
 
     const uint64_t name_length = (uint64_t)fname_size;
     char file_name[name_length + 1];
@@ -585,6 +585,7 @@ static int save_file(int version, socket_t *socket, const char *dirname) {
         }
     }
 #endif
+    if (file_name[name_length - 1] == '/') file_name[name_length - 1] = 0;  // remove trailing /
 
     char new_path[name_length + 20];
     if (file_name[0] == PATH_SEP) {
