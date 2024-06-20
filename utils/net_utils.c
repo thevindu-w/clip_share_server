@@ -297,7 +297,6 @@ void close_socket(socket_t *socket) {
     switch (socket->type) {
         case PLAIN_SOCK: {
 #if defined(__linux__) || defined(__APPLE__)
-            shutdown(socket->socket.plain, SHUT_RD);
             close(socket->socket.plain);
 #elif defined(_WIN32)
             closesocket(socket->socket.plain);
