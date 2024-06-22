@@ -229,15 +229,17 @@
             This method is used to get a copied image or a screenshot from the server to the client. If the server
             device has an image copied to the clipboard, it will be sent. Otherwise, a screenshot of the server device
             will be sent as an image. The image gets encoded as a PNG image. Once the client requests this method code
-            from the server and the server acknowledges the client with the status OK, the server will send the image as
-            follows.<br>
+            from the server, and if the server can get the image, the server acknowledges the client with the status OK.
+            Then, the server will send the image as follows.<br>
         <ul>
             <li>First, the size of the image in bytes is sent. The image can be at most 1 GiB in size. It is encoded as
                 a numeric value, as specified above in the notes.</li>
             <li>Then, the image is sent as a stream of bytes, as specified above in the notes.</li>
         </ul>
         Once the image is transmitted, the communication ends, and the connection can be closed. Note that there is no
-        file name for the image. The client should create a file name if it needs to save this image as a file.
+        file name for the image. The client should create a file name if it needs to save this image as a file. If the
+        server fails to get the image, it will send the status NO_DATA for the client's request instead of the status
+        OK and terminate the connection without sending any further data.
         </p>
         <h3 id="info">Info</h3>
         <p>
