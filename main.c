@@ -234,8 +234,7 @@ static void kill_other_processes(const char *prog_name) {
         return;
     }
     while ((dir_ptr = readdir(dir)) != NULL) {
-        if ((strcmp(dir_ptr->d_name, ".") == 0) || (strcmp(dir_ptr->d_name, "..") == 0))
-            continue;
+        if ((strcmp(dir_ptr->d_name, ".") == 0) || (strcmp(dir_ptr->d_name, "..") == 0)) continue;
         if (DT_DIR != dir_ptr->d_type) continue;
         int is_invalid = 0;
         for (const char *dname = dir_ptr->d_name; *dname; dname++) {
