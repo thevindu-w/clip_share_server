@@ -16,7 +16,7 @@
         <span><a href="examples/index.html">Next (Examples) &gt</a></span>
     </div>
     <div class="page">
-        <h1>Protocol Version 3 (draft)</h1>
+        <h1>Protocol Version 3</h1>
 
         <p>
             If the client and the server agree on protocol version 3 after <a
@@ -112,7 +112,7 @@
         <p>
             Since this method supports sending empty leaf directories, their file size is transferred as -1, and the
             file content is considered empty. All other parameters (name length and name) are sent similarly to regular
-            files.</p>
+            files. The directory name may optionally end with the path separator '/'.</p>
         <p>
             Similarly to the <a href="proto_v2.html#get-files">Get Files method of Version 2</a>, the server starts by
             sending the number of files and then sends each file sequentially. Once all the files are transmitted, the
@@ -133,7 +133,7 @@
         <p>
             This method is similar to the <a href="#get-image">Get Image/Screenshot</a> method, except that if there is
             no image copied to the clipboard, the server will not send a screenshot as the image. Instead, the server
-            will respond with the status NO_DATA and terminate the connection.
+            will respond with the status NO_DATA to the method request and terminate the connection.
         </p>
         <h3 id="get-screenshot-only">Get Screenshot Only</h3>
         <p>
@@ -141,13 +141,14 @@
             copied to the clipboard, it will send only a screenshot of the server device. The screenshot is encoded as a
             PNG image. Once the client requests this method code from the server, the server acknowledges the client
             with the status OK. Then, the client sends the display number from the server, and the server acknowledges
-            the client with the status OK. Then, the server will send the screenshot. The communication after protocol
-            version negotiation happens as follows.<br>
+            the client with the status OK if the display number is valid. Then, the server will send the screenshot. The
+            communication after protocol version negotiation happens as follows.<br>
         <ul>
             <li>First, the client sends the method request code.</li>
             <li>The server responds with the status OK.</li>
             <li>Next, the client sends the display number to get the screenshot. The display number can be from 1 to
                 65536 inclusive. Also, the display number can be sent as -1 to let the server use its default display.
+                Display number 0 is reserved, and the behavior is undefined.
             </li>
             <li>The server responds with the status OK if the screenshot is taken and proceeds to the next step.
                 Otherwise, it will send the status NO_DATA and terminate the connection.</li>
