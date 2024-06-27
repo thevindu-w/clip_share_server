@@ -44,7 +44,7 @@
 #define MIN(x, y) (x < y ? x : y)
 
 /*
- * Check if path contains /../ (goto parent dir)
+ * Check if path contains /../ (go to parent dir)
  */
 static inline int _check_path(const char *path) {
     char bad_path[] = "/../";
@@ -594,7 +594,7 @@ static int save_file(int version, socket_t *socket, const char *dirname) {
         if (snprintf_check(new_path, name_length + 20, "%s%c%s", dirname, PATH_SEP, file_name)) return EXIT_FAILURE;
     }
 
-    // path must not contain /../ (goto parent dir)
+    // path must not contain /../ (go to parent dir)
     if (_check_path(new_path) != EXIT_SUCCESS) return EXIT_FAILURE;
 
     // make parent directories
@@ -686,9 +686,8 @@ static int _send_files_dirs(int version, socket_t *socket) {
     }
     free_list(files);
     if (status == EXIT_SUCCESS && remove_directory(dirname)) status = EXIT_FAILURE;
-    if (configuration.cut_sent_files) {
-        if (status == EXIT_SUCCESS && set_clipboard_cut_files(dest_files) != EXIT_SUCCESS) status = EXIT_FAILURE;
-    }
+    if (configuration.cut_sent_files && status == EXIT_SUCCESS && set_clipboard_cut_files(dest_files) != EXIT_SUCCESS)
+        status = EXIT_FAILURE;
     free_list(dest_files);
     return status;
 }

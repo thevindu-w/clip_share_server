@@ -973,13 +973,13 @@ static unsigned int url_encode(char *str, char **url_p) {
             if (a < 10)
                 a += '0';
             else
-                a += 55;  // 55 = 'A' - 10;
+                a += 55;  // 55 is 'A' - 10;
             *p++ = (char)a;
             a = c & 0xf;  // last 4 bits
             if (a < 10)
                 a += '0';
             else
-                a += 55;  // 55 = 'A' - 10;
+                a += 55;  // 55 is 'A' - 10;
             *p++ = (char)a;
         }
         str++;
@@ -989,7 +989,7 @@ static unsigned int url_encode(char *str, char **url_p) {
     return url_len - 1;  // without null terminator
 }
 
-int set_clipboard_cut_files(list2 *paths) {
+int set_clipboard_cut_files(const list2 *paths) {
     list2 *lst_url = init_list(paths->len);
     size_t tot_len = 4;  // "cut" + null terminator
     for (size_t i = 0; i < paths->len; i++) {
@@ -1009,7 +1009,7 @@ int set_clipboard_cut_files(list2 *paths) {
     for (size_t i = 0; i < lst_url->len; i++) {
         strncpy(p, "\nfile://", 9);
         p += 8;
-        char *url = lst_url->array[i];
+        const char *url = lst_url->array[i];
         size_t len = strnlen(url, 4096);
         strncpy(p, url, len + 1);
         p += len;

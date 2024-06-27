@@ -115,7 +115,7 @@ extern int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp);
  * Cut the files given by paths to clipboard. Another application may paste them.
  * returns EXIT_SUCCESS on success and EXIT_FAILURE on failure.
  */
-extern int set_clipboard_cut_files(list2 *paths);
+extern int set_clipboard_cut_files(const list2 *paths);
 
 /*
  * Get the file size of the file from the given file pointer fp.
