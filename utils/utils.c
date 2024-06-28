@@ -1169,7 +1169,7 @@ int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
     return EXIT_FAILURE;
 }
 
-int set_clipboard_cut_files(list2 *paths) {
+int set_clipboard_cut_files(const list2 *paths) {
     if (paths->len == 0) {
         return EXIT_SUCCESS;
     }

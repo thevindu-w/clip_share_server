@@ -96,7 +96,7 @@ char *get_copied_files_as_str(int *offset) {
     return all_files;
 }
 
-int set_clipboard_cut_files(list2 *paths) {
+int set_clipboard_cut_files(const list2 *paths) {
     NSMutableArray *fileURLsMutable = [[NSMutableArray alloc] init];
     for (size_t i = 0; i < paths->len; i++) {
         const char *fname = (char *)(paths->array[i]);
