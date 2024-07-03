@@ -225,12 +225,12 @@
                     <td>Server accepts the request</td>
                 </tr>
                 <tr>
-                    <td class="center" rowspan="17">Get files</td>
+                    <td class="center" rowspan="23">Get files</td>
                     <td class="center">File count</td>
                     <td class="center">8</td>
                     <td></td>
-                    <td class="mono">00 00 00 00 00 00 00 04</td>
-                    <td>Server sends the number of files as 4 in a 64-bit signed integer in big-endian
+                    <td class="mono">00 00 00 00 00 00 00 06</td>
+                    <td>Server sends the number of files as 6 in a 64-bit signed integer in big-endian
                         format.</td>
                 </tr>
                 <tr>
@@ -355,6 +355,53 @@
                         "this is the content of the fourth file" (without quotes).</td>
                 </tr>
                 <tr>
+                    <td class="center" rowspan="3">Fifth file</td>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 0D</td>
+                    <td>Server sends the length of the fifth file name (which is an empty directory) as 13 bytes as a
+                        64-bit signed integer in big-endian format. 000000000000000D in hexadecimal is 13 in decimal.
+                    </td>
+                </tr>
+                <tr>
+                    <td class="center">13</td>
+                    <td></td>
+                    <td class="mono">66 6F 6C 64 65 72 32 2F 65 6D 70 74 79</td>
+                    <td>Server sends the name of the fifth file, which is 13 bytes long when encoded in UTF-8. The file
+                        name is "folder2/empty" (without quotes) when decoded.</td>
+                </tr>
+                <tr>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">FF FF FF FF FF FF FF FF</td>
+                    <td>Server sends the size of the fifth file (empty directory) as -1 as a 64-bit signed integer in
+                        big-endian format. FFFFFFFFFFFFFFFF in hexadecimal is -1 in 64-bit signed decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="3">Sixth file</td>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 07</td>
+                    <td>Server sends the length of the sixth file name (which is an empty directory) as 7 bytes as a
+                        64-bit signed integer in big-endian format. 0000000000000007 in hexadecimal is 7 in decimal.
+                    </td>
+                </tr>
+                <tr>
+                    <td class="center">7</td>
+                    <td></td>
+                    <td class="mono">65 6D 70 74 79 32 2F</td>
+                    <td>Server sends the name of the sixth file, which is 7 bytes long when encoded in UTF-8. The file
+                        name is "empty2/" (without quotes) when decoded. This file name includes the optional trailing
+                        '/' for empty directories.</td>
+                </tr>
+                <tr>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">FF FF FF FF FF FF FF FF</td>
+                    <td>Server sends the size of the sixth file (empty directory) as -1 as a 64-bit signed integer in
+                        big-endian format. FFFFFFFFFFFFFFFF in hexadecimal is -1 in 64-bit signed decimal.</td>
+                </tr>
+                <tr>
                     <td class="center" colspan="6">Communication ends and connection closes</td>
                 </tr>
             </tbody>
@@ -362,12 +409,14 @@
         <p>The files transfered are in the following structure,<br>
         <pre>
 .
-├── folder1
+├── folder1/
 │   └── second_file.txt
-├── folder2
-│   ├── subfolder
+├── folder2/
+│   ├── subfolder/
 │   │   └── fourth_file.txt
+│   ├── empty/
 │   └── third_file.txt
+├── empty2/
 └── first_file.txt
         </pre>
         </p>
@@ -459,7 +508,7 @@
                     <td>Server accepts the request</td>
                 </tr>
                 <tr>
-                    <td class="center" rowspan="17">Get files</td>
+                    <td class="center" rowspan="23">Get files</td>
                     <td class="center">File count</td>
                     <td class="center">8</td>
                     <td class="mono">00 00 00 00 00 00 00 04</td>
@@ -589,6 +638,53 @@
                         "this is the content of the fourth file" (without quotes).</td>
                 </tr>
                 <tr>
+                    <td class="center" rowspan="3">Fifth file</td>
+                    <td class="center">8</td>
+                    <td class="mono">00 00 00 00 00 00 00 0D</td>
+                    <td></td>
+                    <td>Client sends the length of the fifth file name (which is an empty directory) as 13 bytes as a
+                        64-bit signed integer in big-endian format. 000000000000000D in hexadecimal is 13 in decimal.
+                    </td>
+                </tr>
+                <tr>
+                    <td class="center">13</td>
+                    <td class="mono">66 6F 6C 64 65 72 32 2F 65 6D 70 74 79</td>
+                    <td></td>
+                    <td>Client sends the name of the fifth file, which is 13 bytes long when encoded in UTF-8. The file
+                        name is "folder2/empty" (without quotes) when decoded.</td>
+                </tr>
+                <tr>
+                    <td class="center">8</td>
+                    <td class="mono">FF FF FF FF FF FF FF FF</td>
+                    <td></td>
+                    <td>Client sends the size of the fifth file (empty directory) as -1 as a 64-bit signed integer in
+                        big-endian format. FFFFFFFFFFFFFFFF in hexadecimal is -1 in 64-bit signed decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="3">Sixth file</td>
+                    <td class="center">8</td>
+                    <td class="mono">00 00 00 00 00 00 00 07</td>
+                    <td></td>
+                    <td>Client sends the length of the sixth file name (which is an empty directory) as 7 bytes as a
+                        64-bit signed integer in big-endian format. 0000000000000007 in hexadecimal is 7 in decimal.
+                    </td>
+                </tr>
+                <tr>
+                    <td class="center">7</td>
+                    <td class="mono">65 6D 70 74 79 32 2F</td>
+                    <td></td>
+                    <td>Client sends the name of the sixth file, which is 7 bytes long when encoded in UTF-8. The file
+                        name is "empty2/" (without quotes) when decoded. This file name includes the optional trailing
+                        '/' for empty directories.</td>
+                </tr>
+                <tr>
+                    <td class="center">8</td>
+                    <td class="mono">FF FF FF FF FF FF FF FF</td>
+                    <td></td>
+                    <td>Client sends the size of the sixth file (empty directory) as -1 as a 64-bit signed integer in
+                        big-endian format. FFFFFFFFFFFFFFFF in hexadecimal is -1 in 64-bit signed decimal.</td>
+                </tr>
+                <tr>
                     <td class="center" colspan="6">Communication ends and connection closes</td>
                 </tr>
             </tbody>
@@ -601,7 +697,9 @@
 ├── folder2
 │   ├── subfolder
 │   │   └── fourth_file.txt
+│   ├── empty/
 │   └── third_file.txt
+├── empty2/
 └── first_file.txt
         </pre>
         </p>
@@ -745,7 +843,7 @@
         <h2 id="get_copied_image_only_no_data">Get Copied Image Only (no data)</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Get Copied Image method in protocol version 3</caption>
+            <caption>Example of Get Copied Image method with no data in protocol version 3</caption>
             <thead>
                 <tr>
                     <th>Phase</th>
