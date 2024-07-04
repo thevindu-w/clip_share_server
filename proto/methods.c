@@ -718,7 +718,7 @@ int get_screenshot_v3(socket_t *socket) {
 int get_files_v3(socket_t *socket) {
     dir_files copied_dir_files;
     get_copied_dirs_files(&copied_dir_files, 1);
-    return _get_files_common(2, socket, copied_dir_files.lst, copied_dir_files.path_len);
+    return _get_files_common(3, socket, copied_dir_files.lst, copied_dir_files.path_len);
 }
 
 int send_files_v3(socket_t *socket) { return _send_files_dirs(3, socket); }
