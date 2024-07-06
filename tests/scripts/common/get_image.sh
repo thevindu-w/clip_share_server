@@ -34,7 +34,7 @@ elif [ "$DETECTED_OS" = 'macOS' ]; then
         exit 1
     fi
     imgSize="$((0x${responseDump:4:16}))"
-    if [ "$imgSize" -gt '512' ]; then
+    if [ "$imgSize" -gt 512 ]; then
         showStatus info "Image is too large. size=${imgSize}."
         exit 1
     fi

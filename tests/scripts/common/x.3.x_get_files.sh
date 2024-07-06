@@ -51,7 +51,7 @@ mkdir -p copies && cd copies
 body="${responseDump:${#expectedHead}}"
 for _ in $(seq "$fileCount"); do
     nameLength="$((0x${body::16}))"
-    if [ "$nameLength" -gt '1024' ]; then
+    if [ "$nameLength" -gt 1024 ]; then
         showStatus info "File name too long. Length=${nameLength}."
         exit 1
     fi
@@ -59,7 +59,7 @@ for _ in $(seq "$fileCount"); do
     body="${body:$((16 + nameLength * 2))}"
 
     fileSize="$((0x${body::16}))"
-    if [ "$fileSize" -gt '1048576' ]; then
+    if [ "$fileSize" -gt 1048576 ]; then
         showStatus info "File is too large. size=${fileSize}."
         exit 1
     fi

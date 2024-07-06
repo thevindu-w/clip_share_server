@@ -36,12 +36,10 @@ length="$((16#${responseDump::16}))"
 responseDump="${responseDump:16}"
 
 if [ "$length" -le '512' ] || [ "$length" != "$((${#responseDump} / 2))" ]; then
-    echo "$length" "${#responseDump}"
+    echo "$length" does not match with "${#responseDump}"
     showStatus info 'Invalid image length.'
     exit 1
 fi
-
-len_expected_header="$((len_expected_header + 16))"
 
 expected_png_header="$(printf '\x89PNG\r\n\x1a\n' | bin2hex)"
 png_header="${responseDump::${#expected_png_header}}"
