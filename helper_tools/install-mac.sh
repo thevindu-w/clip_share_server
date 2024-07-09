@@ -9,7 +9,7 @@ if [ "$(id -u)" = 0 ]; then
 fi
 
 echo 'This will install clip_share to run on startup.'
-read -p 'Proceed? [y/n] ' confirm
+read -p 'Proceed? [y/N] ' confirm
 if [ "${confirm::1}" != 'y' ] && [ "${confirm::1}" != 'Y' ]; then
     echo 'Aborted.'
     echo 'You can still use clip_share by manually running the executable.'
@@ -66,7 +66,7 @@ mkdir -p Library/LaunchAgents/
 if [ -f Library/LaunchAgents/com.tw.clipshare.plist ]; then
     echo
     echo 'A previous installation of ClipShare is available.'
-    read -p 'Update? [y/n] ' confirm_update
+    read -p 'Update? [y/N] ' confirm_update
     if [ "${confirm_update}" != 'y' ] && [ "${confirm_update}" != 'Y' ]; then
         echo 'Aborted.'
         exit 0

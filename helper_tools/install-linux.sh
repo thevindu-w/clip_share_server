@@ -9,7 +9,7 @@ if [ "$(id -u)" = 0 ]; then
 fi
 
 echo 'This will install clip_share to run on startup.'
-read -p 'Proceed? [y/n] ' confirm
+read -p 'Proceed? [y/N] ' confirm
 if [ "${confirm::1}" != 'y' ] && [ "${confirm::1}" != 'Y' ]; then
     echo 'Aborted.'
     echo 'You can still use clip_share by manually running the executable.'
@@ -68,7 +68,7 @@ mkdir -p .config/systemd/user
 if [ -f .config/systemd/user/clipshare.service ]; then
     echo
     echo 'A previous installation of ClipShare is available.'
-    read -p 'Update? [y/n] ' confirm_update
+    read -p 'Update? [y/N] ' confirm_update
     if [ "${confirm_update,,}" != 'y' ] && [ "${confirm_update,,}" != 'yes' ]; then
         echo 'Aborted.'
         exit 0
@@ -99,7 +99,7 @@ systemctl --user enable clipshare.service >/dev/null
 echo 'Installed clip_share to run on startup. This takes effect from the next login.'
 
 echo
-read -p 'Start clip_share now? [y/n] ' start_now
+read -p 'Start clip_share now? [y/N] ' start_now
 if [ "${start_now,,}" = 'y' ] || [ "${start_now,,}" = 'yes' ]; then
     systemctl --user start clipshare.service
     echo 'Started clip_share.'
