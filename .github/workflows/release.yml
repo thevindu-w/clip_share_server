@@ -58,7 +58,7 @@ jobs:
     - name: Build on Arch Linux
       run: docker build -t clipshare:arch -f docker/release/Dockerfile.arch .
 
-    - name: Build on Fedora 39
+    - name: Build on Fedora
       run: docker build -t clipshare:fedora -f docker/release/Dockerfile.fedora .
 
     - name: Copy binaries
