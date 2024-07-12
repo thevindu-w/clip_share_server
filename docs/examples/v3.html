@@ -750,7 +750,7 @@
                     <td></td>
                     <td class="mono">00 00 00 00 00 00 00 5F</td>
                     <td>Server sends the length of the image copied to the clipboard (or a screenshot) as 95 bytes as a
-                        64-bit signed integer in big-endian format. 000000000000005F in hexadecimal is 190 in decimal.
+                        64-bit signed integer in big-endian format. 000000000000005F in hexadecimal is 95 in decimal.
                     </td>
                 </tr>
                 <tr>
@@ -804,7 +804,7 @@
                     <td class="center">1</td>
                     <td class="mono">06</td>
                     <td></td>
-                    <td>Client requests the get image method</td>
+                    <td>Client requests the get copied image method</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
@@ -813,12 +813,12 @@
                     <td>Server accepts the request</td>
                 </tr>
                 <tr>
-                    <td class="center" rowspan="2">Get Image</td>
+                    <td class="center" rowspan="2">Get Copied Image</td>
                     <td class="center">8</td>
                     <td></td>
                     <td class="mono">00 00 00 00 00 00 00 5F</td>
-                    <td>Server sends the length of the image copied to the clipboard (or a screenshot) as 95 bytes as a
-                        64-bit signed integer in big-endian format. 000000000000005F in hexadecimal is 190 in decimal.
+                    <td>Server sends the length of the image copied to the clipboard as 95 bytes as a 64-bit signed
+                        integer in big-endian format. 000000000000005F in hexadecimal is 95 in decimal.
                     </td>
                 </tr>
                 <tr>
@@ -828,7 +828,7 @@
                         00 02 0D B1 B2 00 00 00 26 49 44 41 54 08 D7 55 CB 21 12 00 20 10 80 40 70 FC FF 97 31 68 F0 68
                         1B B0 42 B9 95 01 F5 AC 8B BF 9A D6 CD FC 0F 82 8C 0E 05 22 B1 80 9C 00 00 00 00 49 45 4E 44 AE
                         42 60 82</td>
-                    <td>Server sends the image copied to the clipboard (or a screenshot), which is 95 bytes long.<br>
+                    <td>Server sends the image copied to the clipboard, which is 95 bytes long.<br>
                         <div class="image"><span>The image is: </span><img alt="shared image"
                                 src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAIAAAACDbGyAAAAJklEQVQI11XLIRIAIBCAQHD8/5cxaPBoG7BCuZUB9ayLv5rWzfwPgowOBSKxgJwAAAAASUVORK5CYII=">
                         </div>
@@ -872,13 +872,145 @@
                     <td class="center">1</td>
                     <td class="mono">06</td>
                     <td></td>
-                    <td>Client requests the get image method</td>
+                    <td>Client requests the get copied image method</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">02</td>
                     <td>Server indicates that there is no image copied to the clipboard (No data)</td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="5">Communication ends and connection closes</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 id="get_screenshot_only">Get Screenshot Only</h2>
+        <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
+        <table>
+            <caption>Example of Get Screenshot method in protocol version 3</caption>
+            <thead>
+                <tr>
+                    <th>Phase</th>
+                    <th>Size (bytes)</th>
+                    <th>Client sends</th>
+                    <th>Server sends</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody class="left-align">
+                <tr>
+                    <td class="center" rowspan="2">Version Negotiation</td>
+                    <td class="center">1</td>
+                    <td class="mono">03</td>
+                    <td></td>
+                    <td>Client requests protocol version 3</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td>Server accepts the request to use protocol version 3</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="2">Method selection</td>
+                    <td class="center">1</td>
+                    <td class="mono">07</td>
+                    <td></td>
+                    <td>Client requests the get screenshot method</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td>Server accepts the request</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="2">Display selection</td>
+                    <td class="center">1</td>
+                    <td class="mono">02</td>
+                    <td></td>
+                    <td>Client selects the second screen</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td>Server accepts the request</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="2">Get Screenshot</td>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 02 15 7D</td>
+                    <td>Server sends the size of the screenshot as 136573 bytes as a 64-bit signed integer in big-endian
+                        format. 000000000002157D in hexadecimal is 136573 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">136573</td>
+                    <td></td>
+                    <td class="mono">89 50 4E 47 0D 0A 1A 0A 00 ... (truncated)</td>
+                    <td>Server sends the screenshot, which is 136573 bytes long.</td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="5">Communication ends and connection closes</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 id="get_screenshot_only_no_data">Get Screenshot Only (no data)</h2>
+        <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
+        <table>
+            <caption>Example of Get Screenshot method with invalid display in protocol version 3</caption>
+            <thead>
+                <tr>
+                    <th>Phase</th>
+                    <th>Size (bytes)</th>
+                    <th>Client sends</th>
+                    <th>Server sends</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody class="left-align">
+                <tr>
+                    <td class="center" rowspan="2">Version Negotiation</td>
+                    <td class="center">1</td>
+                    <td class="mono">03</td>
+                    <td></td>
+                    <td>Client requests protocol version 3</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td>Server accepts the request to use protocol version 3</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="2">Method selection</td>
+                    <td class="center">1</td>
+                    <td class="mono">07</td>
+                    <td></td>
+                    <td>Client requests the get screenshot method</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td>Server accepts the request</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="2">Display selection</td>
+                    <td class="center">1</td>
+                    <td class="mono">05</td>
+                    <td></td>
+                    <td>Client selects the fifth screen</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">02</td>
+                    <td>Server indicates that there is no fifth display (No data) and rejects the request.</td>
                 </tr>
                 <tr>
                     <td class="center" colspan="5">Communication ends and connection closes</td>
