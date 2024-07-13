@@ -8,35 +8,31 @@ for f in "${files[@]}"; do
     if [[ $f == */* ]]; then
         mkdir -p "${f%/*}"
     fi
-    echo "$f"$'\n''abc' >"$f"
+    if [[ $f != */ ]]; then
+        echo "$f"$'\n''abc' >"$f"
+    fi
 done
 
 chunks=''
 
-appendToChunks() {
-    fname="$1"
+for fname in "${files[@]}"; do
+    printf -v _ '%s%n' "$fname" utf8nameLen
+    nameLength="$(printf '%016x' $utf8nameLen)"
     if [ -d "$fname" ]; then
-        for f in "$fname"/*; do
-            appendToChunks "$f"
-        done
-    elif [ -f "$fname" ]; then
-        printf -v _ '%s%n' "$fname" utf8nameLen
-        nameLength="$(printf '%016x' $utf8nameLen)"
-        fileSize=$(printf '%016x' $(stat -c '%s' "$fname"))
+        fileSize=-1
+        content=''
+    else
+        fileSize="$(stat -c '%s' "$fname")"
         content=$(cat "$fname" | bin2hex | tr -d '\n')
-        chunks+="${nameLength}$(echo -n "$fname" | bin2hex)${fileSize}${content}"
     fi
-}
-
-for f in *; do
-    appendToChunks "$f"
+    fileSize16=$(printf '%016x' "$fileSize")
+    chunks+="${nameLength}$(echo -n "$fname" | bin2hex)${fileSize16}${content}"
 done
 
 cd ..
 mkdir -p copies
 update_config working_dir copies
 
-proto="$PROTO_V2"
 method="$METHOD_SEND_FILES"
 fileCount=$(printf '%016x' $(echo -n "${#files[@]}"))
 
