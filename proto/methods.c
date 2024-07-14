@@ -575,6 +575,7 @@ static int save_file(int version, socket_t *socket, const char *dirname) {
 #endif
         return EXIT_FAILURE;
     }
+    if (file_name[name_length - 1] == '/') file_name[name_length - 1] = 0;  // remove trailing /
 
 #if PATH_SEP != '/'
     // replace '/' with PATH_SEP
@@ -585,7 +586,6 @@ static int save_file(int version, socket_t *socket, const char *dirname) {
         }
     }
 #endif
-    if (file_name[name_length - 1] == '/') file_name[name_length - 1] = 0;  // remove trailing /
 
     char new_path[name_length + 20];
     if (file_name[0] == PATH_SEP) {
