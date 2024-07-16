@@ -16,6 +16,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <globals.h>
 #include <proto/server.h>
 #include <proto/versions.h>
 #include <stdio.h>
@@ -29,18 +30,22 @@
 
 void server(socket_t *socket) {
     unsigned char version;
+    const unsigned short min_version = configuration.min_proto_version;
+    const unsigned short max_version = configuration.max_proto_version;
+
     if (read_sock(socket, (char *)&version, 1) == EXIT_FAILURE) {
         return;
     }
-    if (version <
-        PROTOCOL_MIN) {  // the protocol version used by the client is obsolete and not supported by the server
+
+    if (version < min_version) {  // the protocol version used by the client is obsolete and not
+                                  // supported by the server
         if (write_sock(socket, &(char){PROTOCOL_OBSOLETE}, 1) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
             fprintf(stderr, "send protocol version status failed\n");
 #endif
         }
         return;
-    } else if (version <= PROTOCOL_MAX) {  // the protocol version used by the client is supported by the server
+    } else if (version <= max_version) {  // the protocol version used by the client is supported by the server
         if (write_sock(socket, &(char){PROTOCOL_SUPPORTED}, 1) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
             fprintf(stderr, "send protocol version status failed\n");
@@ -55,7 +60,7 @@ void server(socket_t *socket) {
 #endif
             return;
         }
-        if (write_sock(socket, &(char){PROTOCOL_MAX}, 1) == EXIT_FAILURE) {
+        if (write_sock(socket, (const char *)(&max_version), 1) == EXIT_FAILURE) {
 #ifdef DEBUG_MODE
             fprintf(stderr, "send protocol version failed\n");
 #endif
@@ -64,7 +69,7 @@ void server(socket_t *socket) {
         if (read_sock(socket, (char *)&version, 1) == EXIT_FAILURE) {
             return;
         }
-        if (version != PROTOCOL_MAX) {  // client is not going to continue with a supported version
+        if (version != max_version) {  // client is not going to continue with a supported version
             return;
         }
     }

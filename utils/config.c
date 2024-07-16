@@ -292,6 +292,10 @@ static void parse_line(char *line, config *cfg) {
         set_is_true(value, &(cfg->client_selects_display));
     } else if (!strcmp("display", key)) {
         set_ushort(value, &(cfg->display));
+    } else if (!strcmp("min_proto_version", key)) {
+        set_ushort(value, &(cfg->min_proto_version));
+    } else if (!strcmp("max_proto_version", key)) {
+        set_ushort(value, &(cfg->max_proto_version));
 #ifdef _WIN32
     } else if (!strcmp("tray_icon", key)) {
         set_is_true(value, &(cfg->tray_icon));
@@ -328,6 +332,8 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->cut_sent_files = -1;
     cfg->client_selects_display = -1;
     cfg->display = 0;
+    cfg->min_proto_version = 0;
+    cfg->max_proto_version = 0;
 #ifdef _WIN32
     cfg->tray_icon = -1;
 #endif

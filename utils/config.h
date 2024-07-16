@@ -45,6 +45,8 @@ typedef struct _config {
     char cut_sent_files;
     char client_selects_display;
     unsigned short display;
+    unsigned short min_proto_version;
+    unsigned short max_proto_version;
 
 #ifdef _WIN32
     char tray_icon;

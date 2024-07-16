@@ -200,6 +200,11 @@ static inline void _apply_default_conf(void) {
     if (configuration.cut_sent_files < 0) configuration.cut_sent_files = 0;
     if (configuration.client_selects_display < 0) configuration.client_selects_display = 0;
     if (configuration.display <= 0) configuration.display = 1;
+    if (configuration.min_proto_version < PROTOCOL_MIN) configuration.min_proto_version = PROTOCOL_MIN;
+    if (configuration.min_proto_version > PROTOCOL_MAX) configuration.min_proto_version = PROTOCOL_MAX;
+    if (configuration.max_proto_version < configuration.min_proto_version ||
+        configuration.max_proto_version > PROTOCOL_MAX)
+        configuration.max_proto_version = PROTOCOL_MAX;
 #ifdef WEB_ENABLED
     if (configuration.web_port <= 0) configuration.web_port = WEB_PORT;
     if (configuration.web_mode_enabled < 0) configuration.web_mode_enabled = 0;
