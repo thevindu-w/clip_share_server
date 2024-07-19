@@ -230,6 +230,8 @@ max_file_size=68719476736
 display=1
 client_selects_display=false
 cut_sent_files=false
+min_proto_version=1
+max_proto_version=3
 
 # Windows only
 tray_icon=true
@@ -260,6 +262,8 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `display` | The display that should be used for screenshots. | Display number (1 - 65535) | `1` |
 | `cut_sent_files` | Whether to automatically cut the files into the clipboard on the _Send Files_ method. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
 | `client_selects_display` | Whether the client can override the default/configured display for screenshots in protocol version 3. The values `true` or `1` will allow overriding the default, while `false` or `0` will force using the default/configured display. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
+| `min_proto_version` | The minimum protocol version the server should accept from a client after negotiation. | Any protocol version number greater than or equal to the minimum protocol version the server has implemented. (ex: `2`) | The minimum protocol version the server has implemented |
+| `max_proto_version` | The maximum protocol version the server should accept from a client after negotiation. | Any protocol version number less than or equal to the maximum protocol version the server has implemented. (ex: `3`) | The maximum protocol version the server has implemented |
 | `tray_icon` | Whether the application should display a system tray icon. This option is available only on Windows. The values `true` or `1` will display a tray icon, while `false` or `0` will prevent displaying a tray icon. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
 
 <br>
