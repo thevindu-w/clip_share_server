@@ -16,6 +16,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <globals.h>
 #include <proto/methods.h>
 #include <proto/versions.h>
 #include <stdio.h>
@@ -37,11 +38,61 @@
 #define STATUS_UNKNOWN_METHOD 3
 #define STATUS_METHOD_NOT_IMPLEMENTED 4
 
+static int check_method_enabled(socket_t *socket, int method) {
+    char disabled = 0;
+    switch (method) {
+        case METHOD_GET_TEXT: {
+            if (!configuration.method_get_text_enabled) disabled = 1;
+            break;
+        }
+        case METHOD_SEND_TEXT: {
+            if (!configuration.method_send_text_enabled) disabled = 1;
+            break;
+        }
+        case METHOD_GET_FILE: {
+            if (!configuration.method_get_files_enabled) disabled = 1;
+            break;
+        }
+        case METHOD_SEND_FILE: {
+            if (!configuration.method_send_files_enabled) disabled = 1;
+            break;
+        }
+        case METHOD_GET_IMAGE: {
+            if (!configuration.method_get_image_enabled) disabled = 1;
+            break;
+        }
+        case METHOD_GET_COPIED_IMAGE: {
+            if (!configuration.method_get_copied_image_enabled) disabled = 1;
+            break;
+        }
+        case METHOD_GET_SCREENSHOT: {
+            if (!configuration.method_get_screenshot_enabled) disabled = 1;
+            break;
+        }
+        case METHOD_INFO: {
+            if (!configuration.method_info_enabled) disabled = 1;
+            break;
+        }
+        default: {
+        }
+    }
+
+    if (disabled) {
+        write_sock(socket, &(char){STATUS_METHOD_NOT_IMPLEMENTED}, 1);
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
 #if PROTOCOL_MIN <= 1
 
 int version_1(socket_t *socket) {
     unsigned char method;
-    if (read_sock(socket, (char *)&method, 1) == EXIT_FAILURE) {
+    if (read_sock(socket, (char *)&method, 1) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    if (check_method_enabled(socket, method) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
 
@@ -80,7 +131,11 @@ int version_1(socket_t *socket) {
 
 int version_2(socket_t *socket) {
     unsigned char method;
-    if (read_sock(socket, (char *)&method, 1) == EXIT_FAILURE) {
+    if (read_sock(socket, (char *)&method, 1) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    if (check_method_enabled(socket, method) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
 
@@ -119,7 +174,11 @@ int version_2(socket_t *socket) {
 
 int version_3(socket_t *socket) {
     unsigned char method;
-    if (read_sock(socket, (char *)&method, 1) == EXIT_FAILURE) {
+    if (read_sock(socket, (char *)&method, 1) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    if (check_method_enabled(socket, method) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
 

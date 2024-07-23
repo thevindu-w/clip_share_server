@@ -70,9 +70,6 @@ static inline list2 *get_client_list(const char *filename) {
         size_t len = strnlen(client, 512);
         if (len < 1) continue;
         if (client[0] == '#') continue;
-#ifdef DEBUG_MODE
-        printf("Client : %s\n", client);
-#endif
         append(client_list, strdup(client));
     }
     fclose(f);
@@ -296,6 +293,22 @@ static void parse_line(char *line, config *cfg) {
         set_ushort(value, &(cfg->min_proto_version));
     } else if (!strcmp("max_proto_version", key)) {
         set_ushort(value, &(cfg->max_proto_version));
+    } else if (!strcmp("method_get_text_enabled", key)) {
+        set_is_true(value, &(cfg->method_get_text_enabled));
+    } else if (!strcmp("method_send_text_enabled", key)) {
+        set_is_true(value, &(cfg->method_send_text_enabled));
+    } else if (!strcmp("method_get_files_enabled", key)) {
+        set_is_true(value, &(cfg->method_get_files_enabled));
+    } else if (!strcmp("method_send_files_enabled", key)) {
+        set_is_true(value, &(cfg->method_send_files_enabled));
+    } else if (!strcmp("method_get_image_enabled", key)) {
+        set_is_true(value, &(cfg->method_get_image_enabled));
+    } else if (!strcmp("method_get_copied_image_enabled", key)) {
+        set_is_true(value, &(cfg->method_get_copied_image_enabled));
+    } else if (!strcmp("method_get_screenshot_enabled", key)) {
+        set_is_true(value, &(cfg->method_get_screenshot_enabled));
+    } else if (!strcmp("method_info_enabled", key)) {
+        set_is_true(value, &(cfg->method_info_enabled));
 #ifdef _WIN32
     } else if (!strcmp("tray_icon", key)) {
         set_is_true(value, &(cfg->tray_icon));
@@ -325,6 +338,7 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->server_cert = NULL;
     cfg->ca_cert = NULL;
     cfg->allowed_clients = NULL;
+
     cfg->working_dir = NULL;
     cfg->restart = -1;
     cfg->max_text_length = 0;
@@ -332,8 +346,18 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->cut_sent_files = -1;
     cfg->client_selects_display = -1;
     cfg->display = 0;
+
     cfg->min_proto_version = 0;
     cfg->max_proto_version = 0;
+
+    cfg->method_get_text_enabled = -1;
+    cfg->method_send_text_enabled = -1;
+    cfg->method_get_files_enabled = -1;
+    cfg->method_send_files_enabled = -1;
+    cfg->method_get_image_enabled = -1;
+    cfg->method_get_copied_image_enabled = -1;
+    cfg->method_get_screenshot_enabled = -1;
+    cfg->method_info_enabled = -1;
 #ifdef _WIN32
     cfg->tray_icon = -1;
 #endif

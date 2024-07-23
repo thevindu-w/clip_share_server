@@ -33,20 +33,34 @@ typedef struct _config {
     unsigned short web_port;
     char web_mode_enabled;
 #endif
+
     char *priv_key;
     char *server_cert;
     char *ca_cert;
     list2 *allowed_clients;
+
     char *working_dir;
     uint32_t bind_addr;
     char restart;
+
     uint32_t max_text_length;
     int64_t max_file_size;
+
     char cut_sent_files;
     char client_selects_display;
     unsigned short display;
+
     unsigned short min_proto_version;
     unsigned short max_proto_version;
+
+    char method_get_text_enabled;
+    char method_send_text_enabled;
+    char method_get_files_enabled;
+    char method_send_files_enabled;
+    char method_get_image_enabled;
+    char method_get_copied_image_enabled;
+    char method_get_screenshot_enabled;
+    char method_info_enabled;
 
 #ifdef _WIN32
     char tray_icon;

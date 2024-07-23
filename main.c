@@ -195,16 +195,28 @@ static inline void _apply_default_conf(void) {
     if (configuration.app_port_secure <= 0) configuration.app_port_secure = APP_PORT_SECURE;
     if (configuration.secure_mode_enabled < 0) configuration.secure_mode_enabled = 0;
     if (configuration.udp_port <= 0) configuration.udp_port = APP_PORT;
+
     if (configuration.max_text_length <= 0) configuration.max_text_length = MAX_TEXT_LENGTH;
     if (configuration.max_file_size <= 0) configuration.max_file_size = MAX_FILE_SIZE;
     if (configuration.cut_sent_files < 0) configuration.cut_sent_files = 0;
     if (configuration.client_selects_display < 0) configuration.client_selects_display = 0;
     if (configuration.display <= 0) configuration.display = 1;
+
     if (configuration.min_proto_version < PROTOCOL_MIN) configuration.min_proto_version = PROTOCOL_MIN;
     if (configuration.min_proto_version > PROTOCOL_MAX) configuration.min_proto_version = PROTOCOL_MAX;
     if (configuration.max_proto_version < configuration.min_proto_version ||
         configuration.max_proto_version > PROTOCOL_MAX)
         configuration.max_proto_version = PROTOCOL_MAX;
+
+    if (configuration.method_get_text_enabled < 0) configuration.method_get_text_enabled = 1;
+    if (configuration.method_send_text_enabled < 0) configuration.method_send_text_enabled = 1;
+    if (configuration.method_get_files_enabled < 0) configuration.method_get_files_enabled = 1;
+    if (configuration.method_send_files_enabled < 0) configuration.method_send_files_enabled = 1;
+    if (configuration.method_get_image_enabled < 0) configuration.method_get_image_enabled = 1;
+    if (configuration.method_get_copied_image_enabled < 0) configuration.method_get_copied_image_enabled = 1;
+    if (configuration.method_get_screenshot_enabled < 0) configuration.method_get_screenshot_enabled = 1;
+    if (configuration.method_info_enabled < 0) configuration.method_info_enabled = 1;
+
 #ifdef WEB_ENABLED
     if (configuration.web_port <= 0) configuration.web_port = WEB_PORT;
     if (configuration.web_mode_enabled < 0) configuration.web_mode_enabled = 0;
@@ -574,9 +586,6 @@ int main(int argc, char **argv) {
     } else {
         prog_name++;  // don't want the '/' before the program name
     }
-#ifdef DEBUG_MODE
-    printf("prog_name=%s\n", prog_name);
-#endif
 
     _set_error_log_file(ERROR_LOG_FILE);
 
