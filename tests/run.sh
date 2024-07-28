@@ -296,8 +296,9 @@ export METHOD_SEND_TEXT=$(printf '\x02' | bin2hex)
 export METHOD_GET_FILES=$(printf '\x03' | bin2hex)
 export METHOD_SEND_FILES=$(printf '\x04' | bin2hex)
 export METHOD_GET_IMAGE=$(printf '\x05' | bin2hex)
-export METHOD_GET_IMAGE_ONLY=$(printf '\x06' | bin2hex)
+export METHOD_GET_COPIED_IMAGE=$(printf '\x06' | bin2hex)
 export METHOD_GET_SCREENSHOT=$(printf '\x07' | bin2hex)
+export METHOD_INFO=$(printf '\x7d' | bin2hex)
 
 # Proto ack
 export PROTO_SUPPORTED=$(printf '\x01' | bin2hex)
