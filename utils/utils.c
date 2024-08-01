@@ -244,7 +244,7 @@ static inline void _convert_to_crlf(char *str, uint64_t new_len) {
     for (size_t cur_ind = strnlen(str, new_len + 1) - 1;; cur_ind--) {
         char c = str[cur_ind];
         str[new_ind--] = c;
-        if (c == '\n' && (cur_ind == 0 || str[cur_ind - 1] != '\n')) {
+        if (c == '\n' && (cur_ind == 0 || str[cur_ind - 1] != '\r')) {
             // add the missing \r before \n
             str[new_ind--] = '\r';
         }
@@ -1170,9 +1170,10 @@ int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
 }
 
 int set_clipboard_cut_files(const list2 *paths) {
-    if (paths->len == 0) {
-        return EXIT_SUCCESS;
-    }
+    if (paths->len == 0) return EXIT_SUCCESS;
+
+    list2 *wpaths = init_list(paths->len);
+    if (!wpaths) return EXIT_FAILURE;
 
     // convert paths to wchar*
     size_t tot_sz = sizeof(DROPFILES) + sizeof(wchar_t);  // +sizeof(wchar_t) for the additional null terminator
@@ -1180,15 +1181,19 @@ int set_clipboard_cut_files(const list2 *paths) {
         wchar_t *wpath;
         int wlen;
         if (utf8_to_wchar_str(paths->array[i], &wpath, &wlen) || wlen < 0) return EXIT_FAILURE;
-        paths->array[i] = wpath;
+        append(wpaths, wpath);
         tot_sz += ((size_t)wlen + 1) * sizeof(wchar_t);
     }
 
     HGLOBAL hGlobal = GlobalAlloc(GHND | GMEM_SHARE, tot_sz);
-    if (!hGlobal) return EXIT_FAILURE;
+    if (!hGlobal) {
+        free_list(wpaths);
+        return EXIT_FAILURE;
+    }
     char *pGlobal = (char *)GlobalLock(hGlobal);
     if (!pGlobal) {
         GlobalFree(hGlobal);
+        free_list(wpaths);
         return EXIT_FAILURE;
     }
 
@@ -1208,6 +1213,7 @@ int set_clipboard_cut_files(const list2 *paths) {
     }
     *pFiles = '\0';  // additional null terminator
     GlobalUnlock(hGlobal);
+    free_list(wpaths);
 
     HGLOBAL hGlobalEffect = GlobalAlloc(GHND | GMEM_SHARE, sizeof(DWORD));
     if (!hGlobalEffect) {
