@@ -625,6 +625,17 @@ int main(int argc, char **argv) {
     cwd = getcwd_wrapper(0);
     cwd_len = strnlen(cwd, 2048);
 
+#ifdef NO_SSL
+    if (configuration.secure_mode_enabled) {
+        const char *message =
+            "Secure mode is enabled in the configuration. This program version does not support TLS/SSL.";
+        fprintf(stderr,
+                "%s If the secure mode is not needed, please set secure_mode_enabled=false in the configuration.\n",
+                message);
+        error_exit(message);
+    }
+#endif
+
 #if defined(__linux__) || defined(__APPLE__)
     pid_t p_clip = 0;
     pid_t p_clip_ssl = 0;

@@ -17,7 +17,8 @@
 MAKEFLAGS += -j4
 
 PROGRAM_NAME=clip_share
-PROGRAM_NAME_WEB=clip_share_web
+PROGRAM_NAME_WEB:=$(PROGRAM_NAME)_web
+PROGRAM_NAME_NO_SSL:=$(PROGRAM_NAME)_no_ssl
 
 MIN_PROTO=1
 MAX_PROTO=3
@@ -46,7 +47,8 @@ ifeq ($(detected_OS),Linux)
 	OBJS+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 	CFLAGS+= -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS_OPTIM=-Os
-	LDLIBS=-lunistring -lssl -lcrypto -lX11 -lXmu -lXt -lxcb -lxcb-randr -lpng
+	LDLIBS_NO_SSL=-lunistring -lX11 -lXmu -lXt -lxcb -lxcb-randr -lpng
+	LDLIBS_SSL=-lssl -lcrypto
 	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections
 else ifeq ($(detected_OS),Windows)
 	OBJS+= utils/win_image.o
@@ -54,21 +56,25 @@ else ifeq ($(detected_OS),Windows)
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	CFLAGS_OPTIM=-O3
 	OTHER_DEPENDENCIES+= winres/app.res
-	LDLIBS=-l:libunistring.a -l:libssl.a -l:libcrypto.a -l:libpthread.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a -lcrypt32 -lUserenv
+	LDLIBS_NO_SSL=-l:libunistring.a -l:libpthread.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a -lcrypt32 -lUserenv
+	LDLIBS_SSL=-l:libssl.a -l:libcrypto.a -l:libpthread.a
 	LINK_FLAGS_BUILD=-no-pie -mwindows
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
 	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB).exe
+	PROGRAM_NAME_NO_SSL:=$(PROGRAM_NAME_NO_SSL).exe
 else ifeq ($(detected_OS),Darwin)
 export CPATH=$(shell brew --prefix)/include
 export LIBRARY_PATH=$(shell brew --prefix)/lib
 	OBJS_M=utils/mac_utils.o
 	CFLAGS+= -fobjc-arc
 	CFLAGS_OPTIM=-O3
-	LDLIBS=-framework AppKit -lunistring -lssl -lcrypto -lpng -lobjc
+	LDLIBS_NO_SSL=-framework AppKit -lunistring -lpng -lobjc
+	LDLIBS_SSL=-lssl -lcrypto
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 else
 $(error ClipShare is not supported on this platform!)
 endif
+LDLIBS=$(LDLIBS_SSL) $(LDLIBS_NO_SSL)
 CFLAGS+= -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=$(MIN_PROTO) -DPROTOCOL_MAX=$(MAX_PROTO)
 CFLAGS_OPTIM+= -Werror
 
@@ -83,10 +89,18 @@ DEBUG_OBJS_C=$(OBJS:.o=_debug.o) $(_WEB_OBJS_C:.o=_debug.o)
 DEBUG_OBJS_M=$(OBJS_M:.o=_debug.o)
 DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_M)
 
+# append '_no_ssl' to objects for clip_share_no_ssl executable to prevent overwriting objects for clip_share
+NO_SSL_OBJS_C=$(OBJS:.o=_no_ssl.o) # Web mode is not supported with no_ssl
+NO_SSL_OBJS_M=$(OBJS_M:.o=_no_ssl.o)
+NO_SSL_OBJS=$(NO_SSL_OBJS_C) $(NO_SSL_OBJS_M)
+
 $(PROGRAM_NAME): $(OBJS) $(OBJS_M) $(OTHER_DEPENDENCIES)
 $(PROGRAM_NAME_WEB): $(WEB_OBJS) $(OTHER_DEPENDENCIES)
 $(PROGRAM_NAME) $(PROGRAM_NAME_WEB):
 	$(CC) $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
+
+$(PROGRAM_NAME_NO_SSL): $(NO_SSL_OBJS) $(OTHER_DEPENDENCIES)
+	$(CC) $^ $(LINK_FLAGS_BUILD) $(LDLIBS_NO_SSL) -o $@
 
 $(OBJS): %.o: %.c
 $(OBJS_M): %.o: %.m
@@ -104,6 +118,11 @@ $(DEBUG_OBJS_M): %_debug.o: %.m
 $(DEBUG_OBJS):
 	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $^ -o $@
 
+$(NO_SSL_OBJS_C): %_no_ssl.o: %.c
+$(NO_SSL_OBJS_M): %_no_ssl.o: %.m
+$(NO_SSL_OBJS):
+	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_SSL -fno-pie $^ -o $@
+
 winres/app.res: winres/app.rc winres/resource.h
 	windres -I. $< -O coff -o $@
 
@@ -115,6 +134,7 @@ debug: $(DEBUG_OBJS) $(OTHER_DEPENDENCIES)
 	$(CC) $^ $(LDLIBS) -o $(PROGRAM_NAME)
 
 web: $(PROGRAM_NAME_WEB)
+no_ssl: $(PROGRAM_NAME_NO_SSL)
 
 test: $(PROGRAM_NAME)
 	@chmod +x tests/run.sh && cd tests && MIN_PROTO=$(MIN_PROTO) MAX_PROTO=$(MAX_PROTO) ./run.sh $(PROGRAM_NAME)
@@ -126,6 +146,5 @@ install: $(PROGRAM_NAME) helper_tools/install.sh
 	@chmod +x helper_tools/install.sh && helper_tools/install.sh
 
 clean:
-	$(RM) $(OBJS) $(OBJS_M) $(WEB_OBJS) $(DEBUG_OBJS)
-	$(RM) $(PROGRAM_NAME)
-	$(RM) $(PROGRAM_NAME_WEB)
+	$(RM) $(OBJS) $(OBJS_M) $(WEB_OBJS) $(DEBUG_OBJS) $(NO_SSL_OBJS)
+	$(RM) $(PROGRAM_NAME) $(PROGRAM_NAME_WEB) $(PROGRAM_NAME_NO_SSL)

@@ -19,8 +19,11 @@
 #ifndef UTILS_NET_UTILS_H_
 #define UTILS_NET_UTILS_H_
 
+#ifndef NO_SSL
 #include <openssl/ssl.h>
+#endif
 #include <stddef.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <utils/list_utils.h>
 
@@ -46,7 +49,9 @@ typedef SOCKET sock_t;
 typedef struct _socket_t {
     union {
         sock_t plain;
+#ifndef NO_SSL
         SSL *ssl;
+#endif
     } socket;
     unsigned char type;
 } socket_t;
@@ -54,7 +59,9 @@ typedef struct _socket_t {
 typedef struct _listener_socket_t {
     sock_t socket;
     unsigned char type;
+#ifndef NO_SSL
     SSL_CTX *ctx;
+#endif
 } listener_t;
 
 /*

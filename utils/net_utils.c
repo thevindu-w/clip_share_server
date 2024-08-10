@@ -19,9 +19,11 @@
 #include <ctype.h>
 #include <errno.h>
 #include <globals.h>
+#ifndef NO_SSL
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 #include <openssl/x509_vfy.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,6 +43,7 @@
 typedef u_short in_port_t;
 #endif
 
+#ifndef NO_SSL
 static SSL_CTX *InitServerCTX(void) {
     const SSL_METHOD *method;
     SSL_CTX *ctx;
@@ -126,6 +129,7 @@ static int getClientCerts(const SSL *ssl, const list2 *allowed_clients) {
     X509_free(cert);
     return verified ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+#endif
 
 void open_listener_socket(listener_t *listener, const unsigned char sock_type, const char *priv_key,
                           const char *server_cert, const char *ca_cert) {
@@ -142,6 +146,7 @@ void open_listener_socket(listener_t *listener, const unsigned char sock_type, c
         return;
     }
 
+#ifndef NO_SSL
     SSL_CTX *ctx;
     SSL_library_init();
     ctx = InitServerCTX();
@@ -157,6 +162,11 @@ void open_listener_socket(listener_t *listener, const unsigned char sock_type, c
     }
     listener->ctx = ctx;
     listener->type = SSL_SOCK;
+#else
+    (void)priv_key;
+    (void)server_cert;
+    (void)ca_cert;
+#endif
 }
 
 int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
@@ -248,6 +258,7 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
             break;
         }
 
+#ifndef NO_SSL
         case SSL_SOCK: {
             SSL_CTX *ctx = listener.ctx;
             SSL *ssl = SSL_new(ctx);
@@ -287,10 +298,14 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
             }
             break;
         }
+#endif
 
         default:
             break;
     }
+#ifdef NO_SSL
+    (void)allowed_clients;
+#endif
 }
 
 void close_socket(socket_t *socket) {
@@ -304,6 +319,7 @@ void close_socket(socket_t *socket) {
             break;
         }
 
+#ifndef NO_SSL
         case SSL_SOCK: {
             sock_t sd;
 #ifdef _WIN32
@@ -319,6 +335,7 @@ void close_socket(socket_t *socket) {
 #endif
             break;
         }
+#endif
 
         default:
             break;
@@ -357,6 +374,7 @@ static inline ssize_t _read_plain(sock_t sock, char *buf, size_t size, int *fata
     return sz_read;
 }
 
+#ifndef NO_SSL
 static inline int _read_SSL(SSL *ssl, char *buf, int size, int *fatal_p) {
     int sz_read = SSL_read(ssl, buf, size);
     if (sz_read <= 0) {
@@ -367,6 +385,7 @@ static inline int _read_SSL(SSL *ssl, char *buf, int size, int *fatal_p) {
     }
     return sz_read;
 }
+#endif
 
 int read_sock(socket_t *socket, char *buf, uint64_t size) {
     int cnt = 0;
@@ -381,10 +400,12 @@ int read_sock(socket_t *socket, char *buf, uint64_t size) {
                 break;
             }
 
+#ifndef NO_SSL
             case SSL_SOCK: {
                 sz_read = _read_SSL(socket->socket.ssl, ptr, (int)(size - total_sz_read), &fatal);
                 break;
             }
+#endif
 
             default:
                 return EXIT_FAILURE;
@@ -414,9 +435,11 @@ int read_sock_no_wait(socket_t *socket, char *buf, size_t size) {
 #endif
         }
 
+#ifndef NO_SSL
         case SSL_SOCK: {
             return SSL_read(socket->socket.ssl, buf, (int)size);
         }
+#endif
 
         default:
             return -1;
@@ -454,6 +477,7 @@ static inline ssize_t _write_plain(sock_t sock, const char *buf, size_t size, in
     return sz_written;
 }
 
+#ifndef NO_SSL
 static inline int _write_SSL(SSL *ssl, const char *buf, int size, int *fatal_p) {
     int sz_written = SSL_write(ssl, buf, size);
     if (sz_written <= 0) {
@@ -464,6 +488,7 @@ static inline int _write_SSL(SSL *ssl, const char *buf, int size, int *fatal_p) 
     }
     return sz_written;
 }
+#endif
 
 int write_sock(socket_t *socket, const char *buf, uint64_t size) {
     int cnt = 0;
@@ -478,10 +503,12 @@ int write_sock(socket_t *socket, const char *buf, uint64_t size) {
                 break;
             }
 
+#ifndef NO_SSL
             case SSL_SOCK: {
                 sz_written = _write_SSL(socket->socket.ssl, ptr, (int)(size - total_written), &fatal);
                 break;
             }
+#endif
 
             default:
                 return EXIT_FAILURE;
