@@ -23,7 +23,6 @@
 #include <utils/net_utils.h>
 #include <utils/utils.h>
 #if defined(__linux__) || defined(__APPLE__)
-#include <signal.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #elif defined(_WIN32)
@@ -75,9 +74,7 @@ int clip_share(const int is_secure) {
         error("Can\'t listen");
         return EXIT_FAILURE;
     }
-#if defined(__linux__) || defined(__APPLE__)
-    signal(SIGCHLD, SIG_IGN);
-#endif
+
     while (1) {
         socket_t connect_sock;
         get_connection(&connect_sock, listener, configuration.allowed_clients);

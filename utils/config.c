@@ -392,17 +392,22 @@ void clear_config(config *cfg) {
         size_t len = strnlen(cfg->priv_key, 65536);
         memset(cfg->priv_key, 0, len);
         free(cfg->priv_key);
+        cfg->priv_key = NULL;
     }
     if (cfg->server_cert) {
         free(cfg->server_cert);
+        cfg->server_cert = NULL;
     }
     if (cfg->ca_cert) {
         free(cfg->ca_cert);
+        cfg->ca_cert = NULL;
     }
     if (cfg->working_dir) {
         free(cfg->working_dir);
+        cfg->working_dir = NULL;
     }
     if (cfg->allowed_clients) {
         free_list(cfg->allowed_clients);
+        cfg->allowed_clients = NULL;
     }
 }

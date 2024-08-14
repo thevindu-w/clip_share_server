@@ -91,7 +91,7 @@ static inline void _parse_args(int argc, char **argv, int *stop_p, int *daemoniz
         switch (opt) {
             case 'h': {  // help
                 print_usage(argv[0]);
-                exit_wrapper(EXIT_SUCCESS);
+                exit(EXIT_SUCCESS);
             }
             case 's': {  // stop
                 *stop_p = 1;
@@ -115,7 +115,7 @@ static inline void _parse_args(int argc, char **argv, int *stop_p, int *daemoniz
             }
             default: {
                 print_usage(argv[0]);
-                exit_wrapper(EXIT_FAILURE);
+                exit(EXIT_FAILURE);
             }
         }
     }
@@ -126,12 +126,12 @@ static inline void _parse_args(int argc, char **argv, int *stop_p, int *daemoniz
  */
 static inline void _set_error_log_file(const char *path) {
     char *working_dir = getcwd_wrapper(2050);
-    if (!working_dir) exit_wrapper(EXIT_FAILURE);
+    if (!working_dir) exit(EXIT_FAILURE);
     working_dir[2049] = 0;
     size_t working_dir_len = strnlen(working_dir, 2048);
     if (working_dir_len == 0 || working_dir_len >= 2048) {
         free(working_dir);
-        exit_wrapper(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
     size_t buf_sz = working_dir_len + strlen(path) + 1;  // +1 for terminating \0
     if (working_dir[working_dir_len - 1] != PATH_SEP) {
@@ -140,7 +140,7 @@ static inline void _set_error_log_file(const char *path) {
     error_log_file = malloc(buf_sz);
     if (!error_log_file) {
         free(working_dir);
-        exit_wrapper(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
     if (working_dir[working_dir_len - 1] == PATH_SEP) {
         snprintf_check(error_log_file, buf_sz, "%s%s", working_dir, ERROR_LOG_FILE);
@@ -249,6 +249,7 @@ static void kill_other_processes(const char *prog_name) {
 #endif
         return;
     }
+    int killed = 0;
     while ((dir_ptr = readdir(dir)) != NULL) {
         if ((strcmp(dir_ptr->d_name, ".") == 0) || (strcmp(dir_ptr->d_name, "..") == 0)) continue;
         if (DT_DIR != dir_ptr->d_type) continue;
@@ -285,11 +286,16 @@ static void kill_other_processes(const char *prog_name) {
                 fprintf(stderr, "killed %s\n", dir_ptr->d_name);
 #endif
                 kill(pid, SIGTERM);
+                killed = 1;
             }
         }
         fclose(fp);
     }
     (void)closedir(dir);
+    if (killed) {
+        struct timespec interval = {.tv_sec = 0, .tv_nsec = 5000000};
+        nanosleep(&interval, NULL);
+    }
     return;
 }
 
@@ -308,6 +314,9 @@ static volatile char running = 1;
  * It is not guaranteed to kill all processes with the given name.
  */
 static void kill_other_processes(const char *prog_name) {
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$", "w", stdout);
+    }
     DWORD this_pid = GetCurrentProcessId();
     PROCESSENTRY32 entry;
     entry.dwSize = sizeof(PROCESSENTRY32);
@@ -315,11 +324,23 @@ static void kill_other_processes(const char *prog_name) {
     if (Process32First(snapshot, &entry) == TRUE) {
         while (Process32Next(snapshot, &entry) == TRUE) {
             if ((stricmp(entry.szExeFile, prog_name) == 0) && (entry.th32ProcessID != this_pid)) {
+                FreeConsole();
+                AttachConsole(entry.th32ProcessID);
+                SetConsoleCtrlHandler(NULL, TRUE);
+                GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
+                FreeConsole();
+                Sleep(10);
+                SetConsoleCtrlHandler(NULL, FALSE);
                 HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, entry.th32ProcessID);
-                TerminateProcess(hProcess, 0);
-                CloseHandle(hProcess);
+                if (hProcess != INVALID_HANDLE_VALUE) {
+                    TerminateProcess(hProcess, 0);
+                    CloseHandle(hProcess);
+                }
             }
         }
+    }
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$", "w", stdout);
     }
     CloseHandle(snapshot);
 }
@@ -402,6 +423,7 @@ static inline void remove_tray_icon(void) {
 
 static LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
+        case WM_QUERYENDSESSION:
         case WM_COMMAND: {
             remove_tray_icon();
             running = 0;
@@ -510,6 +532,7 @@ static void kill_other_processes(const char *prog_name) {
 
     pid_t this_pid = getpid();
     char pname[32];
+    int killed = 0;
     for (size_t i = 0; i < count; i++) {
         pid_t pid = procs[i].kp_proc.p_pid;
         pname[0] = 0;
@@ -520,10 +543,15 @@ static void kill_other_processes(const char *prog_name) {
                 fprintf(stderr, "killed %i\n", pid);
 #endif
                 kill(pid, SIGTERM);
+                killed = 1;
             }
         }
     }
     free(procs);
+    if (killed) {
+        struct timespec interval = {.tv_sec = 0, .tv_nsec = 5000000};
+        nanosleep(&interval, NULL);
+    }
 }
 
 #endif
@@ -542,6 +570,11 @@ static char *get_user_home(void) {
     }
     if (home) return strndup(home, 512);
     return NULL;
+}
+
+__attribute__((noreturn)) static void exit_on_signal_handler(int sig) {
+    (void)sig;
+    exit(0);
 }
 
 #endif
@@ -586,6 +619,20 @@ int main(int argc, char **argv) {
         prog_name++;  // don't want the '/' before the program name
     }
 
+    atexit(cleanup);
+
+#if defined(__linux__) || defined(__APPLE__)
+    signal(SIGCHLD, SIG_IGN);
+    signal(SIGINT, &exit_on_signal_handler);
+    signal(SIGTERM, &exit_on_signal_handler);
+    signal(SIGSEGV, &exit_on_signal_handler);
+    signal(SIGABRT, &exit_on_signal_handler);
+    signal(SIGQUIT, &exit_on_signal_handler);
+    signal(SIGSYS, &exit_on_signal_handler);
+    signal(SIGHUP, &exit_on_signal_handler);
+    signal(SIGBUS, &exit_on_signal_handler);
+#endif
+
     _set_error_log_file(ERROR_LOG_FILE);
 
 #ifdef _WIN32
@@ -596,7 +643,7 @@ int main(int argc, char **argv) {
 
     char *conf_path = get_conf_file();
     if (!conf_path) {
-        exit_wrapper(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
     parse_conf(&configuration, conf_path);
     free(conf_path);
@@ -617,7 +664,7 @@ int main(int argc, char **argv) {
         const char *msg = stop ? "Server Stopped" : "Server Restarting...";
         puts(msg);
         if (stop) {
-            exit_wrapper(EXIT_SUCCESS);
+            exit(EXIT_SUCCESS);
         }
     }
 
@@ -648,7 +695,7 @@ int main(int argc, char **argv) {
         p_clip = fork();
         if (p_clip == 0) {
             int status = clip_share(INSECURE);
-            exit_wrapper(status);
+            exit(status);
         }
     }
     if (configuration.secure_mode_enabled) {
@@ -657,7 +704,7 @@ int main(int argc, char **argv) {
         p_clip_ssl = fork();
         if (p_clip_ssl == 0) {
             int status = clip_share(SECURE);
-            exit_wrapper(status);
+            exit(status);
         }
     }
 #ifdef WEB_ENABLED
@@ -667,7 +714,7 @@ int main(int argc, char **argv) {
         p_web = fork();
         if (p_web == 0) {
             int status = web_server();
-            exit_wrapper(status);
+            exit(status);
         }
     }
 #endif
@@ -677,7 +724,7 @@ int main(int argc, char **argv) {
     pid_t p_scan = fork();
     if (p_scan == 0) {
         udp_server();
-        exit_wrapper(EXIT_SUCCESS);
+        exit(EXIT_SUCCESS);
     }
 
     if (!daemonize) {
@@ -762,10 +809,9 @@ int main(int argc, char **argv) {
 #ifdef WEB_ENABLED
     if (webThread != NULL) WaitForSingleObject(webThread, INFINITE);
 #endif
-    WSACleanup();
 
     remove_tray_icon();
     CloseHandle(instance);
 #endif
-    exit_wrapper(EXIT_SUCCESS);
+    return 0;
 }

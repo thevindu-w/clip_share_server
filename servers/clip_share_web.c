@@ -204,9 +204,6 @@ int web_server(void) {
 #endif
         return EXIT_FAILURE;
     }
-#ifdef __linux__
-    signal(SIGCHLD, SIG_IGN);
-#endif
 
     listener_t listener;
     open_listener_socket(&listener, SSL_SOCK, configuration.priv_key, configuration.server_cert, configuration.ca_cert);

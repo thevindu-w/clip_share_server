@@ -81,7 +81,7 @@ void error(const char *msg) {
 
 void error_exit(const char *msg) {
     error(msg);
-    exit_wrapper(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
 }
 
 #ifdef __linux__
@@ -109,15 +109,30 @@ static void freeAtomPtr(AtomPtr atomPtr) {
 }
 #endif
 
-void exit_wrapper(int code) {
-    if (error_log_file) free(error_log_file);
-    if (cwd) free(cwd);
+void cleanup(void) {
+#ifdef DEBUG_MODE
+#ifdef _WIN32
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$", "w", stdout);
+    }
+#endif
+    puts("Cleaning up resources before exit");
+#endif
+    if (error_log_file) {
+        free(error_log_file);
+        error_log_file = NULL;
+    }
+    if (cwd) {
+        free(cwd);
+        cwd = NULL;
+    }
     clear_config(&configuration);
 #ifdef __linux__
-    freeAtomPtr(_XA_CLIPBOARD);
-    freeAtomPtr(_XA_UTF8_STRING);
+    if (_XA_CLIPBOARD) freeAtomPtr(_XA_CLIPBOARD);
+    if (_XA_UTF8_STRING) freeAtomPtr(_XA_UTF8_STRING);
+#elif defined(_WIN32)
+    WSACleanup();
 #endif
-    exit(code);
 }
 
 int file_exists(const char *file_name) {
