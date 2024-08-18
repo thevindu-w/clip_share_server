@@ -1008,9 +1008,12 @@ int set_clipboard_cut_files(const list2 *paths) {
     list2 *lst_url = init_list(paths->len);
     size_t tot_len = 4;  // "cut" + null terminator
     for (size_t i = 0; i < paths->len; i++) {
-        char *url;
+        char *url = NULL;
         unsigned int len = url_encode((char *)(paths->array[i]), &url);
-        if (len == 0) continue;
+        if (len == 0) {
+            if (url) free(url);
+            continue;
+        }
         tot_len += len + 8;  // 1 for \n and 7 for "file://"
         append(lst_url, url);
     }
