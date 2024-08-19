@@ -841,7 +841,7 @@ static int url_decode(char *str) {
             tmp = *ptr2;
             c1 = hex2char(tmp);
             if (c1 < 0) return EXIT_FAILURE;  // invalid url
-#if __CHAR_UNSIGNED__
+#if defined(__CHAR_UNSIGNED__) && __CHAR_UNSIGNED__
             c |= (char)c1;
 #else
             c |= c1;

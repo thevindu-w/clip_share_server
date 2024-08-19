@@ -53,14 +53,14 @@ typedef struct _config {
     unsigned short min_proto_version;
     unsigned short max_proto_version;
 
-    char method_get_text_enabled;
-    char method_send_text_enabled;
-    char method_get_files_enabled;
-    char method_send_files_enabled;
-    char method_get_image_enabled;
-    char method_get_copied_image_enabled;
-    char method_get_screenshot_enabled;
-    char method_info_enabled;
+    int8_t method_get_text_enabled;
+    int8_t method_send_text_enabled;
+    int8_t method_get_files_enabled;
+    int8_t method_send_files_enabled;
+    int8_t method_get_image_enabled;
+    int8_t method_get_copied_image_enabled;
+    int8_t method_get_screenshot_enabled;
+    int8_t method_info_enabled;
 
 #ifdef _WIN32
     int8_t tray_icon;
