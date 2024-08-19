@@ -119,7 +119,7 @@ static inline void load_file(const char *file_name, char **ptr) {
  * Sets the value pointed by conf_ptr to 0 if the string is "false" or "0".
  * Otherwise, does not change the value pointed by conf_ptr
  */
-static inline void set_is_true(const char *str, char *conf_ptr) {
+static inline void set_is_true(const char *str, int8_t *conf_ptr) {
     if (!strcasecmp("true", str) || !strcmp("1", str)) {
         *conf_ptr = 1;
     } else if (!strcasecmp("false", str) || !strcmp("0", str)) {

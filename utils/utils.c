@@ -43,7 +43,7 @@
 #define MAX_RECURSE_DEPTH 256
 
 #if defined(__linux__) || defined(__APPLE__)
-static inline char hex2char(char h);
+static inline int8_t hex2char(char h);
 static int url_decode(char *);
 #elif defined(_WIN32)
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, int *wlen_p);
@@ -817,10 +817,10 @@ int remove_directory(const char *path) {
 
 #if defined(__linux__) || defined(__APPLE__)
 
-static inline char hex2char(char h) {
-    if ('0' <= h && h <= '9') return (char)((int)h - '0');
-    if ('A' <= h && h <= 'F') return (char)((int)h - 'A' + 10);
-    if ('a' <= h && h <= 'f') return (char)((int)h - 'a' + 10);
+static inline int8_t hex2char(char h) {
+    if ('0' <= h && h <= '9') return (int8_t)((int)h - '0');
+    if ('A' <= h && h <= 'F') return (int8_t)((int)h - 'A' + 10);
+    if ('a' <= h && h <= 'f') return (int8_t)((int)h - 'a' + 10);
     return -1;
 }
 
@@ -834,14 +834,18 @@ static int url_decode(char *str) {
         if (*ptr2 == '%') {
             ptr2++;
             char tmp = *ptr2;
-            char c1 = hex2char(tmp);
+            int8_t c1 = hex2char(tmp);
             if (c1 < 0) return EXIT_FAILURE;  // invalid url
             c = (char)(c1 << 4);
             ptr2++;
             tmp = *ptr2;
             c1 = hex2char(tmp);
             if (c1 < 0) return EXIT_FAILURE;  // invalid url
+#if __CHAR_UNSIGNED__
+            c |= (char)c1;
+#else
             c |= c1;
+#endif
         } else {
             c = *ptr2;
         }

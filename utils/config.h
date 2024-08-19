@@ -27,11 +27,11 @@ typedef struct _config {
     unsigned short app_port;
     unsigned short app_port_secure;
     unsigned short udp_port;
-    char insecure_mode_enabled;
-    char secure_mode_enabled;
+    int8_t insecure_mode_enabled;
+    int8_t secure_mode_enabled;
 #ifdef WEB_ENABLED
     unsigned short web_port;
-    char web_mode_enabled;
+    int8_t web_mode_enabled;
 #endif
 
     char *priv_key;
@@ -41,13 +41,13 @@ typedef struct _config {
 
     char *working_dir;
     uint32_t bind_addr;
-    char restart;
+    int8_t restart;
 
     uint32_t max_text_length;
     int64_t max_file_size;
 
-    char cut_sent_files;
-    char client_selects_display;
+    int8_t cut_sent_files;
+    int8_t client_selects_display;
     unsigned short display;
 
     unsigned short min_proto_version;
@@ -63,7 +63,7 @@ typedef struct _config {
     char method_info_enabled;
 
 #ifdef _WIN32
-    char tray_icon;
+    int8_t tray_icon;
 #endif
 } config;
 
