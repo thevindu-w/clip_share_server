@@ -394,15 +394,17 @@ int read_sock(socket_t *socket, char *buf, uint64_t size) {
     while (total_sz_read < size) {
         ssize_t sz_read;
         int fatal = 0;
+        uint64_t read_req_sz = size - total_sz_read;
+        if (read_req_sz > 0x7fffffff) read_req_sz = 0x7fffffff;  // prevent overflow due to casting
         switch (socket->type) {
             case PLAIN_SOCK: {
-                sz_read = _read_plain(socket->socket.plain, ptr, size - total_sz_read, &fatal);
+                sz_read = _read_plain(socket->socket.plain, ptr, read_req_sz, &fatal);
                 break;
             }
 
 #ifndef NO_SSL
             case SSL_SOCK: {
-                sz_read = _read_SSL(socket->socket.ssl, ptr, (int)(size - total_sz_read), &fatal);
+                sz_read = _read_SSL(socket->socket.ssl, ptr, (int)read_req_sz, &fatal);
                 break;
             }
 #endif
@@ -497,15 +499,17 @@ int write_sock(socket_t *socket, const char *buf, uint64_t size) {
     while (total_written < size) {
         ssize_t sz_written;
         int fatal = 0;
+        uint64_t write_req_sz = size - total_written;
+        if (write_req_sz > 0x7fffffff) write_req_sz = 0x7fffffff;  // prevent overflow due to casting
         switch (socket->type) {
             case PLAIN_SOCK: {
-                sz_written = _write_plain(socket->socket.plain, ptr, size - total_written, &fatal);
+                sz_written = _write_plain(socket->socket.plain, ptr, write_req_sz, &fatal);
                 break;
             }
 
 #ifndef NO_SSL
             case SSL_SOCK: {
-                sz_written = _write_SSL(socket->socket.ssl, ptr, (int)(size - total_written), &fatal);
+                sz_written = _write_SSL(socket->socket.ssl, ptr, (int)write_req_sz, &fatal);
                 break;
             }
 #endif

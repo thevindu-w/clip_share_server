@@ -78,7 +78,7 @@ extern void open_listener_socket(listener_t *listener, const unsigned char sock_
 
 /*
  * Converts a ipv4 address in dotted decimal into in_addr_t.
- * Address is interpretted as INADDR_ANY
+ * If address_str is NULL, address is interpretted as INADDR_ANY.
  * returns EXIT_SUCCESS on success and EXIT_FAILURE on failure.
  */
 extern int ipv4_aton(const char *address_str, uint32_t *address_ptr);
