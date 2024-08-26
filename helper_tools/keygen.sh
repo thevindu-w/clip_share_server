@@ -7,7 +7,7 @@ set -e
 
 if ! type openssl &>/dev/null; then
     echo 'Error: openssl command not found!'
-    echo 'Please make sure that openssl is installed and added to the path environment variable.'
+    echo 'Please make sure that openssl is installed and added to the PATH environment variable.'
     exit 1
 fi
 
