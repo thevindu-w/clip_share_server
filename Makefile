@@ -70,7 +70,6 @@ export LIBRARY_PATH=$(shell brew --prefix)/lib
 	CFLAGS_OPTIM=-O3
 	LDLIBS_NO_SSL=-framework AppKit -lunistring -lpng -lobjc
 	LDLIBS_SSL=-lssl -lcrypto
-	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 else
 $(error ClipShare is not supported on this platform!)
 endif
