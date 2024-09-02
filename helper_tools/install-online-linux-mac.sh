@@ -77,11 +77,11 @@ if [ "${confirm::1}" != 'y' ] && [ "${confirm::1}" != 'Y' ]; then
     exit 0
 fi
 
-filename="clip_share_server-$VERSION"
+filename_prefix="clip_share_server-$VERSION"
 if [ "$OS" = "Linux" ]; then
-    filename="${filename}-linux_x86_64.tar.gz"
+    filename="${filename_prefix}-linux_x86_64.tar.gz"
 elif [ "$OS" = "Darwin" ]; then
-    filename="${filename}-macos.zip"
+    filename="${filename_prefix}-macos.zip"
 fi
 
 url="https://github.com/thevindu-w/clip_share_server/releases/download/v${VERSION}/${filename}"
@@ -116,7 +116,7 @@ fi
 echo -e '\rExtracting completed            '
 
 if [ ! -f "$installer" ]; then
-    cd clip_share* || (
+    cd "$filename_prefix"*/ || (
         cleanup
         error_exit "Cannot find installer for this operating system"
     )

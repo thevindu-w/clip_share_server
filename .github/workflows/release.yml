@@ -269,19 +269,26 @@ jobs:
 
     - name: Prepare assets
       run: |
+        sudo apt-get update && sudo apt-get install -y --no-install-recommends rename
         mkdir release
         mv "${{env.FILE_LINUX}}/${{env.FILE_LINUX}}" release/
         mv "${{env.FILE_WINDOWS}}/${{env.FILE_WINDOWS}}" release/
         mv "${{env.FILE_MACOS}}/${{env.FILE_MACOS}}" release/
         mv .github/workflows/resources/clipshare.conf release/
-        mv helper_tools/install-* release/
+        mv helper_tools/install-online-* release/
         cd release
+        rename 's/-online//g' install-online-*
+        sed -i "s/^VERSION_DEFAULT=$/VERSION_DEFAULT=${{env.VERSION}}/" install-linux-mac.sh
+        sed -i "s/VERSION_DEFAULT =$/VERSION_DEFAULT = '${{env.VERSION}}'/" install-windows.ps1
         sha256sum -b * >SHA2-256SUM
 
     - name: Create release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        sed -i "s/<VERSION>/${{env.VERSION}}/g" .github/workflows/resources/release_notes.md
+        sed -i "s/<FILE_LINUX>/${{env.FILE_LINUX}}/g" .github/workflows/resources/release_notes.md
+        sed -i "s/<FILE_MACOS>/${{env.FILE_MACOS}}/g" .github/workflows/resources/release_notes.md
         cd release
         gh release create "${{env.TAG}}" --latest --verify-tag \
         --notes-file ../.github/workflows/resources/release_notes.md \

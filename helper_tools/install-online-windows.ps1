@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-$VERSION_DEFAULT=
+$VERSION_DEFAULT =
 $global:VERSION = "$VERSION_DEFAULT"
 if (-Not "$VERSION") {
     $VERSION = Read-Host 'Enter version (ex: 3.2.0)'

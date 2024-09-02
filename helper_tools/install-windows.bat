@@ -9,7 +9,7 @@ IF NOT EXIST clip_share*.exe (
 )
 
 ECHO This will install clip_share to run on startup.
-SET /P confirm=Proceed? [y/n] 
+SET /P confirm=Proceed? [y/N] 
 IF /I NOT "%confirm%" == "y" (
     ECHO Aborted.
     ECHO You can still use clip_share by manually running the program.
@@ -29,7 +29,7 @@ IF NOT EXIST clipshare.conf (
 )
 ECHO Installed ClipShare to run on startup.
 
-SET /P start_now=Start ClipShare now? [y/n] 
+SET /P start_now=Start ClipShare now? [y/N] 
 IF /I "%start_now%" == "y" (
     START "" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\clip_share.exe"
     ECHO Started ClipShare server.
