@@ -118,7 +118,7 @@ Note that the server should allow the client through the firewall, as mentioned 
 
 **Note**: This section is optional if you prefer manually starting the server over automatically starting on login/reboot.
 
-To install the server to run on startup, use the corresponding installer script for your platform. The installer scripts are attached with the releases. They are also available in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory. You need to have the `clip_share` (or `clip_share.exe` on Windows) executable in the current working directory. Run the interactive script and follow the instructions to install ClipShare.
+To install the server to run on startup, use the corresponding installer script for your platform. The installer scripts are attached with the releases. They are also available in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory. The online installers will download the binaries automatically. If you are using the offline installers, you should have the `clip_share` (or `clip_share.exe` on Windows) executable in the current working directory. Run the interactive script and follow the instructions to install ClipShare.
 
 #### Linux and macOS
 
