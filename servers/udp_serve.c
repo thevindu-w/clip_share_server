@@ -48,6 +48,10 @@ typedef int socklen_t;
 
 void udp_server(void) {
     if (configuration.udp_port <= 0) return;
+#if defined(__linux__) || defined(__APPLE__)
+    // Keys and certificates are not needed for UDP
+    clear_config_key_cert(&configuration);
+#endif
 
     listener_t listener;
     open_listener_socket(&listener, UDP_SOCK, NULL, NULL, NULL);

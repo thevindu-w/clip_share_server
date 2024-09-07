@@ -74,6 +74,12 @@ typedef struct _config {
 extern void parse_conf(config *cfg, const char *file_name);
 
 /*
+ * Clears the memory allocated for TLS keys, certificates, and allowed_clients list in the configuration.
+ * This does not clear the config *conf or other config entries.
+ */
+extern void clear_config_key_cert(config *conf);
+
+/*
  * Clears all the memory allocated in the array type or list2* type elements in the configuration.
  * This does not clear the memory block pointed by the config *conf.
  */

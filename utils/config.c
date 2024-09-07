@@ -387,7 +387,7 @@ void parse_conf(config *cfg, const char *file_name) {
     return;
 }
 
-void clear_config(config *cfg) {
+void clear_config_key_cert(config *cfg) {
     if (cfg->priv_key) {
         size_t len = strnlen(cfg->priv_key, 65536);
         memset(cfg->priv_key, 0, len);
@@ -402,6 +402,10 @@ void clear_config(config *cfg) {
         free(cfg->ca_cert);
         cfg->ca_cert = NULL;
     }
+}
+
+void clear_config(config *cfg) {
+    clear_config_key_cert(cfg);
     if (cfg->working_dir) {
         free(cfg->working_dir);
         cfg->working_dir = NULL;

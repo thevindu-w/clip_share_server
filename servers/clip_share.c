@@ -63,6 +63,11 @@ int clip_share(const int is_secure) {
             return EXIT_FAILURE;
         }
         port = configuration.app_port;
+
+#if defined(__linux__) || defined(__APPLE__)
+        // Keys and certificates are not needed for plain sockets
+        clear_config_key_cert(&configuration);
+#endif
     }
     listener_t listener;
     open_listener_socket(&listener, (is_secure ? SSL_SOCK : PLAIN_SOCK), configuration.priv_key,
