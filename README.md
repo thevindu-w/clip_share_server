@@ -42,8 +42,10 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
   - [Run the server](#run-the-server)
   - [Allow through firewall](#allow-through-firewall)
   - [Connect the client application](#connect-the-client-application)
-  - [Installation](#Installation) (optional)
-  - [Create SSL/TLS certificate and key files](#create-ssltls-certificate-and-key-files) (optional)
+  - [Installation](#installation) (optional)
+    - [Online installers](#online-installers)
+    - [Standalone installers](#standalone-installers)
+  - [Create SSL/TLS certificates and key files](#create-ssltls-certificates-and-key-files) (optional)
   - [Command line options](#command-line-options)
   - [Configuration](#configuration)
 - [Build from Source](#build-from-source)
@@ -65,7 +67,7 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
 
 **Note**: This section is required only on macOS.
 
-ClipShare needs the following libraries to run,
+ClipShare needs the following libraries to run:
 
 * [libunistring](https://formulae.brew.sh/formula/libunistring)
 * [libssl](https://formulae.brew.sh/formula/openssl@3)
@@ -80,7 +82,7 @@ brew install libunistring openssl@3 libpng
 
 ### Run the server
 
-- You can run the server from a terminal or the GUI (if the file manager supports executing programs by double-clicking on it)
+- You can run the server from a terminal or the GUI (if the file manager supports executing programs by double-clicking on it).
 - On macOS, if you run the server from the GUI (by double-clicking it on Finder), it may open a terminal window. But you can close this window. The server will continue running in the background.
 - When the server starts, it will not display any visible window. Instead, it will run in the background.
 - On Linux or macOS, if you start the program from the terminal, it should return immediately unless the `-D` flag (no-daemonize) is used. The server will continue to run in the background.
@@ -94,7 +96,7 @@ brew install libunistring openssl@3 libpng
   This server listens on the following ports (unless different ports are assigned from the configuration),
 
 * `4337` / `TCP` &nbsp; - &nbsp; For application traffic (not encrypted)
-* `4337` / `UDP` &nbsp; - &nbsp; For network scanning. This is for UDP broadcasts
+* `4337` / `UDP` &nbsp; - &nbsp; For network scanning using UDP broadcasts
 * `4338` / `TCP` &nbsp; - &nbsp; For application traffic over TLS (encrypted)
 * `4339` / `TCP` &nbsp; - &nbsp; For the web server (only if the web server is available)
 
@@ -118,7 +120,15 @@ Note that the server should allow the client through the firewall, as mentioned 
 
 **Note**: This section is optional if you prefer manually starting the server over automatically starting on login/reboot.
 
-To install the server to run on startup, use the corresponding installer script for your platform. The installer scripts are attached with the releases. They are also available in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory. The online installers will download the binaries automatically. If you are using the offline installers, you should have the `clip_share` (or `clip_share.exe` on Windows) executable in the current working directory. Run the interactive script and follow the instructions to install ClipShare.
+To install the server to run on startup, use the corresponding installer script for your platform.
+
+#### Online installers
+
+Online installer scripts are attached with the releases. They will download the corresponding version during installation. Therefore, they do not require having the compiled binaries along with the installer to run it. However, they require internet access to download the binaries from GitHub during installation. Run the interactive script and follow the instructions to install ClipShare.
+
+#### Standalone installers
+
+Standalone installer scripts are available in the archives (`zip` for Windows and macOS, and `tar.gz` for Linux) attached to releases on GitHub. They are also available in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory. Standalone installers can run without an internet connection. However, you must have the `clip_share` (or `clip_share.exe` on Windows) executable in the current working directory to run the installer. If you download the archive from releases and extract it, you will have the executable along with the installer script. Run the interactive script and follow the instructions to install ClipShare.
 
 #### Linux and macOS
 
@@ -142,7 +152,7 @@ chmod +x install-mac.sh
 
 <br>
 
-### Create SSL/TLS certificate and key files
+### Create SSL/TLS certificates and key files
 
 **Note**: This section is optional if you do not need the TLS encrypted mode and the web mode.
 
@@ -200,7 +210,7 @@ Refer to the [OpenSSL manual](https://www.openssl.org/docs/manmaster/man1/openss
 
 ### Configuration
 
-ClipShare server can be configured using a configuration file. The configuration file should be named `clipshare.conf`.
+The ClipShare server can be configured using a configuration file. The configuration file should be named `clipshare.conf`.
 The server searches for the configuration file in the following paths in the same order until it finds one.
 1. Current working directory where the server was started.
 1. `$XDG_CONFIG_HOME` directory if the directory exists (on Linux and macOS only).
