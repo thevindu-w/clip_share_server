@@ -87,8 +87,7 @@
         <h2 id="supported-methods">Supported Methods</h2>
         <p>
             Most of the supported methods are similar to those of <a href="proto_v2.html#supported-methods">Version
-                2</a> except for some differences in Get Files, Send Files, and
-            some newly added methods.<br>
+                2</a> except for some differences in Get Files, Send Files, and the two newly added methods.<br>
             Encoding of lengths, text, file names, file contents, and images and the maximum allowed text lengths, file
             name lengths, file sizes, and image sizes are identical to those of <a
                 href="proto_v1.html#encoding-notes">Version 1 and 2</a>.
@@ -146,9 +145,9 @@
         <ul>
             <li>First, the client sends the method request code.</li>
             <li>The server responds with the status OK.</li>
-            <li>Next, the client sends the display number to get the screenshot. The display number can be from 1 to
-                65536 inclusive. Also, the display number can be sent as -1 to let the server use its default display.
-                Display number 0 is reserved, and the behavior is undefined.
+            <li>Next, the client sends the display number, encoded as a numeric value, to get the screenshot. The
+                display number can be from 1 to 65536 inclusive. Also, the display number can be sent as -1 to let the
+                server use its default display. Display number 0 is reserved, and the behavior is undefined.
             </li>
             <li>The server responds with the status OK if the screenshot is taken and proceeds to the next step.
                 Otherwise, it will send the status NO_DATA and terminate the connection.</li>
