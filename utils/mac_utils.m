@@ -72,7 +72,7 @@ char *get_copied_files_as_str(int *offset) {
     NSArray *fileURLs = [pasteboard readObjectsForClasses:classes options:options];
     size_t tot_len = 0;
     for (NSURL *fileURL in fileURLs) {
-        const char *cstring = [[fileURL absoluteString] UTF8String];
+        const char *cstring = [[[fileURL filePathURL] absoluteString] UTF8String];
         tot_len += strnlen(cstring, 2047) + 1;
     }
 
@@ -80,7 +80,7 @@ char *get_copied_files_as_str(int *offset) {
     if (!all_files) return NULL;
     char *ptr = all_files;
     for (NSURL *fileURL in fileURLs) {
-        const char *cstring = [[fileURL absoluteString] UTF8String];
+        const char *cstring = [[[fileURL filePathURL] absoluteString] UTF8String];
         strncpy(ptr, cstring, MIN(tot_len, 2047));
         size_t url_len = strnlen(cstring, 2047);
         ptr += strnlen(cstring, 2047);
