@@ -1,0 +1,213 @@
+name: Run Checks
+run-name: Check ${{ github.sha }}
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  Style-Check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref || github.ref_name }}
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
+    - name: Install tools
+      run: |
+        sudo apt-get update && sudo apt-get install -y --no-install-recommends cpplint shfmt yamllint clang-format
+        sudo wget https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -O /bin/hadolint
+        sudo chmod +x /bin/hadolint
+
+    - name: Check Dockerfiles
+      run: |
+        find . -type f -name 'Dockerfile*' -print0 | \
+        xargs -0 hadolint --ignore DL3008 --ignore DL3040 --ignore DL3041 -t warning
+
+    - name: Check yaml style
+      run: yamllint .
+
+    - name: Check C code style
+      run: |
+        cpplint --linelength=120 --filter=-runtime/int,-runtime/arrays,-readability/casting,-legal/copyright \
+        --extensions=c,h,m,cc,hh,cpp,hpp,c++,h++,cxx,hxx --recursive .
+
+    - name: Check test script style
+      if: ${{ success() || failure() }}
+      run: find . -type f -name '*.sh' -print0 | xargs -0 shfmt -d -s -i 4 -ci
+
+    - name: Format C code and bash scripts
+      if: ${{ (github.event_name == 'push') && (success() || failure()) }}
+      run: |
+        find . -type f \( -name '*.c' -o -name '*.h' -o -name '*.m' \) -print0 | xargs -0 clang-format -i
+        find . -type f -name '*.sh' -print0 | xargs -0 shfmt -w -s -i 4 -ci
+
+    - name: Creat pull request
+      if: ${{ (github.event_name == 'push') && (success() || failure()) }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        [[ -z "$(git status -s)" ]] && echo No changes && exit 0
+        curr_branch="${{ github.head_ref || github.ref_name }}"
+        new_branch="auto-format-$(git rev-parse HEAD | head -c 8)"
+        author_name="$(git log -1 --pretty=format:'%an')"
+        author_email="$(git log -1 --pretty=format:'%ae')"
+        git checkout -b "$new_branch" && git merge "$curr_branch"
+        git config user.name "$author_name"
+        git config user.email "$author_email"
+        git remote set-url origin "https://github.com/${{ github.repository }}"
+        git commit -am 'Apply formatting automatically from actions'
+        git push origin "$new_branch"
+        gh pr create -B "$curr_branch" -H "$new_branch" --title "Merge \`$new_branch\` into \`$curr_branch\`" \
+        --body 'Apply code formatting [generated automatically]'
+
+  Build-and-Test-on-Linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: Style-Check
+
+    strategy:
+      matrix:
+        distro:
+        - ubuntu
+        - fedora
+        - arch
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref || github.ref_name }}
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
+    - name: Build
+      run: docker build -t clipshare -f "docker/Dockerfile.${{matrix.distro}}" .
+
+    - name: Test
+      run: docker run clipshare
+
+  Build-and-Test-on-Windows:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    needs: Style-Check
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: false
+        install: >-
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-make
+          mingw-w64-x86_64-openssl
+          mingw-w64-x86_64-libpng
+          mingw-w64-x86_64-libunistring
+          mingw-w64-x86_64-python
+          findutils
+          diffutils
+          openbsd-netcat
+          sed
+
+    - name: Setup make
+      run: ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
+
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref || github.ref_name }}
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
+    - name: Build
+      run: |
+        make
+        make web
+
+    - name: Test
+      run: make test
+
+  Build-and-Test-on-macOS:
+    timeout-minutes: 10
+    needs: Style-Check
+
+    strategy:
+      matrix:
+        os:
+        - macos-latest
+        - macos-13
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Install build dependencies
+      run: brew install openssl@3 libpng libunistring
+
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref || github.ref_name }}
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
+    - name: Build
+      run: make
+
+    - name: Install test dependencies
+      run: |
+        brew install coreutils gnu-sed
+        echo "$(brew --prefix coreutils)"'/libexec/gnubin' >> $GITHUB_PATH
+        echo "$(brew --prefix gnu-sed)"'/libexec/gnubin' >> $GITHUB_PATH
+
+    - name: Test
+      run: |
+        export TERM=xterm-256color
+        make test
+
+  CodeQL_Analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: Build-and-Test-on-Linux
+
+    permissions:
+      security-events: write
+
+    steps:
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends -y apt-transport-https
+        sudo apt-get install --no-install-recommends -y coreutils gcc make \
+        libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev
+
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref || github.ref_name }}
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: 'c-cpp'
+
+    - name: Build using make
+      run: make
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:c-cpp"
