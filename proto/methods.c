@@ -44,6 +44,26 @@
 #define MIN(x, y) (x < y ? x : y)
 
 /*
+ * Send a data buffer to client.
+ * Sends the length first and then the data buffer.
+ */
+static inline int _send_data(socket_t *socket, int64_t length, const char *data) {
+    if (send_size(socket, length) == EXIT_FAILURE) {
+#ifdef DEBUG_MODE
+        fprintf(stderr, "send length failed\n");
+#endif
+        return EXIT_FAILURE;
+    }
+    if (length < 0 || write_sock(socket, data, (uint64_t)length) == EXIT_FAILURE) {
+#ifdef DEBUG_MODE
+        fprintf(stderr, "send data failed\n");
+#endif
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
+/*
  * Check if path contains /../ (go to parent dir)
  */
 static inline int _check_path(const char *path) {
@@ -110,11 +130,7 @@ int get_text_v1(socket_t *socket) {
         free(buf);
         return EXIT_FAILURE;
     }
-    if (send_size(socket, new_len) == EXIT_FAILURE) {
-        free(buf);
-        return EXIT_FAILURE;
-    }
-    if (write_sock(socket, buf, (uint64_t)new_len) == EXIT_FAILURE) {
+    if (_send_data(socket, new_len, buf) == EXIT_FAILURE) {
         free(buf);
         return EXIT_FAILURE;
     }
@@ -174,15 +190,11 @@ static int _transfer_regular_file(socket_t *socket, const char *file_path, const
         return EXIT_FAILURE;
     }
 
-    if (send_size(socket, (int64_t)fname_len) == EXIT_FAILURE) {
+    if (_send_data(socket, (int64_t)fname_len, filename) == EXIT_FAILURE) {
         fclose(fp);
         return EXIT_FAILURE;
     }
 
-    if (write_sock(socket, filename, fname_len) == EXIT_FAILURE) {
-        fclose(fp);
-        return EXIT_FAILURE;
-    }
     if (send_size(socket, file_size) == EXIT_FAILURE) {
         fclose(fp);
         return EXIT_FAILURE;
@@ -204,11 +216,7 @@ static int _transfer_regular_file(socket_t *socket, const char *file_path, const
 
 #if PROTOCOL_MAX >= 3
 static int _transfer_directory(socket_t *socket, const char *filename, size_t fname_len) {
-    if (send_size(socket, (int64_t)fname_len) == EXIT_FAILURE) {
-        return EXIT_FAILURE;
-    }
-
-    if (write_sock(socket, filename, fname_len) == EXIT_FAILURE) {
+    if (_send_data(socket, (int64_t)fname_len, filename) == EXIT_FAILURE) {
         return EXIT_FAILURE;
     }
     if (send_size(socket, -1) == EXIT_FAILURE) {
@@ -502,11 +510,7 @@ static inline int _get_image_common(socket_t *socket, int mode, int disp) {
         free(buf);
         return EXIT_FAILURE;
     }
-    if (send_size(socket, (int64_t)length) == EXIT_FAILURE) {
-        free(buf);
-        return EXIT_FAILURE;
-    }
-    if (write_sock(socket, buf, length) == EXIT_FAILURE) {
+    if (_send_data(socket, (int64_t)length, buf) == EXIT_FAILURE) {
         free(buf);
         return EXIT_FAILURE;
     }
@@ -519,16 +523,7 @@ int get_image_v1(socket_t *socket) { return _get_image_common(socket, IMG_ANY, -
 int info_v1(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) == EXIT_FAILURE) return EXIT_FAILURE;
     const size_t len = sizeof(INFO_NAME) - 1;
-    if (send_size(socket, (int64_t)len) == EXIT_FAILURE) {
-#ifdef DEBUG_MODE
-        fprintf(stderr, "send length failed\n");
-#endif
-        return EXIT_FAILURE;
-    }
-    if (write_sock(socket, INFO_NAME, len) == EXIT_FAILURE) {
-#ifdef DEBUG_MODE
-        fprintf(stderr, "send name failed\n");
-#endif
+    if (_send_data(socket, (int64_t)len, INFO_NAME) == EXIT_FAILURE) {
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
