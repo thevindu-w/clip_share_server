@@ -263,7 +263,7 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
     strncpy(filename, tmp_fname, _tmp_len);
     filename[_tmp_len] = 0;
     const size_t fname_len = strnlen(filename, _tmp_len);
-    if (fname_len > MIN(_tmp_len, MAX_FILE_NAME_LENGTH)) {
+    if (fname_len <= 0 || fname_len > MIN(_tmp_len, MAX_FILE_NAME_LENGTH)) {
         return EXIT_FAILURE;
     }
 
