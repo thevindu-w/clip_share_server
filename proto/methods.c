@@ -254,18 +254,14 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
         }
     }
 
-    const size_t _tmp_len = strnlen(tmp_fname, MAX_FILE_NAME_LENGTH);
-    if (_tmp_len > MAX_FILE_NAME_LENGTH) {
-        error("Too long file name.");
+    const size_t fname_len = strnlen(tmp_fname, MAX_FILE_NAME_LENGTH);
+    if (fname_len <= 0 || fname_len > MAX_FILE_NAME_LENGTH) {
+        error("Invalid file name length.");
         return EXIT_FAILURE;
     }
-    char filename[_tmp_len + 1];
-    strncpy(filename, tmp_fname, _tmp_len);
-    filename[_tmp_len] = 0;
-    const size_t fname_len = strnlen(filename, _tmp_len);
-    if (fname_len <= 0 || fname_len > MIN(_tmp_len, MAX_FILE_NAME_LENGTH)) {
-        return EXIT_FAILURE;
-    }
+    char filename[fname_len + 1];
+    strncpy(filename, tmp_fname, fname_len);
+    filename[fname_len] = 0;
 
 #if PATH_SEP != '/'
     if (version > 1) {
