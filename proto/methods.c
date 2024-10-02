@@ -112,6 +112,7 @@ int get_text_v1(socket_t *socket) {
 #endif
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         if (buf) free(buf);
+        close_socket_no_wait(socket);
         return EXIT_SUCCESS;
     }
 #ifdef DEBUG_MODE
@@ -169,7 +170,7 @@ int send_text_v1(socket_t *socket) {
 #endif
     length = convert_eol(&data, 0);
     if (length < 0) return EXIT_FAILURE;
-    close_socket(socket);
+    close_socket_no_wait(socket);
     put_clipboard_text(data, (size_t)length);
     free(data);
     return EXIT_SUCCESS;
@@ -285,6 +286,7 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
     if (!file_list || file_list->len == 0) {
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         if (file_list) free_list(file_list);
+        close_socket_no_wait(socket);
         return EXIT_SUCCESS;
     }
 
@@ -468,7 +470,7 @@ int send_file_v1(socket_t *socket) {
     if (_rename_if_exists(file_name, name_max_len) != EXIT_SUCCESS) return EXIT_FAILURE;
 
     if (_save_file_common(1, socket, file_name) != EXIT_SUCCESS) return EXIT_FAILURE;
-    close_socket(socket);
+    close_socket_no_wait(socket);
 
     int status = EXIT_SUCCESS;
     if (configuration.cut_sent_files) {
@@ -497,6 +499,7 @@ static inline int _get_image_common(socket_t *socket, int mode, int disp) {
 #endif
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         if (buf) free(buf);
+        close_socket_no_wait(socket);
         return EXIT_SUCCESS;
     }
 #ifdef DEBUG_MODE
@@ -658,7 +661,8 @@ static int _send_files_dirs(int version, socket_t *socket) {
             return EXIT_FAILURE;
         }
     }
-    close_socket(socket);
+    close_socket_no_wait(socket);
+
     list2 *files = list_dir(dirname);
     if (!files) return EXIT_FAILURE;
     int status = EXIT_SUCCESS;

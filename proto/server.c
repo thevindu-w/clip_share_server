@@ -44,6 +44,7 @@ void server(socket_t *socket) {
             fprintf(stderr, "send protocol version status failed\n");
 #endif
         }
+        close_socket_no_wait(socket);
         return;
     } else if (version <= max_version) {  // the protocol version used by the client is supported by the server
         if (write_sock(socket, &(char){PROTOCOL_SUPPORTED}, 1) == EXIT_FAILURE) {
@@ -70,6 +71,7 @@ void server(socket_t *socket) {
             return;
         }
         if (version != max_version) {  // client is not going to continue with a supported version
+            close_socket_no_wait(socket);
             return;
         }
     }

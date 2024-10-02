@@ -42,6 +42,21 @@ clear_clipboard
 
 check_all_methods
 
+update_config method_get_image_enabled false
+
+GET_IMAGE_STATUS="$METHOD_NOT_IMPLEMENTED"
+check_all_methods
+
+update_config method_get_screenshot_enabled false
+
+GET_SCREENSHOT_STATUS="$METHOD_NOT_IMPLEMENTED"
+check_all_methods
+
+update_config method_info_enabled false
+
+INFO_STATUS="$METHOD_NOT_IMPLEMENTED"
+check_all_methods
+
 update_config method_get_text_enabled false
 clear_clipboard
 
@@ -54,19 +69,9 @@ clear_clipboard
 GET_FILES_STATUS="$METHOD_NOT_IMPLEMENTED"
 check_all_methods
 
-update_config method_get_image_enabled false
-
-GET_IMAGE_STATUS="$METHOD_NOT_IMPLEMENTED"
-check_all_methods
-
 update_config method_get_copied_image_enabled false
 
 GET_COPIED_IMAGE_STATUS="$METHOD_NOT_IMPLEMENTED"
-check_all_methods
-
-update_config method_get_screenshot_enabled false
-
-GET_SCREENSHOT_STATUS="$METHOD_NOT_IMPLEMENTED"
 check_all_methods
 
 update_config method_send_text_enabled false
@@ -79,9 +84,4 @@ update_config method_send_files_enabled false
 
 FILE_CNT=''
 SEND_FILES_STATUS="$METHOD_NOT_IMPLEMENTED"
-check_all_methods
-
-update_config method_info_enabled false
-
-INFO_STATUS="$METHOD_NOT_IMPLEMENTED"
 check_all_methods

@@ -84,7 +84,7 @@ int clip_share(const int is_secure) {
         socket_t connect_sock;
         get_connection(&connect_sock, listener, configuration.allowed_clients);
         if (connect_sock.type == NULL_SOCK) {
-            close_socket(&connect_sock);
+            close_socket_no_wait(&connect_sock);
             continue;
         }
 #if defined(__linux__) || defined(__APPLE__)
@@ -92,7 +92,7 @@ int clip_share(const int is_secure) {
         fflush(stderr);
         pid_t pid = fork();
         if (pid) {
-            close_socket(&connect_sock);
+            close_socket_no_wait(&connect_sock);
         } else {
             close(listener.socket);
             server(&connect_sock);

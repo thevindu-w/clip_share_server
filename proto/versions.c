@@ -79,6 +79,7 @@ static int check_method_enabled(socket_t *socket, int method) {
 
     if (disabled) {
         write_sock(socket, &(char){STATUS_METHOD_NOT_IMPLEMENTED}, 1);
+        close_socket_no_wait(socket);
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
@@ -93,7 +94,7 @@ int version_1(socket_t *socket) {
     }
 
     if (check_method_enabled(socket, method) != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
 
     switch (method) {
@@ -120,6 +121,7 @@ int version_1(socket_t *socket) {
             fprintf(stderr, "Unknown method\n");
 #endif
             write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
+            close_socket_no_wait(socket);
             return EXIT_FAILURE;
         }
     }
@@ -136,7 +138,7 @@ int version_2(socket_t *socket) {
     }
 
     if (check_method_enabled(socket, method) != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
 
     switch (method) {
@@ -163,6 +165,7 @@ int version_2(socket_t *socket) {
             fprintf(stderr, "Unknown method\n");
 #endif
             write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
+            close_socket_no_wait(socket);
             return EXIT_FAILURE;
         }
     }
@@ -179,7 +182,7 @@ int version_3(socket_t *socket) {
     }
 
     if (check_method_enabled(socket, method) != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
 
     switch (method) {
@@ -208,10 +211,8 @@ int version_3(socket_t *socket) {
             return info_v1(socket);
         }
         default: {  // unknown method
-#ifdef DEBUG_MODE
-            fprintf(stderr, "Unknown method\n");
-#endif
             write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
+            close_socket_no_wait(socket);
             return EXIT_FAILURE;
         }
     }

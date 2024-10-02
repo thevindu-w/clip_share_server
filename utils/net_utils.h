@@ -98,7 +98,10 @@ extern void get_connection(socket_t *sock, listener_t listener, const list2 *all
 /*
  * Closes a socket.
  */
-extern void close_socket(socket_t *socket);
+extern void _close_socket(socket_t *socket, int await);
+
+#define close_socket(socket) _close_socket(socket, 1);
+#define close_socket_no_wait(socket) _close_socket(socket, 0);
 
 /*
  * Reads num bytes from the socket into buf.

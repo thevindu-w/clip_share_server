@@ -242,9 +242,10 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
         return;
     }
 
-    // set timeout option to 100ms
-    struct timeval tv = {0, 100000};
-    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv))) {
+    // set timeout option to 0.5s
+    struct timeval tv = {0, 500000};
+    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) ||
+        setsockopt(connect_d, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv))) {
         error("Can't set the timeout option of the connection");
         return;
     }
@@ -292,7 +293,7 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
             sock->socket.ssl = ssl;
             sock->type = SSL_SOCK;
             if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) {  // get client certificates if any
-                close_socket(sock);
+                close_socket_no_wait(sock);
                 sock->type = NULL_SOCK;
                 return;
             }
@@ -308,9 +309,13 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
 #endif
 }
 
-void close_socket(socket_t *socket) {
+void _close_socket(socket_t *socket, int await) {
     switch (socket->type) {
         case PLAIN_SOCK: {
+            if (await) {
+                char tmp;
+                recv(socket->socket.plain, &tmp, 1, 0);
+            }
 #if defined(__linux__) || defined(__APPLE__)
             close(socket->socket.plain);
 #elif defined(_WIN32)
@@ -416,7 +421,7 @@ int read_sock(socket_t *socket, char *buf, uint64_t size) {
             total_sz_read += (uint64_t)sz_read;
             cnt = 0;
             ptr += sz_read;
-        } else if (cnt++ > 50 || fatal) {
+        } else if (cnt++ > 10 || fatal) {
 #ifdef DEBUG_MODE
             fputs("Read sock failed\n", stderr);
 #endif
@@ -521,7 +526,7 @@ int write_sock(socket_t *socket, const char *buf, uint64_t size) {
             total_written += (uint64_t)sz_written;
             cnt = 0;
             ptr += sz_written;
-        } else if (cnt++ > 50 || fatal) {
+        } else if (cnt++ > 10 || fatal) {
 #ifdef DEBUG_MODE
             fputs("Write sock failed\n", stderr);
 #endif
