@@ -331,7 +331,7 @@ list2 *get_copied_files(void) {
     char *fname = file_path;
     for (size_t i = 0; i < file_cnt; i++) {
         size_t off = strnlen(fname, 2047) + 1;
-        if (url_decode(fname) == EXIT_FAILURE) break;
+        if (url_decode(fname) != EXIT_SUCCESS) break;
 
         struct stat statbuf;
         if (stat(fname, &statbuf)) {

@@ -33,13 +33,13 @@ void server(socket_t *socket) {
     const unsigned short min_version = configuration.min_proto_version;
     const unsigned short max_version = configuration.max_proto_version;
 
-    if (read_sock(socket, (char *)&version, 1) == EXIT_FAILURE) {
+    if (read_sock(socket, (char *)&version, 1) != EXIT_SUCCESS) {
         return;
     }
 
     if (version < min_version) {  // the protocol version used by the client is obsolete and not
                                   // supported by the server
-        if (write_sock(socket, &(char){PROTOCOL_OBSOLETE}, 1) == EXIT_FAILURE) {
+        if (write_sock(socket, &(char){PROTOCOL_OBSOLETE}, 1) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
             fprintf(stderr, "send protocol version status failed\n");
 #endif
@@ -47,7 +47,7 @@ void server(socket_t *socket) {
         close_socket_no_wait(socket);
         return;
     } else if (version <= max_version) {  // the protocol version used by the client is supported by the server
-        if (write_sock(socket, &(char){PROTOCOL_SUPPORTED}, 1) == EXIT_FAILURE) {
+        if (write_sock(socket, &(char){PROTOCOL_SUPPORTED}, 1) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
             fprintf(stderr, "send protocol version status failed\n");
 #endif
@@ -55,19 +55,19 @@ void server(socket_t *socket) {
         }
     } else {  // the protocol version used by the client is newer than the latest protocol version supported by the
               // server
-        if (write_sock(socket, &(char){PROTOCOL_UNKNOWN}, 1) == EXIT_FAILURE) {
+        if (write_sock(socket, &(char){PROTOCOL_UNKNOWN}, 1) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
             fprintf(stderr, "send protocol version status failed\n");
 #endif
             return;
         }
-        if (write_sock(socket, (const char *)(&max_version), 1) == EXIT_FAILURE) {
+        if (write_sock(socket, (const char *)(&max_version), 1) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
             fprintf(stderr, "send protocol version failed\n");
 #endif
             return;
         }
-        if (read_sock(socket, (char *)&version, 1) == EXIT_FAILURE) {
+        if (read_sock(socket, (char *)&version, 1) != EXIT_SUCCESS) {
             return;
         }
         if (version != max_version) {  // client is not going to continue with a supported version
