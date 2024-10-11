@@ -14,5 +14,6 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 
 **Changes:**
 - Bug fix
-  - Fix the Get Files method failing on macOS
-- Prevent unnecessarily keeping TLS credentials in memory on Linux and macOS
+  - Wait for the client to receive all data before closing the connection
+- Include files of the released Linux tar archive in a directory instead of the archive root
+- Code quality improvements
