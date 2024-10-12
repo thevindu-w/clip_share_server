@@ -44,7 +44,7 @@ static DWORD WINAPI serverThreadFn(void *arg) {
 #endif
 
 int clip_share(const int is_secure) {
-    unsigned short port = 0;
+    uint16_t port = 0;
     if (is_secure == SECURE) {
         if (configuration.allowed_clients == NULL || configuration.allowed_clients->len <= 0 ||
             configuration.app_port_secure <= 0 || configuration.priv_key == NULL || configuration.server_cert == NULL ||

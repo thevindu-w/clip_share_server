@@ -22,8 +22,8 @@
 
 #include <stdlib.h>
 
-extern void screenCapture(char **, size_t *, int);
-extern void getCopiedImage(char **, size_t *);
+extern void screenCapture(char **, uint32_t *, uint16_t);
+extern void getCopiedImage(char **, uint32_t *);
 
 #endif
 #endif  // UTILS_WIN_IMAGE_H_

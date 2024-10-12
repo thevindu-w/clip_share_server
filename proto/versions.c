@@ -74,6 +74,7 @@ static int check_method_enabled(socket_t *socket, int method) {
             break;
         }
         default: {
+            // Unknown method
         }
     }
 

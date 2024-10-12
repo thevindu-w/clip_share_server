@@ -23,6 +23,7 @@
 #import <globals.h>
 #import <objc/Object.h>
 #import <stddef.h>
+#import <stdint.h>
 #import <string.h>
 #import <utils/utils.h>
 
@@ -30,10 +31,10 @@
 #error This file must be compiled with ARC.
 #endif
 
-static inline CGDirectDisplayID get_display_id(int disp);
+static inline CGDirectDisplayID get_display_id(uint16_t disp);
 static inline NSBitmapImageRep *get_copied_image(void);
 
-int get_clipboard_text(char **bufptr, size_t *lenptr) {
+int get_clipboard_text(char **bufptr, uint32_t *lenptr) {
     NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
     NSString *copiedString = [pasteBoard stringForType:NSPasteboardTypeString];
     if (!copiedString) {
@@ -44,12 +45,12 @@ int get_clipboard_text(char **bufptr, size_t *lenptr) {
     }
     const char *cstring = [copiedString UTF8String];
     *bufptr = strndup(cstring, configuration.max_text_length);
-    *lenptr = strnlen(*bufptr, configuration.max_text_length + 1);
+    *lenptr = (uint32_t)strnlen(*bufptr, configuration.max_text_length + 1);
     (*bufptr)[*lenptr] = 0;
     return EXIT_SUCCESS;
 }
 
-int put_clipboard_text(char *data, size_t len) {
+int put_clipboard_text(char *data, uint32_t len) {
     char c = data[len];
     data[len] = 0;
     NSString *str_data = @(data);
@@ -125,10 +126,10 @@ static inline NSBitmapImageRep *get_copied_image(void) {
     return imgRep;
 }
 
-static inline CGDirectDisplayID get_display_id(int disp) {
-    CGDirectDisplayID disp_ids[65536];
+static inline CGDirectDisplayID get_display_id(uint16_t disp) {
+    CGDirectDisplayID disp_ids[65536UL];
     uint32_t disp_cnt;
-    if (CGGetOnlineDisplayList(65536, disp_ids, &disp_cnt)) {
+    if (CGGetOnlineDisplayList(65536UL, disp_ids, &disp_cnt)) {
         return (CGDirectDisplayID)-1;
     }
     if (disp_cnt >= (uint32_t)disp) {
@@ -137,7 +138,7 @@ static inline CGDirectDisplayID get_display_id(int disp) {
     return (CGDirectDisplayID)-1;
 }
 
-int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
+int get_image(char **buf_ptr, uint32_t *len_ptr, int mode, uint16_t disp) {
     *len_ptr = 0;
     *buf_ptr = NULL;
     NSBitmapImageRep *bitmap = NULL;
@@ -146,7 +147,7 @@ int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
     }
     if (mode != IMG_COPIED_ONLY && !bitmap) {
         // If configured to force use the display from conf, override the disp value
-        if (disp <= 0 || !configuration.client_selects_display) disp = (int)configuration.display;
+        if (disp <= 0 || !configuration.client_selects_display) disp = (uint16_t)configuration.display;
         CGDirectDisplayID disp_id = get_display_id(disp);
         CGImageRef screenshot = NULL;
         if (disp_id != (CGDirectDisplayID)-1) screenshot = CGDisplayCreateImage(disp_id);
@@ -161,7 +162,7 @@ int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp) {
     if (!buf) return EXIT_FAILURE;
     [data getBytes:buf length:size];
     *buf_ptr = buf;
-    *len_ptr = (size_t)size;
+    *len_ptr = (uint32_t)size;
     return EXIT_SUCCESS;
 }
 

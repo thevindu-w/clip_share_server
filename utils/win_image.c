@@ -48,8 +48,8 @@ typedef struct _buf_len_ptr {
 } buf_len_ptr;
 
 static HANDLE ssMutex = NULL;
-static unsigned short current_display;
-static unsigned short selected_display;
+static uint16_t current_display;
+static uint16_t selected_display;
 
 static int write_png_to_mem(RGBBitmap *, char **, size_t *);
 static void write_image(HBITMAP, char **, size_t *);
@@ -139,9 +139,11 @@ static BOOL CALLBACK enumCallback(HMONITOR monitor, HDC hdcSource, LPRECT lprect
     return TRUE;
 }
 
-void screenCapture(char **buf_ptr, size_t *len_ptr, int disp) {
+void screenCapture(char **buf_ptr, uint32_t *len_ptr, uint16_t disp) {
+    *len_ptr = 0;
     HDC hdcSource = GetDC(NULL);
-    buf_len_ptr buf_len = {.buf_ptr = buf_ptr, .len_ptr = len_ptr};
+    size_t len;
+    buf_len_ptr buf_len = {.buf_ptr = buf_ptr, .len_ptr = &len};
     if (ssMutex == NULL) {
         ssMutex = CreateMutex(NULL, FALSE, NULL);
         if (ssMutex == NULL) {
@@ -159,13 +161,18 @@ void screenCapture(char **buf_ptr, size_t *len_ptr, int disp) {
         return;
     }
     current_display = 1;
-    selected_display = (unsigned short)disp;
+    selected_display = disp;
     if (EnumDisplayMonitors(hdcSource, NULL, enumCallback, (LPARAM)&buf_len) == 0) {
         if (*buf_ptr) free(*buf_ptr);
         *buf_ptr = NULL;
-        *len_ptr = 0;
     }
     ReleaseMutex(ssMutex);
+    if (len > 0xFFFFFFFFUL) {
+        if (*buf_ptr) free(*buf_ptr);
+        *buf_ptr = NULL;
+        return;
+    }
+    *len_ptr = (uint32_t)len;
 }
 
 /* Attempts to save PNG to file; returns 0 on success, non-zero on error. */
@@ -241,24 +248,28 @@ static int write_png_to_mem(RGBBitmap *bitmap, char **buf_ptr, size_t *len_ptr) 
     return 0;
 }
 
-void getCopiedImage(char **buf_ptr, size_t *len_ptr) {
-    if (!OpenClipboard(0)) {
-        *len_ptr = 0;
-        return;
-    }
+void getCopiedImage(char **buf_ptr, uint32_t *len_ptr) {
+    *len_ptr = 0;
+    if (!OpenClipboard(0)) return;
     if (!IsClipboardFormatAvailable(CF_BITMAP)) {
         CloseClipboard();
-        *len_ptr = 0;
         return;
     }
     HBITMAP hBitmap = GetClipboardData(CF_BITMAP);
     if (!hBitmap) {
         CloseClipboard();
-        *len_ptr = 0;
         return;
     }
     CloseClipboard();
-    write_image(hBitmap, buf_ptr, len_ptr);
+    size_t len;
+    *buf_ptr = NULL;
+    write_image(hBitmap, buf_ptr, &len);
+    if (len > 0xFFFFFFFFUL) {
+        if (*buf_ptr) free(*buf_ptr);
+        *buf_ptr = NULL;
+        return;
+    }
+    *len_ptr = (uint32_t)len;
 }
 
 #endif

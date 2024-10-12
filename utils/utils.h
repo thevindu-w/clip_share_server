@@ -21,6 +21,7 @@
 
 #include <globals.h>
 #include <libpng16/png.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <utils/list_utils.h>
@@ -89,13 +90,13 @@ extern void cleanup(void);
  * On failure, buffer is set to NULL.
  * returns EXIT_SUCCESS on success and EXIT_FAILURE on failure.
  */
-extern int get_clipboard_text(char **bufptr, size_t *lenptr);
+extern int get_clipboard_text(char **bufptr, uint32_t *lenptr);
 
 /*
  * Reads len bytes of text from the data buffer and copies it into the clipboard.
  * returns EXIT_SUCCESS on success and EXIT_FAILURE on failure.
  */
-extern int put_clipboard_text(char *data, size_t len);
+extern int put_clipboard_text(char *data, uint32_t len);
 
 /*
  * Get copied image from clipboard or a screenshot.
@@ -109,7 +110,7 @@ extern int put_clipboard_text(char *data, size_t len);
  * pointed to by len_ptr. len_ptr must be a valid pointer to a size_t variable. On failure, buffer is set to NULL.
  * returns EXIT_SUCCESS on success and EXIT_FAILURE on failure.
  */
-extern int get_image(char **buf_ptr, size_t *len_ptr, int mode, int disp);
+extern int get_image(char **buf_ptr, uint32_t *len_ptr, int mode, uint16_t disp);
 
 /*
  * Cut the files given by paths to clipboard. Another application may paste them.
@@ -194,7 +195,7 @@ extern FILE *open_file(const char *filename, const char *mode);
  */
 extern int remove_file(const char *filename);
 
-extern int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, int *len_p);
+extern int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, uint32_t *len_p);
 
 #endif
 

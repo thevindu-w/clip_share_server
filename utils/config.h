@@ -24,13 +24,13 @@
 #include <utils/list_utils.h>
 
 typedef struct _config {
-    unsigned short app_port;
-    unsigned short app_port_secure;
-    unsigned short udp_port;
+    uint16_t app_port;
+    uint16_t app_port_secure;
+    uint16_t udp_port;
     int8_t insecure_mode_enabled;
     int8_t secure_mode_enabled;
 #ifdef WEB_ENABLED
-    unsigned short web_port;
+    uint16_t web_port;
     int8_t web_mode_enabled;
 #endif
 
@@ -48,10 +48,10 @@ typedef struct _config {
 
     int8_t cut_sent_files;
     int8_t client_selects_display;
-    unsigned short display;
+    uint16_t display;
 
-    unsigned short min_proto_version;
-    unsigned short max_proto_version;
+    uint16_t min_proto_version;
+    uint16_t max_proto_version;
 
     int8_t method_get_text_enabled;
     int8_t method_send_text_enabled;

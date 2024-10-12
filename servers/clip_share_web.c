@@ -17,7 +17,9 @@
  */
 
 #ifdef WEB_ENABLED
+#define __STDC_FORMAT_MACROS
 #include <globals.h>
+#include <inttypes.h>
 #include <servers/servers.h>
 #include <stdio.h>
 #include <string.h>
@@ -81,7 +83,7 @@ static void receiver_web(socket_t *sock) {
             if (say(tmp, sock) != EXIT_SUCCESS) return;
             if (write_sock(sock, blob_page, (size_t)blob_size_page) != EXIT_SUCCESS) return;
         } else if (!strcmp(path, "/clip")) {
-            size_t len;
+            uint32_t len;
             char *clip_buf;
             if (get_clipboard_text(&clip_buf, &len) != EXIT_SUCCESS || len <= 0) {  // do not change the order
                 say("HTTP/1.0 500 Internal Server Error\r\n\r\n", sock);
@@ -90,14 +92,14 @@ static void receiver_web(socket_t *sock) {
             if (say("HTTP/1.0 200 OK\r\n", sock) != EXIT_SUCCESS) return;
             if (say("Content-Type: text/plain; charset=utf-8\r\n", sock) != EXIT_SUCCESS) return;
             char tmp[64];
-            if (snprintf_check(tmp, 64, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len)) return;
+            if (snprintf_check(tmp, 64, "Content-Length: %" PRIu32 "\r\nConnection: close\r\n\r\n", len)) return;
             if (say(tmp, sock) != EXIT_SUCCESS) return;
             if (write_sock(sock, clip_buf, len) != EXIT_SUCCESS) return;
             free(clip_buf);
         } else if (!strcmp(path, "/img")) {
-            size_t len = 0;
+            uint32_t len = 0;
             char *clip_buf;
-            if (get_image(&clip_buf, &len, IMG_ANY, -1) != EXIT_SUCCESS || len <= 0) {
+            if (get_image(&clip_buf, &len, IMG_ANY, 0) != EXIT_SUCCESS || len <= 0) {
                 say("HTTP/1.0 404 Not Found\r\n\r\n", sock);
                 return;
             }
@@ -106,7 +108,7 @@ static void receiver_web(socket_t *sock) {
                 EXIT_SUCCESS)
                 return;
             char tmp[64];
-            if (snprintf_check(tmp, 64, "Content-Length: %zu\r\nConnection: close\r\n\r\n", len)) return;
+            if (snprintf_check(tmp, 64, "Content-Length: %" PRIu32 "\r\nConnection: close\r\n\r\n", len)) return;
             if (say(tmp, sock) != EXIT_SUCCESS) return;
             if (write_sock(sock, clip_buf, len) != EXIT_SUCCESS) return;
             free(clip_buf);
@@ -146,7 +148,7 @@ static void receiver_web(socket_t *sock) {
             return;
         }
         data_len = strtoul(cont_len_header + 16, NULL, 10);
-        if (data_len <= 0 || 1048576 < data_len) {
+        if (data_len <= 0 || 1048576UL < data_len) {
             free(headers);
             return;
         }
@@ -178,7 +180,7 @@ static void receiver_web(socket_t *sock) {
             free(headers);
             return;
         }
-        put_clipboard_text(data, data_len);
+        put_clipboard_text(data, (uint32_t)data_len);
         free(headers);
         return;
     }

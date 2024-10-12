@@ -23,8 +23,4 @@
 #ifndef XCLIP_XCDEF_H_
 #define XCLIP_XCDEF_H_
 
-/* generic true/false constants for stuff */
-#define F 0 /* false... */
-#define T 1 /* true...  */
-
 #endif  // XCLIP_XCDEF_H_

@@ -86,7 +86,7 @@ extern int ipv4_aton(const char *address_str, uint32_t *address_ptr);
 /*
  * Binds a listener socket to a port.
  */
-extern int bind_port(listener_t listener, unsigned short port);
+extern int bind_port(listener_t listener, uint16_t port);
 
 /*
  * Accepts a TCP connection.
@@ -100,8 +100,8 @@ extern void get_connection(socket_t *sock, listener_t listener, const list2 *all
  */
 extern void _close_socket(socket_t *socket, int await);
 
-#define close_socket(socket) _close_socket(socket, 1);
-#define close_socket_no_wait(socket) _close_socket(socket, 0);
+#define close_socket(socket) _close_socket(socket, 1)
+#define close_socket_no_wait(socket) _close_socket(socket, 0)
 
 /*
  * Reads num bytes from the socket into buf.

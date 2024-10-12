@@ -21,7 +21,7 @@
 #include <utils/list_utils.h>
 #include <utils/utils.h>
 
-list2 *init_list(size_t len) {
+list2 *init_list(uint32_t len) {
     list2 *lst = (list2 *)malloc(sizeof(list2));
     if (!lst) return NULL;
     void **arr = (void **)malloc(len * sizeof(void *));
@@ -36,7 +36,7 @@ list2 *init_list(size_t len) {
 }
 
 void free_list(list2 *lst) {
-    for (size_t i = 0; i < lst->len; i++) {
+    for (uint32_t i = 0; i < lst->len; i++) {
         if (lst->array[i]) free(lst->array[i]);
     }
     free(lst->array);
@@ -45,13 +45,13 @@ void free_list(list2 *lst) {
 
 void append(list2 *lst, void *elem) {
     if (lst->len >= lst->capacity) {
-        size_t new_cap;
-        if (lst->capacity < 0x80000000L) {
+        uint32_t new_cap;
+        if (lst->capacity <= 0x7FFFFFFFL) {
             new_cap = lst->capacity * 2;
-        } else if (lst->capacity >= 0xFFFFFFFFL) {
+        } else if (lst->capacity >= 0xFFFFFFFFUL) {
             return;
         } else {
-            new_cap = 0xFFFFFFFFL;
+            new_cap = 0xFFFFFFFFUL;
         }
         void **new_arr = (void **)realloc(lst->array, sizeof(void *) * new_cap);
         if (!new_arr) return;

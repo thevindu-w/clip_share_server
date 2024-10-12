@@ -30,8 +30,8 @@
 
 void server(socket_t *socket) {
     unsigned char version;
-    const unsigned short min_version = configuration.min_proto_version;
-    const unsigned short max_version = configuration.max_proto_version;
+    const uint16_t min_version = configuration.min_proto_version;
+    const uint16_t max_version = configuration.max_proto_version;
 
     if (read_sock(socket, (char *)&version, 1) != EXIT_SUCCESS) {
         return;

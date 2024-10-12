@@ -19,11 +19,12 @@
 #ifndef UTILS_LIST_UTILS_H_
 #define UTILS_LIST_UTILS_H_
 
+#include <stdint.h>
 #include <stdlib.h>
 
 typedef struct _list {
-    size_t len;
-    size_t capacity;
+    uint32_t len;
+    uint32_t capacity;
     void **array;
 } list2;
 
@@ -31,7 +32,7 @@ typedef struct _list {
  * Initialize a list2 with initial capacity len
  * returns NULL on error
  */
-extern list2 *init_list(size_t len);
+extern list2 *init_list(uint32_t len);
 
 /*
  * Free the memory allocated to a list2 *lst

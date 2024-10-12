@@ -35,7 +35,6 @@
 typedef struct _xclip_options {
     Atom sseln; /* X selection to work with */
     Atom target;
-    int fdiri;    /* direction is in */
     Display *dpy; /* connection to X11 display */
     char is_targets;
 } xclip_options;
@@ -115,7 +114,6 @@ static int doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_optio
 
         if (context == XCLIB_XCOUT_SELECTION_REFUSED) {
             if (sel_buf) free(sel_buf);
-            *len_ptr = 0;
             return EXIT_FAILURE;
         }
 
@@ -152,7 +150,6 @@ static int doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_optio
                 continue;
             } else {
                 /* no fallback available, exit with failure */
-                *len_ptr = 0;
                 return EXIT_FAILURE;
             }
         }
@@ -177,7 +174,7 @@ static int doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_optio
     return EXIT_SUCCESS;
 }
 
-int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf_ptr) {
+int xclip_util(int io, const char *atom_name, uint32_t *len_ptr, char **buf_ptr) {
     if (io == XCLIP_OUT) {
         *len_ptr = 0;
         *buf_ptr = NULL;
@@ -188,7 +185,6 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
     int exit_code;
     xclip_options options;
 
-    options.fdiri = (io == XCLIP_IN) ? T : F;
     options.target = XA_STRING;
 
     /* Connect to the X server. */
@@ -202,7 +198,6 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
 #ifdef DEBUG_MODE
         fputs("Connect X server failed\n", stderr);
 #endif
-        *len_ptr = 0;
         return EXIT_FAILURE;
     }
 
@@ -228,24 +223,35 @@ int xclip_util(int io, const char *atom_name, unsigned long *len_ptr, char **buf
     /* get events about property changes */
     XSelectInput(options.dpy, win, PropertyChangeMask);
 
-    if (options.fdiri) {
+    unsigned long len = 0;
+    if (io == XCLIP_IN) {
         exit_code = doIn(win, *len_ptr, *buf_ptr, &options);
     } else {
-        exit_code = doOut(win, len_ptr, buf_ptr, &options);
-        if ((exit_code != EXIT_SUCCESS) ||
-            (atom_name && !strcmp(atom_name, "image/png") &&
-             (*len_ptr < 8 || memcmp(*buf_ptr, "\x89PNG\r\n\x1a\n", 8))) ||
-            (atom_name && !strcmp(atom_name, "image/jpeg") &&
-             (*len_ptr < 3 || memcmp(*buf_ptr, "\xff\xd8\xff", 3)))) {  // invalid jpeg
-            *len_ptr = 0;
-            if (*buf_ptr) free(*buf_ptr);
-            exit_code = EXIT_FAILURE;
-        }
+        exit_code = doOut(win, &len, buf_ptr, &options);
     }
 
     /* Disconnect from the X server */
     XCloseDisplay(options.dpy);
 
-    /* exit */
+    if (io == XCLIP_IN) return exit_code;
+
+    if (exit_code != EXIT_SUCCESS || len > 0xFFFFFFFFUL || !*buf_ptr) {
+        exit_code = EXIT_FAILURE;
+    }
+    if ((exit_code != EXIT_SUCCESS) ||
+        (atom_name && !strcmp(atom_name, "image/png") &&
+         (len < 8 || memcmp(*buf_ptr, "\x89PNG\r\n\x1a\n", 8))) ||  // invalid png
+        (atom_name && !strcmp(atom_name, "image/jpeg") &&
+         (len < 3 || memcmp(*buf_ptr, "\xff\xd8\xff", 3)))) {  // invalid jpeg
+        *len_ptr = 0;
+        exit_code = EXIT_FAILURE;
+    }
+    if (exit_code == EXIT_SUCCESS) {
+        *len_ptr = (uint32_t)len;
+    } else {
+        if (*buf_ptr) free(*buf_ptr);
+        *buf_ptr = NULL;
+    }
+
     return exit_code;
 }

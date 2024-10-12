@@ -68,7 +68,7 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len) {
     fake_file.capacity = 0;
     fake_file.size = 0;
     png_init_io(png_write_p, (png_FILE_p)&fake_file);
-    png_set_write_fn(png_write_p, &fake_file, png_mem_write_data, NULL);
+    png_set_write_fn(png_write_p, &fake_file, &png_mem_write_data, NULL);
     png_set_IHDR(png_write_p, png_info_p, (png_uint_32)(img->width), (png_uint_32)(img->height), 8, PNG_COLOR_TYPE_RGB,
                  PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_BASE);
     png_write_info(png_write_p, png_info_p);
@@ -104,19 +104,18 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len) {
     return EXIT_SUCCESS;
 }
 
-int screenshot_util(int display, size_t *len, char **buf) {
+int screenshot_util(int display, uint32_t *len_p, char **buf_p) {
     XImage *img;
     Display *dpy;
     Window win;
 
+    *len_p = 0;
     if (!(dpy = XOpenDisplay(NULL))) {
-        *len = 0;
         return EXIT_FAILURE;
     }
 
     xcb_connection_t *dsp = xcb_connect(NULL, NULL);
     if (xcb_connection_has_error(dsp)) {
-        *len = 0;
         XCloseDisplay(dpy);
         return EXIT_FAILURE;
     }
@@ -131,7 +130,6 @@ int screenshot_util(int display, size_t *len, char **buf) {
         free(reply);
         xcb_disconnect(dsp);
         XCloseDisplay(dpy);
-        *len = 0;
         return EXIT_FAILURE;
     }
 
@@ -140,12 +138,14 @@ int screenshot_util(int display, size_t *len, char **buf) {
     xcb_randr_monitor_info_iterator_t itr = xcb_randr_get_monitors_monitors_iterator(reply);
 #pragma GCC diagnostic pop
 
-    int x = 0, y = 0;
-    unsigned int width = 0, height = 0;
+    int x = 0;
+    int y = 0;
+    unsigned int width = 0;
+    unsigned int height = 0;
     while (itr.rem) {
         display--;
         if (display == 0) {
-            xcb_randr_monitor_info_t *info = itr.data;
+            const xcb_randr_monitor_info_t *info = itr.data;
             x = info->x;
             y = info->y;
             width = info->width;
@@ -157,7 +157,6 @@ int screenshot_util(int display, size_t *len, char **buf) {
     free(reply);
     xcb_disconnect(dsp);
     if (width == 0 || height == 0) {
-        *len = 0;
         XCloseDisplay(dpy);
         return EXIT_FAILURE;
     }
@@ -168,11 +167,18 @@ int screenshot_util(int display, size_t *len, char **buf) {
     XCloseDisplay(dpy);
 
     if (!img) {
-        *len = 0;
         return EXIT_FAILURE;
     }
-    png_write_buf(img, buf, len);
+    size_t len;
+    png_write_buf(img, buf_p, &len);
     XDestroyImage(img);
 
+    if (len < 8 || len > 0xFFFFFFFFUL) {
+        if (*buf_p) free(*buf_p);
+        *buf_p = NULL;
+        return EXIT_FAILURE;
+    }
+
+    *len_p = (uint32_t)len;
     return EXIT_SUCCESS;
 }

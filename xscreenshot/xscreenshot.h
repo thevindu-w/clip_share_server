@@ -1,6 +1,7 @@
 #ifndef XSCREENSHOT_XSCREENSHOT_H_
 #define XSCREENSHOT_XSCREENSHOT_H_
 
+#include <stdint.h>
 #include <stdlib.h>
 
 /*
@@ -10,6 +11,6 @@
  * Returns 0 on success.
  * Returns -1 if an error occured.
  */
-extern int screenshot_util(int display, size_t *len_p, char **buf_p);
+extern int screenshot_util(int display, uint32_t *len_p, char **buf_p);
 
 #endif  // XSCREENSHOT_XSCREENSHOT_H_

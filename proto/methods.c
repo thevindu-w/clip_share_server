@@ -16,6 +16,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#ifdef DEBUG_MODE
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+#endif
+
 #include <globals.h>
 #include <proto/methods.h>
 #include <stdio.h>
@@ -37,11 +42,16 @@
 #define STATUS_OK 1
 #define STATUS_NO_DATA 2
 
-#define FILE_BUF_SZ 65536  // 64 KiB
+#define FILE_BUF_SZ 65536L  // 64 KiB
 #define MAX_FILE_NAME_LENGTH 2048
-#define MAX_IMAGE_SIZE 1073741824  // 1 GiB
+#define MAX_IMAGE_SIZE 1073741824UL  // 1 GiB
 
 #define MIN(x, y) (x < y ? x : y)
+
+#define STR1(z) #z
+#define STR(z) STR1(z)
+#define JOIN(a, b, c) STR(a) b STR(c)
+const char *bad_path = JOIN(PATH_SEP, "..", PATH_SEP);
 
 /*
  * Send a data buffer to client.
@@ -64,20 +74,6 @@ static inline int _send_data(socket_t *socket, int64_t length, const char *data)
 }
 
 /*
- * Check if path contains /../ (go to parent dir)
- */
-static inline int _check_path(const char *path) {
-    char bad_path[] = "/../";
-    bad_path[0] = PATH_SEP;
-    bad_path[3] = PATH_SEP;
-    const char *ptr = strstr(path, bad_path);
-    if (ptr) {
-        return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
-}
-
-/*
  * Common function to get files in v1 and v2.
  */
 static int _get_files_common(int version, socket_t *socket, list2 *file_list, size_t path_len);
@@ -90,7 +86,7 @@ static int _save_file_common(int version, socket_t *socket, const char *file_nam
 /*
  * Common function to get image in v1 and v3.
  */
-static inline int _get_image_common(socket_t *socket, int mode, int disp);
+static inline int _get_image_common(socket_t *socket, int mode, uint16_t disp);
 
 /*
  * Check if the file name is valid.
@@ -103,12 +99,12 @@ static inline int _is_valid_fname(const char *fname, size_t name_length);
 static int _transfer_single_file(int version, socket_t *socket, const char *file_path, size_t path_len);
 
 int get_text_v1(socket_t *socket) {
-    size_t length = 0;
+    uint32_t length = 0;
     char *buf = NULL;
     if (get_clipboard_text(&buf, &length) != EXIT_SUCCESS || length <= 0 ||
         length > configuration.max_text_length) {  // do not change the order
 #ifdef DEBUG_MODE
-        printf("clipboard read text failed. len = %zu\n", length);
+        printf("clipboard read text failed. len = %" PRIu32 "\n", length);
 #endif
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         if (buf) free(buf);
@@ -116,7 +112,7 @@ int get_text_v1(socket_t *socket) {
         return EXIT_SUCCESS;
     }
 #ifdef DEBUG_MODE
-    printf("Len = %zu\n", length);
+    printf("Len = %" PRIu32 "\n", length);
     if (length < 1024) {
         fwrite(buf, 1, length, stdout);
         puts("");
@@ -171,7 +167,7 @@ int send_text_v1(socket_t *socket) {
     length = convert_eol(&data, 0);
     if (length < 0) return EXIT_FAILURE;
     close_socket_no_wait(socket);
-    put_clipboard_text(data, (size_t)length);
+    put_clipboard_text(data, (uint32_t)length);
     free(data);
     return EXIT_SUCCESS;
 }
@@ -283,17 +279,17 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
 }
 
 static int _get_files_common(int version, socket_t *socket, list2 *file_list, size_t path_len) {
-    if (!file_list || file_list->len == 0) {
+    if (!file_list || file_list->len == 0 || file_list->len >= 0xFFFFFFFFUL) {
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         if (file_list) free_list(file_list);
         close_socket_no_wait(socket);
         return EXIT_SUCCESS;
     }
 
-    size_t file_cnt = file_list->len;
+    uint32_t file_cnt = file_list->len;
     char **files = (char **)file_list->array;
 #ifdef DEBUG_MODE
-    printf("%zu file(s)\n", file_cnt);
+    printf("%" PRIu32 "file(s)\n", file_cnt);
 #endif
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) {
         free_list(file_list);
@@ -305,7 +301,7 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
         return EXIT_FAILURE;
     }
 
-    for (size_t i = 0; i < file_cnt; i++) {
+    for (uint32_t i = 0; i < file_cnt; i++) {
         const char *file_path = files[i];
 #ifdef DEBUG_MODE
         printf("file name = %s\n", file_path);
@@ -418,7 +414,7 @@ static inline int _rename_if_exists(char *file_name, size_t max_len) {
     }
     int n = 1;
     while (file_exists(tmp_fname)) {
-        if (n > 999999) return EXIT_FAILURE;
+        if (n > 999999L) return EXIT_FAILURE;
         if (snprintf_check(tmp_fname, max_len, ".%c%i_%s", PATH_SEP, n++, file_name)) return EXIT_FAILURE;
     }
     strncpy(file_name, tmp_fname, max_len);
@@ -441,7 +437,7 @@ int send_file_v1(socket_t *socket) {
     // limit file name length to 1024 chars
     if (name_length <= 0 || name_length > MAX_FILE_NAME_LENGTH) return EXIT_FAILURE;
 
-    const uint64_t name_max_len = (uint64_t)(name_length + 16);
+    const size_t name_max_len = (size_t)(name_length + 16);
     if (name_max_len > MAX_FILE_NAME_LENGTH) {
         error("Too long file name.");
         return EXIT_FAILURE;
@@ -489,13 +485,13 @@ int send_file_v1(socket_t *socket) {
 }
 #endif
 
-static inline int _get_image_common(socket_t *socket, int mode, int disp) {
-    size_t length = 0;
+static inline int _get_image_common(socket_t *socket, int mode, uint16_t disp) {
+    uint32_t length = 0;
     char *buf = NULL;
     if (get_image(&buf, &length, mode, disp) != EXIT_SUCCESS || length == 0 ||
         length > MAX_IMAGE_SIZE) {  // do not change the order
 #ifdef DEBUG_MODE
-        printf("get image failed. len = %zu\n", length);
+        printf("get image failed. len = %" PRIu32 "\n", length);
 #endif
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         if (buf) free(buf);
@@ -503,7 +499,7 @@ static inline int _get_image_common(socket_t *socket, int mode, int disp) {
         return EXIT_SUCCESS;
     }
 #ifdef DEBUG_MODE
-    printf("Len = %zu\n", length);
+    printf("Len = %" PRIu32 "\n", length);
 #endif
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) {
         free(buf);
@@ -517,7 +513,7 @@ static inline int _get_image_common(socket_t *socket, int mode, int disp) {
     return EXIT_SUCCESS;
 }
 
-int get_image_v1(socket_t *socket) { return _get_image_common(socket, IMG_ANY, -1); }
+int get_image_v1(socket_t *socket) { return _get_image_common(socket, IMG_ANY, 0); }
 
 int info_v1(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) return EXIT_FAILURE;
@@ -548,12 +544,12 @@ static int save_file(int version, socket_t *socket, const char *dirname) {
     int64_t fname_size;
     if (read_size(socket, &fname_size) != EXIT_SUCCESS) return EXIT_FAILURE;
 #ifdef DEBUG_MODE
-    printf("name_len = %zi\n", (ssize_t)fname_size);
+    printf("name_len = %" PRId64 "\n", fname_size);
 #endif
     // limit file name length to 1024 chars
     if (fname_size <= 0 || fname_size > MAX_FILE_NAME_LENGTH) return EXIT_FAILURE;
 
-    const uint64_t name_length = (uint64_t)fname_size;
+    const size_t name_length = (size_t)fname_size;
     char file_name[name_length + 1];
     if (read_sock(socket, file_name, name_length) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
@@ -589,7 +585,7 @@ static int save_file(int version, socket_t *socket, const char *dirname) {
     }
 
     // path must not contain /../ (go to parent dir)
-    if (_check_path(new_path) != EXIT_SUCCESS) return EXIT_FAILURE;
+    if (strstr(new_path, bad_path)) return EXIT_FAILURE;
 
     // make parent directories
     if (_make_directories(new_path) != EXIT_SUCCESS) return EXIT_FAILURE;
@@ -622,7 +618,7 @@ static char *_check_and_rename(const char *filename, const char *dirname) {
     // if new_path already exists, use a different file name
     int n = 1;
     while (file_exists(new_path)) {
-        if (n > 999999) return NULL;
+        if (n > 999999L) return NULL;
         if (snprintf_check(new_path, name_max_len, ".%c%i_%s", PATH_SEP, n++, filename)) return NULL;
     }
 
@@ -646,7 +642,7 @@ static int _send_files_dirs(int version, socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) return EXIT_FAILURE;
     int64_t cnt;
     if (read_size(socket, &cnt) != EXIT_SUCCESS) return EXIT_FAILURE;
-    if (cnt <= 0) return EXIT_FAILURE;
+    if (cnt <= 0 || cnt >= 0xFFFFFFFFLL) return EXIT_FAILURE;
     char dirname[17];
     unsigned id = (unsigned)time(NULL);
     do {
@@ -671,7 +667,7 @@ static int _send_files_dirs(int version, socket_t *socket) {
         free_list(files);
         return EXIT_FAILURE;
     }
-    for (size_t i = 0; i < files->len; i++) {
+    for (uint32_t i = 0; i < files->len; i++) {
         const char *filename = files->array[i];
         char *new_path = _check_and_rename(filename, dirname);
         if (new_path)
@@ -700,14 +696,14 @@ int send_files_v2(socket_t *socket) { return _send_files_dirs(2, socket); }
 #endif
 
 #if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
-int get_copied_image_v3(socket_t *socket) { return _get_image_common(socket, IMG_COPIED_ONLY, -1); }
+int get_copied_image_v3(socket_t *socket) { return _get_image_common(socket, IMG_COPIED_ONLY, 0); }
 
 int get_screenshot_v3(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) return EXIT_FAILURE;
     int64_t disp;
     if (read_size(socket, &disp) != EXIT_SUCCESS) return EXIT_FAILURE;
-    if (disp <= 0 || disp > 65536) disp = -1;
-    return _get_image_common(socket, IMG_SCRN_ONLY, (int)disp);
+    if (disp <= 0 || disp > 65536L) disp = 0;
+    return _get_image_common(socket, IMG_SCRN_ONLY, (uint16_t)disp);
 }
 
 int get_files_v3(socket_t *socket) {

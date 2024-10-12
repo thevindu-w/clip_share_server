@@ -204,7 +204,7 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
     return EXIT_SUCCESS;
 }
 
-int bind_port(listener_t listener, unsigned short port) {
+int bind_port(listener_t listener, uint16_t port) {
     if (listener.type == NULL_SOCK) return EXIT_FAILURE;
     sock_t socket = listener.socket;
     struct sockaddr_in server_addr;
@@ -243,7 +243,7 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
     }
 
     // set timeout option to 0.5s
-    struct timeval tv = {0, 500000};
+    struct timeval tv = {0, 500000L};
     if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) ||
         setsockopt(connect_d, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv))) {
         error("Can't set the timeout option of the connection");
@@ -400,7 +400,7 @@ int read_sock(socket_t *socket, char *buf, uint64_t size) {
         ssize_t sz_read;
         int fatal = 0;
         uint64_t read_req_sz = size - total_sz_read;
-        if (read_req_sz > 0x7fffffff) read_req_sz = 0x7fffffff;  // prevent overflow due to casting
+        if (read_req_sz > 0x7FFFFFFFL) read_req_sz = 0x7FFFFFFFL;  // prevent overflow due to casting
         switch (socket->type) {
             case PLAIN_SOCK: {
                 sz_read = _read_plain(socket->socket.plain, ptr, read_req_sz, &fatal);
@@ -505,7 +505,7 @@ int write_sock(socket_t *socket, const char *buf, uint64_t size) {
         ssize_t sz_written;
         int fatal = 0;
         uint64_t write_req_sz = size - total_written;
-        if (write_req_sz > 0x7fffffff) write_req_sz = 0x7fffffff;  // prevent overflow due to casting
+        if (write_req_sz > 0x7FFFFFFFL) write_req_sz = 0x7FFFFFFFL;  // prevent overflow due to casting
         switch (socket->type) {
             case PLAIN_SOCK: {
                 sz_written = _write_plain(socket->socket.plain, ptr, write_req_sz, &fatal);

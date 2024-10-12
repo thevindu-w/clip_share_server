@@ -57,8 +57,8 @@
 #endif
 
 // maximum transfer sizes
-#define MAX_TEXT_LENGTH 4194304     // 4 MiB
-#define MAX_FILE_SIZE 68719476736l  // 64 GiB
+#define MAX_TEXT_LENGTH 4194304L     // 4 MiB
+#define MAX_FILE_SIZE 68719476736LL  // 64 GiB
 
 #define ERROR_LOG_FILE "server_err.log"
 #define CONFIG_FILE "clipshare.conf"
@@ -279,21 +279,21 @@ static void kill_other_processes(const char *prog_name) {
             continue;
         }
         sscanf(buf, "%*s %15[^\n]", cur_task_name);
-        if (!strncmp(prog_name, cur_task_name, 15)) {  // /proc/<pid>/status truncates executable name to 15 chars
-            pid_t pid = (pid_t)strtoul(dir_ptr->d_name, NULL, 10);
-            if (pid != this_pid) {
-#ifdef DEBUG_MODE
-                fprintf(stderr, "killed %s\n", dir_ptr->d_name);
-#endif
-                kill(pid, SIGTERM);
-                killed = 1;
-            }
-        }
         fclose(fp);
+        if (strncmp(prog_name, cur_task_name, 15))  // /proc/<pid>/status truncates executable name to 15 chars
+            continue;
+        pid_t pid = (pid_t)strtoul(dir_ptr->d_name, NULL, 10);
+        if (pid != this_pid) {
+#ifdef DEBUG_MODE
+            fprintf(stderr, "killed %s\n", dir_ptr->d_name);
+#endif
+            kill(pid, SIGTERM);
+            killed = 1;
+        }
     }
     (void)closedir(dir);
     if (killed) {
-        struct timespec interval = {.tv_sec = 0, .tv_nsec = 5000000};
+        struct timespec interval = {.tv_sec = 0, .tv_nsec = 5000000L};
         nanosleep(&interval, NULL);
     }
     return;
@@ -375,10 +375,10 @@ static inline void setGUID(void) {
     char file_path[2048];
     GetModuleFileName(NULL, (char *)file_path, 2048);
     size_t size = strnlen(file_path, 2048);
-    uint64_t h = 0xcbf29ce484222325UL;
+    uint64_t h = 0xcbf29ce484222325ULL;
     for (size_t i = 0; i < size; i++) {
         h ^= (unsigned char)file_path[i];
-        h *= 0x100000001B3UL;
+        h *= 0x100000001B3ULL;
     }
     guid.Data1 = (unsigned long)h;
     h >>= 32;
@@ -389,7 +389,7 @@ static inline void setGUID(void) {
     h = 0x312bdf6556d47ffdUL;
     for (size_t i = 0; i < size; i++) {
         h ^= (unsigned char)file_path[i];
-        h *= 0x100000001B3UL;
+        h *= 0x100000001B3ULL;
     }
     for (unsigned i = 0; i < 8; i++) {
         guid.Data4[i] = (unsigned char)h;
@@ -480,7 +480,7 @@ static char *get_user_home(void) {
     CloseHandle(token);
     CloseHandle(procHndl);
     char *home = NULL;
-    int len;
+    uint32_t len;
     if (!wchar_to_utf8_str(whome, &home, &len) == EXIT_SUCCESS) return NULL;
     if (len >= 512 && home) {
         free(home);
@@ -549,7 +549,7 @@ static void kill_other_processes(const char *prog_name) {
     }
     free(procs);
     if (killed) {
-        struct timespec interval = {.tv_sec = 0, .tv_nsec = 5000000};
+        struct timespec interval = {.tv_sec = 0, .tv_nsec = 5000000L};
         nanosleep(&interval, NULL);
     }
 }
