@@ -203,6 +203,7 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: 'c-cpp'
+        trap-caching: false
 
     - name: Build using make
       run: make
