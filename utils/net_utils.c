@@ -21,6 +21,7 @@
 #include <globals.h>
 #ifndef NO_SSL
 #include <openssl/err.h>
+#include <openssl/pkcs12.h>
 #include <openssl/ssl.h>
 #include <openssl/x509_vfy.h>
 #endif
@@ -61,19 +62,31 @@ static SSL_CTX *InitServerCTX(void) {
     return ctx;
 }
 
-static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *server_cert_buf,
-                            const char *ca_cert_buf) {
-    BIO *cbio = BIO_new_mem_buf((const void *)server_cert_buf, -1);
-    X509 *cert = PEM_read_bio_X509(cbio, NULL, 0, NULL);
-    if (SSL_CTX_use_certificate(ctx, cert) <= 0) {
+static int LoadCertificates(SSL_CTX *ctx, const data_buffer *server_cert, const data_buffer *ca_cert) {
+    BIO *sbio = BIO_new_mem_buf(server_cert->data, server_cert->len);
+    PKCS12 *p12 = d2i_PKCS12_bio(sbio, NULL);
+    if (!p12) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
 #endif
         return EXIT_FAILURE;
     }
-
-    BIO *kbio = BIO_new_mem_buf((const void *)priv_key_buf, -1);
-    EVP_PKEY *key = PEM_read_bio_PrivateKey(kbio, NULL, 0, NULL);
+    EVP_PKEY *key;
+    X509 *server_x509;
+    if (!PKCS12_parse(p12, "", &key, &server_x509, NULL)) {
+#ifdef DEBUG_MODE
+        ERR_print_errors_fp(stdout);
+#endif
+        PKCS12_free(p12);
+        return EXIT_FAILURE;
+    }
+    PKCS12_free(p12);
+    if (SSL_CTX_use_certificate(ctx, server_x509) != 1) {
+#ifdef DEBUG_MODE
+        ERR_print_errors_fp(stdout);
+#endif
+        return EXIT_FAILURE;
+    }
     if (SSL_CTX_use_PrivateKey(ctx, key) <= 0) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
@@ -89,10 +102,10 @@ static int LoadCertificates(SSL_CTX *ctx, const char *priv_key_buf, const char *
         return EXIT_FAILURE;
     }
 
-    BIO *cabio = BIO_new_mem_buf((const void *)ca_cert_buf, -1);
-    X509 *ca_cert = PEM_read_bio_X509(cabio, NULL, 0, NULL);
+    BIO *cabio = BIO_new_mem_buf(ca_cert->data, ca_cert->len);
+    X509 *ca_x509 = PEM_read_bio_X509(cabio, NULL, 0, NULL);
     X509_STORE *x509store = SSL_CTX_get_cert_store(ctx);
-    if (X509_STORE_add_cert(x509store, ca_cert) != 1) {
+    if (X509_STORE_add_cert(x509store, ca_x509) != 1) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
 #endif
@@ -131,8 +144,8 @@ static int getClientCerts(const SSL *ssl, const list2 *allowed_clients) {
 }
 #endif
 
-void open_listener_socket(listener_t *listener, const unsigned char sock_type, const char *priv_key,
-                          const char *server_cert, const char *ca_cert) {
+void open_listener_socket(listener_t *listener, const unsigned char sock_type, const data_buffer *server_cert,
+                          const data_buffer *ca_cert) {
     listener->type = NULL_SOCK;
 
     sock_t listener_d = socket(PF_INET, (sock_type == UDP_SOCK ? SOCK_DGRAM : SOCK_STREAM), 0);
@@ -154,7 +167,7 @@ void open_listener_socket(listener_t *listener, const unsigned char sock_type, c
         return;
     }
     /* load certs and keys */
-    if (LoadCertificates(ctx, priv_key, server_cert, ca_cert) != EXIT_SUCCESS) {
+    if (LoadCertificates(ctx, server_cert, ca_cert) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         fputs("Loading certificates failed\n", stderr);
 #endif

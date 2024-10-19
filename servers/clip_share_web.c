@@ -199,8 +199,8 @@ static DWORD WINAPI webServerThreadFn(void *arg) {
 
 int web_server(void) {
     if (configuration.allowed_clients == NULL || configuration.allowed_clients->len <= 0 ||
-        configuration.web_port <= 0 || configuration.priv_key == NULL || configuration.server_cert == NULL ||
-        configuration.ca_cert == NULL) {
+        configuration.app_port_secure <= 0 || configuration.server_cert.data == NULL ||
+        configuration.ca_cert.data == NULL) {
 #ifdef DEBUG_MODE
         puts("Invalid config for web server");
 #endif
@@ -208,7 +208,7 @@ int web_server(void) {
     }
 
     listener_t listener;
-    open_listener_socket(&listener, SSL_SOCK, configuration.priv_key, configuration.server_cert, configuration.ca_cert);
+    open_listener_socket(&listener, SSL_SOCK, &(configuration.server_cert), &(configuration.ca_cert));
     if (bind_port(listener, configuration.web_port) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }

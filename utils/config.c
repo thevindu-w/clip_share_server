@@ -86,7 +86,7 @@ static inline list2 *get_client_list(const char *filename) {
  * Note that if the file contained null byte in it, the length of the string may be smaller than the allocated memory
  * block.
  */
-static inline void load_file(const char *file_name, char **ptr) {
+static inline void load_file(const char *file_name, data_buffer *buf_ptr) {
     if (!file_name) return;
     FILE *file_ptr = fopen(file_name, "rb");
     if (!file_ptr) return;
@@ -95,7 +95,7 @@ static inline void load_file(const char *file_name, char **ptr) {
         fclose(file_ptr);
         return;
     }
-    char *buf = (char *)malloc((size_t)len + 1);
+    char *buf = (char *)malloc((size_t)len);
     if (!buf) {
         fclose(file_ptr);
         return;
@@ -106,10 +106,10 @@ static inline void load_file(const char *file_name, char **ptr) {
         free(buf);
         return;
     }
-    buf[len] = 0;
-    if (*ptr) free(*ptr);
-    *ptr = buf;
     fclose(file_ptr);
+    if (buf_ptr->data) free(buf_ptr->data);
+    buf_ptr->data = buf;
+    buf_ptr->len = (int)len;
 }
 
 /*
@@ -268,8 +268,6 @@ static void parse_line(char *line, config *cfg) {
     } else if (!strcmp("web_mode_enabled", key)) {
         set_is_true(value, &(cfg->web_mode_enabled));
 #endif
-    } else if (!strcmp("server_key", key)) {
-        load_file(value, &(cfg->priv_key));
     } else if (!strcmp("server_cert", key)) {
         load_file(value, &(cfg->server_cert));
     } else if (!strcmp("ca_cert", key)) {
@@ -343,9 +341,10 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->web_mode_enabled = -1;
 #endif
 
-    cfg->priv_key = NULL;
-    cfg->server_cert = NULL;
-    cfg->ca_cert = NULL;
+    cfg->server_cert.data = NULL;
+    cfg->server_cert.len = -1;
+    cfg->ca_cert.data = NULL;
+    cfg->ca_cert.len = -1;
     cfg->allowed_clients = NULL;
 
     cfg->working_dir = NULL;
@@ -397,19 +396,14 @@ void parse_conf(config *cfg, const char *file_name) {
 }
 
 void clear_config_key_cert(config *cfg) {
-    if (cfg->priv_key) {
-        size_t len = strnlen(cfg->priv_key, 65536UL);
-        memset(cfg->priv_key, 0, len);
-        free(cfg->priv_key);
-        cfg->priv_key = NULL;
+    if (cfg->server_cert.data) {
+        if (cfg->server_cert.len > 0) memset(cfg->server_cert.data, 0, (size_t)cfg->server_cert.len);
+        free(cfg->server_cert.data);
+        cfg->server_cert.data = NULL;
     }
-    if (cfg->server_cert) {
-        free(cfg->server_cert);
-        cfg->server_cert = NULL;
-    }
-    if (cfg->ca_cert) {
-        free(cfg->ca_cert);
-        cfg->ca_cert = NULL;
+    if (cfg->ca_cert.data) {
+        free(cfg->ca_cert.data);
+        cfg->ca_cert.data = NULL;
     }
 }
 

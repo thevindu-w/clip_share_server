@@ -23,6 +23,11 @@
 #include <sys/types.h>
 #include <utils/list_utils.h>
 
+typedef struct _data_buffer {
+    int32_t len;
+    char *data;
+} data_buffer;
+
 typedef struct _config {
     uint16_t app_port;
     uint16_t app_port_secure;
@@ -34,9 +39,8 @@ typedef struct _config {
     int8_t web_mode_enabled;
 #endif
 
-    char *priv_key;
-    char *server_cert;
-    char *ca_cert;
+    data_buffer server_cert;
+    data_buffer ca_cert;
     list2 *allowed_clients;
 
     char *working_dir;

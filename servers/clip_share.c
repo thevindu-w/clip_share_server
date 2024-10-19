@@ -47,8 +47,8 @@ int clip_share(const int is_secure) {
     uint16_t port = 0;
     if (is_secure == SECURE) {
         if (configuration.allowed_clients == NULL || configuration.allowed_clients->len <= 0 ||
-            configuration.app_port_secure <= 0 || configuration.priv_key == NULL || configuration.server_cert == NULL ||
-            configuration.ca_cert == NULL) {
+            configuration.app_port_secure <= 0 || configuration.server_cert.data == NULL ||
+            configuration.ca_cert.data == NULL) {
 #ifdef DEBUG_MODE
             puts("Invalid config for secure mode");
 #endif
@@ -70,8 +70,8 @@ int clip_share(const int is_secure) {
 #endif
     }
     listener_t listener;
-    open_listener_socket(&listener, (is_secure ? SSL_SOCK : PLAIN_SOCK), configuration.priv_key,
-                         configuration.server_cert, configuration.ca_cert);
+    open_listener_socket(&listener, (is_secure ? SSL_SOCK : PLAIN_SOCK), &(configuration.server_cert),
+                         &(configuration.ca_cert));
     if (bind_port(listener, port) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }

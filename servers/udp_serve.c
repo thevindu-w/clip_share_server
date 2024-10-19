@@ -54,7 +54,7 @@ void udp_server(void) {
 #endif
 
     listener_t listener;
-    open_listener_socket(&listener, UDP_SOCK, NULL, NULL, NULL);
+    open_listener_socket(&listener, UDP_SOCK, NULL, NULL);
     if (listener.type == NULL_SOCK) {
         error("UDP socket creation failed");
         return;
