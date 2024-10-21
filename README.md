@@ -1,6 +1,4 @@
-![Build and Test](https://github.com/thevindu-w/clip_share_server/actions/workflows/build_and_test.yml/badge.svg?branch=master)
-![Check Style](https://github.com/thevindu-w/clip_share_server/actions/workflows/check_style.yml/badge.svg?branch=master)
-![CodeQL](https://github.com/thevindu-w/clip_share_server/actions/workflows/codeql.yml/badge.svg?branch=master)
+![Build and Check](https://github.com/thevindu-w/clip_share_server/actions/workflows/check.yml/badge.svg?branch=master)
 ![Last commit](https://img.shields.io/github/last-commit/thevindu-w/clip_share_server.svg?color=yellow)
 ![License](https://img.shields.io/github/license/thevindu-w/clip_share_server.svg?color=blue)
 
@@ -158,9 +156,8 @@ chmod +x install-mac.sh
 
 The following files should be created, and their paths should be specified in the configuration file `clipshare.conf`. You may use different file names and paths to store the keys and certificates.
 
-* `server.key` &ensp; - &nbsp; SSL/TLS key file for the server
-* `server.crt` &ensp; - &nbsp; SSL/TLS certificate file of the server
-* `ca.crt` &emsp;&emsp;&ensp; - &nbsp; SSL/TLS certificate of the CA, which signed both the server.crt and the client's SSL/TLS certificate
+* `server.pfx` &ensp; - &nbsp; SSL/TLS key and certificate file of the server
+* `ca.crt` &emsp;&emsp;&ensp; - &nbsp; SSL/TLS certificate of the CA, which signed both the server's and the client's SSL/TLS certificates
 
 You may use the helper script `keygen.sh` in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory to generate TLS keys and certificates for both the server and the client. Keep the `clipshare.ext` file in the same directory as the `keygen.sh` script when running the script.
 ```bash
@@ -228,8 +225,7 @@ web_port=4339
 insecure_mode_enabled=true
 secure_mode_enabled=true
 web_mode_enabled=false
-server_key=cert_keys/server.key
-server_cert=cert_keys/server.crt
+server_cert=cert_keys/server.pfx
 ca_cert=cert_keys/ca.crt
 allowed_clients=allowed_clients.txt
 working_dir=./path/to/work_dir
@@ -260,9 +256,8 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `udp_port` | The port on which the application listens for UDP broadcasts of network scanning. (Values below 1024 may require superuser/admin privileges) | Any valid, unused UDP port number (1 - 65535) | `4337` |
 | `app_port_secure` | The TCP port on which the application listens for TLS-encrypted connections. (Values below 1024 may require superuser/admin privileges) | Any valid, unused TCP port number (1 - 65535) | `4338` |
 | `web_port` | The TCP port on which the application listens for TLS-encrypted connections for web clients. This setting is used only if web mode is available. (Values below 1024 may require superuser/admin privileges) | Any valid, unused TCP port number (1 - 65535) | `4339` |
-| `server_key` | The TLS private key file of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the private key file | \<Unspecified\> |
-| `server_cert` | The TLS certificate file of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the server's TLS certificate file | \<Unspecified\> |
-| `ca_cert` | The TLS certificate file of the CA that signed the TLS certificate of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the TLS certificate file of the CA | \<Unspecified\> |
+| `server_cert` | The TLS key and certificate store file of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the server's TLS certificate store PKCS#12 file | \<Unspecified\> |
+| `ca_cert` | The TLS certificate file of the CA that signed the TLS certificate of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the TLS certificate PEM file of the CA | \<Unspecified\> |
 | `allowed_clients` | The text file containing a list of allowed clients (Common Name of client certificate), one name per line. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the allowed-clients file | \<Unspecified\> |
 | `bind_address` | The address of the interface to which the application should bind when listening for connections. It will listen on all interfaces if this is set to `0.0.0.0` | IPv4 address of an interface in dot-decimal notation (ex: `192.168.37.5`) or `0.0.0.0` | `0.0.0.0` |
 | `restart` | Whether the application should start or restart by default. The values `true` or `1` will make the server restart by default, while `false` or `0` will make it just start without stopping any running instances of the server. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |

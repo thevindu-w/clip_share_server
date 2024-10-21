@@ -70,7 +70,7 @@ if [ -z "$VERSION_DEFAULT" ]; then
 fi
 VERSION="$(echo -n "${VERSION_DEFAULT}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')" || error_exit "Invalid version"
 
-echo "You are installing version $VERSION"
+echo "You are installing ClipShare version $VERSION"
 read -p 'Proceed? [y/N] ' confirm
 if [ "${confirm::1}" != 'y' ] && [ "${confirm::1}" != 'Y' ]; then
     echo 'Aborted.'

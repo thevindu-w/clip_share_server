@@ -11,7 +11,7 @@ if (-Not "$VERSION") {
     exit 1
 }
 
-Write-Host "You are installing version $VERSION"
+Write-Host "You are installing ClipShare version $VERSION"
 $confirm = Read-Host 'Proceed? [y/N]'
 if ("$confirm" -ne "y") {
     Write-Host 'Aborted.'

@@ -35,6 +35,13 @@ openssl genrsa -out server.key 2048 >>keygen.log 2>&1
 openssl req -new -key server.key -out server.csr -subj "/CN=$SERVER_NAME"
 openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 730 -sha256 -extfile clipshare.ext >>keygen.log 2>&1
 
+# export keys to pkcs12 file
+if type winpty &>/dev/null; then
+    winpty openssl pkcs12 -export -in server.crt -inkey server.key -passout pass: -out server.pfx
+else
+    openssl pkcs12 -export -in server.crt -inkey server.key -passout pass: -out server.pfx
+fi
+
 # generate client keys
 openssl genrsa -out client.key 2048 >>keygen.log 2>&1
 openssl req -new -key client.key -out client.csr -subj "/CN=$CLIENT_NAME"
@@ -57,15 +64,14 @@ echo
 echo 'Exported client keys.'
 echo 'Cleaning up ...'
 rm -f *.srl *.csr
-rm client.key client.crt
+rm client.key client.crt server.key server.crt
 
 echo 'Done.'
 echo
-echo '> server.key - The TLS private key file of the server. Keep this file securely.'
-echo '> server.crt - The TLS certificate file of the server.'
+echo '> server.pfx - The TLS key and certificate store file of the server. Keep this file securely.'
 echo '> ca.crt     - The TLS certificate file of the CA. You need this file on both the server and the client devices.'
 echo
-echo '> client.pfx - The TLS key and certificate store file for the client. Move this to the client device.'
+echo '> client.pfx - The TLS key and certificate store file of the client. Move this to the client device.'
 echo
 echo "# the server's name is $SERVER_NAME"
 echo "# the client's name is $CLIENT_NAME"
