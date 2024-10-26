@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <utils/utils.h>
-#include <xclip/xcdef.h>
 #include <xclip/xclib.h>
 
 #define MAX_BUF_LEN 16777216UL

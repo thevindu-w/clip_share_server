@@ -17,7 +17,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 /*
- *  2022-2023 Modified by H. Thevindu J. Wijesekera
+ *  2022-2024 Modified by H. Thevindu J. Wijesekera
  */
 
 #include <X11/Xatom.h>
@@ -28,7 +28,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <utils/utils.h>
-#include <xclip/xcdef.h>
 #include <xclip/xclib.h>
 #include <xclip/xclip.h>
 
