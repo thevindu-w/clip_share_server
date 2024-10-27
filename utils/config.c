@@ -82,7 +82,7 @@ static inline list2 *get_client_list(const char *filename) {
  * ptr must be a valid pointer to a char*.
  * If the char* pointed by ptr is not null. This will call free() on that char*
  * Sets the malloced block of memory containing a null-terminated file content to the address pointed by ptr.
- * Does not modify the ptr if an error occured.
+ * Does not modify the ptr if an error occurred.
  * Note that if the file contained null byte in it, the length of the string may be smaller than the allocated memory
  * block.
  */

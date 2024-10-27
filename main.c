@@ -176,7 +176,7 @@ static inline void _change_working_dir(void) {
     }
     char *new_work_dir = getcwd_wrapper(0);
     if (old_work_dir == NULL || new_work_dir == NULL) {
-        const char *err = "Error occured during changing working directory.";
+        const char *err = "Error occurred during changing working directory.";
         fprintf(stderr, "%s\n", err);
         if (old_work_dir) free(old_work_dir);
         if (new_work_dir) free(new_work_dir);
@@ -320,9 +320,6 @@ static volatile char running = 1;
  * It is not guaranteed to kill all processes with the given name.
  */
 static void kill_other_processes(const char *prog_name) {
-    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-        freopen("CONOUT$", "w", stdout);
-    }
     DWORD this_pid = GetCurrentProcessId();
     PROCESSENTRY32 entry;
     entry.dwSize = sizeof(PROCESSENTRY32);
@@ -345,9 +342,7 @@ static void kill_other_processes(const char *prog_name) {
             }
         }
     }
-    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-        freopen("CONOUT$", "w", stdout);
-    }
+    FreeConsole();
     CloseHandle(snapshot);
 }
 
@@ -673,6 +668,12 @@ int main(int argc, char **argv) {
             exit(EXIT_SUCCESS);
         }
     }
+#if defined(_WIN32) && defined(DEBUG_MODE)
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+    }
+#endif
 
     if (configuration.working_dir) _change_working_dir();
     cwd = getcwd_wrapper(0);
