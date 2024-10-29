@@ -73,10 +73,12 @@ int clip_share(const int is_secure) {
     open_listener_socket(&listener, (is_secure ? SSL_SOCK : PLAIN_SOCK), &(configuration.server_cert),
                          &(configuration.ca_cert));
     if (bind_port(listener, port) != EXIT_SUCCESS) {
+        close_listener_socket(&listener);
         return EXIT_FAILURE;
     }
     if (listen(listener.socket, 3) == -1) {
         error("Can\'t listen");
+        close_listener_socket(&listener);
         return EXIT_FAILURE;
     }
 
@@ -94,7 +96,7 @@ int clip_share(const int is_secure) {
         if (pid) {
             close_socket_no_wait(&connect_sock);
         } else {
-            close(listener.socket);
+            close_listener_socket(&listener);
             server(&connect_sock);
             close_socket(&connect_sock);
             break;

@@ -104,6 +104,11 @@ extern void _close_socket(socket_t *socket, int await);
 #define close_socket_no_wait(socket) _close_socket(socket, 0)
 
 /*
+ * Closes a listener socket.
+ */
+extern void close_listener_socket(listener_t *socket);
+
+/*
  * Reads num bytes from the socket into buf.
  * buf should be writable and should have a capacitiy of at least num bytes.
  * Waits until all the bytes are read. If reading failed before num bytes, returns EXIT_FAILURE

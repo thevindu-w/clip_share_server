@@ -210,10 +210,12 @@ int web_server(void) {
     listener_t listener;
     open_listener_socket(&listener, SSL_SOCK, &(configuration.server_cert), &(configuration.ca_cert));
     if (bind_port(listener, configuration.web_port) != EXIT_SUCCESS) {
+        close_listener_socket(&listener);
         return EXIT_FAILURE;
     }
     if (listen(listener.socket, 10) == -1) {
         error("Can\'t listen");
+        close_listener_socket(&listener);
         return EXIT_FAILURE;
     }
     while (1) {
@@ -230,7 +232,7 @@ int web_server(void) {
         if (p1) {
             close_socket(&connect_sock);
         } else {
-            close(listener.socket);
+            close_listener_socket(&listener);
             receiver_web(&connect_sock);
             close_socket(&connect_sock);
             break;

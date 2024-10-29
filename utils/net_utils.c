@@ -69,6 +69,7 @@ static int LoadCertificates(SSL_CTX *ctx, const data_buffer *server_cert, const 
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
 #endif
+        BIO_free(sbio);
         return EXIT_FAILURE;
     }
     EVP_PKEY *key;
@@ -77,22 +78,30 @@ static int LoadCertificates(SSL_CTX *ctx, const data_buffer *server_cert, const 
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
 #endif
+        BIO_free(sbio);
         PKCS12_free(p12);
         return EXIT_FAILURE;
     }
+    BIO_free(sbio);
     PKCS12_free(p12);
     if (SSL_CTX_use_certificate(ctx, server_x509) != 1) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
 #endif
+        EVP_PKEY_free(key);
+        X509_free(server_x509);
         return EXIT_FAILURE;
     }
+    X509_free(server_x509);
     if (SSL_CTX_use_PrivateKey(ctx, key) <= 0) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
 #endif
+        EVP_PKEY_free(key);
+        X509_free(server_x509);
         return EXIT_FAILURE;
     }
+    EVP_PKEY_free(key);
 
     /* verify private key */
     if (!SSL_CTX_check_private_key(ctx)) {
@@ -104,13 +113,16 @@ static int LoadCertificates(SSL_CTX *ctx, const data_buffer *server_cert, const 
 
     BIO *cabio = BIO_new_mem_buf(ca_cert->data, ca_cert->len);
     X509 *ca_x509 = PEM_read_bio_X509(cabio, NULL, 0, NULL);
+    BIO_free(cabio);
     X509_STORE *x509store = SSL_CTX_get_cert_store(ctx);
     if (X509_STORE_add_cert(x509store, ca_x509) != 1) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
 #endif
+        X509_free(ca_x509);
         return EXIT_FAILURE;
     }
+    X509_free(ca_x509);
 
     SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
     SSL_CTX_set_verify_depth(ctx, 1);
@@ -345,11 +357,41 @@ void _close_socket(socket_t *socket, int await) {
 #else
             sd = SSL_get_fd(socket->socket.ssl); /* get socket connection */
 #endif
+            SSL_clear(socket->socket.ssl);
             SSL_free(socket->socket.ssl); /* release SSL state */
 #if defined(__linux__) || defined(__APPLE__)
             close(sd);
 #elif defined(_WIN32)
             closesocket(sd);
+#endif
+            break;
+        }
+#endif
+
+        default:
+            break;
+    }
+    socket->type = NULL_SOCK;
+}
+
+void close_listener_socket(listener_t *socket) {
+    switch (socket->type) {
+        case PLAIN_SOCK: {
+#if defined(__linux__) || defined(__APPLE__)
+            close(socket->socket);
+#elif defined(_WIN32)
+            closesocket(socket->socket);
+#endif
+            break;
+        }
+
+#ifndef NO_SSL
+        case SSL_SOCK: {
+            SSL_CTX_free(socket->ctx); /* release SSL state */
+#if defined(__linux__) || defined(__APPLE__)
+            close(socket->socket);
+#elif defined(_WIN32)
+            closesocket(socket->socket);
 #endif
             break;
         }
