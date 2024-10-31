@@ -42,35 +42,35 @@ static int check_method_enabled(socket_t *socket, int method) {
     char disabled = 0;
     switch (method) {
         case METHOD_GET_TEXT: {
-            if (!configuration.method_get_text_enabled) disabled = 1;
+            if (!configuration.method_enabled.get_text) disabled = 1;
             break;
         }
         case METHOD_SEND_TEXT: {
-            if (!configuration.method_send_text_enabled) disabled = 1;
+            if (!configuration.method_enabled.send_text) disabled = 1;
             break;
         }
         case METHOD_GET_FILE: {
-            if (!configuration.method_get_files_enabled) disabled = 1;
+            if (!configuration.method_enabled.get_files) disabled = 1;
             break;
         }
         case METHOD_SEND_FILE: {
-            if (!configuration.method_send_files_enabled) disabled = 1;
+            if (!configuration.method_enabled.send_files) disabled = 1;
             break;
         }
         case METHOD_GET_IMAGE: {
-            if (!configuration.method_get_image_enabled) disabled = 1;
+            if (!configuration.method_enabled.get_image) disabled = 1;
             break;
         }
         case METHOD_GET_COPIED_IMAGE: {
-            if (!configuration.method_get_copied_image_enabled) disabled = 1;
+            if (!configuration.method_enabled.get_copied_image) disabled = 1;
             break;
         }
         case METHOD_GET_SCREENSHOT: {
-            if (!configuration.method_get_screenshot_enabled) disabled = 1;
+            if (!configuration.method_enabled.get_screenshot) disabled = 1;
             break;
         }
         case METHOD_INFO: {
-            if (!configuration.method_info_enabled) disabled = 1;
+            if (!configuration.method_enabled.info) disabled = 1;
             break;
         }
         default: {

@@ -213,14 +213,14 @@ static inline void _apply_default_conf(void) {
         configuration.max_proto_version > PROTOCOL_MAX)
         configuration.max_proto_version = PROTOCOL_MAX;
 
-    if (configuration.method_get_text_enabled < 0) configuration.method_get_text_enabled = 1;
-    if (configuration.method_send_text_enabled < 0) configuration.method_send_text_enabled = 1;
-    if (configuration.method_get_files_enabled < 0) configuration.method_get_files_enabled = 1;
-    if (configuration.method_send_files_enabled < 0) configuration.method_send_files_enabled = 1;
-    if (configuration.method_get_image_enabled < 0) configuration.method_get_image_enabled = 1;
-    if (configuration.method_get_copied_image_enabled < 0) configuration.method_get_copied_image_enabled = 1;
-    if (configuration.method_get_screenshot_enabled < 0) configuration.method_get_screenshot_enabled = 1;
-    if (configuration.method_info_enabled < 0) configuration.method_info_enabled = 1;
+    if (configuration.method_enabled.get_text < 0) configuration.method_enabled.get_text = 1;
+    if (configuration.method_enabled.send_text < 0) configuration.method_enabled.send_text = 1;
+    if (configuration.method_enabled.get_files < 0) configuration.method_enabled.get_files = 1;
+    if (configuration.method_enabled.send_files < 0) configuration.method_enabled.send_files = 1;
+    if (configuration.method_enabled.get_image < 0) configuration.method_enabled.get_image = 1;
+    if (configuration.method_enabled.get_copied_image < 0) configuration.method_enabled.get_copied_image = 1;
+    if (configuration.method_enabled.get_screenshot < 0) configuration.method_enabled.get_screenshot = 1;
+    if (configuration.method_enabled.info < 0) configuration.method_enabled.info = 1;
 
 #ifdef WEB_ENABLED
     if (configuration.web_port <= 0) configuration.web_port = WEB_PORT;

@@ -57,14 +57,16 @@ typedef struct _config {
     uint16_t min_proto_version;
     uint16_t max_proto_version;
 
-    int8_t method_get_text_enabled;
-    int8_t method_send_text_enabled;
-    int8_t method_get_files_enabled;
-    int8_t method_send_files_enabled;
-    int8_t method_get_image_enabled;
-    int8_t method_get_copied_image_enabled;
-    int8_t method_get_screenshot_enabled;
-    int8_t method_info_enabled;
+    struct {
+        int8_t get_text;
+        int8_t send_text;
+        int8_t get_files;
+        int8_t send_files;
+        int8_t get_image;
+        int8_t get_copied_image;
+        int8_t get_screenshot;
+        int8_t info;
+    } method_enabled;
 
 #ifdef _WIN32
     int8_t tray_icon;
