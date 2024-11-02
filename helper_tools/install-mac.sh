@@ -24,10 +24,15 @@ exec_names=(
 
 exec_path=~/.local/bin/clip_share
 exec_not_found=1
+missingLib=
 for exec_name in "${exec_names[@]}"; do
     if [ -f "$exec_name" ]; then
         chmod +x "$exec_name"
-        "./$exec_name" -h &>/dev/null || continue
+        if ! sh -c '"./$exec_name" -h' &>/dev/null; then
+            missing="$( (sh -c "'./$exec_name' -h 2>&1" 2>/dev/null || true) | grep -oE 'lib[a-zA-Z0-9.-]+\.dylib' | grep -oE 'lib[a-zA-Z0-9-]+' | head -n 1)"
+            [ -n "$missing" ] && missingLib="$missing"
+            continue
+        fi
         exec_not_found=0
         mkdir -p ~/.local/bin/
         mv "$exec_name" "$exec_path"
@@ -38,7 +43,11 @@ for exec_name in "${exec_names[@]}"; do
 done
 
 if [ "$exec_not_found" = 1 ]; then
-    echo "Error: 'clip_share' program was not found in the current directory"
+    if [ -n "$missingLib" ]; then
+        echo "Error: The ${missingLib} library is not installed. Please install ${missingLib} and run the installer again."
+    else
+        echo "Error: 'clip_share' program was not found in the current directory"
+    fi
     exit 1
 fi
 
