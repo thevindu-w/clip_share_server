@@ -1,5 +1,5 @@
 /*
- * conf_parse.c - parse config file for application
+ * utils/conf_parse.c - parse config file for application
  * Copyright (C) 2022-2024 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
