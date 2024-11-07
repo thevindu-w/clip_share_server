@@ -1,6 +1,6 @@
 /*
- * globals.h - header containing global variables
- * Copyright (C) 2022-2024 H. Thevindu J. Wijesekera
+ * utils/mac_menu.h - header for mac_menu.c
+ * Copyright (C) 2024 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,18 +16,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef GLOBALS_H_
-#define GLOBALS_H_
-
-#include <utils/config.h>
-
-extern config configuration;
-extern char *error_log_file;
-extern char *cwd;
-extern size_t cwd_len;
-
+#ifndef UTILS_MAC_MENU_H_
+#define UTILS_MAC_MENU_H_
 #ifdef __APPLE__
-extern const char *global_prog_name;
-#endif
 
-#endif  // GLOBALS_H_
+extern void show_menu_icon(void);
+
+#endif
+#endif  // UTILS_MAC_MENU_H_

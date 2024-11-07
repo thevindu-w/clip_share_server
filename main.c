@@ -44,6 +44,7 @@
 #include <winres/resource.h>
 #elif defined(__APPLE__)
 #include <pwd.h>
+#include <utils/mac_menu.h>
 #endif
 
 // tcp and udp
@@ -66,6 +67,10 @@ config configuration;
 char *error_log_file = NULL;
 char *cwd = NULL;
 size_t cwd_len = 0;
+
+#ifdef __APPLE__
+const char *global_prog_name = NULL;
+#endif
 
 static void print_usage(const char *);
 static char *get_user_home(void);
@@ -440,6 +445,9 @@ int main(int argc, char **argv) {
     } else {
         prog_name++;  // don't want the '/' before the program name
     }
+#ifdef __APPLE__
+    global_prog_name = prog_name;
+#endif
 
     atexit(cleanup);
 
@@ -554,6 +562,16 @@ int main(int argc, char **argv) {
         udp_server();
         exit(EXIT_SUCCESS);
     }
+
+#ifdef __APPLE__
+    fflush(stdout);
+    fflush(stderr);
+    pid_t p_menu = fork();
+    if (p_menu == 0) {
+        show_menu_icon();
+        exit(EXIT_SUCCESS);
+    }
+#endif
 
     if (!daemonize) {
         if (p_clip > 0) waitpid(p_clip, NULL, 0);

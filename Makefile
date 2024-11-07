@@ -65,7 +65,7 @@ else ifeq ($(detected_OS),Windows)
 else ifeq ($(detected_OS),Darwin)
 export CPATH=$(shell brew --prefix)/include
 export LIBRARY_PATH=$(shell brew --prefix)/lib
-	OBJS_M=utils/mac_utils.o
+	OBJS_M=utils/mac_utils.o utils/mac_menu.o
 	CFLAGS+= -fobjc-arc
 	CFLAGS_OPTIM=-O3
 	LDLIBS_NO_SSL=-framework AppKit -lunistring -lpng -lobjc
