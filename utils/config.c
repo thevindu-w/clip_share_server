@@ -316,7 +316,7 @@ static void parse_line(char *line, config *cfg) {
         set_is_true(value, &(cfg->method_enabled.get_screenshot));
     } else if (!strcmp("method_info_enabled", key)) {
         set_is_true(value, &(cfg->method_enabled.info));
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE__)
     } else if (!strcmp("tray_icon", key)) {
         set_is_true(value, &(cfg->tray_icon));
 #endif
@@ -366,7 +366,7 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->method_enabled.get_copied_image = -1;
     cfg->method_enabled.get_screenshot = -1;
     cfg->method_enabled.info = -1;
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE__)
     cfg->tray_icon = -1;
 #endif
     if (ipv4_aton(NULL, &(cfg->bind_addr)) != EXIT_SUCCESS) error_exit("Error initializing bind address");
