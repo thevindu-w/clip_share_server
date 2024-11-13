@@ -42,7 +42,7 @@ jobs:
     - name: Check C code style
       run: |
         cpplint --linelength=120 --filter=-runtime/int,-runtime/arrays,-readability/casting,-legal/copyright \
-        --extensions=c,h,m,cc,hh,cpp,hpp,c++,h++,cxx,hxx --recursive .
+        --extensions=c,h,m,cc,hh,cpp,hpp,c++,h++,cxx,hxx --exclude='res/**/*_.c' --recursive .
 
     - name: Check test script style
       if: ${{ success() || failure() }}

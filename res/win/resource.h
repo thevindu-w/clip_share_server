@@ -16,11 +16,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef WINRES_RESOURCE_H_
-#define WINRES_RESOURCE_H_
+#ifndef RES_WIN_RESOURCE_H_
+#define RES_WIN_RESOURCE_H_
 #ifdef _WIN32
 
 #define APP_ICON 912
 
 #endif
-#endif  // WINRES_RESOURCE_H_
+#endif  // RES_WIN_RESOURCE_H_

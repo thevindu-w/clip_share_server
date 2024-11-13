@@ -1,10 +1,12 @@
-winres/clip_icon.ico -text
-
-winres/app.rc -crlf
-*.[pP][sS]1 -crlf
-*.[cC][mM][dD] -crlf
-*.[bB][aA][tT] -crlf
-*.[iI][cC][sS] -crlf
 * text=auto
 
+*.ico -merge -text
+*.png -merge -text
+
+*.[pP][sS]1 text eol=crlf
+*.[cC][mM][dD] text eol=crlf
+*.[bB][aA][tT] text eol=crlf
+*.[iI][cC][sS] text eol=crlf
+
 *.sh text eol=lf
+*.html text eol=lf

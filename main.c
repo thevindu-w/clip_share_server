@@ -37,11 +37,11 @@
 #include <pwd.h>
 #include <sys/wait.h>
 #elif defined(_WIN32)
+#include <res/win/resource.h>
 #include <shellapi.h>
 #include <shellscalingapi.h>
 #include <tlhelp32.h>
 #include <userenv.h>
-#include <winres/resource.h>
 #elif defined(__APPLE__)
 #include <pwd.h>
 #include <utils/mac_menu.h>

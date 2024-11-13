@@ -22,6 +22,9 @@
 #import <utils/kill_others.h>
 #include <utils/mac_menu.h>
 
+extern char res_mac_icon_png[];
+extern unsigned int res_mac_icon_png_len;
+
 const char *global_prog_name;
 
 @implementation NSApplication (KillInstances)  // NOLINT
@@ -37,7 +40,9 @@ void show_menu_icon(void) {
     @autoreleasepool {
         NSApplication *app = [NSApplication sharedApplication];
         NSStatusItem *statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-        NSImage *iconImage = [NSImage imageNamed:@"icon.png"];
+
+        NSData *iconData = [NSData dataWithBytesNoCopy:res_mac_icon_png length:res_mac_icon_png_len];
+        NSImage *iconImage = [[NSImage alloc] initWithData:iconData];
         if (!iconImage) return;
         [statusItem.button setImage:iconImage];
 

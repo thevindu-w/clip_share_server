@@ -21,7 +21,7 @@ jobs:
 
     - name: Check app.rc version
       run: |
-        [ $(grep "${{env.VERSION}}" winres/app.rc | grep -iE '(File|Product)Version' | wc -l) = 4 ]
+        [ $(grep "${{env.VERSION}}" res/win/app.rc | grep -iE '(File|Product)Version' | wc -l) = 4 ]
 
     - name: Check release_notes.md version
       run: |

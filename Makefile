@@ -28,11 +28,12 @@ CC=gcc
 CFLAGS=-c -pipe -I. --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Woverlength-strings
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 
-OBJS=main.o servers/clip_share.o servers/udp_serve.o proto/server.o proto/versions.o proto/methods.o utils/utils.o utils/net_utils.o utils/list_utils.o utils/config.o utils/kill_others.o
+OBJS_C=main.o servers/clip_share.o servers/udp_serve.o proto/server.o proto/versions.o proto/methods.o utils/utils.o utils/net_utils.o utils/list_utils.o utils/config.o utils/kill_others.o
 
 _WEB_OBJS_C=servers/clip_share_web.o
 _WEB_OBJS_S=servers/page_blob.o
 OBJS_M=
+OBJS_BIN=
 
 OTHER_DEPENDENCIES=
 LINK_FLAGS_BUILD=
@@ -44,19 +45,19 @@ else
 endif
 
 ifeq ($(detected_OS),Linux)
-	OBJS+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
+	OBJS_C+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 	CFLAGS+= -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS_OPTIM=-Os
 	LDLIBS_NO_SSL=-lunistring -lX11 -lXmu -lXt -lxcb -lxcb-randr -lpng
 	LDLIBS_SSL=-lssl -lcrypto
 	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections
 else ifeq ($(detected_OS),Windows)
-	OBJS+= utils/win_image.o
+	OBJS_C+= utils/win_image.o
 	CFLAGS+= -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	CFLAGS_OPTIM=-O3
-	OTHER_DEPENDENCIES+= winres/app.res
 	LDLIBS_NO_SSL=-l:libunistring.a -l:libpthread.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a -lcrypt32 -lShcore -lUserenv
+	OTHER_DEPENDENCIES+= res/win/app.res
 	LDLIBS_SSL=-l:libssl.a -l:libcrypto.a -l:libpthread.a
 	LINK_FLAGS_BUILD=-no-pie -mwindows
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
@@ -66,6 +67,7 @@ else ifeq ($(detected_OS),Darwin)
 export CPATH=$(shell brew --prefix)/include
 export LIBRARY_PATH=$(shell brew --prefix)/lib
 	OBJS_M=utils/mac_utils.o utils/mac_menu.o
+	OBJS_BIN+= res/mac/icon.o
 	CFLAGS+= -fobjc-arc
 	CFLAGS_OPTIM=-O3
 	LDLIBS_NO_SSL=-framework AppKit -lunistring -lpng -lobjc
@@ -78,22 +80,27 @@ CFLAGS+= -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=$(MIN_PROTO) -DPROTOCOL_MAX
 CFLAGS_OPTIM+= -Werror
 
 # append '_web' to objects for clip_share_web to prevent overwriting objects for clip_share
-WEB_OBJS_C=$(OBJS:.o=_web.o) $(_WEB_OBJS_C:.o=_web.o)
+WEB_OBJS_C=$(OBJS_C:.o=_web.o) $(_WEB_OBJS_C:.o=_web.o)
 WEB_OBJS_S=$(_WEB_OBJS_S:.o=_web.o)
 WEB_OBJS_M=$(OBJS_M:.o=_web.o)
-WEB_OBJS=$(WEB_OBJS_C) $(WEB_OBJS_S) $(WEB_OBJS_M)
+WEB_OBJS_BIN=$(OBJS_BIN:.o=_web.o)
+WEB_OBJS=$(WEB_OBJS_C) $(WEB_OBJS_S) $(WEB_OBJS_M) $(WEB_OBJS_BIN)
 
 # append '_debug' to objects for clip_share debug executable to prevent overwriting objects for clip_share
-DEBUG_OBJS_C=$(OBJS:.o=_debug.o) $(_WEB_OBJS_C:.o=_debug.o)
+DEBUG_OBJS_C=$(OBJS_C:.o=_debug.o) $(_WEB_OBJS_C:.o=_debug.o)
 DEBUG_OBJS_M=$(OBJS_M:.o=_debug.o)
-DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_M)
+DEBUG_OBJS_BIN=$(OBJS_BIN:.o=_debug.o)
+DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_M) $(DEBUG_OBJS_BIN)
 
 # append '_no_ssl' to objects for clip_share_no_ssl executable to prevent overwriting objects for clip_share
-NO_SSL_OBJS_C=$(OBJS:.o=_no_ssl.o) # Web mode is not supported with no_ssl
+NO_SSL_OBJS_C=$(OBJS_C:.o=_no_ssl.o) # Web mode is not supported with no_ssl
 NO_SSL_OBJS_M=$(OBJS_M:.o=_no_ssl.o)
-NO_SSL_OBJS=$(NO_SSL_OBJS_C) $(NO_SSL_OBJS_M)
+NO_SSL_OBJS_BIN=$(OBJS_BIN:.o=_no_ssl.o)
+NO_SSL_OBJS=$(NO_SSL_OBJS_C) $(NO_SSL_OBJS_M) $(NO_SSL_OBJS_BIN)
 
-$(PROGRAM_NAME): $(OBJS) $(OBJS_M) $(OTHER_DEPENDENCIES)
+OBJS=$(OBJS_C) $(OBJS_M) $(OBJS_BIN)
+
+$(PROGRAM_NAME): $(OBJS) $(OTHER_DEPENDENCIES)
 $(PROGRAM_NAME_WEB): $(WEB_OBJS) $(OTHER_DEPENDENCIES)
 $(PROGRAM_NAME) $(PROGRAM_NAME_WEB):
 	$(CC) $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
@@ -101,29 +108,36 @@ $(PROGRAM_NAME) $(PROGRAM_NAME_WEB):
 $(PROGRAM_NAME_NO_SSL): $(NO_SSL_OBJS) $(OTHER_DEPENDENCIES)
 	$(CC) $^ $(LINK_FLAGS_BUILD) $(LDLIBS_NO_SSL) -o $@
 
-$(OBJS): %.o: %.c
+$(OBJS_C): %.o: %.c
 $(OBJS_M): %.o: %.m
-$(OBJS) $(OBJS_M):
+$(OBJS_BIN): %.o: %_.c
+$(OBJS) res/mac/icon.o:
 	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -fno-pie $^ -o $@
 
 $(WEB_OBJS_C): %_web.o: %.c
 $(WEB_OBJS_M): %_web.o: %.m
 $(WEB_OBJS_S): %_web.o: %.S
+$(WEB_OBJS_BIN): %_web.o: %_.c
 $(WEB_OBJS):
 	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DWEB_ENABLED -fno-pie $^ -o $@
 
 $(DEBUG_OBJS_C): %_debug.o: %.c
 $(DEBUG_OBJS_M): %_debug.o: %.m
+$(DEBUG_OBJS_BIN): %_debug.o: %_.c
 $(DEBUG_OBJS):
 	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $^ -o $@
 
 $(NO_SSL_OBJS_C): %_no_ssl.o: %.c
 $(NO_SSL_OBJS_M): %_no_ssl.o: %.m
+$(NO_SSL_OBJS_BIN): %_no_ssl.o: %_.c
 $(NO_SSL_OBJS):
 	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_SSL -fno-pie $^ -o $@
 
-winres/app.res: winres/app.rc winres/resource.h
+res/win/app.res: res/win/app.rc res/win/resource.h
 	windres -I. $< -O coff -o $@
+
+res/mac/icon_.c: res/mac/icon.png
+	xxd -i $< >$@
 
 .PHONY: all clean debug web test check install
 
