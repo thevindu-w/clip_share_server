@@ -13,6 +13,10 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - The installer scripts attached to the assets are online installers. They will automatically download the correct binaries for this version, and run the offline installer in it. Alternatively, you may manually download the binary archive for your operating system and use the offline installer in it.
 
 **Changes:**
-- Use PKCS#12 format (`.pfx` or `.p12` file) for server key and certificate instead of separate `key` and `cert` files.
-- Check for errors when copying files from macOS.
-- Fix possible compilation errors on different platforms.
+- Features:
+  - Show a menu icon when the server is running on macOS.
+  - Ability to stop the server using the menu icon.
+  - Enable/disable showing the menu icon using the config file.
+- Fix the Windows installer hanging after completing the installation.
+- Fix memory leaks.
+- Code quality improvements.
