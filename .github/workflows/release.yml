@@ -1,4 +1,4 @@
-name: Create release
+name: Create-Release
 run-name: Create release ${{github.ref_name}}
 
 on:
@@ -29,10 +29,20 @@ jobs:
         grep -qF "${{env.VERSION}}" <<<"$v"; \
         done
 
+  Build-and-Test:
+    uses: ./.github/workflows/build-test.yml
+    permissions:
+      contents: write
+      pull-requests: write
+      security-events: write
+    needs: Checks
+
   Linux:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: Checks
+    needs:
+    - Checks
+    - Build-and-Test
 
     steps:
     - name: Check out repository code
@@ -94,7 +104,9 @@ jobs:
   Windows:
     runs-on: windows-latest
     timeout-minutes: 10
-    needs: Checks
+    needs:
+    - Checks
+    - Build-and-Test
 
     defaults:
       run:
@@ -163,7 +175,9 @@ jobs:
         compression-level: 6
 
   macOS:
-    needs: Checks
+    needs:
+    - Checks
+    - Build-and-Test
     strategy:
       matrix:
         os:
