@@ -1,33 +1,37 @@
-![Build and Test](https://github.com/thevindu-w/clip_share_server/actions/workflows/build-test.yml/badge.svg?branch=master)
-![Check Style](https://github.com/thevindu-w/clip_share_server/actions/workflows/check-style.yml/badge.svg?branch=master)
-![Last commit](https://img.shields.io/github/last-commit/thevindu-w/clip_share_server.svg?color=yellow)
-![License](https://img.shields.io/github/license/thevindu-w/clip_share_server.svg?color=blue)
-
-# ClipShare Server
+# ClipShare - Server
 
 ### Share Clipboard and Files. Copy on one device. Paste on another device.
 
+![Build and Test](https://github.com/thevindu-w/clip_share_server/actions/workflows/build-test.yml/badge.svg?branch=master)
+![Check Style](https://github.com/thevindu-w/clip_share_server/actions/workflows/check-style.yml/badge.svg?branch=master)
+[![Last commit](https://img.shields.io/github/last-commit/thevindu-w/clip_share_server.svg?color=yellow)](https://github.com/thevindu-w/clip_share_server/commits/master)
+[![License](https://img.shields.io/github/license/thevindu-w/clip_share_server.svg?color=blue)](https://www.gnu.org/licenses/gpl-3.0.en.html#license-text)
+
+[![Latest release](https://img.shields.io/github/v/release/thevindu-w/clip_share_server?color=blue)](https://github.com/thevindu-w/clip_share_server/releases)
+[![Downloads](https://img.shields.io/github/downloads/thevindu-w/clip_share_server/total?color=purple)](https://github.com/thevindu-w/clip_share_server/releases)
+[![Stars](https://img.shields.io/github/stars/thevindu-w/clip_share_server)](https://github.com/thevindu-w/clip_share_server/stargazers)
+
 <br>
 
-This is the server that runs in the background. Clients can connect to the server and share copied text, files, and images.
+ClipShare is a lightweight and cross-platform tool for clipboard sharing. ClipShare enables copying text, files, and images on one device and pasted on another. ClipShare is simple and easy to use while being highly configurable. The ClipShare server runs in the background on your desktop/laptop. Clients can connect to the server and share copied text, files, and images.
 
 ## Download
 
 <table>
 <tr>
-<th>Server</th>
-<th>Client</th>
+<th style="text-align:center">Server</th>
+<th style="text-align:center">Client</th>
 </tr>
 <tr>
-<td>
+<td align="center">
 <a href="https://github.com/thevindu-w/clip_share_server/releases"><img src="https://raw.githubusercontent.com/thevindu-w/clip_share_client/master/fastlane/metadata/android/en-US/images/icon.png" alt="Get it on GitHub" height="100"/></a><br>
-(Download the server from <a href="https://github.com/thevindu-w/clip_share_server/releases">Releases</a>.)
+Download the server from <a href="https://github.com/thevindu-w/clip_share_server/releases">Releases</a>.
 </td>
-<td>
+<td align="center">
 <a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="100"/></a><br>
-(Download the client app
+Download the client app
 from <a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare">apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare</a>.<br>
-or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHub Releases</a>.)
+or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHub Releases</a>.
 </td>
 </tr>
 </table>
@@ -64,7 +68,7 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
 
 ### Install dependencies
 
-**Note**: This section is required only on macOS.
+**Note**: This section is required only for macOS.
 
 ClipShare needs the following libraries to run:
 
@@ -240,7 +244,7 @@ cut_sent_files=false
 min_proto_version=1
 max_proto_version=3
 
-# Windows only
+# Windows and macOS only
 tray_icon=true
 ```
 
@@ -271,7 +275,7 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `min_proto_version` | The minimum protocol version the server should accept from a client after negotiation. | Any protocol version number greater than or equal to the minimum protocol version the server has implemented. (ex: `2`) | The minimum protocol version the server has implemented |
 | `max_proto_version` | The maximum protocol version the server should accept from a client after negotiation. | Any protocol version number less than or equal to the maximum protocol version the server has implemented. (ex: `3`) | The maximum protocol version the server has implemented |
 | `method_get_text_enabled`<br>`method_send_text_enabled`<br>`method_get_files_enabled`<br>`method_send_files_enabled`<br>`method_get_image_enabled`<br>`method_get_copied_image_enabled`<br>`method_get_screenshot_enabled`<br>`method_info_enabled` | These configuration keys map to methods in ClipShare. They separately define whether the corresponding method is enabled or not. The values `true` or `1` will allow clients to use the method, while `false` or `0` will disable the method. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
-| `tray_icon` | Whether the application should display a system tray icon. This option is available only on Windows. The values `true` or `1` will display a tray icon, while `false` or `0` will prevent displaying a tray icon. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
+| `tray_icon` | Whether the application should display a system tray icon (menu icon on macOS). This option is available only on Windows and macOS. The values `true` or `1` will display the icon, while `false` or `0` will prevent displaying the icon. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
 
 <br>
 
@@ -407,10 +411,3 @@ brew install openssl@3 libpng libunistring
     make
     ```
     This will generate the executable named clip_share (or clip_share.exe on Windows).
-
-    **Note**: The web version is deprecated.<br>
-    To compile with the web server enabled, (Currently, this is tested only on Linux)
-    ```bash
-    make web
-    ```
-    This will generate the web server enabled executable named clip_share_web.
