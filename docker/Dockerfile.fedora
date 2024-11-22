@@ -28,7 +28,7 @@ COPY ./xclip/*.c ./xclip/*.h xclip/
 COPY ./xscreenshot/*.c ./xscreenshot/*.h xscreenshot/
 
 # Build
-RUN make clean && make && make web
+RUN make clean && make && make no_ssl && make web
 
 # Prepare the test environment initialization script
 COPY --chmod=755 ./docker/run_docker.sh docker/

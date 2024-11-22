@@ -1,8 +1,6 @@
 *.o
-screenshot/screenshot
-./test.c
 clip_share
-clip_share_static
+clip_share_no_ssl
 clip_share_web
 *.tar.*
 *.tar
@@ -14,9 +12,7 @@ res/**/*_.c
 server_err.log
 TODO
 dist/
-no_web/
 cert_keys/
-test
 .vscode/
 .trash/
 .DS_Store

@@ -188,7 +188,6 @@ void open_listener_socket(listener_t *listener, const unsigned char sock_type, c
     listener->ctx = ctx;
     listener->type = SSL_SOCK;
 #else
-    (void)priv_key;
     (void)server_cert;
     (void)ca_cert;
 #endif

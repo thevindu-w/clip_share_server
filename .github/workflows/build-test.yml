@@ -95,7 +95,7 @@ jobs:
     - name: Build
       run: |
         make
-        make web
+        make no_ssl
 
     - name: Test
       run: make test
@@ -121,7 +121,9 @@ jobs:
         ref: ${{ github.ref }}
 
     - name: Build
-      run: make
+      run: |
+        make
+        make no_ssl
 
     - name: Install test dependencies
       run: |
@@ -137,7 +139,9 @@ jobs:
   CodeQL_Analyze:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: Build-and-Test-on-Linux
+    needs:
+    - Build-and-Test-on-Linux
+    - Build-and-Test-on-macOS
 
     permissions:
       security-events: write
