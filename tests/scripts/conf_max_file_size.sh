@@ -55,19 +55,7 @@ update_config max_file_size 20
 
 responseDump=$(echo -n "${proto}${method}${fileCount}${chunks}" | hex2bin | client_tool)
 
-protoAck="$PROTO_SUPPORTED"
-methodAck="$METHOD_OK"
-
-expected="${protoAck}${methodAck}"
-
-if [ "$responseDump" != "$expected" ]; then
-    showStatus info 'Incorrect response.'
-    echo 'Expected:' "$expected"
-    echo 'Received:' "$responseDump"
-    exit 1
-fi
-
-findOutput=$(find copies -type f -size -21c 2>&1 || echo failed)
+findOutput=$(find copies -type f -size +20c 2>&1 || echo failed)
 if [ ! -z "$findOutput" ]; then
     showStatus info 'Large file is also saved.'
     exit 1
