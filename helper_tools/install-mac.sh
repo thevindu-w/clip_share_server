@@ -28,8 +28,8 @@ missingLib=
 for exec_name in "${exec_names[@]}"; do
     if [ -f "$exec_name" ]; then
         chmod +x "$exec_name"
-        if ! sh -c '"./$exec_name" -h' &>/dev/null; then
-            missing="$( (sh -c "'./$exec_name' -h 2>&1" 2>/dev/null || true) | grep -oE 'lib[a-zA-Z0-9.-]+\.dylib' | grep -oE 'lib[a-zA-Z0-9-]+' | head -n 1)"
+        if ! sh -c "./$exec_name -h 2>&1" &>/dev/null; then
+            missing="$( (sh -c "./$exec_name -h 2>&1" 2>/dev/null || true) | grep -oE 'lib[a-zA-Z0-9.-]+\.dylib' | grep -oE 'lib[a-zA-Z0-9-]+' | head -n 1)"
             [ -n "$missing" ] && missingLib="$missing"
             continue
         fi
