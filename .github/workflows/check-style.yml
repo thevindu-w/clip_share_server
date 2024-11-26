@@ -66,7 +66,8 @@ jobs:
     - name: Format C code and bash scripts
       if: ${{ (env.EVENT == 'push') && (success() || failure()) }}
       run: |
-        find . -type f \( -name '*.c' -o -name '*.h' -o -name '*.m' \) -print0 | xargs -0 clang-format -i
+        find . -type f \( -name '*.c' -o -name '*.h' -o -name '*.m' \) -print0 | \
+        xargs -0 clang-format -i --Wno-error=unknown
         find . -type f -name '*.sh' -print0 | xargs -0 shfmt -w -s -i 4 -ci
 
     - name: Creat pull request
