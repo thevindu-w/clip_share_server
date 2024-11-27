@@ -53,13 +53,7 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
   - [Configuration](#configuration)
 - [Build from Source](#build-from-source)
   - [Build tools](#build-tools)
-    - [Linux](#linux)
-    - [Windows](#windows)
-    - [macOS](#macos)
   - [Dependencies](#dependencies)
-    - [Linux](#linux-1)
-    - [Windows](#windows-1)
-    - [macOS](#macos-1)
   - [Compiling](#compiling)
 
 <br>
@@ -133,7 +127,8 @@ Online installer scripts are attached with the releases. They will download the 
 
 Standalone installer scripts are available in the archives (`zip` for Windows and macOS, and `tar.gz` for Linux) attached to releases on GitHub. They are also available in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory. Standalone installers can run without an internet connection. However, you must have the `clip_share` (or `clip_share.exe` on Windows) executable in the current working directory to run the installer. If you download the archive from releases and extract it, you will have the executable along with the installer script. Run the interactive script and follow the instructions to install ClipShare.
 
-#### Linux and macOS
+<details>
+  <summary>Linux and macOS</summary>
 
 1. Open a terminal in the directory where the `clip_share` executable is available (the executable name may have suffixes like `_GLIBC*` on Linux or `arm64` or `x86_64` on macOS).
 1. Run the install script as shown below, and follow the instructions of it.
@@ -147,11 +142,14 @@ chmod +x install-linux.sh
 chmod +x install-mac.sh
 ./install-mac.sh
 ```
+</details>
 
-#### Windows
+<details>
+  <summary>Windows</summary>
 
 1. Place the `install-windows.bat` file and the `clip_share.exe` executable in the same folder. (the executable name may have suffixes)
 1. Double-click on the `install-windows.bat` installer script to run it. It will open a Command Prompt window. Follow the instructions on it to install ClipShare. (If double-clicking did not run the installer, right-click on it and select Run)
+</details>
 
 <br>
 
@@ -164,25 +162,49 @@ The following files should be created, and their paths should be specified in th
 * `server.pfx` &ensp; - &nbsp; SSL/TLS key and certificate file of the server
 * `ca.crt` &emsp;&emsp;&ensp; - &nbsp; SSL/TLS certificate of the CA, which signed both the server's and the client's SSL/TLS certificates
 
-You may use the helper script `keygen.sh` in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory to generate TLS keys and certificates for both the server and the client. Keep the `clipshare.ext` file in the same directory as the `keygen.sh` script when running the script.
-```bash
-# If you download/clone the repository and run the script from the repository root,
-chmod +x helper_tools/keygen.sh
-helper_tools/keygen.sh
-```
-```bash
-# If you download the script separately and run the script from within the same directory,
-chmod +x keygen.sh
-./keygen.sh
-```
+You may use the helper scripts `keygen.sh` or `keygen.ps1` in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory to generate TLS keys and certificates for both the server and the client. Linux and macOS users can use `keygen.sh`. Windows users can use `keygen.ps1` PowerShell script which doesn't require OpenSSL. Windows users may also use `keygen.sh` if running in a Bash shell (ex: Git Bash). However, this requires OpenSSL version 3.x or later.
 
-If you use this script, the server's common name will be `clipshare_server`, and the client's common name will be `clipshare_client`. You may change those names in the `keygen.sh` script.
+<details>
+  <summary>Linux and macOS (Using OpenSSL)</summary>
+  Keep the `clipshare.ext` file in the same directory as the `keygen.sh` script when running the script.
 
-Refer to the [OpenSSL manual](https://www.openssl.org/docs/manmaster/man1/openssl.html) for more information on generating keys.
+  ```bash
+  # If you download/clone the repository and run the script from the repository root,
+  helper_tools/keygen.sh
+  ```
+  ```bash
+  # If you download the script separately and run the script from within the same directory,
+  chmod +x keygen.sh
+  ./keygen.sh
+  ```
+  Refer to the [OpenSSL manual](https://www.openssl.org/docs/manmaster/man1/openssl.html) for more information on generating keys.
+
+</details>
+
+<details>
+  <summary>Windows (Using PowerShell)</summary>
+
+  ```powershell
+  # If you download/clone the repository and run the script from the repository root,
+  powershell -ExecutionPolicy bypass -File helper_tools\keygen.ps1
+  ```
+  ```powershell
+  # If you download the script separately and run the script from within the same directory,
+  powershell -ExecutionPolicy bypass -File keygen.ps1
+  ```
+</details>
+
+If you use this script, the server's common name will be `clipshare_server`, and the client's common name will be `clipshare_client`. You may change those names in the script you used.
+
 
 <br>
 
 ### Command line options
+
+`clip_share` accepts the following command line options.
+<details>
+  <summary>Command line options</summary>
+
 ```
 ./clip_share [-h] [-s] [-r] [-R] [-d] [-D]
 
@@ -209,6 +231,7 @@ Refer to the [OpenSSL manual](https://www.openssl.org/docs/manmaster/man1/openss
                       child processes. This option is effective
                       only on Linux and macOS.
 ```
+</details>
 
 ### Configuration
 
@@ -220,7 +243,9 @@ The server searches for the configuration file in the following paths in the sam
 
 If it can't find a configuration file in any of the above directories, it will use the default values specified in the table below.
 
-To customize the server, create a file named &nbsp; `clipshare.conf` &nbsp; in any of the directories mentioned above and add the following lines to that configuration file.
+To customize the server, create a file named &nbsp; `clipshare.conf` &nbsp; in any of the directories mentioned above and add the following lines to that configuration file. You may ommit some lines to keep the default values.
+<details>
+  <summary>Sample configuration file</summary>
 
 ```properties
 app_port=4337
@@ -247,10 +272,12 @@ max_proto_version=3
 # Windows and macOS only
 tray_icon=true
 ```
+</details>
 
 Note that all the lines in the configuration file are optional. You may omit some lines if they need to get their default values.
-
 <br>
+<details>
+  <summary>Configuration options</summary>
 
 | Property | Description | Accepted values | Default |
 |  :----:  | :--------   | :------------   |  :---:  |
@@ -281,8 +308,9 @@ Note that all the lines in the configuration file are optional. You may omit som
 
 You may change these values. But it is recommended to keep the port numbers unchanged. If the port numbers are changed, client application configurations may also need to be changed as appropriate to connect to the server.
 <br>
-If you changed the configuration file, you must restart the server to apply the changes.
+</details>
 
+If you changed the configuration file, you must restart the server to apply the changes.
 <br>
 <br>
 
@@ -297,7 +325,8 @@ If you changed the configuration file, you must restart the server to apply the 
 * gcc
 * make
 
-#### Linux
+<details>
+  <summary>Linux</summary>
 
   On Linux, these tools can be installed with the following command:
 
@@ -315,8 +344,10 @@ If you changed the configuration file, you must restart the server to apply the 
   ```bash
   sudo pacman -S gcc make
   ```
+</details>
 
-#### Windows
+<details>
+  <summary>Windows</summary>
 
   On Windows, these tools can be installed with [MinGW](https://www.mingw-w64.org/).<br>
   In an [MSYS2](https://www.msys2.org/) environment, these tools can be installed using pacman with the following command:
@@ -324,16 +355,20 @@ If you changed the configuration file, you must restart the server to apply the 
   pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-make
   ```
   You may need to rename (or copy) the `<MSYS2 directory>/mingw64/bin/mingw32-make.exe` to `<MSYS2 directory>/mingw64/bin/make.exe` before running the command `make`
+</details>
 
-#### macOS
+<details>
+  <summary>macOS</summary>
 
   On macOS, these tools are installed with Xcode Command Line Tools.
+</details>
 
 <br>
 
 ### Dependencies
 
-#### Linux
+<details>
+  <summary>Linux</summary>
 
   The following development libraries are required.
 
@@ -369,8 +404,10 @@ If you changed the configuration file, you must restart the server to apply the 
   ```
 
 (You may refer to docker/Dockerfile.\* to see how to install the dependencies on various Linux distros)
+</details>
 
-#### Windows
+<details>
+  <summary>Windows</summary>
 
   The following development libraries are required.
 
@@ -383,8 +420,10 @@ In an [MSYS2](https://www.msys2.org/) environment, these tools can be installed 
 ```bash
 pacman -S mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-libunistring
 ```
+</details>
 
-#### macOS
+<details>
+  <summary>macOS</summary>
 
   The following development libraries are required.
 
@@ -396,6 +435,7 @@ These tools can be installed using [Homebrew](https://brew.sh) with the followin
 ```bash
 brew install openssl@3 libpng libunistring
 ```
+</details>
 
 <br>
 

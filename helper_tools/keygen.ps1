@@ -17,13 +17,14 @@ Write-Host 'Generating keys and certificates ...'
 # generate CA keys
 $CA = New-SelfSignedCertificate `
     -Subject "CN=$CA_NAME" `
-    -KeyExportPolicy Exportable `
-    -KeySpec Signature `
     -KeyLength 4096 `
-    -CertStoreLocation 'Cert:\CurrentUser\My' `
     -HashAlgorithm SHA256 `
+    -KeyExportPolicy Exportable `
+    -CertStoreLocation 'Cert:\CurrentUser\My' `
     -NotAfter (Get-Date).AddYears(5) `
-    -TextExtension @('2.5.29.19={critical}{text}CA:TRUE')
+    -KeySpec Signature `
+    -KeyUsage None `
+    -TextExtension @('2.5.29.19={critical}{text}CA=true')
 
 Export-PfxCertificate -Cert $CA -FilePath ca.pfx -Password (New-Object System.Security.SecureString) | out-null
 Export-Certificate -Cert $CA -FilePath ca.cer | out-null
@@ -33,26 +34,26 @@ Remove-Item ca.cer
 # generate server keys
 $ServerCert = New-SelfSignedCertificate `
     -Subject "CN=$SERVER_NAME" `
-    -Signer $CA `
-    -CertStoreLocation 'Cert:\CurrentUser\My' `
     -KeyLength 2048 `
+    -HashAlgorithm SHA256 `
     -KeyExportPolicy Exportable `
-    -TextExtension @('2.5.29.19={text}CA:FALSE') `
+    -CertStoreLocation 'Cert:\CurrentUser\My' `
     -NotAfter (Get-Date).AddYears(2) `
-    -HashAlgorithm SHA256
+    -Signer $CA `
+    -TextExtension @('2.5.29.19={critical}{text}CA=false')
 
 Export-PfxCertificate -Cert $ServerCert -FilePath server.pfx -Password (New-Object System.Security.SecureString) | out-null
 
 # generate client keys
 $ClientCert = New-SelfSignedCertificate `
     -Subject "CN=$CLIENT_NAME" `
-    -Signer $CA `
-    -CertStoreLocation 'Cert:\CurrentUser\My'`
     -KeyLength 2048 `
+    -HashAlgorithm SHA256 `
     -KeyExportPolicy Exportable `
-    -TextExtension @('2.5.29.19={text}CA:FALSE') `
+    -CertStoreLocation 'Cert:\CurrentUser\My'`
     -NotAfter (Get-Date).AddYears(2) `
-    -HashAlgorithm SHA256
+    -Signer $CA `
+    -TextExtension @('2.5.29.19={critical}{text}CA=false')
 
 Write-Host 'Generated keys and certificates.'
 Write-Host
