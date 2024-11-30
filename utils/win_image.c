@@ -42,14 +42,12 @@ typedef struct _RGBBitmap {
     uint8_t bytes_per_pixel;
 } RGBBitmap;
 
-typedef struct _buf_len_ptr {
-    char **buf_ptr;
-    size_t *len_ptr;
-} buf_len_ptr;
-
-static HANDLE ssMutex = NULL;
-static uint16_t current_display;
-static uint16_t selected_display;
+typedef struct _enum_cb_arg_t {
+    uint16_t selected_display;
+    uint16_t current_display;
+    char *buf;
+    size_t len;
+} enum_cb_arg_t;
 
 static int write_png_to_mem(RGBBitmap *, char **, size_t *);
 static void write_image(HBITMAP, char **, size_t *);
@@ -114,7 +112,8 @@ static void write_image(HBITMAP hBitmap3, char **buf_ptr, size_t *len_ptr) {
 
 static BOOL CALLBACK enumCallback(HMONITOR monitor, HDC hdcSource, LPRECT lprect, LPARAM lparam) {
     (void)lprect;
-    if (current_display++ != selected_display) return TRUE;
+    enum_cb_arg_t *cb_arg = (enum_cb_arg_t *)lparam;
+    if (cb_arg->current_display++ != cb_arg->selected_display) return TRUE;
 
     MONITORINFO info;
     info.cbSize = sizeof(MONITORINFO);
@@ -134,45 +133,23 @@ static BOOL CALLBACK enumCallback(HMONITOR monitor, HDC hdcSource, LPRECT lprect
 
     DeleteDC(hdcSource);
     DeleteDC(hdcMemory);
-    buf_len_ptr *buf_len = (buf_len_ptr *)lparam;
-    write_image(hBitmap, buf_len->buf_ptr, buf_len->len_ptr);
-    return TRUE;
+    write_image(hBitmap, &(cb_arg->buf), &(cb_arg->len));
+    return FALSE;
 }
 
 void screenCapture(char **buf_ptr, uint32_t *len_ptr, uint16_t disp) {
     *len_ptr = 0;
+    *buf_ptr = NULL;
     HDC hdcSource = GetDC(NULL);
-    size_t len;
-    buf_len_ptr buf_len = {.buf_ptr = buf_ptr, .len_ptr = &len};
-    if (ssMutex == NULL) {
-        ssMutex = CreateMutex(NULL, FALSE, NULL);
-        if (ssMutex == NULL) {
-#ifdef DEBUG_MODE
-            fputs("Error creating mutex", stderr);
-#endif
-            return;
-        }
-    }
-    DWORD dwWaitResult = WaitForSingleObject(ssMutex, INFINITE);
-    if (dwWaitResult != WAIT_OBJECT_0) {
-#ifdef DEBUG_MODE
-        fputs("Error waiting on mutex", stderr);
-#endif
+    enum_cb_arg_t cb_arg = {.selected_display = disp, .current_display = 1, .buf = NULL, .len = 0};
+    if (EnumDisplayMonitors(hdcSource, NULL, enumCallback, (LPARAM)&cb_arg) == 0 && cb_arg.len == 0) {
         return;
     }
-    current_display = 1;
-    selected_display = disp;
-    if (EnumDisplayMonitors(hdcSource, NULL, enumCallback, (LPARAM)&buf_len) == 0) {
-        if (*buf_ptr) free(*buf_ptr);
-        *buf_ptr = NULL;
-    }
-    ReleaseMutex(ssMutex);
-    if (len > 0xFFFFFFFFUL) {
-        if (*buf_ptr) free(*buf_ptr);
-        *buf_ptr = NULL;
+    if (cb_arg.len >= 0xFFFFFFFFUL) {
         return;
     }
-    *len_ptr = (uint32_t)len;
+    *buf_ptr = cb_arg.buf;
+    *len_ptr = (uint32_t)cb_arg.len;
 }
 
 /* Attempts to save PNG to file; returns 0 on success, non-zero on error. */
