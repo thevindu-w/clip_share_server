@@ -208,7 +208,7 @@ extern int wchar_to_utf8_str(const wchar_t *wstr, char **utf8str_p, uint32_t *le
  */
 extern list2 *get_copied_files(void);
 
-#endif
+#endif  // PROTOCOL_MIN <= 1
 
 #if (PROTOCOL_MIN <= 3) && (2 <= PROTOCOL_MAX)
 
@@ -255,6 +255,6 @@ extern int remove_directory(const char *path);
 
 #endif
 
-#endif
+#endif  // (PROTOCOL_MIN <= 3) && (2 <= PROTOCOL_MAX)
 
 #endif  // UTILS_UTILS_H_

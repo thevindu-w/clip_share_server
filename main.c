@@ -159,14 +159,14 @@ static inline void _set_error_log_file(const char *path) {
 static inline void _change_working_dir(void) {
     if (!is_directory(configuration.working_dir, 1)) {
         char err[3072];
-        snprintf_check(err, 3072, "Not existing working directory \'%s\'", configuration.working_dir);
+        snprintf_check(err, 3072, "Error: Not existing working directory \'%s\'", configuration.working_dir);
         fprintf(stderr, "%s\n", err);
         error_exit(err);
     }
     char *old_work_dir = getcwd_wrapper(0);
     if (chdir_wrapper(configuration.working_dir)) {
         char err[3072];
-        snprintf_check(err, 3072, "Failed changing working directory to \'%s\'", configuration.working_dir);
+        snprintf_check(err, 3072, "Error: Failed changing working directory to \'%s\'", configuration.working_dir);
         fprintf(stderr, "%s\n", err);
         if (old_work_dir) free(old_work_dir);
         error_exit(err);

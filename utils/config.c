@@ -61,7 +61,7 @@ static inline void trim(char *str) {
  */
 static inline list2 *get_client_list(const char *filename) {
     FILE *f = fopen(filename, "r");
-    if (!f) return NULL;
+    if (!f) error_exit("Error: allowed client list file not found");
     list2 *client_list = init_list(1);
     char client[512];
     while (fscanf(f, "%511[^\n]%*c", client) != EOF) {
@@ -87,29 +87,29 @@ static inline list2 *get_client_list(const char *filename) {
  * block.
  */
 static inline void load_file(const char *file_name, data_buffer *buf_ptr) {
-    if (!file_name) return;
+    if (!file_name) error_exit("Error: invalid filename");
     FILE *file_ptr = fopen(file_name, "rb");
-    if (!file_ptr) return;
+    if (!file_ptr) error_exit("Error: certificate file not found");
     ssize_t len = get_file_size(file_ptr);
     if (len <= 0 || 65536L < len) {
         fclose(file_ptr);
-        return;
+        error_exit("Error: invalid certificate file size");
     }
     char *buf = (char *)malloc((size_t)len);
     if (!buf) {
         fclose(file_ptr);
-        return;
+        error_exit("Error: malloc failed for certificate file");
     }
     ssize_t sz = (ssize_t)fread(buf, 1, (size_t)len, file_ptr);
     if (sz < len) {
         fclose(file_ptr);
         free(buf);
-        return;
+        error_exit("Error: certificate file reading failed");
     }
     fclose(file_ptr);
     if (buf_ptr->data) free(buf_ptr->data);
     buf_ptr->data = buf;
-    buf_ptr->len = (int)len;
+    buf_ptr->len = (int32_t)len;
 }
 
 /*
@@ -124,6 +124,8 @@ static inline void set_is_true(const char *str, int8_t *conf_ptr) {
         *conf_ptr = 1;
     } else if (!strcasecmp("false", str) || !strcmp("0", str)) {
         *conf_ptr = 0;
+    } else {
+        error_exit("Error: invalid boolean config value");
     }
 }
 
@@ -131,7 +133,7 @@ static inline void set_is_true(const char *str, int8_t *conf_ptr) {
  * str must be a valid and null-terminated string
  * conf_ptr must be a valid pointer to an unsigned 64-bit long integer
  * Sets the value pointed by conf_ptr to the unsigned 64-bit value given as a string in str if that is a valid value
- * between 1 and 2^32-1 inclusive. Otherwise, does not change the value pointed by conf_ptr
+ * between 1 and 2^61-1 inclusive. Otherwise, does not change the value pointed by conf_ptr
  */
 static inline void set_int64(const char *str, int64_t *conf_ptr) {
     char *end_ptr;
@@ -167,10 +169,9 @@ static inline void set_int64(const char *str, int64_t *conf_ptr) {
             error_exit("Error: config value has invalid suffix");
         }
     }
-    if (*end_ptr && *(end_ptr + 1)) return;
-    if (0 < value) {
-        *conf_ptr = value;
-    }
+    if (*end_ptr && *(end_ptr + 1)) error_exit("Error: config value has invalid suffix");
+    if (value <= 0) error_exit("Error: invalid config value");
+    *conf_ptr = value;
 }
 
 /*
@@ -208,10 +209,9 @@ static inline void set_uint32(const char *str, uint32_t *conf_ptr) {
         default:
             error_exit("Error: config value has invalid suffix");
     }
-    if (*(end_ptr + 1)) error_exit("Error: config value has invalid suffix");
-    if (0 < value && value < 4294967295LL) {
-        *conf_ptr = (uint32_t)value;
-    }
+    if (*end_ptr && *(end_ptr + 1)) error_exit("Error: config value has invalid suffix");
+    if (value <= 0 || 4294967295LL <= value) error_exit("Error: invalid config value");
+    *conf_ptr = (uint32_t)value;
 }
 
 /*
@@ -247,10 +247,10 @@ static void parse_line(char *line, config *cfg) {
     if (key[0] == '#') return;
 
     const size_t key_len = strnlen(key, LINE_MAX_LEN);
-    if (key_len <= 0 || key_len >= LINE_MAX_LEN) return;
+    if (key_len <= 0 || key_len >= LINE_MAX_LEN) error_exit("Error: invalid config key");
 
     const size_t value_len = strnlen(value, LINE_MAX_LEN);
-    if (value_len <= 0 || value_len >= LINE_MAX_LEN) return;
+    if (value_len <= 0 || value_len >= LINE_MAX_LEN) error_exit("Error: invalid config value");
 
     if (!strcmp("app_port", key)) {
         set_uint16(value, &(cfg->app_port));
@@ -281,8 +281,8 @@ static void parse_line(char *line, config *cfg) {
         if (cfg->working_dir) free(cfg->working_dir);
         cfg->working_dir = strdup(value);
     } else if (!strcmp("bind_address", key) && ipv4_aton(value, &(cfg->bind_addr)) != EXIT_SUCCESS) {
-        char msg[48];
-        snprintf_check(msg, 48, "Invalid bind address %s", value);
+        char msg[64];
+        snprintf_check(msg, 64, "Error: Invalid bind address %s", value);
         error_exit(msg);
     } else if (!strcmp("restart", key)) {
         set_is_true(value, &(cfg->restart));

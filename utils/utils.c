@@ -334,7 +334,7 @@ list2 *get_copied_files(void) {
             *ptr = 0;
         }
     }
-    if (file_cnt > 0xFFFFFFFFUL) {
+    if (file_cnt >= 0xFFFFFFFFUL) {
         free(fnames);
         return NULL;
     }
@@ -392,7 +392,7 @@ list2 *get_copied_files(void) {
 
     size_t file_cnt = DragQueryFile(hDrop, (UINT)(-1), NULL, MAX_PATH);
 
-    if (file_cnt <= 0 || file_cnt > 0xFFFFFFFFUL) {
+    if (file_cnt <= 0 || file_cnt >= 0xFFFFFFFFUL) {
         GlobalUnlock(hGlobal);
         CloseClipboard();
         return NULL;
@@ -628,7 +628,7 @@ void get_copied_dirs_files(dir_files *dfiles_p, int include_leaf_dirs) {
             *ptr = 0;
         }
     }
-    if (file_cnt > 0xFFFFFFFFUL) {
+    if (file_cnt >= 0xFFFFFFFFUL) {
         free(fnames);
         return;
     }
@@ -766,7 +766,7 @@ void get_copied_dirs_files(dir_files *dfiles_p, int include_leaf_dirs) {
 
     size_t file_cnt = DragQueryFile(hDrop, (UINT)(-1), NULL, MAX_PATH);
 
-    if (file_cnt <= 0 || file_cnt > 0xFFFFFFFFUL) {
+    if (file_cnt <= 0 || file_cnt >= 0xFFFFFFFFUL) {
         GlobalUnlock(hGlobal);
         CloseClipboard();
         return;
@@ -1039,7 +1039,7 @@ int set_clipboard_cut_files(const list2 *paths) {
         tot_len += len + 8;  // 1 for \n and 7 for "file://"
         append(lst_url, url);
     }
-    if (tot_len > 0xFFFFFFFFUL) return EXIT_FAILURE;
+    if (tot_len >= 0xFFFFFFFFUL) return EXIT_FAILURE;
     char *buf = (char *)malloc(tot_len);
     if (!buf) {
         free_list(lst_url);

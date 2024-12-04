@@ -54,7 +54,7 @@
 const char *bad_path = JOIN(PATH_SEP, "..", PATH_SEP);
 
 /*
- * Send a data buffer to client.
+ * Send a data buffer to the peer.
  * Sends the length first and then the data buffer.
  */
 static inline int _send_data(socket_t *socket, int64_t length, const char *data) {
@@ -79,7 +79,7 @@ static inline int _send_data(socket_t *socket, int64_t length, const char *data)
 static int _get_files_common(int version, socket_t *socket, list2 *file_list, size_t path_len);
 
 /*
- * Common function to save files in send_files method of v1, v2, and v3.
+ * Common function to save files.
  */
 static int _save_file_common(int version, socket_t *socket, const char *file_name);
 
@@ -121,7 +121,7 @@ int get_text_v1(socket_t *socket) {
     int64_t new_len = convert_eol(&buf, 1);
     if (new_len <= 0) {
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) {
         free(buf);
@@ -138,14 +138,18 @@ int get_text_v1(socket_t *socket) {
 int send_text_v1(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) return EXIT_FAILURE;
     int64_t length;
-    if (read_size(socket, &length) != EXIT_SUCCESS) return EXIT_FAILURE;
+    if (read_size(socket, &length) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
 #ifdef DEBUG_MODE
-    printf("Len = %zi\n", (ssize_t)length);
+    printf("Len = %" PRIi64 "\n", length);
 #endif
-    // limit maximum length to 4 MiB
-    if (length <= 0 || length > configuration.max_text_length) return EXIT_FAILURE;
+    // limit maximum length to max_text_length
+    if (length <= 0 || length > configuration.max_text_length) {
+        return EXIT_FAILURE;
+    }
 
-    char *data = malloc((uint64_t)length + 1);
+    char *data = malloc((size_t)length + 1);
     if (read_sock(socket, data, (uint64_t)length) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         fputs("Read data failed\n", stderr);
@@ -165,7 +169,7 @@ int send_text_v1(socket_t *socket) {
     if (length < 1024) puts(data);
 #endif
     length = convert_eol(&data, 0);
-    if (length < 0) return EXIT_FAILURE;
+    if (length <= 0) return EXIT_FAILURE;
     close_socket_no_wait(socket);
     put_clipboard_text(data, (uint32_t)length);
     free(data);
@@ -181,7 +185,7 @@ static int _transfer_regular_file(socket_t *socket, const char *file_path, const
     int64_t file_size = get_file_size(fp);
     if (file_size < 0 || file_size > configuration.max_file_size) {
 #ifdef DEBUG_MODE
-        printf("file size = %lli\n", (long long)file_size);
+        printf("file size = %" PRIi64 "\n", file_size);
 #endif
         fclose(fp);
         return EXIT_FAILURE;
@@ -251,7 +255,7 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
         }
     }
 
-    const size_t fname_len = strnlen(tmp_fname, MAX_FILE_NAME_LENGTH);
+    const size_t fname_len = strnlen(tmp_fname, MAX_FILE_NAME_LENGTH + 1);
     if (fname_len <= 0 || fname_len > MAX_FILE_NAME_LENGTH) {
         error("Invalid file name length.");
         return EXIT_FAILURE;
@@ -260,9 +264,9 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
     strncpy(filename, tmp_fname, fname_len);
     filename[fname_len] = 0;
 
-#if PATH_SEP != '/'
+#if (PATH_SEP != '/') && (PROTOCOL_MAX > 1)
     if (version > 1) {
-        // path separator is always / when communicating with the client
+        // path separator is always / when communicating
         for (size_t ind = 0; ind < fname_len; ind++) {
             if (filename[ind] == PATH_SEP) filename[ind] = '/';
         }
@@ -283,7 +287,7 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         if (file_list) free_list(file_list);
         close_socket_no_wait(socket);
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
 
     uint32_t file_cnt = file_list->len;
@@ -321,9 +325,11 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
 
 static int _save_file_common(int version, socket_t *socket, const char *file_name) {
     int64_t file_size;
-    if (read_size(socket, &file_size) != EXIT_SUCCESS) return EXIT_FAILURE;
+    if (read_size(socket, &file_size) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
 #ifdef DEBUG_MODE
-    printf("data len = %lli\n", (long long)file_size);
+    printf("data len = %" PRIi64 "\n", file_size);
 #endif
     if (file_size > configuration.max_file_size) {
         return EXIT_FAILURE;
@@ -393,7 +399,7 @@ static inline int _is_valid_fname(const char *fname, size_t name_length) {
  * Path seperator is assumed to be '/' regardless of the platform.
  */
 static inline int _get_base_name(char *file_name, size_t name_length) {
-    const char *base_name = strrchr(file_name, '/');  // path separator is / when communicating with the client
+    const char *base_name = strrchr(file_name, '/');  // path separator is / when communicating
     if (base_name) {
         base_name++;                                                         // don't want the '/' before the file name
         memmove(file_name, base_name, strnlen(base_name, name_length) + 1);  // overlapping memory area
@@ -542,12 +548,16 @@ static inline int _make_directories(const char *path) {
 
 static int save_file(int version, socket_t *socket, const char *dirname) {
     int64_t fname_size;
-    if (read_size(socket, &fname_size) != EXIT_SUCCESS) return EXIT_FAILURE;
+    if (read_size(socket, &fname_size) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
 #ifdef DEBUG_MODE
-    printf("name_len = %" PRId64 "\n", fname_size);
+    printf("name_len = %" PRIi64 "\n", fname_size);
 #endif
-    // limit file name length to 1024 chars
-    if (fname_size <= 0 || fname_size > MAX_FILE_NAME_LENGTH) return EXIT_FAILURE;
+    // limit file name length to MAX_FILE_NAME_LENGTH chars
+    if (fname_size <= 0 || fname_size > MAX_FILE_NAME_LENGTH) {
+        return EXIT_FAILURE;
+    }
 
     const size_t name_length = (size_t)fname_size;
     char file_name[name_length + 1];
@@ -572,7 +582,9 @@ static int save_file(int version, socket_t *socket, const char *dirname) {
     for (size_t ind = 0; ind < name_length; ind++) {
         if (file_name[ind] == '/') {
             file_name[ind] = PATH_SEP;
-            if (ind > 0 && file_name[ind - 1] == PATH_SEP) return EXIT_FAILURE;  // "//" in path not allowed
+            if (ind > 0 && file_name[ind - 1] == PATH_SEP) {  // "//" in path not allowed
+                return EXIT_FAILURE;
+            }
         }
     }
 #endif
@@ -597,7 +609,7 @@ static int save_file(int version, socket_t *socket, const char *dirname) {
 }
 
 static char *_check_and_rename(const char *filename, const char *dirname) {
-    const size_t name_len = strnlen(filename, MAX_FILE_NAME_LENGTH);
+    const size_t name_len = strnlen(filename, MAX_FILE_NAME_LENGTH + 1);
     if (name_len > MAX_FILE_NAME_LENGTH) {
         error("Too long file name.");
         return NULL;
@@ -641,8 +653,12 @@ static char *_check_and_rename(const char *filename, const char *dirname) {
 static int _send_files_dirs(int version, socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) return EXIT_FAILURE;
     int64_t cnt;
-    if (read_size(socket, &cnt) != EXIT_SUCCESS) return EXIT_FAILURE;
-    if (cnt <= 0 || cnt >= 0xFFFFFFFFLL) return EXIT_FAILURE;
+    if (read_size(socket, &cnt) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    if (cnt <= 0 || cnt >= 0xFFFFFFFFLL) {
+        return EXIT_FAILURE;
+    }
     char dirname[17];
     unsigned id = (unsigned)time(NULL);
     do {
@@ -670,10 +686,11 @@ static int _send_files_dirs(int version, socket_t *socket) {
     for (uint32_t i = 0; i < files->len; i++) {
         const char *filename = files->array[i];
         char *new_path = _check_and_rename(filename, dirname);
-        if (new_path)
-            append(dest_files, new_path);
-        else
+        if (!new_path) {
             status = EXIT_FAILURE;
+            continue;
+        }
+        append(dest_files, new_path);
     }
     free_list(files);
     if (status == EXIT_SUCCESS && remove_directory(dirname)) status = EXIT_FAILURE;
@@ -699,7 +716,9 @@ int send_files_v2(socket_t *socket) { return _send_files_dirs(2, socket); }
 int get_copied_image_v3(socket_t *socket) { return _get_image_common(socket, IMG_COPIED_ONLY, 0); }
 
 int get_screenshot_v3(socket_t *socket) {
-    if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) return EXIT_FAILURE;
+    if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
     int64_t disp;
     if (read_size(socket, &disp) != EXIT_SUCCESS) return EXIT_FAILURE;
     if (disp <= 0 || disp > 65536L) disp = 0;

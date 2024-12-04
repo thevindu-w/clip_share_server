@@ -234,7 +234,7 @@ int xclip_util(int io, const char *atom_name, uint32_t *len_ptr, char **buf_ptr)
 
     if (io == XCLIP_IN) return exit_code;
 
-    if (exit_code != EXIT_SUCCESS || len > 0xFFFFFFFFUL || !*buf_ptr) {
+    if (exit_code != EXIT_SUCCESS || len >= 0xFFFFFFFFUL || !*buf_ptr) {
         exit_code = EXIT_FAILURE;
     }
     if ((exit_code != EXIT_SUCCESS) ||

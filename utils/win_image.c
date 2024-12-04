@@ -241,7 +241,7 @@ void getCopiedImage(char **buf_ptr, uint32_t *len_ptr) {
     size_t len;
     *buf_ptr = NULL;
     write_image(hBitmap, buf_ptr, &len);
-    if (len > 0xFFFFFFFFUL) {
+    if (len >= 0xFFFFFFFFUL) {
         if (*buf_ptr) free(*buf_ptr);
         *buf_ptr = NULL;
         return;

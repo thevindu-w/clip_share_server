@@ -173,7 +173,7 @@ int screenshot_util(int display, uint32_t *len_p, char **buf_p) {
     png_write_buf(img, buf_p, &len);
     XDestroyImage(img);
 
-    if (len < 8 || len > 0xFFFFFFFFUL) {
+    if (len < 8 || len >= 0xFFFFFFFFUL) {
         if (*buf_p) free(*buf_p);
         *buf_p = NULL;
         return EXIT_FAILURE;
