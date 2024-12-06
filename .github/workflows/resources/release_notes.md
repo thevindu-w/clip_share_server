@@ -13,5 +13,5 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - The installer scripts attached to the assets are online installers. They will automatically download the correct binaries for this version, and run the offline installer in it. Alternatively, you may manually download the binary archive for your operating system and use the offline installer in it.
 
 **Changes:**
-- Fix the macOS installer.
-- Fix build failure in `no_ssl` mode.
+- Enable capturing screenshots concurrently on Windows.
+- Fix possible runtime errors and code improvements.
