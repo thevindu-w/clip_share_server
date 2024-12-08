@@ -141,7 +141,7 @@ res/mac/icon_.c: res/mac/icon.png
 
 .PHONY: all clean debug web test check install
 
-all: $(PROGRAM_NAME) $(PROGRAM_NAME_WEB)
+all: $(PROGRAM_NAME) $(PROGRAM_NAME_NO_SSL) $(PROGRAM_NAME_WEB)
 
 debug: $(DEBUG_OBJS) $(OTHER_DEPENDENCIES)
 	$(CC) $^ $(LDLIBS) -o $(PROGRAM_NAME)
@@ -159,5 +159,6 @@ install: $(PROGRAM_NAME) helper_tools/install.sh
 	@chmod +x helper_tools/install.sh && helper_tools/install.sh
 
 clean:
-	$(RM) $(OBJS) $(OBJS_M) $(WEB_OBJS) $(DEBUG_OBJS) $(NO_SSL_OBJS)
+	$(RM) $(OBJS) $(WEB_OBJS) $(DEBUG_OBJS) $(NO_SSL_OBJS)
 	$(RM) $(PROGRAM_NAME) $(PROGRAM_NAME_WEB) $(PROGRAM_NAME_NO_SSL)
+	$(RM) res/win/app.res res/mac/icon_.c
