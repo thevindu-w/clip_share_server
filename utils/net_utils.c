@@ -53,6 +53,7 @@ static SSL_CTX *InitServerCTX(void) {
     SSL_load_error_strings();     /* load all error messages */
     method = TLS_server_method(); /* create new server-method instance */
     ctx = SSL_CTX_new(method);    /* create new context from method */
+    SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
     if (!ctx) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stderr);
@@ -287,6 +288,7 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
         case SSL_SOCK: {
             SSL_CTX *ctx = listener.ctx;
             SSL *ssl = SSL_new(ctx);
+            SSL_set_min_proto_version(ssl, TLS1_2_VERSION);
 #ifdef _WIN32
             SSL_set_fd(ssl, (int)connect_d);
 #else
