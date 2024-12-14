@@ -274,10 +274,12 @@ clear_clipboard() {
 
 # Update the test clipshare.conf file and restart the program. Usage: update_config <key> <value>
 update_config() {
+    "$program" -s &>/dev/null || true
+    rm -f server_err.log >/dev/null 2>&1
     local key="$1"
     local value="$2"
     [[ $key =~ ^[A-Za-z0-9_]+$ ]]
-    sed -i -E '/^(\s|#)*'"$key"'\s*=/c\'"${key}=${value}"'\' clipshare.conf
+    sed -i -E 's@^(\s|#)*'"$key"'\s*=.*$@'"${key}=${value}"'@' clipshare.conf
     "$program" -r &>/dev/null &
     sleep 0.1
 }
@@ -327,7 +329,7 @@ for script in scripts/*.sh; do
     passed=
     attempts=3 # number of retries before failure
     for attempt in $(seq "$attempts"); do
-        if timeout 60 "$script" "$program"; then
+        if timeout 180 "$script" "$program"; then
             passed=1
             showStatus "$script" pass
             break

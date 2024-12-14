@@ -4,7 +4,7 @@
 
 clear_clipboard
 
-proto="$PROTO_V2"
+proto="$PROTO_MAX_VERSION"
 method="$METHOD_GET_TEXT"
 
 responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool -s)

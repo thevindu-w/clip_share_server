@@ -24,7 +24,7 @@ cd ..
 mkdir -p copies
 update_config working_dir copies
 
-proto="$PROTO_V2"
+proto="$PROTO_MAX_VERSION"
 method="$METHOD_SEND_FILES"
 fileCount=$(printf '%016x' 2)
 
