@@ -189,18 +189,11 @@ int is_directory(const char *path, int follow_symlinks) {
 #elif defined(_WIN32)
     (void)follow_symlinks;
     wchar_t *wpath;
-    if (utf8_to_wchar_str(path, &wpath, NULL) != EXIT_SUCCESS) return -1;
+    if (utf8_to_wchar_str(path, &wpath, NULL) != EXIT_SUCCESS) return 0;
     stat_result = _wstat64(wpath, &sb);
     free(wpath);
 #endif
-    if (stat_result == 0) {
-        if (S_ISDIR(sb.st_mode)) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-    return 0;
+    return (stat_result == 0) && S_ISDIR(sb.st_mode);
 }
 
 void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) {

@@ -157,6 +157,16 @@ static inline void _set_error_log_file(const char *path) {
  * Change working directory to the directory specified in the configuration
  */
 static inline void _change_working_dir(void) {
+    if (!configuration.working_dir) error_exit("Invalid working directory");
+    char *ptr;
+    for (ptr = configuration.working_dir; *ptr; ptr++) {
+        if (*ptr == PATH_SEP) *ptr = '/';
+    }
+    ptr--;
+    while (*ptr == '/' && ptr > configuration.working_dir) {  // do not remove / from root
+        *ptr = 0;
+        ptr--;
+    }
     if (!is_directory(configuration.working_dir, 1)) {
         char err[3072];
         snprintf_check(err, 3072, "Error: Not existing working directory \'%s\'", configuration.working_dir);
