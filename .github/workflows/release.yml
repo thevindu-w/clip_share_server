@@ -188,7 +188,7 @@ jobs:
 
     steps:
     - name: Install dependencies
-      run: brew install openssl@3 libpng libunistring
+      run: brew install openssl@3 libpng libunistring gnu-sed
 
     - name: Check out repository code
       uses: actions/checkout@v4

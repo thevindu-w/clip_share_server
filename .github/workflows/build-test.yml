@@ -109,7 +109,7 @@ jobs:
 
     steps:
     - name: Install build dependencies
-      run: brew install openssl@3 libpng libunistring
+      run: brew install openssl@3 libpng libunistring gnu-sed
 
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -123,7 +123,7 @@ jobs:
 
     - name: Install test dependencies
       run: |
-        brew install coreutils gnu-sed
+        brew install coreutils
         echo "$(brew --prefix coreutils)"'/libexec/gnubin' >> $GITHUB_PATH
         echo "$(brew --prefix gnu-sed)"'/libexec/gnubin' >> $GITHUB_PATH
 

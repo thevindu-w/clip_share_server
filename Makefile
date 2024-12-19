@@ -154,7 +154,7 @@ $(BUILD_DIR)/res/win/app.res: $(SRC_DIR)/res/win/app.rc $(SRC_DIR)/res/win/resou
 
 $(BUILD_DIR)/res/mac/icon_.c: $(SRC_DIR)/res/mac/icon.png | $(BUILD_DIR)/res/mac/
 	xxd -i $< >$@
-	sed -i 's/[a-zA-Z_]*res_mac_//g' $@
+	gsed -i 's/[a-zA-Z_]*res_mac_//g' $@
 
 $(DIRS):
 	mkdir -p $@
