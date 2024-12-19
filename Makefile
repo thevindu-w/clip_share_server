@@ -20,12 +20,15 @@ PROGRAM_NAME=clip_share
 PROGRAM_NAME_WEB:=$(PROGRAM_NAME)_web
 PROGRAM_NAME_NO_SSL:=$(PROGRAM_NAME)_no_ssl
 
+SRC_DIR=src
+BUILD_DIR=build
+
 MIN_PROTO=1
 MAX_PROTO=3
 INFO_NAME=clip_share
 
 CC=gcc
-CFLAGS=-c -pipe -I. --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Woverlength-strings
+CFLAGS=-c -pipe -I$(SRC_DIR) --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Woverlength-strings
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 
 OBJS_C=main.o servers/clip_share.o servers/udp_serve.o proto/server.o proto/versions.o proto/methods.o utils/utils.o utils/net_utils.o utils/list_utils.o utils/config.o utils/kill_others.o
@@ -79,6 +82,13 @@ LDLIBS=$(LDLIBS_SSL) $(LDLIBS_NO_SSL)
 CFLAGS+= -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=$(MIN_PROTO) -DPROTOCOL_MAX=$(MAX_PROTO)
 CFLAGS_OPTIM+= -Werror
 
+OBJS_C:=$(addprefix $(BUILD_DIR)/,$(OBJS_C))
+OBJS_M:=$(addprefix $(BUILD_DIR)/,$(OBJS_M))
+OBJS_BIN:=$(addprefix $(BUILD_DIR)/,$(OBJS_BIN))
+_WEB_OBJS_C:=$(addprefix $(BUILD_DIR)/,$(_WEB_OBJS_C))
+_WEB_OBJS_S:=$(addprefix $(BUILD_DIR)/,$(_WEB_OBJS_S))
+OTHER_DEPENDENCIES:=$(addprefix $(BUILD_DIR)/,$(OTHER_DEPENDENCIES))
+
 # append '_web' to objects for clip_share_web to prevent overwriting objects for clip_share
 WEB_OBJS_C=$(OBJS_C:.o=_web.o) $(_WEB_OBJS_C:.o=_web.o)
 WEB_OBJS_S=$(_WEB_OBJS_S:.o=_web.o)
@@ -99,6 +109,9 @@ NO_SSL_OBJS_BIN=$(OBJS_BIN:.o=_no_ssl.o)
 NO_SSL_OBJS=$(NO_SSL_OBJS_C) $(NO_SSL_OBJS_M) $(NO_SSL_OBJS_BIN)
 
 OBJS=$(OBJS_C) $(OBJS_M) $(OBJS_BIN)
+ALL_DEPENDENCIES=$(OBJS) $(WEB_OBJS) $(DEBUG_OBJS) $(NO_SSL_OBJS) $(OTHER_DEPENDENCIES)
+DIRS=$(foreach file,$(ALL_DEPENDENCIES),$(dir $(file)))
+DIRS:=$(sort $(DIRS))
 
 $(PROGRAM_NAME): $(OBJS) $(OTHER_DEPENDENCIES)
 $(PROGRAM_NAME_WEB): $(WEB_OBJS) $(OTHER_DEPENDENCIES)
@@ -108,36 +121,42 @@ $(PROGRAM_NAME) $(PROGRAM_NAME_WEB):
 $(PROGRAM_NAME_NO_SSL): $(NO_SSL_OBJS) $(OTHER_DEPENDENCIES)
 	$(CC) $^ $(LINK_FLAGS_BUILD) $(LDLIBS_NO_SSL) -o $@
 
-$(OBJS_C): %.o: %.c
-$(OBJS_M): %.o: %.m
-$(OBJS_BIN): %.o: %_.c
-$(OBJS) res/mac/icon.o:
+.SECONDEXPANSION:
+$(ALL_DEPENDENCIES): %: | $$(dir %)
+
+$(OBJS_C): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+$(OBJS_M): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.m
+$(OBJS_BIN): $(BUILD_DIR)/%.o: $(BUILD_DIR)/%_.c
+$(OBJS):
 	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -fno-pie $^ -o $@
 
-$(WEB_OBJS_C): %_web.o: %.c
-$(WEB_OBJS_M): %_web.o: %.m
-$(WEB_OBJS_S): %_web.o: %.S
-$(WEB_OBJS_BIN): %_web.o: %_.c
+$(WEB_OBJS_C): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.c
+$(WEB_OBJS_M): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.m
+$(WEB_OBJS_S): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.S
+$(WEB_OBJS_BIN): $(BUILD_DIR)/%_web.o: $(BUILD_DIR)/%_.c
 $(WEB_OBJS):
 	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DWEB_ENABLED -fno-pie $^ -o $@
 
-$(DEBUG_OBJS_C): %_debug.o: %.c
-$(DEBUG_OBJS_M): %_debug.o: %.m
-$(DEBUG_OBJS_BIN): %_debug.o: %_.c
+$(DEBUG_OBJS_C): $(BUILD_DIR)/%_debug.o: $(SRC_DIR)/%.c
+$(DEBUG_OBJS_M): $(BUILD_DIR)/%_debug.o: $(SRC_DIR)/%.m
+$(DEBUG_OBJS_BIN): $(BUILD_DIR)/%_debug.o: $(BUILD_DIR)/%_.c
 $(DEBUG_OBJS):
 	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $^ -o $@
 
-$(NO_SSL_OBJS_C): %_no_ssl.o: %.c
-$(NO_SSL_OBJS_M): %_no_ssl.o: %.m
-$(NO_SSL_OBJS_BIN): %_no_ssl.o: %_.c
+$(NO_SSL_OBJS_C): $(BUILD_DIR)/%_no_ssl.o: $(SRC_DIR)/%.c
+$(NO_SSL_OBJS_M): $(BUILD_DIR)/%_no_ssl.o: $(SRC_DIR)/%.m
+$(NO_SSL_OBJS_BIN): $(BUILD_DIR)/%_no_ssl.o: $(BUILD_DIR)/%_.c
 $(NO_SSL_OBJS):
 	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_SSL -fno-pie $^ -o $@
 
-res/win/app.res: res/win/app.rc res/win/resource.h
+$(BUILD_DIR)/res/win/app.res: $(SRC_DIR)/res/win/app.rc $(SRC_DIR)/res/win/resource.h | $(BUILD_DIR)/res/win/
 	windres -I. $< -O coff -o $@
 
-res/mac/icon_.c: res/mac/icon.png
+$(BUILD_DIR)/res/mac/icon_.c: $(SRC_DIR)/res/mac/icon.png | $(BUILD_DIR)/res/mac/
 	xxd -i $< >$@
+
+$(DIRS):
+	mkdir -p $@
 
 .PHONY: all clean debug web test check install
 
@@ -159,6 +178,5 @@ install: $(PROGRAM_NAME) helper_tools/install.sh
 	@chmod +x helper_tools/install.sh && helper_tools/install.sh
 
 clean:
-	$(RM) $(OBJS) $(WEB_OBJS) $(DEBUG_OBJS) $(NO_SSL_OBJS)
+	$(RM) -r $(BUILD_DIR) $(ALL_DEPENDENCIES)
 	$(RM) $(PROGRAM_NAME) $(PROGRAM_NAME_WEB) $(PROGRAM_NAME_NO_SSL)
-	$(RM) res/win/app.res res/mac/icon_.c

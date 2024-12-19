@@ -6,15 +6,11 @@ on:
     branches:
     - master
     paths:
-    - 'proto/**'
-    - 'servers/**'
-    - 'utils/**'
-    - 'xclip/**'
-    - 'xscreenshot/**'
-    - 'res/**'
+    - 'src/**'
+    - '!src/res/**'
+    - 'src/res/**/*.c'
+    - 'src/res/**/*.h'
     - 'tests/**'
-    - '*.c'
-    - '*.h'
     - 'Makefile'
     - 'docker/*'
     - 'html/**'
