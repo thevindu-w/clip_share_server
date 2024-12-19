@@ -20,14 +20,8 @@ RUN mkdir -p "$HOME/src"
 WORKDIR "$HOME/src"
 
 # Copy the source files
-COPY Makefile main.c globals.h ./
-COPY ./html html
-RUN mkdir proto servers utils xclip xscreenshot
-COPY ./proto/*.c ./proto/*.h proto/
-COPY ./servers/*.c ./servers/*.h ./servers/*.S servers/
-COPY ./utils/*.c ./utils/*.h utils/
-COPY ./xclip/*.c ./xclip/*.h xclip/
-COPY ./xscreenshot/*.c ./xscreenshot/*.h xscreenshot/
+COPY Makefile ./
+COPY ./src src
 
 # Build
 RUN make clean && make && make no_ssl && make web
