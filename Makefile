@@ -150,10 +150,11 @@ $(NO_SSL_OBJS):
 	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_SSL -fno-pie $^ -o $@
 
 $(BUILD_DIR)/res/win/app.res: $(SRC_DIR)/res/win/app.rc $(SRC_DIR)/res/win/resource.h | $(BUILD_DIR)/res/win/
-	windres -I. $< -O coff -o $@
+	windres -I$(SRC_DIR) $< -O coff -o $@
 
 $(BUILD_DIR)/res/mac/icon_.c: $(SRC_DIR)/res/mac/icon.png | $(BUILD_DIR)/res/mac/
 	xxd -i $< >$@
+	sed -i 's/[a-zA-Z_]*res_mac_//g' $@
 
 $(DIRS):
 	mkdir -p $@

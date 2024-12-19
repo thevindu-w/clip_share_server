@@ -22,8 +22,8 @@
 #import <utils/kill_others.h>
 #include <utils/mac_menu.h>
 
-extern char res_mac_icon_png[];
-extern unsigned int res_mac_icon_png_len;
+extern char icon_png[];
+extern unsigned int icon_png_len;
 
 const char *global_prog_name;
 
@@ -41,7 +41,7 @@ void show_menu_icon(void) {
         NSApplication *app = [NSApplication sharedApplication];
         NSStatusItem *statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
 
-        NSData *iconData = [NSData dataWithBytesNoCopy:res_mac_icon_png length:res_mac_icon_png_len];
+        NSData *iconData = [NSData dataWithBytesNoCopy:icon_png length:icon_png_len];
         NSImage *iconImage = [[NSImage alloc] initWithData:iconData];
         if (!iconImage) return;
         [statusItem.button setImage:iconImage];
