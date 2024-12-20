@@ -99,7 +99,7 @@ brew install libunistring openssl@3 libpng
 
 You may need to allow incoming connections to the above ports for the client to connect to the server.
 
-Note that all TCP ports are for unicast, while `4337/udp` is used to receive broadcast. Therefore, the firewall rule that allows `4337/udp` should have the **broadcast** address of the interface as the destination address.
+Note that all TCP ports are for unicast, while `4337/udp` is used to receive broadcast. Therefore, the firewall rule that allows `4337/udp` should have the **broadcast** address of the interface as the destination address. Currently, ClipShare only supports IPv4. Therefore, allowing only IPv4 addresses is sufficient.
 
 <br>
 
@@ -425,15 +425,19 @@ pacman -S mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-libu
 <details>
   <summary>macOS</summary>
 
-  The following development libraries are required.
+The following development libraries are required.
 
 * [openssl](https://formulae.brew.sh/formula/openssl@3)
 * [libpng](https://formulae.brew.sh/formula/libpng)
 * [libunistring](https://formulae.brew.sh/formula/libunistring)
 
+Additionally, GNU sed is required.
+
+* [gnu-sed](https://formulae.brew.sh/formula/gnu-sed)
+
 These tools can be installed using [Homebrew](https://brew.sh) with the following command:
 ```bash
-brew install openssl@3 libpng libunistring
+brew install openssl@3 libpng libunistring gnu-sed
 ```
 </details>
 
