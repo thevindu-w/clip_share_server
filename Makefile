@@ -28,6 +28,7 @@ MAX_PROTO=3
 INFO_NAME=clip_share
 
 CC=gcc
+CPP=cpp
 CFLAGS=-c -pipe -I$(SRC_DIR) --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Woverlength-strings
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 
@@ -81,6 +82,18 @@ endif
 LDLIBS=$(LDLIBS_SSL) $(LDLIBS_NO_SSL)
 CFLAGS+= -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=$(MIN_PROTO) -DPROTOCOL_MAX=$(MAX_PROTO)
 CFLAGS_OPTIM+= -Werror
+
+VERSION_FILE=$(SRC_DIR)/res/version
+ifeq (4.2,$(firstword $(sort $(MAKE_VERSION) 4.2)))
+	VERSION_INFO=$(file < $(VERSION_FILE))
+else
+	VERSION_INFO=$(shell cat $(VERSION_FILE))
+endif
+VERSION_MAJOR=$(word 2 ,$(subst =, ,$(filter VERSION_MAJOR=%,$(VERSION_INFO))))
+VERSION_MINOR=$(word 2 ,$(subst =, ,$(filter VERSION_MINOR=%,$(VERSION_INFO))))
+VERSION_PATCH=$(word 2 ,$(subst =, ,$(filter VERSION_PATCH=%,$(VERSION_INFO))))
+VERSION=$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
+CFLAGS+= -DVERSION=\"$(VERSION)\"
 
 OBJS_C:=$(addprefix $(BUILD_DIR)/,$(OBJS_C))
 OBJS_M:=$(addprefix $(BUILD_DIR)/,$(OBJS_M))
@@ -149,8 +162,11 @@ $(NO_SSL_OBJS_BIN): $(BUILD_DIR)/%_no_ssl.o: $(BUILD_DIR)/%_.c
 $(NO_SSL_OBJS):
 	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_SSL -fno-pie $^ -o $@
 
-$(BUILD_DIR)/res/win/app.res: $(SRC_DIR)/res/win/app.rc $(SRC_DIR)/res/win/resource.h | $(BUILD_DIR)/res/win/
+$(BUILD_DIR)/res/win/app.res: $(SRC_DIR)/res/win/app_.rc $(SRC_DIR)/res/win/resource.h | $(BUILD_DIR)/res/win/
 	windres -I$(SRC_DIR) $< -O coff -o $@
+
+$(SRC_DIR)/res/win/app_.rc: $(SRC_DIR)/res/win/app.rc $(VERSION_FILE)
+	$(CPP) -I$(SRC_DIR) -P -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_MINOR=$(VERSION_MINOR) -DVERSION_PATCH=$(VERSION_PATCH) -DVERSION=\"$(VERSION)\" $< -o $@
 
 $(BUILD_DIR)/res/mac/icon_.c: $(SRC_DIR)/res/mac/icon.png | $(BUILD_DIR)/res/mac/
 	xxd -i $< >$@

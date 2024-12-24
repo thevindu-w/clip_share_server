@@ -1,21 +1,26 @@
 #include <res/win/resource.h>
 
+#define MAJOR VERSION_MAJOR
+#define MINOR VERSION_MINOR
+#define PATCH VERSION_PATCH
+#define VERSION_STR VERSION
+
 APP_ICON ICON "clip_icon.ico"
 1 VERSIONINFO
-FILEVERSION     3,5,2,0
-PRODUCTVERSION  3,5,2,0
+FILEVERSION     MAJOR,MINOR,PATCH,0
+PRODUCTVERSION  MAJOR,MINOR,PATCH,0
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
     BLOCK "040904E4"
     BEGIN
       VALUE "FileDescription", "Clipboard Share"
-      VALUE "FileVersion", "3.5.2"
+      VALUE "FileVersion", VERSION_STR
       VALUE "InternalName", "clip_share"
       VALUE "LegalCopyright", "H. Thevindu J. Wijesekera"
       VALUE "OriginalFilename", "clip_share.exe"
       VALUE "ProductName", "ClipShare"
-      VALUE "ProductVersion", "3.5.2"
+      VALUE "ProductVersion", VERSION_STR
     END
   END
   BLOCK "VarFileInfo"

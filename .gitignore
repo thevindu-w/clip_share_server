@@ -7,7 +7,7 @@ build/
 *.tar
 *.exe
 *.res
-res/**/*_.c
+src/res/**/*_.*
 /*.conf
 /allowed_clients.txt
 server_err.log

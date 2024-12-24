@@ -90,10 +90,14 @@ static void print_usage(const char *prog_name) {
  */
 static inline void _parse_args(int argc, char **argv, int *stop_p, int *daemonize_p) {
     int opt;
-    while ((opt = getopt(argc, argv, "hsrRdD")) != -1) {
+    while ((opt = getopt(argc, argv, "hvsrRdD")) != -1) {
         switch (opt) {
             case 'h': {  // help
                 print_usage(argv[0]);
+                exit(EXIT_SUCCESS);
+            }
+            case 'v': {  // version
+                puts("ClipShare version " VERSION);
                 exit(EXIT_SUCCESS);
             }
             case 's': {  // stop
