@@ -19,9 +19,13 @@ jobs:
       run: |
         echo VERSION="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')" >> $GITHUB_ENV
 
-    - name: Check app.rc version
+    - name: Check resources version
       run: |
-        [ $(grep "${{env.VERSION}}" res/win/app.rc | grep -iE '(File|Product)Version' | wc -l) = 4 ]
+        cd src/res
+        major="$(grep MAJOR version | grep -oE '[0-9]+')"
+        minor="$(grep MINOR version | grep -oE '[0-9]+')"
+        patch="$(grep PATCH version | grep -oE '[0-9]+')"
+        test "${major}.${minor}.${patch}" = "${{env.VERSION}}"
 
     - name: Check release_notes.md version
       run: |
