@@ -208,11 +208,14 @@ If you use this script, the server's common name will be `clipshare_server`, and
 ```
 ./clip_share [-h] [-s] [-r] [-R] [-d] [-D]
 
-  -h   Help         - Display usage and exit.
-                      This takes priority over all other options.
+  -h   Help         - Display command usage and exit.
+                      This takes precedence over other options.
+
+  -v   Version      - Display application version and exit.
+                      This takes precedence over other options.
 
   -s   Stop         - Stop all instances of the server if any.
-                      This takes priority over -r and -R.
+                      This takes precedence over -r and -R.
 
   -r   Restart      - Stop other instances of the server if any,
                       and restart the server. This option takes
