@@ -21,6 +21,9 @@
 #import <AppKit/AppKit.h>
 #import <utils/kill_others.h>
 #include <utils/mac_menu.h>
+#ifdef DEBUG_MODE
+#include <utils/utils.h>
+#endif
 
 extern char icon_png[];
 extern unsigned int icon_png_len;
@@ -41,15 +44,32 @@ void show_menu_icon(void) {
         NSApplication *app = [NSApplication sharedApplication];
         NSStatusItem *statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
 
-        NSData *iconData = [NSData dataWithBytesNoCopy:icon_png length:icon_png_len];
+        NSData *iconData = [NSData dataWithBytesNoCopy:icon_png length:icon_png_len freeWhenDone:NO];
         NSImage *iconImage = [[NSImage alloc] initWithData:iconData];
-        if (!iconImage) return;
+        if (!iconImage) {
+#ifdef DEBUG_MODE
+            error("Image allocation failed for menu icon");
+#endif
+            return;
+        }
         [statusItem.button setImage:iconImage];
 
         NSMenu *menu = [[NSMenu alloc] init];
+        if (!menu) {
+#ifdef DEBUG_MODE
+            error("Menu allocation or creation failed");
+#endif
+            return;
+        }
         NSMenuItem *quitMenuItem = [[NSMenuItem alloc] initWithTitle:@"Quit"
                                                               action:@selector(onQuitAction:)
                                                        keyEquivalent:@"q"];
+        if (!quitMenuItem) {
+#ifdef DEBUG_MODE
+            error("Menu item creation failed");
+#endif
+            return;
+        }
         [menu addItem:quitMenuItem];
         statusItem.menu = menu;
         [quitMenuItem setTarget:NSApp];
