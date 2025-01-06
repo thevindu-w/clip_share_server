@@ -85,16 +85,7 @@ static int LoadCertificates(SSL_CTX *ctx, const data_buffer *server_cert, const 
     }
     BIO_free(sbio);
     PKCS12_free(p12);
-    if (SSL_CTX_use_certificate(ctx, server_x509) != 1) {
-#ifdef DEBUG_MODE
-        ERR_print_errors_fp(stdout);
-#endif
-        EVP_PKEY_free(key);
-        X509_free(server_x509);
-        return EXIT_FAILURE;
-    }
-    X509_free(server_x509);
-    if (SSL_CTX_use_PrivateKey(ctx, key) <= 0) {
+    if (SSL_CTX_use_cert_and_key(ctx, server_x509, key, NULL, 1) != 1) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stdout);
 #endif
@@ -103,6 +94,7 @@ static int LoadCertificates(SSL_CTX *ctx, const data_buffer *server_cert, const 
         return EXIT_FAILURE;
     }
     EVP_PKEY_free(key);
+    X509_free(server_x509);
 
     /* verify private key */
     if (!SSL_CTX_check_private_key(ctx)) {
