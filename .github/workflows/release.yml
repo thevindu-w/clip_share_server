@@ -60,22 +60,30 @@ jobs:
         echo ARCHIVE_NAME="${archive}.tar.gz" >> $GITHUB_ENV
 
     - name: Build on Ubuntu 18
-      run: docker build -t clipshare:ubuntu18 -f docker/release/Dockerfile.ubuntu18 .
+      run: |
+        docker buildx build -t clipshare:ubuntu18 -f docker/release/Dockerfile \
+        --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=bionic' .
 
     - name: Build on Ubuntu 20
-      run: docker build -t clipshare:ubuntu20 -f docker/release/Dockerfile.ubuntu20 .
+      run: |
+        docker buildx build -t clipshare:ubuntu20 -f docker/release/Dockerfile \
+        --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=focal' .
 
     - name: Build on Ubuntu 22
-      run: docker build -t clipshare:ubuntu22 -f docker/release/Dockerfile.ubuntu22 .
+      run: |
+        docker buildx build -t clipshare:ubuntu22 -f docker/release/Dockerfile \
+        --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=jammy' .
 
     - name: Build on Ubuntu 24
-      run: docker build -t clipshare:ubuntu24 -f docker/release/Dockerfile.ubuntu24 .
+      run: |
+        docker buildx build -t clipshare:ubuntu24 -f docker/release/Dockerfile \
+        --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=noble' .
 
     - name: Build on Arch Linux
-      run: docker build -t clipshare:arch -f docker/release/Dockerfile.arch .
+      run: docker buildx build -t clipshare:arch -f docker/release/Dockerfile --build-arg 'DISTRO=arch' .
 
     - name: Build on Fedora
-      run: docker build -t clipshare:fedora -f docker/release/Dockerfile.fedora .
+      run: docker buildx build -t clipshare:fedora -f docker/release/Dockerfile --build-arg 'DISTRO=arch' .
 
     - name: Copy binaries
       run: |

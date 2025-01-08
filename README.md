@@ -406,7 +406,7 @@ If you changed the configuration file, you must restart the server to apply the 
   sudo pacman -S glibc
   ```
 
-(You may refer to docker/Dockerfile.\* to see how to install the dependencies on various Linux distros)
+(You may refer to docker/Dockerfile to see how to install the dependencies on various Linux distros)
 </details>
 
 <details>

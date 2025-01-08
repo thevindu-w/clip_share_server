@@ -48,7 +48,7 @@ jobs:
         ref: ${{ github.ref }}
 
     - name: Build
-      run: docker build -t clipshare -f "docker/Dockerfile.${{matrix.distro}}" .
+      run: docker build -t clipshare -f docker/Dockerfile --build-arg "DISTRO=${{matrix.distro}}" .
 
     - name: Test
       run: docker run clipshare
