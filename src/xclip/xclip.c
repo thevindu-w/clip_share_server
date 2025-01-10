@@ -39,18 +39,11 @@ typedef struct _xclip_options {
 } xclip_options;
 
 static int doIn(Window win, unsigned long len, const char *buf, xclip_options *options) {
-    unsigned char *sel_buf = NULL; /* buffer for selection data */
-    unsigned long sel_len = len;   /* length of sel_buf */
-    XEvent evt;                    /* X Event Structures */
-
-    /* in mode */
-    sel_buf = xcmalloc(sel_len * sizeof(char));
-    memcpy(sel_buf, buf, sel_len);
+    XEvent evt; /* X Event Structures */
 
     /* Handle cut buffer if needed */
     if (options->sseln == XA_STRING) {
-        XStoreBuffer(options->dpy, (char *)sel_buf, (int)sel_len, 0);
-        free(sel_buf);
+        XStoreBuffer(options->dpy, buf, (int)len, 0);
         return EXIT_SUCCESS;
     }
 
@@ -62,7 +55,6 @@ static int doIn(Window win, unsigned long len, const char *buf, xclip_options *o
 
     /* Avoid making the current directory in use, in case it will need to be umounted */
     if (chdir("/") == -1) {
-        free(sel_buf);
         return EXIT_FAILURE;
     }
 
@@ -81,12 +73,12 @@ static int doIn(Window win, unsigned long len, const char *buf, xclip_options *o
 
             XNextEvent(options->dpy, &evt);
 
-            finished = xcin(options->dpy, &cwin, evt, &pty, options->target, sel_buf, sel_len, &sel_pos, &context);
+            finished = xcin(options->dpy, &cwin, evt, &pty, options->target, (const unsigned char *)buf, len, &sel_pos,
+                            &context);
 
             if (evt.type == SelectionClear) clear = 1;
 
             if ((context == XCLIB_XCIN_NONE) && clear) {
-                free(sel_buf);
                 return EXIT_SUCCESS;
             }
 
