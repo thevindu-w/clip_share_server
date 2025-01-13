@@ -1,12 +1,9 @@
 ARG DISTRO
 
-FROM ubuntu:noble as ubuntu_builder
-
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y apt-transport-https
+FROM ubuntu:noble AS ubuntu_builder
 
 # Install build dependencies
-RUN apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev
+RUN apt-get update && apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev
 
 # Install test dependencies
 RUN apt-get install --no-install-recommends -y openssl xclip python3-minimal diffutils findutils coreutils netcat-openbsd sed
@@ -16,7 +13,7 @@ WORKDIR /debs
 RUN apt-get download xvfb libunwind8 libgl1 libpixman-1-0 libxfont2 libglvnd0 libglx0 libfontenc1 libfreetype6 libbrotli1 xkb-data libxkbfile1 x11-xkb-utils
 RUN dpkg --force-depends -i ./*.deb 2>/dev/null && apt-get clean -y
 
-FROM fedora:41 as fedora_builder
+FROM fedora:41 AS fedora_builder
 
 # Install build dependencies
 RUN dnf install --setopt=install_weak_deps=False -y gcc make glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel libunistring-devel
@@ -24,7 +21,7 @@ RUN dnf install --setopt=install_weak_deps=False -y gcc make glibc-devel libX11-
 # Install test dependencies
 RUN dnf install --setopt=install_weak_deps=False -y xorg-x11-server-Xvfb openssl xclip python3 findutils diffutils coreutils netcat sed && dnf clean all
 
-FROM archlinux:base as arch_builder
+FROM archlinux:base AS arch_builder
 
 # Install build dependencies
 RUN pacman -Sy && \

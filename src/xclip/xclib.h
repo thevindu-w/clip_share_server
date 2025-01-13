@@ -41,7 +41,7 @@
 extern int xcout(Display *, Window, XEvent, Atom, Atom, Atom *, unsigned char **, unsigned long *, unsigned int *);
 extern int xcin(Display *, Window *, XEvent, Atom *, Atom, const unsigned char *, unsigned long, unsigned long *,
                 unsigned int *);
-extern void *xcmalloc(size_t);
-extern void *xcrealloc(void *, size_t);
+extern void *xcmalloc(size_t) __attribute__((__malloc__));
+extern void *xcrealloc(void *, size_t) __attribute__((__malloc__));
 
 #endif  // XCLIP_XCLIB_H_
