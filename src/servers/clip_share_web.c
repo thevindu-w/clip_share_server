@@ -208,7 +208,7 @@ int web_server(void) {
     }
 
     listener_t listener;
-    open_listener_socket(&listener, SSL_SOCK, &(configuration.server_cert), &(configuration.ca_cert));
+    open_listener_socket(&listener, SSL_SOCK | VALID_SOCK, &(configuration.server_cert), &(configuration.ca_cert));
     if (bind_port(listener, configuration.web_port) != EXIT_SUCCESS) {
         close_listener_socket(&listener);
         return EXIT_FAILURE;
@@ -221,7 +221,7 @@ int web_server(void) {
     while (1) {
         socket_t connect_sock;
         get_connection(&connect_sock, listener, configuration.allowed_clients);
-        if (connect_sock.type == NULL_SOCK) {
+        if (IS_NULL_SOCK(connect_sock.type)) {
             close_socket(&connect_sock);
             continue;
         }

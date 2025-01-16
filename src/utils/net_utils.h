@@ -41,10 +41,29 @@ typedef SOCKET sock_t;
 #define INVALID_SOCKET -1
 #endif
 
-#define NULL_SOCK 0
-#define PLAIN_SOCK 1
-#define SSL_SOCK 2
-#define UDP_SOCK 127
+// Connection validity mask
+#define MASK_VALID 0x1
+#define NULL_SOCK 0x0
+#define VALID_SOCK 0x1
+#define IS_NULL_SOCK(type) ((type & MASK_VALID) == NULL_SOCK)  // NOLINT(runtime/references)
+
+// Connection encryption mask
+#define MASK_ENC 0x2
+#define PLAIN_SOCK 0x0
+#define SSL_SOCK 0x2
+#define IS_SSL(type) ((type & MASK_ENC) == SSL_SOCK)  // NOLINT(runtime/references)
+
+// Transport layer protocol mask
+#define MASK_TRNSPRT_PROTO 0x4
+#define TRNSPRT_TCP 0x0
+#define TRNSPRT_UDP 0x4
+#define IS_UDP(type) ((type & MASK_TRNSPRT_PROTO) == TRNSPRT_UDP)  // NOLINT(runtime/references)
+
+// IP version mask
+#define MASK_IP_VERSION 0x8
+#define IPv4 0x0
+#define IPv6 0x8
+#define IS_IPv6(type) ((type & MASK_IP_VERSION) == IPv6)  // NOLINT(runtime/references)
 
 typedef struct _socket_t {
     union {

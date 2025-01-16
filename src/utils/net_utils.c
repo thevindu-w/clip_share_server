@@ -151,15 +151,15 @@ static int getClientCerts(const SSL *ssl, const list2 *allowed_clients) {
 
 void open_listener_socket(listener_t *listener, const unsigned char sock_type, const data_buffer *server_cert,
                           const data_buffer *ca_cert) {
-    listener->type = NULL_SOCK;
+    listener->type = 0;
 
-    sock_t listener_d = socket(PF_INET, (sock_type == UDP_SOCK ? SOCK_DGRAM : SOCK_STREAM), 0);
+    sock_t listener_d = socket(PF_INET, (IS_UDP(sock_type) ? SOCK_DGRAM : SOCK_STREAM), 0);
     if (listener_d == INVALID_SOCKET) {
         error("Can\'t open socket");
         return;
     }
     listener->socket = listener_d;
-    if (sock_type != SSL_SOCK) {
+    if (IS_UDP(sock_type) || !IS_SSL(sock_type)) {
         listener->type = sock_type;
         return;
     }
@@ -179,8 +179,10 @@ void open_listener_socket(listener_t *listener, const unsigned char sock_type, c
         return;
     }
     listener->ctx = ctx;
-    listener->type = SSL_SOCK;
+    listener->type = sock_type;
 #else
+    listener->type = PLAIN_SOCK | VALID_SOCK;
+    close_listener_socket(listener);
     (void)server_cert;
     (void)ca_cert;
 #endif
@@ -222,20 +224,20 @@ int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
 }
 
 int bind_port(listener_t listener, uint16_t port) {
-    if (listener.type == NULL_SOCK) return EXIT_FAILURE;
+    if (IS_NULL_SOCK(listener.type)) return EXIT_FAILURE;
     sock_t socket = listener.socket;
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
     server_addr.sin_addr.s_addr = configuration.bind_addr;
     int reuse = 1;
-    if (listener.type != UDP_SOCK && setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int))) {
+    if (!IS_UDP(listener.type) && setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int))) {
         error("Can't set the reuse option on the socket");
         return EXIT_FAILURE;
     }
     if (bind(socket, (const struct sockaddr *)&server_addr, sizeof(server_addr))) {
         char errmsg[32];
-        const char *tcp_udp = listener.type == UDP_SOCK ? "UDP" : "TCP";
+        const char *tcp_udp = IS_UDP(listener.type) ? "UDP" : "TCP";
         snprintf_check(errmsg, 32, "Can\'t bind to %s port %hu", tcp_udp, port);
         error(errmsg);
         return EXIT_FAILURE;
@@ -244,8 +246,8 @@ int bind_port(listener_t listener, uint16_t port) {
 }
 
 void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_clients) {
-    sock->type = NULL_SOCK;
-    if (listener.type == NULL_SOCK) return;
+    sock->type = 0;
+    if (IS_NULL_SOCK(listener.type)) return;
     sock_t listener_socket = listener.socket;
     struct sockaddr_in client_addr;
 #if defined(__linux__) || defined(__APPLE__)
@@ -269,58 +271,50 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
 #ifdef DEBUG_MODE
     printf("\nConnection: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 #endif
-    switch (listener.type) {
-        case PLAIN_SOCK: {
-            sock->socket.plain = connect_d;
-            sock->type = PLAIN_SOCK;
-            break;
-        }
 
+    if (!IS_SSL(listener.type)) {
+        sock->socket.plain = connect_d;
+        sock->type = listener.type;
 #ifndef NO_SSL
-        case SSL_SOCK: {
-            SSL_CTX *ctx = listener.ctx;
-            SSL *ssl = SSL_new(ctx);
-            SSL_set_min_proto_version(ssl, TLS1_2_VERSION);
+    } else {
+        SSL_CTX *ctx = listener.ctx;
+        SSL *ssl = SSL_new(ctx);
+        SSL_set_min_proto_version(ssl, TLS1_2_VERSION);
 #ifdef _WIN32
-            SSL_set_fd(ssl, (int)connect_d);
+        SSL_set_fd(ssl, (int)connect_d);
 #else
-            SSL_set_fd(ssl, connect_d);
+        SSL_set_fd(ssl, connect_d);
 #endif
-            /* do SSL-protocol accept */
-            int accept_st;
-            while ((accept_st = SSL_accept(ssl)) != 1) { /* do SSL-protocol accept */
-                if (accept_st == 0) {
+        /* do SSL-protocol accept */
+        int accept_st;
+        while ((accept_st = SSL_accept(ssl)) != 1) { /* do SSL-protocol accept */
+            if (accept_st == 0) {
 #ifdef DEBUG_MODE
-                    puts("SSL_accept error");
+                puts("SSL_accept error");
+#endif
+                return;
+            }
+            switch (SSL_get_error(ssl, accept_st)) {
+                case SSL_ERROR_WANT_READ:
+                    continue;
+                case SSL_ERROR_WANT_WRITE:
+                    continue;
+                default: {
+#ifdef DEBUG_MODE
+                    ERR_print_errors_fp(stdout);
 #endif
                     return;
                 }
-                switch (SSL_get_error(ssl, accept_st)) {
-                    case SSL_ERROR_WANT_READ:
-                        continue;
-                    case SSL_ERROR_WANT_WRITE:
-                        continue;
-                    default: {
-#ifdef DEBUG_MODE
-                        ERR_print_errors_fp(stdout);
-#endif
-                        return;
-                    }
-                }
             }
-            sock->socket.ssl = ssl;
-            sock->type = SSL_SOCK;
-            if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) {  // get client certificates if any
-                close_socket_no_wait(sock);
-                sock->type = NULL_SOCK;
-                return;
-            }
-            break;
         }
+        sock->socket.ssl = ssl;
+        if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) {  // get client certificates if any
+            close_socket_no_wait(sock);
+            sock->type = 0;
+            return;
+        }
+        sock->type = listener.type;
 #endif
-
-        default:
-            break;
     }
 #ifdef NO_SSL
     (void)allowed_clients;
@@ -328,72 +322,56 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
 }
 
 void _close_socket(socket_t *socket, int await) {
-    switch (socket->type) {
-        case PLAIN_SOCK: {
-            if (await) {
-                char tmp;
-                recv(socket->socket.plain, &tmp, 1, 0);
-            }
-#if defined(__linux__) || defined(__APPLE__)
-            close(socket->socket.plain);
-#elif defined(_WIN32)
-            closesocket(socket->socket.plain);
-#endif
-            break;
+    if (IS_NULL_SOCK(socket->type)) return;
+    if (!IS_SSL(socket->type)) {
+        if (await) {
+            char tmp;
+            recv(socket->socket.plain, &tmp, 1, 0);
         }
-
+#if defined(__linux__) || defined(__APPLE__)
+        close(socket->socket.plain);
+#elif defined(_WIN32)
+        closesocket(socket->socket.plain);
+#endif
 #ifndef NO_SSL
-        case SSL_SOCK: {
-            sock_t sd;
+    } else {
+        sock_t sd;
 #ifdef _WIN32
-            sd = (sock_t)SSL_get_fd(socket->socket.ssl); /* get socket connection */
+        sd = (sock_t)SSL_get_fd(socket->socket.ssl); /* get socket connection */
 #else
-            sd = SSL_get_fd(socket->socket.ssl); /* get socket connection */
+        sd = SSL_get_fd(socket->socket.ssl); /* get socket connection */
 #endif
-            SSL_clear(socket->socket.ssl);
-            SSL_free(socket->socket.ssl); /* release SSL state */
+        SSL_clear(socket->socket.ssl);
+        SSL_free(socket->socket.ssl); /* release SSL state */
 #if defined(__linux__) || defined(__APPLE__)
-            close(sd);
+        close(sd);
 #elif defined(_WIN32)
-            closesocket(sd);
+        closesocket(sd);
 #endif
-            break;
-        }
 #endif
-
-        default:
-            break;
     }
-    socket->type = NULL_SOCK;
+    socket->type = 0;
 }
 
 void close_listener_socket(listener_t *socket) {
-    switch (socket->type) {
-        case PLAIN_SOCK: {
+    if (IS_NULL_SOCK(socket->type)) return;
+    if (!IS_SSL(socket->type)) {
 #if defined(__linux__) || defined(__APPLE__)
-            close(socket->socket);
+        close(socket->socket);
 #elif defined(_WIN32)
-            closesocket(socket->socket);
+        closesocket(socket->socket);
 #endif
-            break;
-        }
-
 #ifndef NO_SSL
-        case SSL_SOCK: {
-            SSL_CTX_free(socket->ctx); /* release SSL state */
+    } else {
+        SSL_CTX_free(socket->ctx); /* release SSL state */
 #if defined(__linux__) || defined(__APPLE__)
-            close(socket->socket);
+        close(socket->socket);
 #elif defined(_WIN32)
-            closesocket(socket->socket);
+        closesocket(socket->socket);
 #endif
-            break;
-        }
-#endif
-
-        default:
-            break;
+#endif  // NO_SSL
     }
-    socket->type = NULL_SOCK;
+    socket->type = 0;
 }
 
 static inline ssize_t _read_plain(sock_t sock, char *buf, size_t size, int *fatal_p) {
@@ -449,21 +427,15 @@ int read_sock(socket_t *socket, char *buf, uint64_t size) {
         int fatal = 0;
         uint64_t read_req_sz = size - total_sz_read;
         if (read_req_sz > 0x7FFFFFFFL) read_req_sz = 0x7FFFFFFFL;  // prevent overflow due to casting
-        switch (socket->type) {
-            case PLAIN_SOCK: {
-                sz_read = _read_plain(socket->socket.plain, ptr, read_req_sz, &fatal);
-                break;
-            }
-
+        if (!IS_SSL(socket->type)) {
+            sz_read = _read_plain(socket->socket.plain, ptr, read_req_sz, &fatal);
 #ifndef NO_SSL
-            case SSL_SOCK: {
-                sz_read = _read_SSL(socket->socket.ssl, ptr, (int)read_req_sz, &fatal);
-                break;
-            }
+        } else {
+            sz_read = _read_SSL(socket->socket.ssl, ptr, (int)read_req_sz, &fatal);
+#else
+        } else {
+            return EXIT_FAILURE;
 #endif
-
-            default:
-                return EXIT_FAILURE;
         }
         if (sz_read > 0) {
             total_sz_read += (uint64_t)sz_read;
@@ -481,23 +453,16 @@ int read_sock(socket_t *socket, char *buf, uint64_t size) {
 
 #ifdef WEB_ENABLED
 int read_sock_no_wait(socket_t *socket, char *buf, size_t size) {
-    switch (socket->type) {
-        case PLAIN_SOCK: {
+    if (!IS_SSL(socket->type)) {
 #ifdef _WIN32
-            return recv(socket->socket.plain, buf, (int)size, 0);
+        return recv(socket->socket.plain, buf, (int)size, 0);
 #else
-            return (int)recv(socket->socket.plain, buf, size, 0);
+        return (int)recv(socket->socket.plain, buf, size, 0);
 #endif
-        }
-
 #ifndef NO_SSL
-        case SSL_SOCK: {
-            return SSL_read(socket->socket.ssl, buf, (int)size);
-        }
+    } else {
+        return SSL_read(socket->socket.ssl, buf, (int)size);
 #endif
-
-        default:
-            return -1;
     }
 }
 #endif
@@ -554,21 +519,15 @@ int write_sock(socket_t *socket, const char *buf, uint64_t size) {
         int fatal = 0;
         uint64_t write_req_sz = size - total_written;
         if (write_req_sz > 0x7FFFFFFFL) write_req_sz = 0x7FFFFFFFL;  // prevent overflow due to casting
-        switch (socket->type) {
-            case PLAIN_SOCK: {
-                sz_written = _write_plain(socket->socket.plain, ptr, write_req_sz, &fatal);
-                break;
-            }
-
+        if (!IS_SSL(socket->type)) {
+            sz_written = _write_plain(socket->socket.plain, ptr, write_req_sz, &fatal);
 #ifndef NO_SSL
-            case SSL_SOCK: {
-                sz_written = _write_SSL(socket->socket.ssl, ptr, (int)write_req_sz, &fatal);
-                break;
-            }
+        } else {
+            sz_written = _write_SSL(socket->socket.ssl, ptr, (int)write_req_sz, &fatal);
+#else
+        } else {
+            return EXIT_FAILURE;
 #endif
-
-            default:
-                return EXIT_FAILURE;
         }
         if (sz_written > 0) {
             total_written += (uint64_t)sz_written;
