@@ -45,6 +45,7 @@ typedef struct _config {
 
     char *working_dir;
     uint32_t bind_addr;
+    uint32_t bind_addr_udp;
     int8_t restart;
 
     uint32_t max_text_length;

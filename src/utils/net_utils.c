@@ -229,7 +229,7 @@ int bind_port(listener_t listener, uint16_t port) {
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
-    server_addr.sin_addr.s_addr = configuration.bind_addr;
+    server_addr.sin_addr.s_addr = IS_UDP(listener.type) ? configuration.bind_addr_udp : configuration.bind_addr;
     int reuse = 1;
     if (!IS_UDP(listener.type) && setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int))) {
         error("Can't set the reuse option on the socket");
