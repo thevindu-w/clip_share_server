@@ -140,27 +140,31 @@ $(ALL_DEPENDENCIES): %: | $$(dir %)
 $(OBJS_C): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 $(OBJS_M): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.m
 $(OBJS_BIN): $(BUILD_DIR)/%.o: $(BUILD_DIR)/%_.c
+$(BUILD_DIR)/main.o: $(VERSION_FILE)
 $(OBJS):
-	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -fno-pie $^ -o $@
+	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -fno-pie $< -o $@
 
 $(WEB_OBJS_C): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.c
 $(WEB_OBJS_M): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.m
 $(WEB_OBJS_S): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.S
 $(WEB_OBJS_BIN): $(BUILD_DIR)/%_web.o: $(BUILD_DIR)/%_.c
+$(BUILD_DIR)/main_web.o: $(VERSION_FILE)
 $(WEB_OBJS):
-	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DWEB_ENABLED -fno-pie $^ -o $@
+	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DWEB_ENABLED -fno-pie $< -o $@
 
 $(DEBUG_OBJS_C): $(BUILD_DIR)/%_debug.o: $(SRC_DIR)/%.c
 $(DEBUG_OBJS_M): $(BUILD_DIR)/%_debug.o: $(SRC_DIR)/%.m
 $(DEBUG_OBJS_BIN): $(BUILD_DIR)/%_debug.o: $(BUILD_DIR)/%_.c
+$(BUILD_DIR)/main_debug.o: $(VERSION_FILE)
 $(DEBUG_OBJS):
-	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $^ -o $@
+	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $< -o $@
 
 $(NO_SSL_OBJS_C): $(BUILD_DIR)/%_no_ssl.o: $(SRC_DIR)/%.c
 $(NO_SSL_OBJS_M): $(BUILD_DIR)/%_no_ssl.o: $(SRC_DIR)/%.m
 $(NO_SSL_OBJS_BIN): $(BUILD_DIR)/%_no_ssl.o: $(BUILD_DIR)/%_.c
+$(BUILD_DIR)/main_no_ssl.o: $(VERSION_FILE)
 $(NO_SSL_OBJS):
-	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_SSL -fno-pie $^ -o $@
+	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_SSL -fno-pie $< -o $@
 
 $(BUILD_DIR)/res/win/app.res: $(SRC_DIR)/res/win/app_.rc $(SRC_DIR)/res/win/resource.h | $(BUILD_DIR)/res/win/
 	windres -I$(SRC_DIR) $< -O coff -o $@
