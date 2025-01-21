@@ -13,7 +13,6 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - The installer scripts attached to the assets are online installers. They will automatically download the correct binaries for this version, and run the offline installer in it. Alternatively, you may manually download the binary archive for your operating system and use the offline installer in it.
 
 **Changes:**
-- Show version with -v command line option.
-- Fix working_dir configuration values containing back-slashes or ending slashes on Windows.
-- Enforce minimum TLS version 1.2.
+- Add a new conf option bind_address_udp to specify the UDP bind address.
+- Fix memory allocation errors.
 - Code quality improvements.
