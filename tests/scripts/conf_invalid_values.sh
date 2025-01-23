@@ -47,6 +47,7 @@ check max_text_length 4M 5G
 check max_file_size 2G 2P
 check working_dir ./ server.pfx
 check bind_address 127.0.0.1 127.0.0.256
+check bind_address_udp 0.0.0.0 127.0.0.a
 check client_selects_display false F
 check cut_sent_files False T
 check min_proto_version 1 1K
