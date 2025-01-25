@@ -27,9 +27,14 @@
 #include <sys/types.h>
 #include <utils/list_utils.h>
 
-#ifdef _WIN32
+#if defined(__linux__) || defined(__APPLE__)
+#include <arpa/inet.h>
+#elif defined(_WIN32)
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #endif
+
+typedef struct _data_buffer data_buffer;
 
 #if defined(__linux__) || defined(__APPLE__)
 typedef int sock_t;
@@ -83,24 +88,36 @@ typedef struct _listener_socket_t {
 #endif
 } listener_t;
 
+typedef struct _in_addr_common {
+    signed char af;
+    union {
+        struct in_addr addr4;
+        struct in6_addr addr6;
+    } addr;
+} in_addr_common;
+
 /*
  * Opens a socket for listening.
- * If sock_type is PLAIN_SOCK, an unencrypted TCP socket is created and SSL context is not initialized.
+ * If sock_type is a plaintext socket, an unencrypted TCP socket is created and the SSL context is not initialized.
  * server_certificate and ca_certificate are not required in that case.
- * If sock_type is SSL_SOCK, an TLS encrypted TCP socket is created and SSL context is initialized with the provided
+ * If sock_type has SSL_SOCK, a TLS encrypted TCP socket is created and SSL context is initialized with the provided
  * server_certificate and ca_certificate.
- * Otherwise, a UDP socket is created and SSL context is not initialized. server_certificate and ca_certificate are
- * not required in that case.
+ * If sock_type has IPv6 set, an IPv6 socket is created. Otherwise, an IPv4 socket is created.
+ * If sock_type has TRNSPRT_UDP set, a UDP socket is created and SSL context is not initialized. server_certificate
+ * and ca_certificate are not required in that case.
+ * Otherwise, a TCP socket is created.
+ * If sock_type doesn't have VALID_SOCK set, a socket will not be created and the listener will not have VALID_SOCK.
  */
 extern void open_listener_socket(listener_t *listener, const unsigned char sock_type, const data_buffer *server_cert,
                                  const data_buffer *ca_cert);
 
 /*
- * Converts a ipv4 address in dotted decimal into in_addr_t.
- * If address_str is NULL, address is interpretted as INADDR_ANY.
+ * Converts an IP address string into in_addr_common.
+ * If address_str is NULL, address is interpretted as IPv4 INADDR_ANY.
+ * address_str should be either an IPv4 address in dot-decimal notation or an IPv6 address.
  * returns EXIT_SUCCESS on success and EXIT_FAILURE on failure.
  */
-extern int ipv4_aton(const char *address_str, uint32_t *address_ptr);
+extern int parse_ip(const char *address_str, in_addr_common *address_ptr);
 
 /*
  * Binds a listener socket to a port.

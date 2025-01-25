@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <utils/list_utils.h>
+#include <utils/net_utils.h>
 
 typedef struct _data_buffer {
     int32_t len;
@@ -44,8 +45,8 @@ typedef struct _config {
     list2 *allowed_clients;
 
     char *working_dir;
-    uint32_t bind_addr;
-    uint32_t bind_addr_udp;
+    in_addr_common bind_addr;
+    in_addr_common bind_addr_udp;
     int8_t restart;
 
     uint32_t max_text_length;

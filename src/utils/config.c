@@ -281,13 +281,13 @@ static void parse_line(char *line, config *cfg) {
         if (cfg->working_dir) free(cfg->working_dir);
         cfg->working_dir = strdup(value);
     } else if (!strcmp("bind_address", key)) {
-        if (ipv4_aton(value, &(cfg->bind_addr)) != EXIT_SUCCESS) {
+        if (parse_ip(value, &(cfg->bind_addr)) != EXIT_SUCCESS) {
             char msg[64];
             snprintf_check(msg, 64, "Error: Invalid bind address %s", value);
             error_exit(msg);
         }
     } else if (!strcmp("bind_address_udp", key)) {
-        if (ipv4_aton(value, &(cfg->bind_addr_udp)) != EXIT_SUCCESS) {
+        if (parse_ip(value, &(cfg->bind_addr_udp)) != EXIT_SUCCESS) {
             char msg[64];
             snprintf_check(msg, 64, "Error: Invalid UDP bind address %s", value);
             error_exit(msg);
@@ -377,8 +377,8 @@ void parse_conf(config *cfg, const char *file_name) {
 #if defined(_WIN32) || defined(__APPLE__)
     cfg->tray_icon = -1;
 #endif
-    if (ipv4_aton(NULL, &(cfg->bind_addr)) != EXIT_SUCCESS) error_exit("Error initializing bind address");
-    if (ipv4_aton(NULL, &(cfg->bind_addr_udp)) != EXIT_SUCCESS) error_exit("Error initializing bind address UDP");
+    if (parse_ip(NULL, &(cfg->bind_addr)) != EXIT_SUCCESS) error_exit("Error initializing bind address");
+    if (parse_ip(NULL, &(cfg->bind_addr_udp)) != EXIT_SUCCESS) error_exit("Error initializing bind address UDP");
 
     if (!file_name) {
 #ifdef DEBUG_MODE

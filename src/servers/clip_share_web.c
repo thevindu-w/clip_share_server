@@ -208,7 +208,8 @@ int web_server(void) {
     }
 
     listener_t listener;
-    open_listener_socket(&listener, SSL_SOCK | VALID_SOCK, &(configuration.server_cert), &(configuration.ca_cert));
+    open_listener_socket(&listener, (configuration.bind_addr_udp.af == AF_INET ? IPv4 : IPv6) | SSL_SOCK | VALID_SOCK,
+                         &(configuration.server_cert), &(configuration.ca_cert));
     if (bind_port(listener, configuration.web_port) != EXIT_SUCCESS) {
         close_listener_socket(&listener);
         return EXIT_FAILURE;

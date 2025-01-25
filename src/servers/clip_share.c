@@ -70,8 +70,10 @@ int clip_share(const int is_secure) {
 #endif
     }
     listener_t listener;
-    open_listener_socket(&listener, (is_secure ? SSL_SOCK : PLAIN_SOCK) | VALID_SOCK, &(configuration.server_cert),
-                         &(configuration.ca_cert));
+    int sock_type = VALID_SOCK;
+    sock_type |= (is_secure ? SSL_SOCK : PLAIN_SOCK);
+    sock_type |= (configuration.bind_addr.af == AF_INET ? IPv4 : IPv6);
+    open_listener_socket(&listener, (unsigned char)sock_type, &(configuration.server_cert), &(configuration.ca_cert));
     if (bind_port(listener, port) != EXIT_SUCCESS) {
         close_listener_socket(&listener);
         return EXIT_FAILURE;

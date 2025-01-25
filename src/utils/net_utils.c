@@ -38,6 +38,7 @@
 #include <unistd.h>
 #elif defined(_WIN32)
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #endif
 
 #ifdef _WIN32
@@ -152,8 +153,9 @@ static int getClientCerts(const SSL *ssl, const list2 *allowed_clients) {
 void open_listener_socket(listener_t *listener, const unsigned char sock_type, const data_buffer *server_cert,
                           const data_buffer *ca_cert) {
     listener->type = 0;
-
-    sock_t listener_d = socket(PF_INET, (IS_UDP(sock_type) ? SOCK_DGRAM : SOCK_STREAM), 0);
+    if (IS_NULL_SOCK(sock_type)) return;
+    sock_t listener_d =
+        socket((IS_IPv6(sock_type) ? PF_INET6 : PF_INET), (IS_UDP(sock_type) ? SOCK_DGRAM : SOCK_STREAM), 0);
     if (listener_d == INVALID_SOCKET) {
         error("Can\'t open socket");
         return;
@@ -188,54 +190,63 @@ void open_listener_socket(listener_t *listener, const unsigned char sock_type, c
 #endif
 }
 
-int ipv4_aton(const char *address_str, uint32_t *address_ptr) {
+int parse_ip(const char *address_str, in_addr_common *address_ptr) {
     if (!address_ptr) return EXIT_FAILURE;
     if (address_str == NULL) {
-        *address_ptr = htonl(INADDR_ANY);
+        address_ptr->af = AF_INET;
+        address_ptr->addr.addr4.s_addr = htonl(INADDR_ANY);
         return EXIT_SUCCESS;
     }
-    unsigned int a;
-    unsigned int b;
-    unsigned int c;
-    unsigned int d;
-    if (sscanf(address_str, "%u.%u.%u.%u", &a, &b, &c, &d) != 4 || a >= 256 || b >= 256 || c >= 256 || d >= 256) {
-#ifdef DEBUG_MODE
-        printf("Invalid address %s\n", address_str);
-#endif
-        return EXIT_FAILURE;
+    struct in_addr addr4;
+    if (inet_pton(AF_INET, address_str, &addr4) == 1) {
+        address_ptr->af = AF_INET;
+        address_ptr->addr.addr4 = addr4;
+        return EXIT_SUCCESS;
     }
-    struct in_addr addr;
-#if defined(__linux__) || defined(__APPLE__)
-    if (inet_aton(address_str, &addr) != 1) {
-#elif defined(_WIN32)
-    if ((addr.s_addr = inet_addr(address_str)) == INADDR_NONE) {
-#endif
-#ifdef DEBUG_MODE
-        printf("Invalid address %s\n", address_str);
-#endif
-        return EXIT_FAILURE;
+    struct in6_addr addr6;
+    if (inet_pton(AF_INET6, address_str, &addr6) == 1) {
+        address_ptr->af = AF_INET6;
+        address_ptr->addr.addr6 = addr6;
+        return EXIT_SUCCESS;
     }
-#if defined(__linux__) || defined(__APPLE__)
-    *address_ptr = addr.s_addr;
-#elif defined(_WIN32)
-    *address_ptr = (uint32_t)addr.s_addr;
+#ifdef DEBUG_MODE
+    printf("Invalid address %s\n", address_str);
 #endif
-    return EXIT_SUCCESS;
+    return EXIT_FAILURE;
 }
 
 int bind_port(listener_t listener, uint16_t port) {
     if (IS_NULL_SOCK(listener.type)) return EXIT_FAILURE;
-    sock_t socket = listener.socket;
-    struct sockaddr_in server_addr;
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-    server_addr.sin_addr.s_addr = IS_UDP(listener.type) ? configuration.bind_addr_udp : configuration.bind_addr;
+    in_addr_common bind_addr = IS_UDP(listener.type) ? configuration.bind_addr_udp : configuration.bind_addr;
+    if (bind_addr.af != (IS_IPv6(listener.type) ? AF_INET6 : AF_INET)) {
+        error("Bind address and listener address family mismatch");
+        return EXIT_FAILURE;
+    }
+    struct sockaddr_in6 server_addr6;
+    struct sockaddr_in server_addr4;
+    const struct sockaddr *server_addr;
+    socklen_t addr_sz;
+    if (IS_IPv6(listener.type)) {
+        memset(&server_addr6, 0, sizeof(server_addr6));
+        server_addr6.sin6_family = AF_INET6;
+        server_addr6.sin6_port = htons(port);
+        server_addr6.sin6_addr = bind_addr.addr.addr6;
+        server_addr = (const struct sockaddr *)&server_addr6;
+        addr_sz = sizeof(server_addr6);
+    } else {
+        memset(&server_addr4, 0, sizeof(server_addr4));
+        server_addr4.sin_family = AF_INET;
+        server_addr4.sin_port = htons(port);
+        server_addr4.sin_addr = bind_addr.addr.addr4;
+        server_addr = (const struct sockaddr *)&server_addr4;
+        addr_sz = sizeof(server_addr4);
+    }
     int reuse = 1;
-    if (!IS_UDP(listener.type) && setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int))) {
+    if (!IS_UDP(listener.type) && setsockopt(listener.socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int))) {
         error("Can't set the reuse option on the socket");
         return EXIT_FAILURE;
     }
-    if (bind(socket, (const struct sockaddr *)&server_addr, sizeof(server_addr))) {
+    if (bind(listener.socket, server_addr, addr_sz)) {
         char errmsg[32];
         const char *tcp_udp = IS_UDP(listener.type) ? "UDP" : "TCP";
         snprintf_check(errmsg, 32, "Can\'t bind to %s port %hu", tcp_udp, port);
@@ -245,10 +256,7 @@ int bind_port(listener_t listener, uint16_t port) {
     return EXIT_SUCCESS;
 }
 
-void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_clients) {
-    sock->type = 0;
-    if (IS_NULL_SOCK(listener.type)) return;
-    sock_t listener_socket = listener.socket;
+static inline sock_t _accept_connection4(sock_t listener_socket) {
     struct sockaddr_in client_addr;
 #if defined(__linux__) || defined(__APPLE__)
     unsigned int address_size = sizeof(client_addr);
@@ -256,6 +264,39 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
     int address_size = (int)sizeof(client_addr);
 #endif
     sock_t connect_d = accept(listener_socket, (struct sockaddr *)&client_addr, &address_size);
+#ifdef DEBUG_MODE
+    char addr_str[16];
+    inet_ntop(AF_INET, &(client_addr.sin_addr), addr_str, sizeof(addr_str));
+    printf("\nConnection: %s:%d\n", addr_str, ntohs(client_addr.sin_port));
+#endif
+    return connect_d;
+}
+
+static inline sock_t _accept_connection6(sock_t listener_socket) {
+    struct sockaddr_in6 client_addr;
+#if defined(__linux__) || defined(__APPLE__)
+    unsigned int address_size = sizeof(client_addr);
+#elif defined(_WIN32)
+    int address_size = (int)sizeof(client_addr);
+#endif
+    sock_t connect_d = accept(listener_socket, (struct sockaddr *)&client_addr, &address_size);
+#ifdef DEBUG_MODE
+    char addr_str[46];
+    inet_ntop(AF_INET6, &(client_addr.sin6_addr), addr_str, sizeof(addr_str));
+    printf("\nConnection: %s:%d\n", addr_str, ntohs(client_addr.sin6_port));
+#endif
+    return connect_d;
+}
+
+void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_clients) {
+    sock->type = 0;
+    if (IS_NULL_SOCK(listener.type)) return;
+    sock_t connect_d;
+    if (IS_IPv6(listener.type)) {
+        connect_d = _accept_connection6(listener.socket);
+    } else {
+        connect_d = _accept_connection4(listener.socket);
+    }
     if (connect_d == INVALID_SOCKET) {
         error("Can\'t open secondary socket");
         return;
@@ -268,55 +309,51 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
         error("Can't set the timeout option of the connection");
         return;
     }
-#ifdef DEBUG_MODE
-    printf("\nConnection: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-#endif
 
     if (!IS_SSL(listener.type)) {
         sock->socket.plain = connect_d;
         sock->type = listener.type;
+        return;
+    }
 #ifndef NO_SSL
-    } else {
-        SSL_CTX *ctx = listener.ctx;
-        SSL *ssl = SSL_new(ctx);
-        SSL_set_min_proto_version(ssl, TLS1_2_VERSION);
+    SSL_CTX *ctx = listener.ctx;
+    SSL *ssl = SSL_new(ctx);
+    SSL_set_min_proto_version(ssl, TLS1_2_VERSION);
 #ifdef _WIN32
-        SSL_set_fd(ssl, (int)connect_d);
+    SSL_set_fd(ssl, (int)connect_d);
 #else
-        SSL_set_fd(ssl, connect_d);
+    SSL_set_fd(ssl, connect_d);
 #endif
-        /* do SSL-protocol accept */
-        int accept_st;
-        while ((accept_st = SSL_accept(ssl)) != 1) { /* do SSL-protocol accept */
-            if (accept_st == 0) {
+    /* do SSL-protocol accept */
+    int accept_st;
+    while ((accept_st = SSL_accept(ssl)) != 1) { /* do SSL-protocol accept */
+        if (accept_st == 0) {
 #ifdef DEBUG_MODE
-                puts("SSL_accept error");
+            puts("SSL_accept error");
+#endif
+            return;
+        }
+        switch (SSL_get_error(ssl, accept_st)) {
+            case SSL_ERROR_WANT_READ:
+                continue;
+            case SSL_ERROR_WANT_WRITE:
+                continue;
+            default: {
+#ifdef DEBUG_MODE
+                ERR_print_errors_fp(stdout);
 #endif
                 return;
             }
-            switch (SSL_get_error(ssl, accept_st)) {
-                case SSL_ERROR_WANT_READ:
-                    continue;
-                case SSL_ERROR_WANT_WRITE:
-                    continue;
-                default: {
-#ifdef DEBUG_MODE
-                    ERR_print_errors_fp(stdout);
-#endif
-                    return;
-                }
-            }
         }
-        sock->socket.ssl = ssl;
-        if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) {  // get client certificates if any
-            close_socket_no_wait(sock);
-            sock->type = 0;
-            return;
-        }
-        sock->type = listener.type;
-#endif
     }
-#ifdef NO_SSL
+    sock->socket.ssl = ssl;
+    if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) {  // get client certificates if any
+        close_socket_no_wait(sock);
+        sock->type = 0;
+        return;
+    }
+    sock->type = listener.type;
+#else
     (void)allowed_clients;
 #endif
 }

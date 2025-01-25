@@ -54,7 +54,8 @@ void udp_server(void) {
 #endif
 
     listener_t listener;
-    open_listener_socket(&listener, TRNSPRT_UDP | VALID_SOCK, NULL, NULL);
+    open_listener_socket(
+        &listener, (configuration.bind_addr_udp.af == AF_INET ? IPv4 : IPv6) | TRNSPRT_UDP | VALID_SOCK, NULL, NULL);
     if (IS_NULL_SOCK(listener.type)) {
         error("UDP socket creation failed");
         return;
