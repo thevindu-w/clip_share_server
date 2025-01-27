@@ -122,7 +122,12 @@ extern int parse_ip(const char *address_str, in_addr_common *address_ptr);
 /*
  * Binds a listener socket to a port.
  */
-extern int bind_port(listener_t listener, uint16_t port);
+extern int bind_socket(listener_t listener, in_addr_common address, uint16_t port);
+
+/*
+ * Binds a UDP listener socket to a port.
+ */
+extern int bind_udp(listener_t listener);
 
 /*
  * Accepts a TCP connection.

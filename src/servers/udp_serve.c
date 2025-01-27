@@ -64,7 +64,8 @@ void udp_server(void) {
     puts("UDP socket created");
 #endif
 
-    if (bind_port(listener, configuration.udp_port) != EXIT_SUCCESS) {
+    if (bind_udp(listener) != EXIT_SUCCESS) {
+        close_listener_socket(&listener);
         return;
     }
 
@@ -73,8 +74,19 @@ void udp_server(void) {
 #endif
 
     sock_t sockfd = listener.socket;
-    struct sockaddr_in cliaddr;
-    memset(&cliaddr, 0, sizeof(cliaddr));
+    struct sockaddr *addr_p;
+    struct sockaddr_in client_addr4;
+    struct sockaddr_in6 client_addr6;
+    socklen_t addr_len;
+    if (IS_IPv6(listener.type)) {
+        memset(&client_addr6, 0, sizeof(client_addr6));
+        addr_p = (struct sockaddr *)&client_addr6;
+        addr_len = sizeof(client_addr6);
+    } else {
+        memset(&client_addr4, 0, sizeof(client_addr4));
+        addr_p = (struct sockaddr *)&client_addr4;
+        addr_len = sizeof(client_addr4);
+    }
 
     const size_t info_len = sizeof(INFO_NAME) - 1;
 
@@ -86,8 +98,8 @@ void udp_server(void) {
     puts("UDP server started");
 #endif
     while (1) {
-        len = sizeof(cliaddr);
-        n = (int)recvfrom(sockfd, (char *)buffer, 2, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len);
+        len = addr_len;
+        n = (int)recvfrom(sockfd, (char *)buffer, 2, MSG_WAITALL, addr_p, &len);
         if (n <= 0) {
             continue;
         }
@@ -102,9 +114,9 @@ void udp_server(void) {
             continue;
         }
 #ifdef _WIN32
-        sendto(sockfd, INFO_NAME, (int)info_len, MSG_CONFIRM, (const struct sockaddr *)&cliaddr, len);
+        sendto(sockfd, INFO_NAME, (int)info_len, MSG_CONFIRM, addr_p, len);
 #else
-        sendto(sockfd, INFO_NAME, info_len, MSG_CONFIRM, (const struct sockaddr *)&cliaddr, len);
+        sendto(sockfd, INFO_NAME, info_len, MSG_CONFIRM, addr_p, len);
 #endif
     }
 }
