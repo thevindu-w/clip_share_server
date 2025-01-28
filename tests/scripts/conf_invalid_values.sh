@@ -3,14 +3,14 @@
 . init.sh
 
 expect_running() {
-    if [ -f server_err.log ] || (! nc -zvn 127.0.0.1 4337 &>/dev/null); then
+    if [ -f server_err.log ] || (! test_port 4337); then
         showStatus info 'Server is not running'
         exit 1
     fi
 }
 
 expect_not_running() {
-    if nc -zvn 127.0.0.1 4337 &>/dev/null; then
+    if test_port 4337; then
         showStatus info "Invalid $1 config accepted"
         exit 1
     fi

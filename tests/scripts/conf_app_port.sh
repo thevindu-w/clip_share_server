@@ -4,12 +4,12 @@
 
 update_config app_port 6337
 
-if nc -zvn 127.0.0.1 4337 &>/dev/null; then
+if test_port 4337; then
     showStatus info 'Still accepting connections on 4337'
     exit 1
 fi
 
-if ! nc -zvn 127.0.0.1 6337 &>/dev/null; then
+if ! test_port 6337; then
     showStatus info 'Not accepting connections on 6337'
     exit 1
 fi
@@ -23,7 +23,7 @@ if [ "$responseDump" != "$expected" ]; then
     exit 1
 fi
 
-if ! nc -zvn 127.0.0.1 4338 &>/dev/null; then
+if ! test_port 4338; then
     showStatus info 'Not accepting connections on 4338'
     exit 1
 fi

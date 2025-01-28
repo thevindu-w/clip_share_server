@@ -20,7 +20,7 @@ dependencies=(
     find
     diff
     python3
-    nc
+    socat
     openssl
     sed
 )
@@ -136,13 +136,14 @@ showStatus() {
     fi
 }
 
-# Use nc or openssl s_client as the client
+# Use socat or openssl s_client as the client
 client_tool() {
-    local arg secure udp port
-    while getopts 'sup:' arg; do
+    local arg secure udp host port
+    while getopts 'suh:p:' arg; do
         case ${arg} in
             s) secure=1 ;;
             u) udp=1 ;;
+            h) host=${OPTARG} ;;
             p) port=${OPTARG} ;;
         esac
     done
@@ -159,14 +160,20 @@ client_tool() {
         default_port=4338
     fi
     port="${port:-$default_port}"
+    host="${host:-127.0.0.1}"
 
     if [ "$udp" = '1' ]; then
-        timeout 1 nc -w 1 -u 127.0.0.1 "$port" | head -n 1 | bin2hex | tr -d '\n'
+        timeout 1 socat - UDP-DATAGRAM:"$host":"$port",broadcast | head -n 1 | bin2hex | tr -d '\n'
     elif [ "$secure" = '1' ]; then
-        openssl s_client -tls1_3 -quiet -verify_quiet -noservername -connect 127.0.0.1:"$port" -CAfile testCA.crt -cert testClient_cert.pem -key testClient_key.pem 2>/dev/null | sed 's/Connecting to 127.0.0.1//g' | tr -d '\r\n' | bin2hex | tr -d '\n'
+        openssl s_client -tls1_3 -quiet -verify_quiet -noservername -connect "$host":"$port" -CAfile testCA.crt -cert testClient_cert.pem -key testClient_key.pem 2>/dev/null | sed 's/Connecting to 127.0.0.1//g' | tr -d '\r\n' | bin2hex | tr -d '\n'
     else
-        nc -w 2 127.0.0.1 "$port" 2>/dev/null | bin2hex | tr -d '\n'
+        socat - tcp:"$host":"$port" 2>/dev/null | bin2hex | tr -d '\n'
     fi
+}
+
+# Check if the TCP port open
+test_port() {
+    socat /dev/null TCP:127.0.0.1:"$1" &>/dev/null
 }
 
 # Copy a string to clipboard
@@ -319,7 +326,7 @@ dfc0f828c0e0522b1809c0000000049454e44ae426082"
 
 # Export variables and functions
 export DETECTED_OS
-export -f setColor showStatus client_tool copy_text get_copied_text copy_files copy_image clear_clipboard update_config
+export -f setColor showStatus client_tool test_port copy_text get_copied_text copy_files copy_image clear_clipboard update_config
 
 exitCode=0
 passCnt=0
