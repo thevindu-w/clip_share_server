@@ -77,7 +77,7 @@ jobs:
           mingw-w64-x86_64-python
           findutils
           diffutils
-          openbsd-netcat
+          socat
           sed
 
     - name: Setup make
@@ -123,7 +123,7 @@ jobs:
 
     - name: Install test dependencies
       run: |
-        brew install coreutils
+        brew install coreutils socat
         echo "$(brew --prefix coreutils)"'/libexec/gnubin' >> $GITHUB_PATH
         echo "$(brew --prefix gnu-sed)"'/libexec/gnubin' >> $GITHUB_PATH
 
