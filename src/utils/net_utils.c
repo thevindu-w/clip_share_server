@@ -39,6 +39,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #elif defined(_WIN32)
+#include <iphlpapi.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #endif
@@ -311,6 +312,58 @@ static int iterate_interfaces(in_addr_common interface_addr, listener_t listener
     freeifaddrs(ptr_ifaddrs);
     return status;
 }
+#elif defined(_WIN32)
+static int iterate_interfaces(in_addr_common interface_addr, listener_t listener) {
+    (void)listener;
+    ULONG bufSz = 4096;
+    PIP_ADAPTER_ADDRESSES pAddrs = NULL;
+    int retries = 3;
+    do {
+        pAddrs = malloc(bufSz);
+        if (!pAddrs) return EXIT_FAILURE;
+        ULONG flags =
+            GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_FRIENDLY_NAME;
+        ULONG ret = GetAdaptersAddresses((ULONG)interface_addr.af, flags, NULL, pAddrs, &bufSz);
+        if (ret == NO_ERROR) break;
+        free(pAddrs);
+        pAddrs = NULL;
+        if (ret != ERROR_BUFFER_OVERFLOW) return EXIT_FAILURE;
+        retries--;
+    } while (retries > 0 && bufSz < 1000000L);
+    if (!pAddrs) return EXIT_FAILURE;
+    int is_any_addr = (interface_addr.af == AF_INET)
+                          ? (interface_addr.addr.addr4.s_addr == INADDR_ANY)
+                          : IN6_ARE_ADDR_EQUAL((struct in6_addr *)&interface_addr.addr.addr6, &in6addr_any);
+    int status = EXIT_SUCCESS;
+    for (PIP_ADAPTER_ADDRESSES cur = pAddrs; cur; cur = cur->Next) {
+        PIP_ADAPTER_UNICAST_ADDRESS unicast = cur->FirstUnicastAddress;
+        if (!unicast) continue;
+        SOCKET_ADDRESS socket_addr = unicast->Address;
+        if (interface_addr.af == AF_INET) {
+            if (!is_any_addr &&
+                ((struct sockaddr_in *)(socket_addr.lpSockaddr))->sin_addr.s_addr != interface_addr.addr.addr4.s_addr)
+                continue;
+            if (bind_socket(listener, interface_addr, configuration.udp_port) != EXIT_SUCCESS) {
+                status = EXIT_FAILURE;
+                break;
+            }
+        } else {
+            struct in6_addr ifaddr = ((struct sockaddr_in6 *)(socket_addr.lpSockaddr))->sin6_addr;
+            if (!is_any_addr && !IN6_ARE_ADDR_EQUAL(&ifaddr, &(interface_addr.addr.addr6))) continue;
+            in_addr_common multicast_addr = {.af = AF_INET6};
+            if (inet_pton(AF_INET6, MULTICAST_ADDR, &(multicast_addr.addr.addr6)) != 1) {
+                status = EXIT_FAILURE;
+                break;
+            }
+            if (join_multicast_group(listener.socket, (unsigned int)cur->IfIndex, multicast_addr) != EXIT_SUCCESS) {
+                status = EXIT_FAILURE;
+                break;
+            }
+        }
+    }
+    free(pAddrs);
+    return status;
+}
 #endif
 
 int bind_udp(listener_t listener) {
@@ -324,7 +377,11 @@ int bind_udp(listener_t listener) {
             return EXIT_FAILURE;
         }
         in_addr_common multicast_addr = {.af = AF_INET6};
+#ifdef _WIN32
+        multicast_addr.addr.addr6 = configuration.bind_addr_udp.addr.addr6;
+#else
         if (inet_pton(AF_INET6, MULTICAST_ADDR, &(multicast_addr.addr.addr6)) != 1) return EXIT_FAILURE;
+#endif
         return bind_socket(listener, multicast_addr, configuration.udp_port);
     }
     if (configuration.bind_addr_udp.addr.addr4.s_addr != INADDR_ANY) {

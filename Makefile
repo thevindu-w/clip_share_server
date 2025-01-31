@@ -60,7 +60,7 @@ else ifeq ($(detected_OS),Windows)
 	CFLAGS+= -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	CFLAGS_OPTIM=-O3
-	LDLIBS_NO_SSL=-l:libunistring.a -l:libpthread.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a -lcrypt32 -lShcore -lUserenv
+	LDLIBS_NO_SSL=-l:libunistring.a -l:libpthread.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a -lIphlpapi -lcrypt32 -lShcore -lUserenv
 	OTHER_DEPENDENCIES+= res/win/app.res
 	LDLIBS_SSL=-l:libssl.a -l:libcrypto.a -l:libpthread.a
 	LINK_FLAGS_BUILD=-no-pie -mwindows

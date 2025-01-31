@@ -30,8 +30,11 @@
 #if defined(__linux__) || defined(__APPLE__)
 #include <arpa/inet.h>
 #elif defined(_WIN32)
+// clang-format off
 #include <winsock2.h>
+#include <iphlpapi.h>
 #include <ws2tcpip.h>
+// clang-format on
 #endif
 
 typedef struct _data_buffer data_buffer;
