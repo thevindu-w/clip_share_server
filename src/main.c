@@ -240,6 +240,12 @@ static inline void _apply_default_conf(void) {
 #if defined(_WIN32) || defined(__APPLE__)
     if (configuration.tray_icon < 0) configuration.tray_icon = 1;
 #endif
+#ifdef __APPLE__
+    if (configuration.bind_addr_udp.af == AF_INET)
+        configuration.bind_addr_udp.addr.addr4.s_addr = INADDR_ANY;
+    else if (configuration.bind_addr_udp.af == AF_INET6)
+        configuration.bind_addr_udp.addr.addr6 = in6addr_any;
+#endif
 }
 
 #ifdef _WIN32

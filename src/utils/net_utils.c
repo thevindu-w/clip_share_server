@@ -48,6 +48,10 @@
 typedef u_short in_port_t;
 #endif
 
+#ifndef IPV6_ADD_MEMBERSHIP
+#define IPV6_ADD_MEMBERSHIP IPV6_JOIN_GROUP
+#endif
+
 #define MULTICAST_ADDR "ff05::4567"
 
 static int iterate_interfaces(in_addr_common interface_addr, listener_t listener);
@@ -281,8 +285,14 @@ static int iterate_interfaces(in_addr_common interface_addr, listener_t listener
     int is_any_addr = (interface_addr.af == AF_INET) ? (interface_addr.addr.addr4.s_addr == INADDR_ANY)
                                                      : IN6_ARE_ADDR_EQUAL(&interface_addr.addr.addr6, &in6addr_any);
     int status = EXIT_SUCCESS;
+    char if_joined[32];
+    memset(if_joined, 0, sizeof(if_joined));
     for (struct ifaddrs *ptr_entry = ptr_ifaddrs; ptr_entry; ptr_entry = ptr_entry->ifa_next) {
         if (!(ptr_entry->ifa_addr) || ptr_entry->ifa_addr->sa_family != interface_addr.af) continue;
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-align"
+#endif
         if (interface_addr.af == AF_INET) {
             if (!is_any_addr &&
                 ((struct sockaddr_in *)(ptr_entry->ifa_addr))->sin_addr.s_addr != interface_addr.addr.addr4.s_addr)
@@ -302,12 +312,17 @@ static int iterate_interfaces(in_addr_common interface_addr, listener_t listener
                 status = EXIT_FAILURE;
                 break;
             }
-            if (join_multicast_group(listener.socket, if_nametoindex(ptr_entry->ifa_name), multicast_addr) !=
-                EXIT_SUCCESS) {
+            unsigned int ifindex = if_nametoindex(ptr_entry->ifa_name);
+            if (ifindex >= sizeof(if_joined) || if_joined[ifindex]) continue;
+            if (join_multicast_group(listener.socket, ifindex, multicast_addr) != EXIT_SUCCESS) {
                 status = EXIT_FAILURE;
                 break;
             }
+            if_joined[ifindex] = 1;
         }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
     }
     freeifaddrs(ptr_ifaddrs);
     return status;
@@ -376,13 +391,13 @@ int bind_udp(listener_t listener) {
             error("Interface iteration failed");
             return EXIT_FAILURE;
         }
-        in_addr_common multicast_addr = {.af = AF_INET6};
-#ifdef _WIN32
-        multicast_addr.addr.addr6 = configuration.bind_addr_udp.addr.addr6;
+        in_addr_common bind_addr = {.af = AF_INET6};
+#if defined(_WIN32) || defined(__APPLE__)
+        bind_addr.addr.addr6 = configuration.bind_addr_udp.addr.addr6;
 #else
-        if (inet_pton(AF_INET6, MULTICAST_ADDR, &(multicast_addr.addr.addr6)) != 1) return EXIT_FAILURE;
+        if (inet_pton(AF_INET6, MULTICAST_ADDR, &(bind_addr.addr.addr6)) != 1) return EXIT_FAILURE;
 #endif
-        return bind_socket(listener, multicast_addr, configuration.udp_port);
+        return bind_socket(listener, bind_addr, configuration.udp_port);
     }
     if (configuration.bind_addr_udp.addr.addr4.s_addr != INADDR_ANY) {
         return iterate_interfaces(configuration.bind_addr_udp, listener);
