@@ -99,7 +99,7 @@ brew install libunistring openssl@3 libpng
 
 You may need to allow incoming connections to the above ports for the client to connect to the server.
 
-Note that all TCP ports are for unicast, while `4337/udp` is used to receive broadcast. Therefore, the firewall rule that allows `4337/udp` should have the **broadcast** address of the interface as the destination address. Currently, ClipShare only supports IPv4. Therefore, allowing only IPv4 addresses is sufficient.
+Note that all TCP ports are for unicast, while `4337/udp` is used to receive broadcast. Therefore, the firewall rule that allows `4337/udp` should have the **broadcast** address of the interface as the destination address.
 
 <br>
 
@@ -107,7 +107,7 @@ Note that all TCP ports are for unicast, while `4337/udp` is used to receive bro
 
 You can find an Android client app in [releases](https://github.com/thevindu-w/clip_share_client/releases). You can also get it from [apt.izzysoft.de](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare/). The source of the Android client app is available at [github.com/thevindu-w/clip_share_client](https://github.com/thevindu-w/clip_share_client). Or you may develop a client app according to the protocol specification described in the `docs/`.<br>
 - The client and the server devices should be on the same network. You can do that by connecting both devices to the same Wi-Fi network. It is also possible to use one of the devices as a Wi-Fi hotspot and connect the other device to that hotspot.
-- If the client supports network scanning, it can easily find the server in the network. Otherwise, enter the server's IPv4 address to the client.
+- If the client supports network scanning, it can automatically find the server in the network. Otherwise, enter the server's IP address to the client.
 - Now the client can share clipboard data and files and get images from the server.<br>
 Note that the server should allow the client through the firewall, as mentioned in the above section.
 
@@ -295,8 +295,8 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `server_cert` | The TLS key and certificate store file of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the server's TLS certificate store PKCS#12 file | \<Unspecified\> |
 | `ca_cert` | The TLS certificate file of the CA that signed the TLS certificate of the server. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the TLS certificate PEM file of the CA | \<Unspecified\> |
 | `allowed_clients` | The text file containing a list of allowed clients (Common Name of client certificate), one name per line. If this is not specified, secure mode (and web mode if available) will be disabled. | Absolute or relative path to the allowed-clients file | \<Unspecified\> |
-| `bind_address` | The address of the interface to which the application should bind when listening for connections. It will listen on all interfaces if this is set to `0.0.0.0` | IPv4 address of an interface in dot-decimal notation (ex: `192.168.37.5`) or `0.0.0.0` | `0.0.0.0` |
-| `bind_address_udp` | The IP address to which the application should bind when listening for UDP scanning requests. It will listen on all addresses if this is set to `0.0.0.0` | IPv4 address in dot-decimal notation (ex: `192.168.37.5`) or `0.0.0.0` | `0.0.0.0` |
+| `bind_address` | The address of the interface to which the application should bind when listening for connections. It will listen on all interfaces if this is set to `0.0.0.0` | IP address of an interface or wildcard address. IPv4 dot-decimal notation (ex: `192.168.37.5`) or `0.0.0.0`, or IPv6 hexadecimal notation (ex: `fc00::abcd:12`) or `::` | `0.0.0.0` |
+| `bind_address_udp` | The IP address to which the application should bind when listening for UDP scanning requests. It will listen on all addresses if this is set to `0.0.0.0` | IP address of an interface or wildcard address. IPv4 dot-decimal notation (ex: `192.168.37.5`) or `0.0.0.0`, or IPv6 hexadecimal notation (ex: `fc00::abcd:12`) or `::` | `0.0.0.0` |
 | `restart` | Whether the application should start or restart by default. The values `true` or `1` will make the server restart by default, while `false` or `0` will make it just start without stopping any running instances of the server. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
 | `working_dir` | The working directory where the application should run. All the files, that are sent from a client, will be saved in this directory. It will follow symlinks if this is a path to a symlink. The user running this application should have write access to the directory | Absolute or relative path to an existing directory | `.` (i.e. Current directory) |
 | `max_text_length` | The maximum length of text that can be transferred. This is the number of bytes of the text encoded in UTF-8. | Any integer between 1 and 4294967295 (nearly 4 GiB) inclusive. Suffixes K, M, and G (case insensitive) denote x10<sup>3</sup>, x10<sup>6</sup>, and x10<sup>9</sup>, respectively. | 4194304 (i.e. 4 MiB) |
