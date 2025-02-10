@@ -145,6 +145,7 @@ jobs:
     steps:
     - name: Install build dependencies
       run: |
+        echo "set man-db/auto-update false" | sudo debconf-communicate && sudo dpkg-reconfigure man-db -f noninteractive
         sudo apt-get update
         sudo apt-get install --no-install-recommends -y apt-transport-https
         sudo apt-get install --no-install-recommends -y coreutils gcc make \
