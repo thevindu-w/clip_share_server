@@ -28,3 +28,4 @@ BEGIN
     VALUE "Translation", 0x809, 1252
   END
 END
+1 24 "clip_share.exe.manifest"

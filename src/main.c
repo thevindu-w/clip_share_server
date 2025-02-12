@@ -16,11 +16,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifdef _WIN32
-#define NTDDI_VERSION NTDDI_WINBLUE
-#define _WIN32_WINNT _WIN32_WINNT_WINBLUE
-#endif
-
 #include <fcntl.h>
 #include <globals.h>
 #include <servers/servers.h>
@@ -610,7 +605,6 @@ int main(int argc, char **argv) {
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
         error_exit("Failed WSAStartup");
     }
-    SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
     HANDLE insecureThread = NULL;
     HANDLE secureThread = NULL;
 #ifdef WEB_ENABLED
