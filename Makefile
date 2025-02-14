@@ -48,6 +48,15 @@ else
     detected_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
 endif
 
+ifeq ($(ARCH),x86)
+	BUILD_DIR:=$(BUILD_DIR)_x86
+	CFLAGS+= -m32
+	LDLIBS+= -m32
+	PROGRAM_NAME:=$(PROGRAM_NAME)32
+	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB)32
+	PROGRAM_NAME_NO_SSL:=$(PROGRAM_NAME_NO_SSL)32
+endif
+
 ifeq ($(detected_OS),Linux)
 	OBJS_C+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 	CFLAGS+= -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
@@ -79,7 +88,7 @@ export LIBRARY_PATH=$(shell brew --prefix)/lib
 else
 $(error ClipShare is not supported on this platform!)
 endif
-LDLIBS=$(LDLIBS_SSL) $(LDLIBS_NO_SSL)
+LDLIBS+= $(LDLIBS_SSL) $(LDLIBS_NO_SSL)
 CFLAGS+= -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=$(MIN_PROTO) -DPROTOCOL_MAX=$(MAX_PROTO)
 CFLAGS_OPTIM+= -Werror
 

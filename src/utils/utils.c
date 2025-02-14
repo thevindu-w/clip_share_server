@@ -178,9 +178,9 @@ int64_t get_file_size(FILE *fp) {
 
 int is_directory(const char *path, int follow_symlinks) {
     if (path[0] == 0) return 0;  // empty path
-    struct stat sb;
     int stat_result;
 #if defined(__linux__) || defined(__APPLE__)
+    struct stat sb;
     if (follow_symlinks) {
         stat_result = stat(path, &sb);
     } else {
@@ -188,6 +188,7 @@ int is_directory(const char *path, int follow_symlinks) {
     }
 #elif defined(_WIN32)
     (void)follow_symlinks;
+    struct _stat64 sb;
     wchar_t *wpath;
     if (utf8_to_wchar_str(path, &wpath, NULL) != EXIT_SUCCESS) return 0;
     stat_result = _wstat64(wpath, &sb);
@@ -226,7 +227,7 @@ void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) 
  * Returns 1 if conversion is needed and it will increase the length.
  * Returns -1 if realloc failed.
  */
-static inline int _realloc_for_crlf(char **str_p, uint64_t *len_p) {
+static inline int _realloc_for_crlf(char **str_p, size_t *len_p) {
     char *str = *str_p;
     size_t increase = 0;
     size_t ind;
@@ -240,8 +241,8 @@ static inline int _realloc_for_crlf(char **str_p, uint64_t *len_p) {
         *len_p = ind;
         return 0;
     }
-    uint64_t req_len = ind + increase;
-    if (req_len >= 0xFFFFFFFFUL) {
+    size_t req_len = ind + increase;
+    if (req_len >= 0x7FFFFFFFUL || ind >= 0x7FFFFFFFUL) {
         free(str);
         error("realloc size too large");
         return -1;
@@ -257,7 +258,7 @@ static inline int _realloc_for_crlf(char **str_p, uint64_t *len_p) {
     return 1;
 }
 
-static inline void _convert_to_crlf(char *str, uint64_t new_len) {
+static inline void _convert_to_crlf(char *str, size_t new_len) {
     // converting to CRLF expands string. Therefore, start from the end to avoid overwriting
     size_t new_ind = new_len - 1;
     str[new_len] = 0;  // terminating '\0'
@@ -298,7 +299,7 @@ int64_t convert_eol(char **str_p, int force_lf) {
     if (force_lf) crlf = 0;
     // realloc if available capacity is not enough
     if (crlf) {
-        uint64_t new_len;
+        size_t new_len;
         int status = _realloc_for_crlf(str_p, &new_len);
         if (status == 0) return (int64_t)new_len;  // no conversion needed
         if (status < 0 || !*str_p) return -1;      // realloc failed
@@ -682,7 +683,7 @@ static void _process_path(const wchar_t *path, list2 *lst, int depth, int includ
 static void _recurse_dir(const wchar_t *_path, list2 *lst, int depth, int include_leaf_dirs);
 
 static void _process_path(const wchar_t *path, list2 *lst, int depth, int include_leaf_dirs) {
-    struct stat sb;
+    struct _stat64 sb;
     if (_wstat64(path, &sb) != 0) return;
     if (S_ISDIR(sb.st_mode)) {
         _recurse_dir(path, lst, depth + 1, include_leaf_dirs);

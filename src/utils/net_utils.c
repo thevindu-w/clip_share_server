@@ -616,7 +616,7 @@ int read_sock(socket_t *socket, char *buf, uint64_t size) {
         uint64_t read_req_sz = size - total_sz_read;
         if (read_req_sz > 0x7FFFFFFFL) read_req_sz = 0x7FFFFFFFL;  // prevent overflow due to casting
         if (!IS_SSL(socket->type)) {
-            sz_read = _read_plain(socket->socket.plain, ptr, read_req_sz, &fatal);
+            sz_read = _read_plain(socket->socket.plain, ptr, (uint32_t)read_req_sz, &fatal);
 #ifndef NO_SSL
         } else {
             sz_read = _read_SSL(socket->socket.ssl, ptr, (int)read_req_sz, &fatal);
@@ -708,7 +708,7 @@ int write_sock(socket_t *socket, const char *buf, uint64_t size) {
         uint64_t write_req_sz = size - total_written;
         if (write_req_sz > 0x7FFFFFFFL) write_req_sz = 0x7FFFFFFFL;  // prevent overflow due to casting
         if (!IS_SSL(socket->type)) {
-            sz_written = _write_plain(socket->socket.plain, ptr, write_req_sz, &fatal);
+            sz_written = _write_plain(socket->socket.plain, ptr, (uint32_t)write_req_sz, &fatal);
 #ifndef NO_SSL
         } else {
             sz_written = _write_SSL(socket->socket.ssl, ptr, (int)write_req_sz, &fatal);

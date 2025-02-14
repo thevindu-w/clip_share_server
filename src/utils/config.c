@@ -90,7 +90,7 @@ static inline void load_file(const char *file_name, data_buffer *buf_ptr) {
     if (!file_name) error_exit("Error: invalid filename");
     FILE *file_ptr = fopen(file_name, "rb");
     if (!file_ptr) error_exit("Error: certificate file not found");
-    ssize_t len = get_file_size(file_ptr);
+    int64_t len = get_file_size(file_ptr);
     if (len <= 0 || 65536L < len) {
         fclose(file_ptr);
         error_exit("Error: invalid certificate file size");

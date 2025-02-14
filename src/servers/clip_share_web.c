@@ -117,7 +117,7 @@ static void receiver_web(socket_t *sock) {
             return;
         }
     } else if (!strcmp(method, "POST")) {
-        unsigned int len = 2048;
+        const unsigned int len = 2048;
         char *headers = (char *)malloc(len);
         *headers = 0;
         int r = 0;
@@ -131,7 +131,7 @@ static void receiver_web(socket_t *sock) {
                 memcpy(ptr, buf, (size_t)r);
                 ptr += r;
                 *ptr = 0;
-                if (ptr - headers >= len - 256) break;
+                if ((size_t)(ptr - headers) >= len - 256) break;
                 cnt = 0;
             } else if (cnt == 0) {
                 if (strstr(check, "\r\n\r\n")) break;
