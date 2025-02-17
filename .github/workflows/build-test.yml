@@ -58,6 +58,16 @@ jobs:
     timeout-minutes: 10
     needs: Style-Check
 
+    strategy:
+      matrix:
+        target:
+        - arch: x86_64
+          env: x86_64
+          sys: MINGW64
+        - arch: x86
+          env: i686
+          sys: MINGW32
+
     defaults:
       run:
         shell: msys2 {0}
@@ -66,22 +76,19 @@ jobs:
     - name: Setup MSYS2
       uses: msys2/setup-msys2@v2
       with:
-        msystem: MINGW64
+        msystem: ${{matrix.target.sys}}
         update: false
         install: >-
-          mingw-w64-x86_64-gcc
-          mingw-w64-x86_64-make
-          mingw-w64-x86_64-openssl
-          mingw-w64-x86_64-libpng
-          mingw-w64-x86_64-libunistring
-          mingw-w64-x86_64-python
+          mingw-w64-${{matrix.target.env}}-gcc
+          mingw-w64-${{matrix.target.env}}-openssl
+          mingw-w64-${{matrix.target.env}}-libpng
+          mingw-w64-${{matrix.target.env}}-libunistring
+          make
+          python
           findutils
           diffutils
           socat
           sed
-
-    - name: Setup make
-      run: ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
 
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -90,13 +97,14 @@ jobs:
 
     - name: Build
       run: |
-        make
-        make no_ssl
+        make ARCH=${{matrix.target.arch}}
+        make ARCH=${{matrix.target.arch}} no_ssl
 
     - name: Test
-      run: make test
+      run: make ARCH=${{matrix.target.arch}} test
 
   Build-and-Test-on-macOS:
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     needs: Style-Check
 
@@ -105,7 +113,6 @@ jobs:
         os:
         - macos-latest
         - macos-13
-    runs-on: ${{ matrix.os }}
 
     steps:
     - name: Install build dependencies

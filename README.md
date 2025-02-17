@@ -357,9 +357,8 @@ If you changed the configuration file, you must restart the server to apply the 
   On Windows, these tools can be installed with [MinGW](https://www.mingw-w64.org/).<br>
   In an [MSYS2](https://www.msys2.org/) environment, these tools can be installed using pacman with the following command:
   ```bash
-  pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-make
+  pacman -S mingw-w64-x86_64-gcc make
   ```
-  You may need to rename (or copy) the `<MSYS2 directory>/mingw64/bin/mingw32-make.exe` to `<MSYS2 directory>/mingw64/bin/make.exe` before running the command `make`
 </details>
 
 <details>

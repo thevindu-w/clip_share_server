@@ -1,5 +1,5 @@
 name: Create-Release
-run-name: Create release ${{github.ref_name}}
+run-name: Create Release ${{github.ref_name}}
 
 on:
   push:
@@ -120,6 +120,16 @@ jobs:
     - Checks
     - Build-and-Test
 
+    strategy:
+      matrix:
+        target:
+        - arch: x86_64
+          env: x86_64
+          sys: MINGW64
+        - arch: x86
+          env: i686
+          sys: MINGW32
+
     defaults:
       run:
         shell: msys2 {0}
@@ -127,18 +137,15 @@ jobs:
     steps:
     - uses: msys2/setup-msys2@v2
       with:
-        msystem: MINGW64
+        msystem: ${{matrix.target.sys}}
         update: false
         install: >-
-          mingw-w64-x86_64-gcc
-          mingw-w64-x86_64-make
-          mingw-w64-x86_64-openssl
-          mingw-w64-x86_64-libpng
-          mingw-w64-x86_64-libunistring
+          mingw-w64-${{matrix.target.env}}-gcc
+          mingw-w64-${{matrix.target.env}}-openssl
+          mingw-w64-${{matrix.target.env}}-libpng
+          mingw-w64-${{matrix.target.env}}-libunistring
+          make
           zip
-
-    - name: Setup make
-      run: ln -s /mingw64/bin/mingw32-make.exe /mingw64/bin/make.exe
 
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -146,7 +153,7 @@ jobs:
     - name: Set variables
       run: |
         version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-        archive="clip_share_server-${version}-windows64.zip"
+        archive="clip_share_server-${version}-windows-${{matrix.target.arch}}.zip"
         echo VERSION="$version" >> $GITHUB_ENV
         echo FILE_NAME="clip_share.exe" >> $GITHUB_ENV
         echo ARCHIVE_NAME="$archive" >> $GITHUB_ENV
@@ -154,19 +161,12 @@ jobs:
 
     - name: Build
       run: |
-        make
+        make ARCH=${{matrix.target.arch}}
         mkdir dist
-        mv "clip_share.exe" "dist/${{env.FILE_NAME}}"
+        mv clip_share*.exe "dist/${{env.FILE_NAME}}"
         [ -f helper_tools/install-windows.bat ] && cp helper_tools/install-windows.bat dist/
         cd dist
         zip -9 "../${{env.ARCHIVE_NAME}}" *
-
-    - name: Create online installer
-      run: |
-        cd helper_tools
-        sed -i "s/VERSION_DEFAULT =$/VERSION_DEFAULT = '${{env.VERSION}}'/" install-online-windows.ps1
-        powershell -ExecutionPolicy bypass ./ps2bat.ps1
-        mv install.bat "../${{env.INSTALLER_NAME}}"
 
     - name: Upload Windows version
       uses: actions/upload-artifact@v4
@@ -177,7 +177,16 @@ jobs:
         if-no-files-found: error
         compression-level: 9
 
+    - name: Create online installer
+      if: ${{ matrix.target.arch == 'x86_64' }}
+      run: |
+        cd helper_tools
+        sed -i "s/VERSION_DEFAULT =$/VERSION_DEFAULT = '${{env.VERSION}}'/" install-online-windows.ps1
+        powershell -ExecutionPolicy bypass ./ps2bat.ps1
+        mv install.bat "../${{env.INSTALLER_NAME}}"
+
     - name: Upload online installer
+      if: ${{ matrix.target.arch == 'x86_64' }}
       uses: actions/upload-artifact@v4
       with:
         name: "${{env.INSTALLER_NAME}}"
@@ -187,16 +196,17 @@ jobs:
         compression-level: 6
 
   macOS:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     needs:
     - Checks
     - Build-and-Test
+
     strategy:
       matrix:
         os:
         - macos-latest
         - macos-13
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
 
     steps:
     - name: Install dependencies
@@ -296,21 +306,17 @@ jobs:
         echo TAG="v${version}" >> $GITHUB_ENV
         echo TITLE="Version ${version}" >> $GITHUB_ENV
         echo FILE_LINUX="clip_share_server-${version}-linux_x86_64.tar.gz" >> $GITHUB_ENV
-        echo FILE_WINDOWS="clip_share_server-${version}-windows64.zip" >> $GITHUB_ENV
+        echo FILE_WINDOWS32="clip_share_server-${version}-windows-x86.zip" >> $GITHUB_ENV
+        echo FILE_WINDOWS64="clip_share_server-${version}-windows-x86_64.zip" >> $GITHUB_ENV
         echo INSTALLER_WINDOWS="install-windows.bat" >> $GITHUB_ENV
         echo FILE_MACOS="clip_share_server-${version}-macos.zip" >> $GITHUB_ENV
 
-    - name: Download Linux version
+    - name: Download builds
       uses: actions/download-artifact@v4
       with:
-        name: "${{env.FILE_LINUX}}"
-        path: "${{env.FILE_LINUX}}"
-
-    - name: Download Windows version
-      uses: actions/download-artifact@v4
-      with:
-        name: "${{env.FILE_WINDOWS}}"
-        path: "${{env.FILE_WINDOWS}}"
+        pattern: clip_share_server-*
+        path: ${{ github.workspace }}
+        merge-multiple: true
 
     - name: Download Windows installer
       uses: actions/download-artifact@v4
@@ -318,19 +324,11 @@ jobs:
         name: "${{env.INSTALLER_WINDOWS}}"
         path: "${{env.INSTALLER_WINDOWS}}"
 
-    - name: Download macOS version
-      uses: actions/download-artifact@v4
-      with:
-        name: "${{env.FILE_MACOS}}"
-        path: "${{env.FILE_MACOS}}"
-
     - name: Prepare assets
       run: |
         mkdir release
-        mv "${{env.FILE_LINUX}}/${{env.FILE_LINUX}}" release/
-        mv "${{env.FILE_WINDOWS}}/${{env.FILE_WINDOWS}}" release/
+        mv "${{env.FILE_LINUX}}" "${{env.FILE_WINDOWS32}}" "${{env.FILE_WINDOWS64}}" "${{env.FILE_MACOS}}" release/
         mv "${{env.INSTALLER_WINDOWS}}/${{env.INSTALLER_WINDOWS}}" release/
-        mv "${{env.FILE_MACOS}}/${{env.FILE_MACOS}}" release/
         mv .github/workflows/resources/clipshare.conf release/
         mv helper_tools/install-online-linux-mac.sh release/install-linux-mac.sh
         cd release
