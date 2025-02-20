@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $VERSION_DEFAULT =
-$global:VERSION = "$VERSION_DEFAULT"
+$VERSION = "$VERSION_DEFAULT"
 if (-Not "$VERSION") {
     $VERSION = Read-Host 'Enter version (ex: 3.2.0)'
 }
@@ -18,11 +18,17 @@ if ("$confirm" -ne "y") {
     exit 0
 }
 
-$global:filename="clip_share_server-$VERSION-windows64.zip"
-$global:url="https://github.com/thevindu-w/clip_share_server/releases/download/v$VERSION/$filename"
+if ([System.Environment]::Is64BitOperatingSystem) {
+    $ARCH = 'x86_64'
+} else {
+    $ARCH = 'x86'
+}
 
-$global:suffix=0
-$global:tmpdir="clipsharetmp"
+$filename="clip_share_server-$VERSION-windows-$ARCH.zip"
+$url="https://github.com/thevindu-w/clip_share_server/releases/download/v$VERSION/$filename"
+
+$suffix=0
+$tmpdir="clipsharetmp"
 while (Test-Path "$tmpdir") {
     if ($suffix -gt 1000) {
         Write-Host 'Creating temporary directory failed'
