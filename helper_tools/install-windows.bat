@@ -1,5 +1,14 @@
 @ECHO OFF
 
+NET SESSION >NUL 2>&1
+if %ERRORLEVEL% == 0 (
+    ECHO This installer must not be run as administrator.
+    ECHO Please run without administrator rights.
+    ECHO Installation aborted.
+    PAUSE
+    EXIT
+)
+
 IF NOT EXIST clip_share*.exe (
     ECHO 'clip_share.exe' file does not exist.
     ECHO Please download the 'clip_share.exe' Windows version and place it in this folder.

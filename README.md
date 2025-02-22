@@ -62,7 +62,7 @@ or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHu
 
 ### Install dependencies
 
-**Note**: This section is required only for macOS.
+**Note:** This section is required only for macOS.
 
 ClipShare needs the following libraries to run:
 
@@ -115,7 +115,7 @@ Note that the server should allow the client through the firewall, as mentioned 
 
 ### Installation
 
-**Note**: This section is optional if you prefer manually starting the server over automatically starting on login/reboot.
+**Note:** This section is optional if you prefer manually starting the server over automatically starting on login/reboot.
 
 To install the server to run on startup, use the corresponding installer script for your platform.
 
@@ -126,6 +126,8 @@ Online installer scripts are attached with the releases. They will download the 
 #### Standalone installers
 
 Standalone installer scripts are available in the archives (`zip` for Windows and macOS, and `tar.gz` for Linux) attached to releases on GitHub. They are also available in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory. Standalone installers can run without an internet connection. However, you must have the `clip_share` (or `clip_share.exe` on Windows) executable in the current working directory to run the installer. If you download the archive from releases and extract it, you will have the executable along with the installer script. Run the interactive script and follow the instructions to install ClipShare.
+
+**Note:** These installers do NOT need admin or superuser privileges to run. Therefore, do not run them with elevated privileges.
 
 <details>
   <summary>Linux and macOS</summary>
@@ -155,7 +157,7 @@ chmod +x install-mac.sh
 
 ### Create SSL/TLS certificates and key files
 
-**Note**: This section is optional if you do not need the TLS encrypted mode and the web mode.
+**Note:** This section is optional if you do not need the TLS encrypted mode and the web mode.
 
 The following files should be created, and their paths should be specified in the configuration file `clipshare.conf`. You may use different file names and paths to store the keys and certificates.
 

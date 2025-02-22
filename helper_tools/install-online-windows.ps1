@@ -1,5 +1,12 @@
 $ErrorActionPreference = 'Stop'
 
+if (([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host 'This installer must not be run as administrator.'
+    Write-Host 'Please run without administrator rights.'
+    Write-Host 'Installation aborted.'
+    exit 1
+}
+
 $VERSION_DEFAULT =
 $VERSION = "$VERSION_DEFAULT"
 if (-Not "$VERSION") {
