@@ -18,13 +18,18 @@ on:
   pull_request:
     branches:
     - master
-  workflow_call: null
+  workflow_call:
+    inputs:
+      trigger:
+        type: string
+        required: false
+        default: workflow_call
 
 jobs:
   Style-Check:
     uses: ./.github/workflows/check-style.yml
     with:
-      trigger: "${{ github.event_name }}"
+      trigger: "${{ inputs.trigger || github.event_name }}"
     permissions:
       contents: write
       pull-requests: write
@@ -40,6 +45,9 @@ jobs:
         - ubuntu
         - fedora
         - arch
+        exclude:
+        - distro: ${{ (github.event_name == 'push') && (inputs.trigger != 'workflow_call') && 'fedora' }}
+        - distro: ${{ (github.event_name == 'push') && (inputs.trigger != 'workflow_call') && 'arch' }}
 
     steps:
     - name: Check out repository code
@@ -67,6 +75,10 @@ jobs:
         - arch: x86
           env: i686
           sys: MINGW32
+        event:
+        - ${{ inputs.trigger || github.event_name }}
+        exclude:
+        - {event: push, target: {arch: x86, env: i686, sys: MINGW32}}
 
     defaults:
       run:
@@ -113,6 +125,8 @@ jobs:
         os:
         - macos-latest
         - macos-13
+        exclude:
+        - os: ${{ (github.event_name == 'push') && (inputs.trigger != 'workflow_call') && 'macos-13' }}
 
     steps:
     - name: Install build dependencies
@@ -141,6 +155,7 @@ jobs:
 
   CodeQL_Analyze:
     runs-on: ubuntu-latest
+    if: ${{ (github.event_name != 'push') || (inputs.trigger == 'workflow_call') }}
     timeout-minutes: 30
     needs:
     - Build-and-Test-on-Linux
