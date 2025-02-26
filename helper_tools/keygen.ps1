@@ -2,7 +2,7 @@ $SERVER_NAME = 'clipshare_server'
 $CLIENT_NAME = 'clipshare_client'
 $CA_NAME = 'clipshare_ca'
 
-$files =  "ca.pfx", "ca.cer", "ca.crt", "server.pfx", "client.pfx"
+$files = "ca.pfx", "ca.cer", "ca.crt", "server.pfx", "client.pfx"
 foreach($file in $files)
 {
     if (Test-Path $file) {
@@ -12,7 +12,7 @@ foreach($file in $files)
 
 $ErrorActionPreference = 'Stop'
 
-Write-Host 'Generating keys and certificates ...'
+Write-Output 'Generating keys and certificates ...'
 
 # generate CA keys
 $CA = New-SelfSignedCertificate `
@@ -55,30 +55,30 @@ $ClientCert = New-SelfSignedCertificate `
     -Signer $CA `
     -TextExtension @('2.5.29.19={critical}{text}CA=false')
 
-Write-Host 'Generated keys and certificates.'
-Write-Host
+Write-Output 'Generated keys and certificates.'
+Write-Output ''
 
-Write-Host 'Exporting client keys ...'
-Write-Host 'Please enter a password that you can remember. You will need this password when importing the key on the client.'
-Write-Host
+Write-Output 'Exporting client keys ...'
+Write-Output 'Please enter a password that you can remember. You will need this password when importing the key on the client.'
+Write-Output ''
 $ClientPasswd = Read-Host -Prompt 'Enter Export Password: ' -AsSecureString
 Export-PfxCertificate -Cert $ClientCert -FilePath client.pfx -Password $ClientPasswd | out-null
-Write-Host
-echo 'Exported client keys.'
+Write-Output ''
+Write-Output 'Exported client keys.'
 
-echo 'Cleaning up ...'
-Get-ChildItem Cert:\CurrentUser\My | Where { $_.Subject -eq "CN=$SERVER_NAME"} | foreach {Remove-Item $_.pspath }
-Get-ChildItem Cert:\CurrentUser\My | Where { $_.Subject -eq "CN=$CLIENT_NAME"} | foreach {Remove-Item $_.pspath }
-Get-ChildItem Cert:\CurrentUser\My | Where { $_.Subject -eq "CN=$CA_NAME"} | foreach {Remove-Item $_.pspath }
+Write-Output 'Cleaning up ...'
+Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq "CN=$SERVER_NAME"} | ForEach-Object {Remove-Item $_.pspath }
+Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq "CN=$CLIENT_NAME"} | ForEach-Object {Remove-Item $_.pspath }
+Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq "CN=$CA_NAME"} | ForEach-Object {Remove-Item $_.pspath }
 
-Write-Host 'Done.'
-Write-Host
-Write-Host '> server.pfx - The TLS key and certificate file of the server. Keep this file securely.'
-Write-Host '> ca.crt     - The TLS certificate file of the CA. You need this file on both the server and the client devices.'
-Write-Host
-Write-Host '> client.pfx - The TLS key and certificate store file for the client. Move this to the client device.'
-Write-Host
-Write-Host "# the server's name is $SERVER_NAME"
-Write-Host "# the client's name is $CLIENT_NAME"
-Write-Host
-Write-Host 'Note: If you do not plan to create more keys in the future, you may safely delete the "ca.pfx" file. Otherwise, store the "ca.pfx" file securely.'
+Write-Output 'Done.'
+Write-Output ''
+Write-Output '> server.pfx - The TLS key and certificate file of the server. Keep this file securely.'
+Write-Output '> ca.crt     - The TLS certificate file of the CA. You need this file on both the server and the client devices.'
+Write-Output ''
+Write-Output '> client.pfx - The TLS key and certificate store file for the client. Move this to the client device.'
+Write-Output ''
+Write-Output "# the server's name is $SERVER_NAME"
+Write-Output "# the client's name is $CLIENT_NAME"
+Write-Output ''
+Write-Output 'Note: If you do not plan to create more keys in the future, you may safely delete the "ca.pfx" file. Otherwise, store the "ca.pfx" file securely.'

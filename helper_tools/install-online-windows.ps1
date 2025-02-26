@@ -1,9 +1,9 @@
 $ErrorActionPreference = 'Stop'
 
 if (([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host 'This installer must not be run as administrator.'
-    Write-Host 'Please run without administrator rights.'
-    Write-Host 'Installation aborted.'
+    Write-Error 'This installer must not be run as administrator.'
+    Write-Error 'Please run without administrator rights.'
+    Write-Error 'Installation aborted.'
     exit 1
 }
 
@@ -14,14 +14,14 @@ if (-Not "$VERSION") {
 }
 $VERSION = ([regex]'[0-9]+\.[0-9]+\.[0-9]+').Matches("$VERSION")[0]
 if (-Not "$VERSION") {
-    Write-Host 'Invalid version'
+    Write-Error 'Invalid version'
     exit 1
 }
 
-Write-Host "You are installing ClipShare version $VERSION"
+Write-Output "You are installing ClipShare version $VERSION"
 $confirm = Read-Host 'Proceed? [y/N]'
 if ("$confirm" -ne "y") {
-    Write-Host 'Aborted.'
+    Write-Error 'Aborted.'
     exit 0
 }
 
@@ -38,21 +38,21 @@ $suffix=0
 $tmpdir="clipsharetmp"
 while (Test-Path "$tmpdir") {
     if ($suffix -gt 1000) {
-        Write-Host 'Creating temporary directory failed'
+        Write-Error 'Creating temporary directory failed'
         exit 1
     }
     $suffix++
     $tmpdir="clipsharetmp_$suffix"
 }
 New-Item -Name "$tmpdir" -Type Directory | Out-Null
-cd "$tmpdir"
+Set-Location "$tmpdir"
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Invoke-WebRequest -Uri "$url" -OutFile "$filename" -MaximumRedirection 2
 
 Expand-Archive -Path "$filename"
-cd clip_share*
+Set-Location clip_share*
 .\install-windows.bat
 
-cd ..\..
+Set-Location ..\..
 Remove-Item -Recurse "$tmpdir"

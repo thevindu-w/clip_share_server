@@ -1,4 +1,4 @@
-$code = Get-Command .\install-online-windows.ps1 | Select -ExpandProperty ScriptBlock
+$code = Get-Command .\install-online-windows.ps1 | Select-Object -ExpandProperty ScriptBlock
 
 $encoded = [convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($code))
 Write-Output '@ECHO OFF' | Out-File -Encoding ASCII install.bat
