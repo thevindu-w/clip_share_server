@@ -2,7 +2,7 @@
 
 . init.sh
 
-sample="send_text 範例文字 1"
+sample='send_text 範例文字 1'
 
 method="$METHOD_SEND_TEXT"
 printf -v _ '%s%n' "$sample" utf8len
@@ -28,7 +28,7 @@ fi
 clip="$(get_copied_text || echo fail)"
 
 if [ "$clip" != "$sampleDump" ]; then
-    showStatus info "Clipcoard content not matching."
+    showStatus info 'Clipcoard content not matching.'
     echo 'Expected:' "$sampleDump"
     echo 'Received:' "$clip"
     exit 1

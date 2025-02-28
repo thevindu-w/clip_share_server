@@ -45,6 +45,6 @@ elif [ "$DETECTED_OS" = 'macOS' ]; then
         exit 1
     fi
 else
-    showStatus info "Unknown OS."
+    showStatus info 'Unknown OS.'
     exit 1
 fi
