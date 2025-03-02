@@ -60,9 +60,13 @@ jobs:
         cpplint --linelength=120 --filter=-runtime/int,-runtime/arrays,-readability/casting,-legal/copyright \
         --extensions=c,h,m,cc,hh,cpp,hpp,c++,h++,cxx,hxx --root=src --exclude='build/' --recursive .
 
-    - name: Check test script style
+    - name: Check shell script style
       if: ${{ success() || failure() }}
       run: find . -type f -name '*.sh' -print0 | xargs -0 shfmt -d -s -i 4 -ci
+
+    - name: Check powershell script style
+      if: ${{ success() || failure() }}
+      run: pwsh -Command 'Invoke-ScriptAnalyzer -EnableExit -Recurse -Path .'
 
     - name: Format C code and bash scripts
       if: ${{ (env.EVENT == 'push') && (success() || failure()) }}
