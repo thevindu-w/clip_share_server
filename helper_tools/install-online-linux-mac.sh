@@ -94,10 +94,11 @@ while [ -e "$tmpdir" ]; do
     tmpdir="clipsharetmp_$suffix"
 done
 mkdir "$tmpdir" &>/dev/null || error_exit 'Creating temporary directory failed'
+original_dir="$(pwd)"
 cd "$tmpdir"
 
 cleanup() {
-    cd ..
+    cd "$original_dir"
     rm -r "$tmpdir" &>/dev/null || true
 }
 
