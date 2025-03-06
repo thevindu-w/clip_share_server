@@ -14,7 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-MAKEFLAGS += -j4
+MAKEFLAGS+= -j4 --warn-undefined-variables --no-builtin-rules
+
+SHELL:=bash
+.SHELLFLAGS:=-eu -o pipefail -c
+.ONESHELL:
+.DELETE_ON_ERROR:
 
 PROGRAM_NAME=clip_share
 PROGRAM_NAME_WEB:=$(PROGRAM_NAME)_web
@@ -70,7 +75,7 @@ else ifeq ($(detected_OS),Windows)
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	CFLAGS_OPTIM=-O3
 	LDLIBS_NO_SSL=-l:libunistring.a -l:libpthread.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a -lIphlpapi -lcrypt32 -lShcore -lUserenv
-	OTHER_DEPENDENCIES+= res/win/app.res
+	OTHER_DEPENDENCIES+= res/win/app.coff
 	LDLIBS_SSL=-l:libssl.a -l:libcrypto.a -l:libpthread.a
 	LINK_FLAGS_BUILD=-no-pie -mwindows
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
@@ -138,10 +143,12 @@ DIRS:=$(sort $(DIRS))
 $(PROGRAM_NAME): $(OBJS) $(OTHER_DEPENDENCIES)
 $(PROGRAM_NAME_WEB): $(WEB_OBJS) $(OTHER_DEPENDENCIES)
 $(PROGRAM_NAME) $(PROGRAM_NAME_WEB):
-	$(CC) $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
+	@echo CCLD $$'\t' $@
+	@$(CC) $^ $(LINK_FLAGS_BUILD) $(LDLIBS) -o $@
 
 $(PROGRAM_NAME_NO_SSL): $(NO_SSL_OBJS) $(OTHER_DEPENDENCIES)
-	$(CC) $^ $(LINK_FLAGS_BUILD) $(LDLIBS_NO_SSL) -o $@
+	@echo CCLD $$'\t' $@
+	@$(CC) $^ $(LINK_FLAGS_BUILD) $(LDLIBS_NO_SSL) -o $@
 
 .SECONDEXPANSION:
 $(ALL_DEPENDENCIES): %: | $$(dir %)
@@ -151,7 +158,8 @@ $(OBJS_M): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.m
 $(OBJS_BIN): $(BUILD_DIR)/%.o: $(BUILD_DIR)/%_.c
 $(BUILD_DIR)/main.o: $(VERSION_FILE)
 $(OBJS):
-	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -fno-pie $< -o $@
+	@echo CC $$'\t' $@
+	@$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -fno-pie $< -o $@
 
 $(WEB_OBJS_C): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.c
 $(WEB_OBJS_M): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.m
@@ -159,40 +167,48 @@ $(WEB_OBJS_S): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.S
 $(WEB_OBJS_BIN): $(BUILD_DIR)/%_web.o: $(BUILD_DIR)/%_.c
 $(BUILD_DIR)/main_web.o: $(VERSION_FILE)
 $(WEB_OBJS):
-	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DWEB_ENABLED -fno-pie $< -o $@
+	@echo CC $$'\t' $@
+	@$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DWEB_ENABLED -fno-pie $< -o $@
 
 $(DEBUG_OBJS_C): $(BUILD_DIR)/%_debug.o: $(SRC_DIR)/%.c
 $(DEBUG_OBJS_M): $(BUILD_DIR)/%_debug.o: $(SRC_DIR)/%.m
 $(DEBUG_OBJS_BIN): $(BUILD_DIR)/%_debug.o: $(BUILD_DIR)/%_.c
 $(BUILD_DIR)/main_debug.o: $(VERSION_FILE)
 $(DEBUG_OBJS):
-	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $< -o $@
+	@echo CC $$'\t' $@
+	@$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $< -o $@
 
 $(NO_SSL_OBJS_C): $(BUILD_DIR)/%_no_ssl.o: $(SRC_DIR)/%.c
 $(NO_SSL_OBJS_M): $(BUILD_DIR)/%_no_ssl.o: $(SRC_DIR)/%.m
 $(NO_SSL_OBJS_BIN): $(BUILD_DIR)/%_no_ssl.o: $(BUILD_DIR)/%_.c
 $(BUILD_DIR)/main_no_ssl.o: $(VERSION_FILE)
 $(NO_SSL_OBJS):
-	$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_SSL -fno-pie $< -o $@
+	@echo CC $$'\t' $@
+	@$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_SSL -fno-pie $< -o $@
 
-$(BUILD_DIR)/res/win/app.res: $(SRC_DIR)/res/win/app_.rc $(SRC_DIR)/res/win/resource.h | $(BUILD_DIR)/res/win/
-	windres -I$(SRC_DIR) $< -O coff -o $@
+$(BUILD_DIR)/res/win/app.coff: $(SRC_DIR)/res/win/app_.rc $(SRC_DIR)/res/win/resource.h | $(BUILD_DIR)/res/win/
+	@echo windres $$'\t' $@
+	@windres -I$(SRC_DIR) $< -O coff -o $@
 
 $(SRC_DIR)/res/win/app_.rc: $(SRC_DIR)/res/win/app.rc $(VERSION_FILE)
+	@echo CPP $$'\t' $@
 	$(CPP) -I$(SRC_DIR) -P -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_MINOR=$(VERSION_MINOR) -DVERSION_PATCH=$(VERSION_PATCH) -DVERSION=\"$(VERSION)\" $< -o $@
 
 $(BUILD_DIR)/res/mac/icon_.c: $(SRC_DIR)/res/mac/icon.png | $(BUILD_DIR)/res/mac/
-	xxd -i $< >$@
-	gsed -i 's/[a-zA-Z_]*res_mac_//g' $@
+	@echo generate $$'\t' $@
+	@xxd -i $< >$@
+	@gsed -i 's/[a-zA-Z_]*res_mac_//g' $@
 
 $(DIRS):
-	mkdir -p $@
+	@echo create directory $@
+	@mkdir -p $@
 
 .PHONY: all clean debug web test check install
 
 all: $(PROGRAM_NAME) $(PROGRAM_NAME_NO_SSL) $(PROGRAM_NAME_WEB)
 
 debug: $(DEBUG_OBJS) $(OTHER_DEPENDENCIES)
+	@echo CCLD $$'\t' $@ $(PROGRAM_NAME)
 	$(CC) $^ $(LDLIBS) -o $(PROGRAM_NAME)
 
 web: $(PROGRAM_NAME_WEB)
@@ -208,5 +224,6 @@ install: $(PROGRAM_NAME) helper_tools/install.sh
 	@chmod +x helper_tools/install.sh && helper_tools/install.sh
 
 clean:
-	$(RM) -r $(BUILD_DIR) $(ALL_DEPENDENCIES)
-	$(RM) $(PROGRAM_NAME) $(PROGRAM_NAME_WEB) $(PROGRAM_NAME_NO_SSL)
+	@echo RM
+	@$(RM) -r $(BUILD_DIR) $(ALL_DEPENDENCIES)
+	@$(RM) $(PROGRAM_NAME) $(PROGRAM_NAME_WEB) $(PROGRAM_NAME_NO_SSL)
