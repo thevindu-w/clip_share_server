@@ -333,6 +333,8 @@ jobs:
         mv helper_tools/install-online-linux-mac.sh release/install-linux-mac.sh
         cd release
         sed -i "s/^VERSION_DEFAULT=$/VERSION_DEFAULT=${{env.VERSION}}/" install-linux-mac.sh
+        sed -i "s/^LINUX_SHA=$/LINUX_SHA='$(sha256sum -b ${{env.FILE_LINUX}} | cut -d ' ' -f 1)'/" install-linux-mac.sh
+        sed -i "s/^MAC_SHA=$/MAC_SHA='$(sha256sum -b ${{env.FILE_MACOS}} | cut -d ' ' -f 1)'/" install-linux-mac.sh
         sha256sum -b * >SHA2-256SUM
 
     - name: Generate artifact attestation

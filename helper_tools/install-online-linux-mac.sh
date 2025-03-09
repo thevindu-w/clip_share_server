@@ -109,6 +109,25 @@ if ! download "$url" &>/dev/null; then
 fi
 echo -e '\rDownload completed                   '
 
+LINUX_SHA=
+MAC_SHA=
+if [ "$OS" = 'Linux' ]; then
+    SHA256="$LINUX_SHA"
+elif [ "$OS" = 'Darwin' ]; then
+    SHA256="$MAC_SHA"
+fi
+if [ -n "$SHA256" ] && type sha256sum &>/dev/null && type cut &>/dev/null; then
+    if [ "$OS" = 'Linux' ]; then
+        SHA256="$LINUX_SHA"
+    elif [ "$OS" = 'Darwin' ]; then
+        SHA256="$MAC_SHA"
+    fi
+    if [ "$(sha256sum -b "$filename" | cut -d ' ' -f 1)" != "$SHA256" ]; then
+        cleanup
+        error_exit 'File integrity check failed for downloaded file'
+    fi
+fi
+
 echo -n 'Extracting ...'
 if ! extract "$filename" &>/dev/null; then
     cleanup
