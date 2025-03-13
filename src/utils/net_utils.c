@@ -54,6 +54,12 @@ typedef u_short in_port_t;
 
 #define MULTICAST_ADDR "ff05::4567"
 
+#if defined(__linux__) || defined(__APPLE__)
+#define close_sock(sock) close(sock)
+#elif defined(_WIN32)
+#define close_sock(sock) closesocket(sock);
+#endif
+
 static int iterate_interfaces(in_addr_common interface_addr, listener_t listener);
 
 #ifndef NO_SSL
@@ -457,6 +463,7 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
     struct timeval tv = {0, 500000L};
     if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) ||
         setsockopt(connect_d, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv))) {
+        close_sock(connect_d);
         error("Can't set the timeout option of the connection");
         return;
     }
@@ -470,11 +477,16 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
     SSL_CTX *ctx = listener.ctx;
     SSL *ssl = SSL_new(ctx);
     SSL_set_min_proto_version(ssl, TLS1_2_VERSION);
+    int ret;
 #ifdef _WIN32
-    SSL_set_fd(ssl, (int)connect_d);
+    ret = SSL_set_fd(ssl, (int)connect_d);
 #else
-    SSL_set_fd(ssl, connect_d);
+    ret = SSL_set_fd(ssl, connect_d);
 #endif
+    if (ret != 1) {
+        close_sock(connect_d);
+        return;
+    }
     /* do SSL-protocol accept */
     int accept_st;
     while ((accept_st = SSL_accept(ssl)) != 1) { /* do SSL-protocol accept */
@@ -493,6 +505,7 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
 #ifdef DEBUG_MODE
                 ERR_print_errors_fp(stdout);
 #endif
+                close_sock(connect_d);
                 return;
             }
         }
@@ -516,11 +529,7 @@ void _close_socket(socket_t *socket, int await) {
             char tmp;
             recv(socket->socket.plain, &tmp, 1, 0);
         }
-#if defined(__linux__) || defined(__APPLE__)
-        close(socket->socket.plain);
-#elif defined(_WIN32)
-        closesocket(socket->socket.plain);
-#endif
+        close_sock(socket->socket.plain);
 #ifndef NO_SSL
     } else {
         sock_t sd;
@@ -531,35 +540,23 @@ void _close_socket(socket_t *socket, int await) {
 #endif
         SSL_clear(socket->socket.ssl);
         SSL_free(socket->socket.ssl); /* release SSL state */
-#if defined(__linux__) || defined(__APPLE__)
-        close(sd);
-#elif defined(_WIN32)
-        closesocket(sd);
-#endif
+        close_sock(sd);
 #endif
     }
-    socket->type = 0;
+    socket->type = NULL_SOCK;
 }
 
 void close_listener_socket(listener_t *socket) {
     if (IS_NULL_SOCK(socket->type)) return;
     if (!IS_SSL(socket->type)) {
-#if defined(__linux__) || defined(__APPLE__)
-        close(socket->socket);
-#elif defined(_WIN32)
-        closesocket(socket->socket);
-#endif
+        close_sock(socket->socket);
 #ifndef NO_SSL
     } else {
         SSL_CTX_free(socket->ctx); /* release SSL state */
-#if defined(__linux__) || defined(__APPLE__)
-        close(socket->socket);
-#elif defined(_WIN32)
-        closesocket(socket->socket);
-#endif
+        close_sock(socket->socket);
 #endif  // NO_SSL
     }
-    socket->type = 0;
+    socket->type = NULL_SOCK;
 }
 
 static inline ssize_t _read_plain(sock_t sock, char *buf, size_t size, int *fatal_p) {
