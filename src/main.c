@@ -1,6 +1,6 @@
 /*
  * main.c - main entrypoint of clip_share
- * Copyright (C) 2022-2024 H. Thevindu J. Wijesekera
+ * Copyright (C) 2022-2025 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

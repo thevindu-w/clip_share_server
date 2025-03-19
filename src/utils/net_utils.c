@@ -1,6 +1,6 @@
 /*
  * utils/net_utils.c - platform specific implementation for socket connections
- * Copyright (C) 2022-2024 H. Thevindu J. Wijesekera
+ * Copyright (C) 2022-2025 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
