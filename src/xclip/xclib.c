@@ -88,8 +88,8 @@ static size_t mach_itemsize(int format) {
  * Return value is 1 if the retrieval of the selection data is complete,
  * otherwise it's 0.
  */
-int xcout(Display *dpy, Window win, XEvent evt, Atom sel, Atom target, Atom *type, unsigned char **txt_p,
-          unsigned long *len_p, unsigned int *context) {
+int xcout(Display *dpy, Window win, XEvent evt, Atom sel, Atom target, Atom *type, void **txt_p, unsigned long *len_p,
+          unsigned int *context) {
     /* a property for other windows to put their selection into */
     static Atom pty;
     static Atom inc;

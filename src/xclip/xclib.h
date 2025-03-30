@@ -38,7 +38,7 @@
 #define XCLIB_XCIN_INCR 2
 
 /* functions in xclib.c */
-extern int xcout(Display *, Window, XEvent, Atom, Atom, Atom *, unsigned char **, unsigned long *, unsigned int *);
+extern int xcout(Display *, Window, XEvent, Atom, Atom, Atom *, void **, unsigned long *, unsigned int *);
 extern int xcin(Display *, Window *, XEvent, Atom *, Atom, const unsigned char *, unsigned long, unsigned long *,
                 unsigned int *);
 extern void *xcmalloc(size_t) __attribute__((__malloc__));

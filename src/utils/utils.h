@@ -43,7 +43,7 @@ struct mem_file {
     char *buffer;
     size_t capacity;
     size_t size;
-};
+} __attribute__((aligned(__alignof__(FILE))));
 
 /*
  * List of files and the length of the path of their parent directory

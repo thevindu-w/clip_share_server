@@ -60,6 +60,9 @@ typedef u_short in_port_t;
 #define close_sock(sock) closesocket(sock);
 #endif
 
+#define CAST_SOCKADDR_IN (struct sockaddr_in *)(void *)
+#define CAST_SOCKADDR_IN6 (struct sockaddr_in6 *)(void *)
+
 static int iterate_interfaces(in_addr_common interface_addr, listener_t listener);
 
 #ifndef NO_SSL
@@ -301,17 +304,17 @@ static int iterate_interfaces(in_addr_common interface_addr, listener_t listener
 #endif
         if (interface_addr.af == AF_INET) {
             if (!is_any_addr &&
-                ((struct sockaddr_in *)(ptr_entry->ifa_addr))->sin_addr.s_addr != interface_addr.addr.addr4.s_addr)
+                (CAST_SOCKADDR_IN(ptr_entry->ifa_addr))->sin_addr.s_addr != interface_addr.addr.addr4.s_addr)
                 continue;
             in_addr_common broadcast = {.af = AF_INET};
-            broadcast.addr.addr4.s_addr = ((struct sockaddr_in *)(ptr_entry->ifa_addr))->sin_addr.s_addr |
-                                          ~((struct sockaddr_in *)(ptr_entry->ifa_netmask))->sin_addr.s_addr;
+            broadcast.addr.addr4.s_addr = (CAST_SOCKADDR_IN(ptr_entry->ifa_addr))->sin_addr.s_addr |
+                                          ~(CAST_SOCKADDR_IN(ptr_entry->ifa_netmask))->sin_addr.s_addr;
             if (bind_socket(listener, broadcast, configuration.udp_port) != EXIT_SUCCESS) {
                 status = EXIT_FAILURE;
                 break;
             }
         } else {
-            struct in6_addr ifaddr = ((struct sockaddr_in6 *)(ptr_entry->ifa_addr))->sin6_addr;
+            struct in6_addr ifaddr = (CAST_SOCKADDR_IN6(ptr_entry->ifa_addr))->sin6_addr;
             if (!is_any_addr && !IN6_ARE_ADDR_EQUAL(&ifaddr, &(interface_addr.addr.addr6))) continue;
             in_addr_common multicast_addr = {.af = AF_INET6};
             if (inet_pton(AF_INET6, MULTICAST_ADDR, &(multicast_addr.addr.addr6)) != 1) {

@@ -91,9 +91,9 @@ static int doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_optio
     *len_ptr = 0;
     *buf_ptr = NULL;
     Atom sel_type = None;
-    unsigned char *sel_buf = NULL; /* buffer for selection data */
-    unsigned long sel_len = 0;     /* length of sel_buf */
-    XEvent evt;                    /* X Event Structures */
+    void *sel_buf = NULL;       // buffer for selection data
+    unsigned long sel_len = 0;  // length of sel_buf
+    XEvent evt;                 // X Event Structures
     unsigned int context = XCLIB_XCOUT_NONE;
 
     while (1) {
