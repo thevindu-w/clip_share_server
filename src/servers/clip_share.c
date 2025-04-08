@@ -96,7 +96,7 @@ int clip_share(const int is_secure) {
         fflush(stderr);
         pid_t pid = fork();
         if (pid) {
-            close_socket_no_wait(&connect_sock);
+            close_socket_no_shdn(&connect_sock);
         } else {
             close_listener_socket(&listener);
             server(&connect_sock);

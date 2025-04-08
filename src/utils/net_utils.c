@@ -525,7 +525,7 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
 #endif
 }
 
-void _close_socket(socket_t *socket, int await) {
+void _close_socket(socket_t *socket, int await, int shutdown) {
     if (IS_NULL_SOCK(socket->type)) return;
     if (!IS_SSL(socket->type)) {
         if (await) {
@@ -537,13 +537,25 @@ void _close_socket(socket_t *socket, int await) {
     } else {
         sock_t sd;
 #ifdef _WIN32
-        sd = (sock_t)SSL_get_fd(socket->socket.ssl); /* get socket connection */
+        sd = (sock_t)SSL_get_fd(socket->socket.ssl);
 #else
-        sd = SSL_get_fd(socket->socket.ssl); /* get socket connection */
+        sd = SSL_get_fd(socket->socket.ssl);
 #endif
-        SSL_clear(socket->socket.ssl);
-        SSL_free(socket->socket.ssl); /* release SSL state */
+        int err;
+        if (await) {
+            char tmp;
+            int ret = SSL_read(socket->socket.ssl, &tmp, 1);
+            err = SSL_get_error(socket->socket.ssl, ret);
+        } else {
+            err = SSL_ERROR_NONE;
+        }
+        if (shutdown && err != SSL_ERROR_SYSCALL && err != SSL_ERROR_SSL) {
+            SSL_shutdown(socket->socket.ssl);
+        }
+        SSL_free(socket->socket.ssl);
         close_sock(sd);
+#else
+    (void)shutdown;
 #endif
     }
     socket->type = NULL_SOCK;
@@ -551,14 +563,12 @@ void _close_socket(socket_t *socket, int await) {
 
 void close_listener_socket(listener_t *socket) {
     if (IS_NULL_SOCK(socket->type)) return;
-    if (!IS_SSL(socket->type)) {
-        close_sock(socket->socket);
 #ifndef NO_SSL
-    } else {
+    if (IS_SSL(socket->type)) {
         SSL_CTX_free(socket->ctx); /* release SSL state */
-        close_sock(socket->socket);
-#endif  // NO_SSL
     }
+#endif  // NO_SSL
+    close_sock(socket->socket);
     socket->type = NULL_SOCK;
 }
 

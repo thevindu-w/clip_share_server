@@ -231,7 +231,7 @@ int web_server(void) {
         fflush(stderr);
         pid_t p1 = fork();
         if (p1) {
-            close_socket(&connect_sock);
+            close_socket_no_shdn(&connect_sock);
         } else {
             close_listener_socket(&listener);
             receiver_web(&connect_sock);

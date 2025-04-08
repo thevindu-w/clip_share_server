@@ -142,10 +142,11 @@ extern void get_connection(socket_t *sock, listener_t listener, const list2 *all
 /*
  * Closes a socket.
  */
-extern void _close_socket(socket_t *socket, int await);
+extern void _close_socket(socket_t *socket, int await, int shutdown);
 
-#define close_socket(socket) _close_socket(socket, 1)
-#define close_socket_no_wait(socket) _close_socket(socket, 0)
+#define close_socket(socket) _close_socket(socket, 1, 1)
+#define close_socket_no_wait(socket) _close_socket(socket, 0, 1)
+#define close_socket_no_shdn(socket) _close_socket(socket, 0, 0)
 
 /*
  * Closes a listener socket.
