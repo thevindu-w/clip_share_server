@@ -555,7 +555,7 @@ void _close_socket(socket_t *socket, int await, int shutdown) {
         SSL_free(socket->socket.ssl);
         close_sock(sd);
 #else
-    (void)shutdown;
+        (void)shutdown;
 #endif
     }
     socket->type = NULL_SOCK;
