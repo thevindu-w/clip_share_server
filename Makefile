@@ -53,6 +53,7 @@ else
     detected_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
 endif
 
+ARCH?=x86_64
 ifeq ($(ARCH),x86)
 	BUILD_DIR:=$(BUILD_DIR)_x86
 	CFLAGS+= -m32
@@ -74,8 +75,8 @@ else ifeq ($(detected_OS),Windows)
 	CFLAGS+= -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	CFLAGS_OPTIM=-O3
-	LDLIBS_NO_SSL=-l:libunistring.a -l:libpthread.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a -lIphlpapi -lcrypt32 -lShcore -lUserenv
 	OTHER_DEPENDENCIES+= res/win/app.coff
+	LDLIBS_NO_SSL=-l:libunistring.a -l:libpthread.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a -lIphlpapi -lcrypt32 -lShcore -lUserenv
 	LDLIBS_SSL=-l:libssl.a -l:libcrypto.a -l:libpthread.a
 	LINK_FLAGS_BUILD=-no-pie -mwindows
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
@@ -192,7 +193,7 @@ $(BUILD_DIR)/res/win/app.coff: $(SRC_DIR)/res/win/app_.rc $(SRC_DIR)/res/win/res
 
 $(SRC_DIR)/res/win/app_.rc: $(SRC_DIR)/res/win/app.rc $(VERSION_FILE)
 	@echo CPP $$'\t' $@
-	$(CPP) -I$(SRC_DIR) -P -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_MINOR=$(VERSION_MINOR) -DVERSION_PATCH=$(VERSION_PATCH) -DVERSION=\"$(VERSION)\" $< -o $@
+	@$(CPP) -I$(SRC_DIR) -P -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_MINOR=$(VERSION_MINOR) -DVERSION_PATCH=$(VERSION_PATCH) -DVERSION=\"$(VERSION)\" $< -o $@
 
 $(BUILD_DIR)/res/mac/icon_.c: $(SRC_DIR)/res/mac/icon.png | $(BUILD_DIR)/res/mac/
 	@echo generate $$'\t' $@
@@ -209,7 +210,7 @@ all: $(PROGRAM_NAME) $(PROGRAM_NAME_NO_SSL) $(PROGRAM_NAME_WEB)
 
 debug: $(DEBUG_OBJS) $(OTHER_DEPENDENCIES)
 	@echo CCLD $$'\t' $@ $(PROGRAM_NAME)
-	$(CC) $^ $(LDLIBS) -o $(PROGRAM_NAME)
+	@$(CC) $^ $(LDLIBS) -o $(PROGRAM_NAME)
 
 web: $(PROGRAM_NAME_WEB)
 no_ssl: $(PROGRAM_NAME_NO_SSL)

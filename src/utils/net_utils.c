@@ -288,47 +288,51 @@ static int join_multicast_group(sock_t socket, unsigned int interface_index, in_
 }
 
 #if defined(__linux__) || defined(__APPLE__)
+/**
+ * Iterate network interfaces.
+ * If the interface_addr.af is AF_INET, this MUST NOT be called with INADDR_ANY address. For other IPv4 addresses,
+ * this will iterate and find the broadcast address of the given interface address and binds to the broadcast address.
+ * If the interface_addr.af is AF_INET6, this function will not bind to any address. Instead it will only join the
+ * requested multicast group.
+ */
 static int iterate_interfaces(in_addr_common interface_addr, listener_t listener) {
     struct ifaddrs *ptr_ifaddrs = NULL;
     if (getifaddrs(&ptr_ifaddrs)) return EXIT_FAILURE;
-    int is_any_addr = (interface_addr.af == AF_INET) ? (interface_addr.addr.addr4.s_addr == INADDR_ANY)
-                                                     : IN6_ARE_ADDR_EQUAL(&interface_addr.addr.addr6, &in6addr_any);
+    int is_any_addr = (interface_addr.af == AF_INET6) && IN6_ARE_ADDR_EQUAL(&interface_addr.addr.addr6, &in6addr_any);
     int status = EXIT_SUCCESS;
     char if_joined[32];
     memset(if_joined, 0, sizeof(if_joined));
-    for (struct ifaddrs *ptr_entry = ptr_ifaddrs; ptr_entry; ptr_entry = ptr_entry->ifa_next) {
+    for (struct ifaddrs *ptr_entry = ptr_ifaddrs; ptr_entry && (status == EXIT_SUCCESS);
+         ptr_entry = ptr_entry->ifa_next) {
         if (!(ptr_entry->ifa_addr) || ptr_entry->ifa_addr->sa_family != interface_addr.af) continue;
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-align"
 #endif
         if (interface_addr.af == AF_INET) {
-            if (!is_any_addr &&
-                (CAST_SOCKADDR_IN(ptr_entry->ifa_addr))->sin_addr.s_addr != interface_addr.addr.addr4.s_addr)
-                continue;
+            if ((CAST_SOCKADDR_IN(ptr_entry->ifa_addr))->sin_addr.s_addr != interface_addr.addr.addr4.s_addr) continue;
             in_addr_common broadcast = {.af = AF_INET};
             broadcast.addr.addr4.s_addr = (CAST_SOCKADDR_IN(ptr_entry->ifa_addr))->sin_addr.s_addr |
                                           ~(CAST_SOCKADDR_IN(ptr_entry->ifa_netmask))->sin_addr.s_addr;
-            if (bind_socket(listener, broadcast, configuration.udp_port) != EXIT_SUCCESS) {
-                status = EXIT_FAILURE;
-                break;
-            }
-        } else {
-            struct in6_addr ifaddr = (CAST_SOCKADDR_IN6(ptr_entry->ifa_addr))->sin6_addr;
-            if (!is_any_addr && !IN6_ARE_ADDR_EQUAL(&ifaddr, &(interface_addr.addr.addr6))) continue;
-            in_addr_common multicast_addr = {.af = AF_INET6};
-            if (inet_pton(AF_INET6, MULTICAST_ADDR, &(multicast_addr.addr.addr6)) != 1) {
-                status = EXIT_FAILURE;
-                break;
-            }
-            unsigned int ifindex = if_nametoindex(ptr_entry->ifa_name);
-            if (ifindex >= sizeof(if_joined) || if_joined[ifindex]) continue;
-            if (join_multicast_group(listener.socket, ifindex, multicast_addr) != EXIT_SUCCESS) {
-                status = EXIT_FAILURE;
-                break;
-            }
-            if_joined[ifindex] = 1;
+            if (bind_socket(listener, broadcast, configuration.udp_port) == EXIT_SUCCESS) break;
+            status = EXIT_FAILURE;
+            continue;
         }
+        // AF_INET6
+        struct in6_addr ifaddr = (CAST_SOCKADDR_IN6(ptr_entry->ifa_addr))->sin6_addr;
+        if (!is_any_addr && !IN6_ARE_ADDR_EQUAL(&ifaddr, &(interface_addr.addr.addr6))) continue;
+        in_addr_common multicast_addr = {.af = AF_INET6};
+        if (inet_pton(AF_INET6, MULTICAST_ADDR, &(multicast_addr.addr.addr6)) != 1) {
+            status = EXIT_FAILURE;
+            continue;
+        }
+        unsigned int ifindex = if_nametoindex(ptr_entry->ifa_name);
+        if (ifindex >= sizeof(if_joined) || if_joined[ifindex]) continue;
+        if (join_multicast_group(listener.socket, ifindex, multicast_addr) != EXIT_SUCCESS) {
+            status = EXIT_FAILURE;
+            continue;
+        }
+        if_joined[ifindex] = 1;
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
@@ -337,6 +341,13 @@ static int iterate_interfaces(in_addr_common interface_addr, listener_t listener
     return status;
 }
 #elif defined(_WIN32)
+/**
+ * Iterate network interfaces.
+ * If the interface_addr.af is AF_INET, this MUST NOT be called with INADDR_ANY address. For other IPv4 addresses,
+ * this will iterate and find the broadcast address of the given interface address and binds to the broadcast address.
+ * If the interface_addr.af is AF_INET6, this function will not bind to any address. Instead it will only join the
+ * requested multicast group.
+ */
 static int iterate_interfaces(in_addr_common interface_addr, listener_t listener) {
     (void)listener;
     ULONG bufSz = 4096;
@@ -355,17 +366,15 @@ static int iterate_interfaces(in_addr_common interface_addr, listener_t listener
         retries--;
     } while (retries > 0 && bufSz < 1000000L);
     if (!pAddrs) return EXIT_FAILURE;
-    int is_any_addr = (interface_addr.af == AF_INET)
-                          ? (interface_addr.addr.addr4.s_addr == INADDR_ANY)
-                          : IN6_ARE_ADDR_EQUAL((struct in6_addr *)&interface_addr.addr.addr6, &in6addr_any);
+    int is_any_addr = (interface_addr.af == AF_INET6) &&
+                      IN6_ARE_ADDR_EQUAL((struct in6_addr *)&interface_addr.addr.addr6, &in6addr_any);
     int status = EXIT_SUCCESS;
     for (PIP_ADAPTER_ADDRESSES cur = pAddrs; cur; cur = cur->Next) {
         PIP_ADAPTER_UNICAST_ADDRESS unicast = cur->FirstUnicastAddress;
         if (!unicast) continue;
         SOCKET_ADDRESS socket_addr = unicast->Address;
         if (interface_addr.af == AF_INET) {
-            if (!is_any_addr &&
-                ((struct sockaddr_in *)(socket_addr.lpSockaddr))->sin_addr.s_addr != interface_addr.addr.addr4.s_addr)
+            if (((struct sockaddr_in *)(socket_addr.lpSockaddr))->sin_addr.s_addr != interface_addr.addr.addr4.s_addr)
                 continue;
             if (bind_socket(listener, interface_addr, configuration.udp_port) != EXIT_SUCCESS) {
                 status = EXIT_FAILURE;
@@ -408,6 +417,7 @@ int bind_udp(listener_t listener) {
 #endif
         return bind_socket(listener, bind_addr, configuration.udp_port);
     }
+    // IPv4
     if (configuration.bind_addr_udp.addr.addr4.s_addr != INADDR_ANY) {
         return iterate_interfaces(configuration.bind_addr_udp, listener);
     }
@@ -462,10 +472,14 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
         return;
     }
 
-    // set timeout option to 0.5s
-    struct timeval tv = {0, 500000L};
-    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) ||
-        setsockopt(connect_d, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv))) {
+    // set timeout option to 2s
+#if defined(__linux__) || defined(__APPLE__)
+    struct timeval timeout = {.tv_sec = 2, .tv_usec = 0};
+#elif defined(_WIN32)
+    DWORD timeout = 2000;
+#endif
+    if (setsockopt(connect_d, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) ||
+        setsockopt(connect_d, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout))) {
         close_sock(connect_d);
         error("Can't set the timeout option of the connection");
         return;

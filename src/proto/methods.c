@@ -412,7 +412,7 @@ static inline int _get_base_name(char *file_name, size_t name_length) {
  */
 static inline int _rename_if_exists(char *file_name, size_t max_len) {
     char tmp_fname[max_len + 1];
-    if (configuration.working_dir != NULL || strcmp(file_name, "clipshare.conf")) {
+    if (configuration.working_dir != NULL || strcmp(file_name, CONFIG_FILE)) {
         if (snprintf_check(tmp_fname, max_len, ".%c%s", PATH_SEP, file_name)) return EXIT_FAILURE;
     } else {
         // do not create file named clipshare.conf
@@ -619,7 +619,7 @@ static char *_check_and_rename(const char *filename, const char *dirname) {
     if (snprintf_check(old_path, name_max_len, "%s%c%s", dirname, PATH_SEP, filename)) return NULL;
 
     char new_path[name_max_len];
-    if (configuration.working_dir != NULL || strcmp(filename, "clipshare.conf")) {
+    if (configuration.working_dir != NULL || strcmp(filename, CONFIG_FILE)) {
         // "./" is important to prevent file names like "C:\path"
         if (snprintf_check(new_path, name_max_len, ".%c%s", PATH_SEP, filename)) return NULL;
     } else {
