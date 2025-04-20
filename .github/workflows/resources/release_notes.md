@@ -14,6 +14,10 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Improvements in installer scripts.
-- Minor bug fixes.
+- Fix TLS connections being closed before the client receives all data.
+- Fix compilation issues with casting on some platforms.
+- Fix socket timeout errors on Windows.
+- Fix possible memory access issues.
+- Fix issues in Makefile.
+- Update keygen.sh script to encrypt the CA key for security after using it.
 - Code quality improvements.
