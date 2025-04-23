@@ -156,7 +156,7 @@ $(ALL_DEPENDENCIES): %: | $$(dir %)
 
 $(OBJS_C): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 $(OBJS_M): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.m
-$(OBJS_BIN): $(BUILD_DIR)/%.o: $(BUILD_DIR)/%_.c
+$(OBJS_BIN): $(BUILD_DIR)/%.o: $(SRC_DIR)/%_.c
 $(BUILD_DIR)/main.o: $(VERSION_FILE)
 $(OBJS):
 	@echo CC $$'\t' $@
@@ -165,7 +165,7 @@ $(OBJS):
 $(WEB_OBJS_C): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.c
 $(WEB_OBJS_M): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.m
 $(WEB_OBJS_S): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.S
-$(WEB_OBJS_BIN): $(BUILD_DIR)/%_web.o: $(BUILD_DIR)/%_.c
+$(WEB_OBJS_BIN): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%_.c
 $(BUILD_DIR)/main_web.o: $(VERSION_FILE)
 $(WEB_OBJS):
 	@echo CC $$'\t' $@
@@ -173,7 +173,7 @@ $(WEB_OBJS):
 
 $(DEBUG_OBJS_C): $(BUILD_DIR)/%_debug.o: $(SRC_DIR)/%.c
 $(DEBUG_OBJS_M): $(BUILD_DIR)/%_debug.o: $(SRC_DIR)/%.m
-$(DEBUG_OBJS_BIN): $(BUILD_DIR)/%_debug.o: $(BUILD_DIR)/%_.c
+$(DEBUG_OBJS_BIN): $(BUILD_DIR)/%_debug.o: $(SRC_DIR)/%_.c
 $(BUILD_DIR)/main_debug.o: $(VERSION_FILE)
 $(DEBUG_OBJS):
 	@echo CC $$'\t' $@
@@ -181,13 +181,13 @@ $(DEBUG_OBJS):
 
 $(NO_SSL_OBJS_C): $(BUILD_DIR)/%_no_ssl.o: $(SRC_DIR)/%.c
 $(NO_SSL_OBJS_M): $(BUILD_DIR)/%_no_ssl.o: $(SRC_DIR)/%.m
-$(NO_SSL_OBJS_BIN): $(BUILD_DIR)/%_no_ssl.o: $(BUILD_DIR)/%_.c
+$(NO_SSL_OBJS_BIN): $(BUILD_DIR)/%_no_ssl.o: $(SRC_DIR)/%_.c
 $(BUILD_DIR)/main_no_ssl.o: $(VERSION_FILE)
 $(NO_SSL_OBJS):
 	@echo CC $$'\t' $@
 	@$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_SSL -fno-pie $< -o $@
 
-$(BUILD_DIR)/res/win/app.coff: $(SRC_DIR)/res/win/app_.rc $(SRC_DIR)/res/win/resource.h | $(BUILD_DIR)/res/win/
+$(BUILD_DIR)/res/win/app.coff: $(SRC_DIR)/res/win/app_.rc $(SRC_DIR)/res/win/resource.h
 	@echo windres $$'\t' $@
 	@windres -I$(SRC_DIR) $< -O coff -o $@
 
@@ -195,10 +195,10 @@ $(SRC_DIR)/res/win/app_.rc: $(SRC_DIR)/res/win/app.rc $(VERSION_FILE)
 	@echo CPP $$'\t' $@
 	@$(CPP) -I$(SRC_DIR) -P -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_MINOR=$(VERSION_MINOR) -DVERSION_PATCH=$(VERSION_PATCH) -DVERSION=\"$(VERSION)\" $< -o $@
 
-$(BUILD_DIR)/res/mac/icon_.c: $(SRC_DIR)/res/mac/icon.png | $(BUILD_DIR)/res/mac/
+$(SRC_DIR)/res/mac/icon_.c: $(SRC_DIR)/res/mac/icon.png
 	@echo generate $$'\t' $@
-	@xxd -i $< >$@
-	@gsed -i 's/[a-zA-Z_]*res_mac_//g' $@
+	@cd $(dir $@) && \
+	xxd -i $(notdir $<) >$(notdir $@)
 
 $(DIRS):
 	@echo create directory $@

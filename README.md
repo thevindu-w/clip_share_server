@@ -437,13 +437,9 @@ The following development libraries are required.
 * [libpng](https://formulae.brew.sh/formula/libpng)
 * [libunistring](https://formulae.brew.sh/formula/libunistring)
 
-Additionally, GNU sed is required.
-
-* [gnu-sed](https://formulae.brew.sh/formula/gnu-sed)
-
-These tools can be installed using [Homebrew](https://brew.sh) with the following command:
+These libraries can be installed using [Homebrew](https://brew.sh) with the following command:
 ```bash
-brew install openssl@3 libpng libunistring gnu-sed
+brew install openssl@3 libpng libunistring
 ```
 </details>
 
