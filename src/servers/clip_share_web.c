@@ -77,8 +77,7 @@ static void receiver_web(socket_t *sock) {
             if (snprintf_check(
                     tmp, 96,
                     "Content-Type: text/html; charset=utf-8\r\nContent-Length: %i\r\nConnection: close\r\n\r\n",
-                    blob_size_page))  // Content-Disposition: attachment; filename="filename.ext" // put this, filename
-                                      // parameter is optional
+                    blob_size_page))
                 return;
             if (say(tmp, sock) != EXIT_SUCCESS) return;
             if (write_sock(sock, blob_page, (size_t)blob_size_page) != EXIT_SUCCESS) return;

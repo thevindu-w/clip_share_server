@@ -143,12 +143,14 @@ static inline void _set_error_log_file(const char *path) {
         free(working_dir);
         exit(EXIT_FAILURE);
     }
+    int err;
     if (working_dir[working_dir_len - 1] == PATH_SEP) {
-        snprintf_check(error_log_file, buf_sz, "%s%s", working_dir, ERROR_LOG_FILE);
+        err = snprintf_check(error_log_file, buf_sz, "%s%s", working_dir, ERROR_LOG_FILE);
     } else {
-        snprintf_check(error_log_file, buf_sz, "%s/%s", working_dir, ERROR_LOG_FILE);
+        err = snprintf_check(error_log_file, buf_sz, "%s/%s", working_dir, ERROR_LOG_FILE);
     }
     free(working_dir);
+    if (err) exit(EXIT_FAILURE);
 }
 
 /*
@@ -167,14 +169,16 @@ static inline void _change_working_dir(void) {
     }
     if (!is_directory(configuration.working_dir, 1)) {
         char err[3072];
-        snprintf_check(err, 3072, "Error: Not existing working directory \'%s\'", configuration.working_dir);
+        if (snprintf_check(err, 3072, "Error: Not existing working directory \'%s\'", configuration.working_dir))
+            err[0] = 0;
         fprintf(stderr, "%s\n", err);
         error_exit(err);
     }
     char *old_work_dir = getcwd_wrapper(0);
     if (chdir_wrapper(configuration.working_dir)) {
         char err[3072];
-        snprintf_check(err, 3072, "Error: Failed changing working directory to \'%s\'", configuration.working_dir);
+        if (snprintf_check(err, 3072, "Error: Failed changing working directory to \'%s\'", configuration.working_dir))
+            err[0] = 0;
         fprintf(stderr, "%s\n", err);
         if (old_work_dir) free(old_work_dir);
         error_exit(err);
@@ -304,16 +308,15 @@ static inline void setGUID(void) {
 }
 
 static inline void show_tray_icon(void) {
-    NOTIFYICONDATA notifyIconData;
     if (configuration.tray_icon) {
-        notifyIconData = (NOTIFYICONDATA){.hWnd = hWnd,
-                                          .uFlags = NIF_ICON | NIF_TIP | NIF_SHOWTIP | NIF_MESSAGE | NIF_GUID,
-                                          .uCallbackMessage = TRAY_CB_MSG,
-                                          .uVersion = NOTIFYICON_VERSION_4,
-                                          .hIcon = LoadIcon(instance, MAKEINTRESOURCE(APP_ICON)),
-                                          .guidItem = guid};
+        NOTIFYICONDATA notifyIconData = {.hWnd = hWnd,
+                                         .uFlags = NIF_ICON | NIF_TIP | NIF_SHOWTIP | NIF_MESSAGE | NIF_GUID,
+                                         .uCallbackMessage = TRAY_CB_MSG,
+                                         .uVersion = NOTIFYICON_VERSION_4,
+                                         .hIcon = LoadIcon(instance, MAKEINTRESOURCE(APP_ICON)),
+                                         .guidItem = guid};
         notifyIconData.cbSize = sizeof(notifyIconData);
-        snprintf_check(notifyIconData.szTip, 64, "ClipShare");
+        if (snprintf_check(notifyIconData.szTip, 64, "ClipShare")) return;
         Shell_NotifyIcon(NIM_DELETE, &notifyIconData);
         Shell_NotifyIcon(NIM_ADD, &notifyIconData);
         Shell_NotifyIcon(NIM_SETVERSION, &notifyIconData);

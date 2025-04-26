@@ -283,13 +283,13 @@ static void parse_line(char *line, config *cfg) {
     } else if (!strcmp("bind_address", key)) {
         if (parse_ip(value, &(cfg->bind_addr)) != EXIT_SUCCESS) {
             char msg[64];
-            snprintf_check(msg, 64, "Error: Invalid bind address %s", value);
+            if (snprintf_check(msg, 64, "Error: Invalid bind address %s", value)) msg[0] = 0;
             error_exit(msg);
         }
     } else if (!strcmp("bind_address_udp", key)) {
         if (parse_ip(value, &(cfg->bind_addr_udp)) != EXIT_SUCCESS) {
             char msg[64];
-            snprintf_check(msg, 64, "Error: Invalid UDP bind address %s", value);
+            if (snprintf_check(msg, 64, "Error: Invalid UDP bind address %s", value)) msg[0] = 0;
             error_exit(msg);
         }
     } else if (!strcmp("restart", key)) {

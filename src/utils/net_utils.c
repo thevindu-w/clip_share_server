@@ -268,7 +268,7 @@ int bind_socket(listener_t listener, in_addr_common bind_addr, uint16_t port) {
     if (bind(listener.socket, server_addr, addr_sz)) {
         char errmsg[32];
         const char *tcp_udp = IS_UDP(listener.type) ? "UDP" : "TCP";
-        snprintf_check(errmsg, 32, "Can\'t bind to %s port %hu", tcp_udp, port);
+        if (snprintf_check(errmsg, 32, "Can\'t bind to %s port %hu", tcp_udp, port)) errmsg[0] = 0;
         error(errmsg);
         return EXIT_FAILURE;
     }
