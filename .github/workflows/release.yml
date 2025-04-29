@@ -41,7 +41,7 @@ jobs:
       security-events: write
     needs: Checks
 
-  Linux:
+  Linux-x86_64:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs:
@@ -55,7 +55,7 @@ jobs:
     - name: Set version
       run: |
         version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-        archive="clip_share_server-${version}-linux_x86_64"
+        archive="clip_share_server-${version}-linux-x86_64"
         echo ARCHIVE_NAME_NO_EXT="${archive}" >> $GITHUB_ENV
         echo ARCHIVE_NAME="${archive}.tar.gz" >> $GITHUB_ENV
 
@@ -95,6 +95,50 @@ jobs:
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu24
         docker run -v './dist:/home/user/src/dist' clipshare:arch
         docker run -v './dist:/home/user/src/dist' clipshare:fedora
+        [ -f helper_tools/install-linux.sh ] && cp helper_tools/install-linux.sh dist/
+        sudo chmod +x dist/*
+        cd dist
+        sha256sum -b * >SHA2-256SUM
+        cd ..
+        mv dist "${{env.ARCHIVE_NAME_NO_EXT}}"
+        tar -cf - --sort=name --owner=root:0 --group=root:0 --no-same-owner "${{env.ARCHIVE_NAME_NO_EXT}}" | \
+        gzip -9 >"${{env.ARCHIVE_NAME}}"
+
+    - name: Upload Linux version
+      uses: actions/upload-artifact@v4
+      with:
+        name: "${{env.ARCHIVE_NAME}}"
+        path: "${{env.ARCHIVE_NAME}}"
+        retention-days: 3
+        if-no-files-found: error
+        compression-level: 0
+
+  Linux-ARM64:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    needs:
+    - Checks
+    - Build-and-Test
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: Set version
+      run: |
+        version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+        archive="clip_share_server-${version}-linux-arm64"
+        echo ARCHIVE_NAME_NO_EXT="${archive}" >> $GITHUB_ENV
+        echo ARCHIVE_NAME="${archive}.tar.gz" >> $GITHUB_ENV
+
+    - name: Build
+      run: docker buildx build -t clipshare -f docker/release/Dockerfile --build-arg 'DISTRO=debian' .
+
+    - name: Copy binaries
+      run: |
+        mkdir dist
+        chmod 777 dist
+        docker run -v './dist:/home/user/src/dist' clipshare
         [ -f helper_tools/install-linux.sh ] && cp helper_tools/install-linux.sh dist/
         sudo chmod +x dist/*
         cd dist
@@ -235,7 +279,7 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
-  macOS_all:
+  macOS-all:
     needs: macOS
     runs-on: macos-latest
     timeout-minutes: 5
@@ -283,11 +327,12 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
-  Create_Release:
+  Create-Release:
     needs:
-    - Linux
+    - Linux-x86_64
+    - Linux-ARM64
     - Windows
-    - macOS_all
+    - macOS-all
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -305,7 +350,8 @@ jobs:
         echo VERSION="$version" >> $GITHUB_ENV
         echo TAG="v${version}" >> $GITHUB_ENV
         echo TITLE="Version ${version}" >> $GITHUB_ENV
-        echo FILE_LINUX="clip_share_server-${version}-linux_x86_64.tar.gz" >> $GITHUB_ENV
+        echo FILE_LINUX_AMD64="clip_share_server-${version}-linux-x86_64.tar.gz" >> $GITHUB_ENV
+        echo FILE_LINUX_ARM64="clip_share_server-${version}-linux-arm64.tar.gz" >> $GITHUB_ENV
         echo FILE_WINDOWS32="clip_share_server-${version}-windows-x86.zip" >> $GITHUB_ENV
         echo FILE_WINDOWS64="clip_share_server-${version}-windows-x86_64.zip" >> $GITHUB_ENV
         echo INSTALLER_WINDOWS="install-windows.bat" >> $GITHUB_ENV
@@ -327,13 +373,17 @@ jobs:
     - name: Prepare assets
       run: |
         mkdir release
-        mv "${{env.FILE_LINUX}}" "${{env.FILE_WINDOWS32}}" "${{env.FILE_WINDOWS64}}" "${{env.FILE_MACOS}}" release/
+        mv "${{env.FILE_LINUX_AMD64}}" "${{env.FILE_LINUX_ARM64}}" "${{env.FILE_WINDOWS32}}" \
+        "${{env.FILE_WINDOWS64}}" "${{env.FILE_MACOS}}" release/
         mv "${{env.INSTALLER_WINDOWS}}/${{env.INSTALLER_WINDOWS}}" release/
         mv .github/workflows/resources/clipshare.conf release/
         mv helper_tools/install-online-linux-mac.sh release/install-linux-mac.sh
         cd release
         sed -i "s/^VERSION_DEFAULT=$/VERSION_DEFAULT=${{env.VERSION}}/" install-linux-mac.sh
-        sed -i "s/^LINUX_SHA=$/LINUX_SHA='$(sha256sum -b ${{env.FILE_LINUX}} | cut -d ' ' -f 1)'/" install-linux-mac.sh
+        sed -i "s/^LINUX_AMD64_SHA=$/LINUX_AMD64_SHA='$(sha256sum -b ${{env.FILE_LINUX_AMD64}} | \
+        cut -d ' ' -f 1)'/" install-linux-mac.sh
+        sed -i "s/^LINUX_ARM64_SHA=$/LINUX_ARM64_SHA='$(sha256sum -b ${{env.FILE_LINUX_ARM64}} | \
+        cut -d ' ' -f 1)'/" install-linux-mac.sh
         sed -i "s/^MAC_SHA=$/MAC_SHA='$(sha256sum -b ${{env.FILE_MACOS}} | cut -d ' ' -f 1)'/" install-linux-mac.sh
         sha256sum -b * >SHA2-256SUM
 
@@ -347,7 +397,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         sed -i "s/<VERSION>/${{env.VERSION}}/g" .github/workflows/resources/release_notes.md
-        sed -i "s/<FILE_LINUX>/${{env.FILE_LINUX}}/g" .github/workflows/resources/release_notes.md
+        sed -i "s/<FILE_LINUX_AMD64>/${{env.FILE_LINUX_AMD64}}/g" .github/workflows/resources/release_notes.md
+        sed -i "s/<FILE_LINUX_ARM64>/${{env.FILE_LINUX_ARM64}}/g" .github/workflows/resources/release_notes.md
         sed -i "s/<FILE_MACOS>/${{env.FILE_MACOS}}/g" .github/workflows/resources/release_notes.md
         cd release
         gh release create "${{env.TAG}}" --latest --verify-tag \

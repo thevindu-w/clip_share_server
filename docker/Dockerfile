@@ -31,6 +31,14 @@ RUN pacman -Sy && \
 RUN pacman -S --needed --noconfirm coreutils findutils diffutils python socat xclip sed
 RUN pacman -Sdd --needed --noconfirm pixman freetype2 graphite harfbuzz libfontenc xorg-xkbcomp xorg-setxkbmap xkeyboard-config libxfont2 libunwind libglvnd libxkbfile xorg-server-xvfb
 
+FROM debian:bullseye-slim AS debian_builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev
+
+# Install test dependencies
+RUN apt-get install --no-install-recommends -y openssl xclip python3-minimal diffutils findutils coreutils socat sed xvfb
+
 # hadolint ignore=DL3006
 FROM ${DISTRO}_builder
 
@@ -50,7 +58,7 @@ COPY Makefile ./
 COPY ./src src
 
 # Build
-RUN make clean && make && make no_ssl && make web
+RUN make clean && make && make no_ssl
 
 # Prepare the test environment initialization script
 COPY --chmod=755 ./docker/run_docker.sh docker/

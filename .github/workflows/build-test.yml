@@ -34,7 +34,7 @@ jobs:
       contents: write
       pull-requests: write
 
-  Build-and-Test-on-Linux:
+  Test-on-Linux-x86_64:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: Style-Check
@@ -61,7 +61,25 @@ jobs:
     - name: Test
       run: docker run clipshare
 
-  Build-and-Test-on-Windows:
+  Test-on-Linux-ARM64:
+    runs-on: ubuntu-24.04-arm
+    if: ${{ (github.event_name != 'push') || (inputs.trigger == 'workflow_call') }}
+    timeout-minutes: 10
+    needs: Style-Check
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref }}
+
+    - name: Build
+      run: docker build -t clipshare -f docker/Dockerfile --build-arg "DISTRO=debian" .
+
+    - name: Test
+      run: docker run clipshare
+
+  Test-on-Windows:
     runs-on: windows-latest
     timeout-minutes: 10
     needs: Style-Check
@@ -115,7 +133,7 @@ jobs:
     - name: Test
       run: make ARCH=${{matrix.target.arch}} test
 
-  Build-and-Test-on-macOS:
+  Test-on-macOS:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     needs: Style-Check
@@ -153,13 +171,14 @@ jobs:
         export TERM=xterm-256color
         make test
 
-  CodeQL_Analyze:
+  CodeQL-Analyze:
     runs-on: ubuntu-latest
     if: ${{ (github.event_name != 'push') || (inputs.trigger == 'workflow_call') }}
     timeout-minutes: 30
     needs:
-    - Build-and-Test-on-Linux
-    - Build-and-Test-on-macOS
+    - Test-on-Linux-x86_64
+    - Test-on-Linux-ARM64
+    - Test-on-macOS
 
     permissions:
       security-events: write
