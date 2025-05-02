@@ -77,9 +77,17 @@ if [ "${confirm::1}" != 'y' ] && [ "${confirm::1}" != 'Y' ]; then
     exit 0
 fi
 
+if [ "$OS" = 'Linux' ]; then
+    if [ "$(uname -m)" = 'x86_64' ]; then
+        ARCH=x86_64
+    else
+        ARCH=arm64
+    fi
+fi
+
 filename_prefix="clip_share_server-$VERSION"
 if [ "$OS" = 'Linux' ]; then
-    filename="${filename_prefix}-linux_x86_64.tar.gz"
+    filename="${filename_prefix}-linux-${ARCH}.tar.gz"
 elif [ "$OS" = 'Darwin' ]; then
     filename="${filename_prefix}-macos.zip"
 fi
@@ -109,19 +117,19 @@ if ! download "$url" &>/dev/null; then
 fi
 echo -e '\rDownload completed                   '
 
-LINUX_SHA=
+LINUX_AMD64_SHA=
+LINUX_ARM64_SHA=
 MAC_SHA=
 if [ "$OS" = 'Linux' ]; then
-    SHA256="$LINUX_SHA"
+    if [ "$ARCH" = 'x86_64' ]; then
+        SHA256="$LINUX_AMD64_SHA"
+    else
+        SHA256="$LINUX_ARM64_SHA"
+    fi
 elif [ "$OS" = 'Darwin' ]; then
     SHA256="$MAC_SHA"
 fi
 if [ -n "$SHA256" ] && type sha256sum &>/dev/null && type cut &>/dev/null; then
-    if [ "$OS" = 'Linux' ]; then
-        SHA256="$LINUX_SHA"
-    elif [ "$OS" = 'Darwin' ]; then
-        SHA256="$MAC_SHA"
-    fi
     if [ "$(sha256sum -b "$filename" | cut -d ' ' -f 1)" != "$SHA256" ]; then
         cleanup
         error_exit 'File integrity check failed for downloaded file'
