@@ -197,10 +197,12 @@ jobs:
     - name: Set variables
       run: |
         version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-        archive="clip_share_server-${version}-windows-${{matrix.target.arch}}.zip"
         echo VERSION="$version" >> $GITHUB_ENV
         echo FILE_NAME="clip_share.exe" >> $GITHUB_ENV
-        echo ARCHIVE_NAME="$archive" >> $GITHUB_ENV
+        echo FILE_NAME_NO_SSL="clip_share_no_ssl.exe" >> $GITHUB_ENV
+        suffix="${version}-windows-${{matrix.target.arch}}.zip"
+        echo ARCHIVE_NAME="clip_share_server-${suffix}" >> $GITHUB_ENV
+        echo ARCHIVE_NAME_NO_SSL="clip_share_server-no_ssl-${suffix}" >> $GITHUB_ENV
         echo INSTALLER_NAME="install-windows.bat" >> $GITHUB_ENV
 
     - name: Build
@@ -212,11 +214,30 @@ jobs:
         cd dist
         zip -9 "../${{env.ARCHIVE_NAME}}" *
 
+    - name: Build no_ssl
+      run: |
+        make clean
+        make ARCH=${{matrix.target.arch}} no_ssl
+        mkdir dist_no_ssl
+        mv clip_share_no_ssl*.exe "dist_no_ssl/${{env.FILE_NAME_NO_SSL}}"
+        [ -f helper_tools/install-windows.bat ] && cp helper_tools/install-windows.bat dist_no_ssl/
+        cd dist_no_ssl
+        zip -9 "../${{env.ARCHIVE_NAME_NO_SSL}}" *
+
     - name: Upload Windows version
       uses: actions/upload-artifact@v4
       with:
         name: "${{env.ARCHIVE_NAME}}"
         path: "${{env.ARCHIVE_NAME}}"
+        retention-days: 3
+        if-no-files-found: error
+        compression-level: 9
+
+    - name: Upload Windows no-ssl version
+      uses: actions/upload-artifact@v4
+      with:
+        name: "${{env.ARCHIVE_NAME_NO_SSL}}"
+        path: "${{env.ARCHIVE_NAME_NO_SSL}}"
         retention-days: 3
         if-no-files-found: error
         compression-level: 9
@@ -354,6 +375,8 @@ jobs:
         echo FILE_LINUX_ARM64="clip_share_server-${version}-linux-arm64.tar.gz" >> $GITHUB_ENV
         echo FILE_WINDOWS32="clip_share_server-${version}-windows-x86.zip" >> $GITHUB_ENV
         echo FILE_WINDOWS64="clip_share_server-${version}-windows-x86_64.zip" >> $GITHUB_ENV
+        echo FILE_WINDOWS32_NO_SSL="clip_share_server-no_ssl-${version}-windows-x86.zip" >> $GITHUB_ENV
+        echo FILE_WINDOWS64_NO_SSL="clip_share_server-no_ssl-${version}-windows-x86_64.zip" >> $GITHUB_ENV
         echo INSTALLER_WINDOWS="install-windows.bat" >> $GITHUB_ENV
         echo FILE_MACOS="clip_share_server-${version}-macos.zip" >> $GITHUB_ENV
 
@@ -374,7 +397,8 @@ jobs:
       run: |
         mkdir release
         mv "${{env.FILE_LINUX_AMD64}}" "${{env.FILE_LINUX_ARM64}}" "${{env.FILE_WINDOWS32}}" \
-        "${{env.FILE_WINDOWS64}}" "${{env.FILE_MACOS}}" release/
+        "${{env.FILE_WINDOWS64}}" "${{env.FILE_WINDOWS32_NO_SSL}}" "${{env.FILE_WINDOWS64_NO_SSL}}" \
+        "${{env.FILE_MACOS}}" release/
         mv "${{env.INSTALLER_WINDOWS}}/${{env.INSTALLER_WINDOWS}}" release/
         mv .github/workflows/resources/clipshare.conf release/
         mv helper_tools/install-online-linux-mac.sh release/install-linux-mac.sh
