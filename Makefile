@@ -36,6 +36,7 @@ CC=gcc
 CPP=cpp
 CFLAGS=-c -pipe -I$(SRC_DIR) --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Woverlength-strings
 CFLAGS_DEBUG=-g -DDEBUG_MODE
+VPATH=$(SRC_DIR)
 
 OBJS_C=main.o servers/clip_share.o servers/udp_serve.o proto/server.o proto/versions.o proto/methods.o utils/utils.o utils/net_utils.o utils/list_utils.o utils/config.o utils/kill_others.o
 
@@ -154,48 +155,48 @@ $(PROGRAM_NAME_NO_SSL): $(NO_SSL_OBJS) $(OTHER_DEPENDENCIES)
 .SECONDEXPANSION:
 $(ALL_DEPENDENCIES): %: | $$(dir %)
 
-$(OBJS_C): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-$(OBJS_M): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.m
-$(OBJS_BIN): $(BUILD_DIR)/%.o: $(SRC_DIR)/%_.c
+$(OBJS_C): $(BUILD_DIR)/%.o: %.c
+$(OBJS_M): $(BUILD_DIR)/%.o: %.m
+$(OBJS_BIN): $(BUILD_DIR)/%.o: %_.c
 $(BUILD_DIR)/main.o: $(VERSION_FILE)
 $(OBJS):
 	@echo CC $$'\t' $@
 	@$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -fno-pie $< -o $@
 
-$(WEB_OBJS_C): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.c
-$(WEB_OBJS_M): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.m
-$(WEB_OBJS_S): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%.S
-$(WEB_OBJS_BIN): $(BUILD_DIR)/%_web.o: $(SRC_DIR)/%_.c
+$(WEB_OBJS_C): $(BUILD_DIR)/%_web.o: %.c
+$(WEB_OBJS_M): $(BUILD_DIR)/%_web.o: %.m
+$(WEB_OBJS_S): $(BUILD_DIR)/%_web.o: %.S
+$(WEB_OBJS_BIN): $(BUILD_DIR)/%_web.o: %_.c
 $(BUILD_DIR)/main_web.o: $(VERSION_FILE)
 $(WEB_OBJS):
 	@echo CC $$'\t' $@
 	@$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DWEB_ENABLED -fno-pie $< -o $@
 
-$(DEBUG_OBJS_C): $(BUILD_DIR)/%_debug.o: $(SRC_DIR)/%.c
-$(DEBUG_OBJS_M): $(BUILD_DIR)/%_debug.o: $(SRC_DIR)/%.m
-$(DEBUG_OBJS_BIN): $(BUILD_DIR)/%_debug.o: $(SRC_DIR)/%_.c
+$(DEBUG_OBJS_C): $(BUILD_DIR)/%_debug.o: %.c
+$(DEBUG_OBJS_M): $(BUILD_DIR)/%_debug.o: %.m
+$(DEBUG_OBJS_BIN): $(BUILD_DIR)/%_debug.o: %_.c
 $(BUILD_DIR)/main_debug.o: $(VERSION_FILE)
 $(DEBUG_OBJS):
 	@echo CC $$'\t' $@
 	@$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $< -o $@
 
-$(NO_SSL_OBJS_C): $(BUILD_DIR)/%_no_ssl.o: $(SRC_DIR)/%.c
-$(NO_SSL_OBJS_M): $(BUILD_DIR)/%_no_ssl.o: $(SRC_DIR)/%.m
-$(NO_SSL_OBJS_BIN): $(BUILD_DIR)/%_no_ssl.o: $(SRC_DIR)/%_.c
+$(NO_SSL_OBJS_C): $(BUILD_DIR)/%_no_ssl.o: %.c
+$(NO_SSL_OBJS_M): $(BUILD_DIR)/%_no_ssl.o: %.m
+$(NO_SSL_OBJS_BIN): $(BUILD_DIR)/%_no_ssl.o: %_.c
 $(BUILD_DIR)/main_no_ssl.o: $(VERSION_FILE)
 $(NO_SSL_OBJS):
 	@echo CC $$'\t' $@
 	@$(CC) $(CFLAGS_OPTIM) $(CFLAGS) -DNO_SSL -fno-pie $< -o $@
 
-$(BUILD_DIR)/res/win/app.coff: $(SRC_DIR)/res/win/app_.rc $(SRC_DIR)/res/win/resource.h
+$(BUILD_DIR)/res/win/app.coff: res/win/app_.rc res/win/resource.h
 	@echo windres $$'\t' $@
 	@windres -I$(SRC_DIR) $< -O coff -o $@
 
-$(SRC_DIR)/res/win/app_.rc: $(SRC_DIR)/res/win/app.rc $(VERSION_FILE)
+$(SRC_DIR)/res/win/app_.rc: res/win/app.rc $(VERSION_FILE)
 	@echo CPP $$'\t' $@
 	@$(CPP) -I$(SRC_DIR) -P -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_MINOR=$(VERSION_MINOR) -DVERSION_PATCH=$(VERSION_PATCH) -DVERSION=\"$(VERSION)\" $< -o $@
 
-$(SRC_DIR)/res/mac/icon_.c: $(SRC_DIR)/res/mac/icon.png
+$(SRC_DIR)/res/mac/icon_.c: res/mac/icon.png
 	@echo generate $$'\t' $@
 	@cd $(dir $@) && \
 	xxd -i $(notdir $<) >$(notdir $@)
