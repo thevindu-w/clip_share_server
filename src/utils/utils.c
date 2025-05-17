@@ -1241,9 +1241,9 @@ int set_clipboard_cut_files(const list2 *paths) {
     dropFiles->fWide = 1;  // for wchar_t
 
     wchar_t *pFiles = (wchar_t *)(pGlobal + sizeof(DROPFILES));
-    for (size_t i = 0; i < paths->len; i++) {
-        size_t len = wcsnlen(paths->array[i], 2048);
-        memcpy(pFiles, paths->array[i], len * sizeof(wchar_t));
+    for (size_t i = 0; i < wpaths->len; i++) {
+        size_t len = wcsnlen(wpaths->array[i], 2048);
+        memcpy(pFiles, wpaths->array[i], len * sizeof(wchar_t));
         pFiles += len;
         *pFiles++ = '\0';
     }
