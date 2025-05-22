@@ -3,7 +3,6 @@
 ### Share Clipboard and Files. Copy on one device. Paste on another device.
 
 ![Build and Test](https://github.com/thevindu-w/clip_share_server/actions/workflows/build-test.yml/badge.svg?branch=master)
-![Check Style](https://github.com/thevindu-w/clip_share_server/actions/workflows/check-style.yml/badge.svg?branch=master)
 [![Last commit](https://img.shields.io/github/last-commit/thevindu-w/clip_share_server.svg?color=yellow)](https://github.com/thevindu-w/clip_share_server/commits/master)
 [![License](https://img.shields.io/github/license/thevindu-w/clip_share_server.svg?color=blue)](https://www.gnu.org/licenses/gpl-3.0.en.html#license-text)
 
@@ -17,21 +16,37 @@ ClipShare is a lightweight and cross-platform tool for clipboard sharing. ClipSh
 
 ## Download
 
+### Server
+
 <table>
 <tr>
-<th style="text-align:center">Server</th>
-<th style="text-align:center">Client</th>
+<th style="text-align:center">Desktop</th>
 </tr>
 <tr>
 <td align="center">
 <a href="https://github.com/thevindu-w/clip_share_server/releases"><img src="https://raw.githubusercontent.com/thevindu-w/clip_share_client/master/fastlane/metadata/android/en-US/images/icon.png" alt="Get it on GitHub" height="100"/></a><br>
 Download the server from <a href="https://github.com/thevindu-w/clip_share_server/releases">Releases</a>.
 </td>
+</tr>
+</table>
+
+### Client
+
+<table>
+<tr>
+<th style="text-align:center">Android</th>
+<th style="text-align:center">Desktop</th>
+</tr>
+<tr>
 <td align="center">
 <a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="100"/></a><br>
-Download the client app
+Download the Android client app
 from <a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare">apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare</a>.<br>
 or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHub Releases</a>.
+</td>
+<td align="center">
+<a href="https://github.com/thevindu-w/clip_share_desktop/releases"><img src="https://raw.githubusercontent.com/thevindu-w/clip_share_client/master/fastlane/metadata/android/en-US/images/icon.png" alt="Get it on GitHub" height="100"/></a><br>
+Download the desktop client from <a href="https://github.com/thevindu-w/clip_share_desktop/releases">Releases</a>.
 </td>
 </tr>
 </table>
@@ -122,6 +137,25 @@ To install the server to run on startup, use the corresponding installer script 
 #### Online installers
 
 Online installer scripts are attached with the releases. They will download the corresponding version during installation. Therefore, they do not require having the compiled binaries along with the installer to run it. However, they require internet access to download the binaries from GitHub during installation. Run the interactive script and follow the instructions to install ClipShare.
+
+<details>
+  <summary>Linux and macOS</summary>
+
+1. Open a terminal in the directory where the `install-linux-mac.sh` installer script is downloaded.
+1. Run the install script as shown below, and follow the instructions of it.
+```bash
+chmod +x install-linux-mac.sh
+./install-linux-mac.sh
+```
+</details>
+
+<details>
+  <summary>Windows</summary>
+
+1. Download the `install-windows.bat` file from [release assets](https://github.com/thevindu-w/clip_share_server/releases/latest).
+1. Double-click on the `install-windows.bat` installer script to run it. It will open a Command Prompt window. Follow the instructions on it to install ClipShare. (If double-clicking did not run the installer, right-click on it and select Run)
+</details>
+<br>
 
 #### Standalone installers
 
