@@ -15,10 +15,8 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Fix TLS connections being closed before the client receives all data.
-- Fix compilation issues with casting on some platforms.
-- Fix socket timeout errors on Windows.
-- Fix possible memory access issues.
-- Fix issues in Makefile.
-- Update keygen.sh script to encrypt the CA key for security after using it.
+- Include Linux ARM64 version.
+- Include a Windows minimal version without SSL/TLS having a smaller file size.
+- Fix the cut_sent_files option on Windows.
+- Remove the `sed` dependency from the macOS build.
 - Code quality improvements.
