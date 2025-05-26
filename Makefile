@@ -77,8 +77,8 @@ else ifeq ($(detected_OS),Windows)
 	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 	CFLAGS_OPTIM=-O3
 	OTHER_DEPENDENCIES+= res/win/app.coff
-	LDLIBS_NO_SSL=-l:libunistring.a -l:libpthread.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a -lIphlpapi -lcrypt32 -lShcore -lUserenv
-	LDLIBS_SSL=-l:libssl.a -l:libcrypto.a -l:libpthread.a
+	LDLIBS_NO_SSL=-l:libunistring.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a -lIphlpapi -lShcore -lUserenv
+	LDLIBS_SSL=-l:libssl.a -l:libcrypto.a -lcrypt32
 	LINK_FLAGS_BUILD=-no-pie -mwindows
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
 	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB).exe

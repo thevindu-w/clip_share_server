@@ -56,6 +56,7 @@ static int url_decode(char *, uint32_t *len_p);
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, uint32_t *wlen_p);
 static inline void _wappend(list2 *lst, const wchar_t *wstr);
 #endif
+static inline int milli_sleep(unsigned int millis);
 
 int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
     va_list ap;
@@ -65,6 +66,18 @@ int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
     return (ret < 0 || ret > (long)size);
 }
 
+#ifdef _WIN32
+static inline int milli_sleep(unsigned int millis) {
+    Sleep(millis);
+    return 0;
+}
+#else
+static inline int milli_sleep(unsigned int millis) {
+    struct timespec interval = {.tv_sec = 0, .tv_nsec = (long)millis * 1000000L};
+    return nanosleep(&interval, NULL);
+}
+#endif
+
 void error(const char *msg) {
     if (!error_log_file) return;
 #ifdef DEBUG_MODE
@@ -73,8 +86,8 @@ void error(const char *msg) {
     FILE *f = open_file(error_log_file, "a");
     // retry with delays if failed
     for (unsigned int i = 0; i < 4; i++) {
-        struct timespec interval = {.tv_sec = 0, .tv_nsec = (long)(1 + i * 50) * 1000000L};
-        if (f != NULL || nanosleep(&interval, NULL)) break;
+        unsigned int interval = 1 + i * 50;
+        if (f != NULL || milli_sleep(interval)) break;
         f = open_file(error_log_file, "a");
     }
     if (f) {
