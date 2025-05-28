@@ -73,13 +73,17 @@ ifeq ($(detected_OS),Linux)
 	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections
 else ifeq ($(detected_OS),Windows)
 	OBJS_C+= utils/win_image.o
-	CFLAGS+= -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
-	CFLAGS+= -D__USE_MINGW_ANSI_STDIO
+	CFLAGS+= -Wformat-signedness
 	CFLAGS_OPTIM=-O3
 	OTHER_DEPENDENCIES+= res/win/app.coff
-	LDLIBS_NO_SSL=-l:libunistring.a -lws2_32 -lgdi32 -l:libpng16.a -l:libz.a -lIphlpapi -lShcore -lUserenv
+	LDLIBS_NO_SSL=-l:libunistring.a -l:libpng16.a -l:libz.a -lws2_32 -lgdi32 -lIphlpapi -lShcore -lUserenv
 	LDLIBS_SSL=-l:libssl.a -l:libcrypto.a -lcrypt32
-	LINK_FLAGS_BUILD=-no-pie -mwindows
+	LINK_FLAGS_BUILD=-mwindows
+	ifneq ($(ARCH),x86_64)
+		CFLAGS+= -ftree-vrp -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
+		CFLAGS+= -D__USE_MINGW_ANSI_STDIO
+		LINK_FLAGS_BUILD+= -no-pie
+	endif
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe
 	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB).exe
 	PROGRAM_NAME_NO_SSL:=$(PROGRAM_NAME_NO_SSL).exe

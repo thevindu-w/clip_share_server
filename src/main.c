@@ -390,7 +390,7 @@ static char *get_user_home(void) {
     CloseHandle(procHndl);
     char *home = NULL;
     uint32_t len;
-    if (!wchar_to_utf8_str(whome, &home, &len) == EXIT_SUCCESS) return NULL;
+    if (wchar_to_utf8_str(whome, &home, &len) != EXIT_SUCCESS) return NULL;
     if (len >= 512 && home) {
         free(home);
         return NULL;

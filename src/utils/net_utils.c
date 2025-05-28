@@ -373,6 +373,10 @@ static int iterate_interfaces(in_addr_common interface_addr, listener_t listener
         PIP_ADAPTER_UNICAST_ADDRESS unicast = cur->FirstUnicastAddress;
         if (!unicast) continue;
         SOCKET_ADDRESS socket_addr = unicast->Address;
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-align"
+#endif
         if (interface_addr.af == AF_INET) {
             if (((struct sockaddr_in *)(socket_addr.lpSockaddr))->sin_addr.s_addr != interface_addr.addr.addr4.s_addr)
                 continue;
@@ -393,6 +397,9 @@ static int iterate_interfaces(in_addr_common interface_addr, listener_t listener
                 break;
             }
         }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
     }
     free(pAddrs);
     return status;

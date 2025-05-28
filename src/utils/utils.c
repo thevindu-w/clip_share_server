@@ -1253,7 +1253,14 @@ int set_clipboard_cut_files(const list2 *paths) {
     dropFiles->fNC = 0;
     dropFiles->fWide = 1;  // for wchar_t
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-align"
+#endif
     wchar_t *pFiles = (wchar_t *)(pGlobal + sizeof(DROPFILES));
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
     for (size_t i = 0; i < wpaths->len; i++) {
         size_t len = wcsnlen(wpaths->array[i], 2048);
         memcpy(pFiles, wpaths->array[i], len * sizeof(wchar_t));
