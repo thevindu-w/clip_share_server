@@ -79,7 +79,9 @@ else ifeq ($(detected_OS),Windows)
 	LDLIBS_NO_SSL=-l:libunistring.a -l:libpng16.a -l:libz.a -lws2_32 -lgdi32 -lIphlpapi -lShcore -lUserenv
 	LDLIBS_SSL=-l:libssl.a -l:libcrypto.a -lcrypt32
 	LINK_FLAGS_BUILD=-mwindows
-	ifneq ($(ARCH),x86_64)
+	ifeq ($(ARCH),x86_64)
+		CC=clang
+	else
 		CFLAGS+= -ftree-vrp -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 		CFLAGS+= -D__USE_MINGW_ANSI_STDIO
 		LINK_FLAGS_BUILD+= -no-pie
