@@ -76,14 +76,16 @@ else ifeq ($(detected_OS),Windows)
 	CFLAGS+= -Wformat-signedness
 	CFLAGS_OPTIM=-O3
 	OTHER_DEPENDENCIES+= res/win/app.coff
-	LDLIBS_NO_SSL=-l:libunistring.a -l:libpng16.a -l:libz.a -lws2_32 -lgdi32 -lIphlpapi -lShcore -lUserenv
+	LDLIBS_NO_SSL=-l:libunistring.a -l:libpng16.a -l:libz.a -lws2_32 -lgdi32 -lIphlpapi
 	LDLIBS_SSL=-l:libssl.a -l:libcrypto.a -lcrypt32
 	LINK_FLAGS_BUILD=-mwindows
 	ifeq ($(ARCH),x86_64)
 		CC=clang
+		OBJS_C+= utils/win_load_lib.o
 	else
 		CFLAGS+= -ftree-vrp -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 		CFLAGS+= -D__USE_MINGW_ANSI_STDIO
+		LDLIBS_NO_SSL+= -lShcore -lUserenv
 		LINK_FLAGS_BUILD+= -no-pie
 	endif
 	PROGRAM_NAME:=$(PROGRAM_NAME).exe

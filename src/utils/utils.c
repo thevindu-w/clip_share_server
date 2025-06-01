@@ -397,7 +397,7 @@ list2 *get_copied_files(void) {
         return NULL;
     }
 
-    size_t file_cnt = DragQueryFile(hDrop, (UINT)(-1), NULL, MAX_PATH);
+    size_t file_cnt = DragQueryFileW(hDrop, (UINT)(-1), NULL, MAX_PATH);
 
     if (file_cnt <= 0 || file_cnt >= 0xFFFFFFFFUL) {
         GlobalUnlock(hGlobal);
@@ -771,7 +771,7 @@ void get_copied_dirs_files(dir_files *dfiles_p, int include_leaf_dirs) {
         return;
     }
 
-    size_t file_cnt = DragQueryFile(hDrop, (UINT)(-1), NULL, MAX_PATH);
+    size_t file_cnt = DragQueryFileW(hDrop, (UINT)(-1), NULL, MAX_PATH);
 
     if (file_cnt <= 0 || file_cnt >= 0xFFFFFFFFUL) {
         GlobalUnlock(hGlobal);

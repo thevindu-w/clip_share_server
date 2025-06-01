@@ -37,6 +37,9 @@
 #include <shellscalingapi.h>
 #include <tlhelp32.h>
 #include <userenv.h>
+#ifdef _WIN64
+#include <utils/win_load_lib.h>
+#endif
 #elif defined(__APPLE__)
 #include <pwd.h>
 #include <utils/mac_menu.h>
@@ -309,24 +312,24 @@ static inline void setGUID(void) {
 
 static inline void show_tray_icon(void) {
     if (configuration.tray_icon) {
-        NOTIFYICONDATA notifyIconData = {.hWnd = hWnd,
-                                         .uFlags = NIF_ICON | NIF_TIP | NIF_SHOWTIP | NIF_MESSAGE | NIF_GUID,
-                                         .uCallbackMessage = TRAY_CB_MSG,
-                                         .uVersion = NOTIFYICON_VERSION_4,
-                                         .hIcon = LoadIcon(instance, MAKEINTRESOURCE(APP_ICON)),
-                                         .guidItem = guid};
+        NOTIFYICONDATAA notifyIconData = {.hWnd = hWnd,
+                                          .uFlags = NIF_ICON | NIF_TIP | NIF_SHOWTIP | NIF_MESSAGE | NIF_GUID,
+                                          .uCallbackMessage = TRAY_CB_MSG,
+                                          .uVersion = NOTIFYICON_VERSION_4,
+                                          .hIcon = LoadIcon(instance, MAKEINTRESOURCE(APP_ICON)),
+                                          .guidItem = guid};
         notifyIconData.cbSize = sizeof(notifyIconData);
         if (snprintf_check(notifyIconData.szTip, 64, "ClipShare")) return;
-        Shell_NotifyIcon(NIM_DELETE, &notifyIconData);
-        Shell_NotifyIcon(NIM_ADD, &notifyIconData);
-        Shell_NotifyIcon(NIM_SETVERSION, &notifyIconData);
+        Shell_NotifyIconA(NIM_DELETE, &notifyIconData);
+        Shell_NotifyIconA(NIM_ADD, &notifyIconData);
+        Shell_NotifyIconA(NIM_SETVERSION, &notifyIconData);
     }
 }
 
 static inline void remove_tray_icon(void) {
-    NOTIFYICONDATA notifyIconData = {
-        .cbSize = sizeof(NOTIFYICONDATA), .hWnd = NULL, .uFlags = NIF_GUID, .guidItem = guid};
-    Shell_NotifyIcon(NIM_DELETE, &notifyIconData);
+    NOTIFYICONDATAA notifyIconData = {
+        .cbSize = sizeof(NOTIFYICONDATAA), .hWnd = NULL, .uFlags = NIF_GUID, .guidItem = guid};
+    Shell_NotifyIconA(NIM_DELETE, &notifyIconData);
     if (hWnd) DestroyWindow(hWnd);
 }
 
@@ -455,6 +458,17 @@ static char *get_conf_file(void) {
  * The main entrypoint of the application
  */
 int main(int argc, char **argv) {
+#ifdef _WIN64
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+    }
+    if (load_libs() != EXIT_SUCCESS) {
+        fprintf(stderr, "Loading libraries failed!\n");
+        return EXIT_FAILURE;
+    }
+#endif
+
     // Get basename of the program
     const char *prog_name = strrchr(argv[0], PATH_SEP);
     if (!prog_name) {
