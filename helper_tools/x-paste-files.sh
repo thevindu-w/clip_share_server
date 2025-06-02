@@ -12,12 +12,15 @@ set -euo pipefail
 xclip -o -sel clip -t x-special/gnome-copied-files | (
     read -r action
     case $action in
-        copy) action='cp';;
-        cut)  action='mv';;
-        *)    exit 1;;
+        copy) action='cp' ;;
+        cut) action='mv' ;;
+        *) exit 1 ;;
     esac
 
-    while read -r f; [[ "$f" ]]; do
+    while
+        read -r f
+        [[ "$f" ]]
+    do
         f=${f#file://}
         printf -v f %b "${f//%/\\x}"
         files+=("$f")
