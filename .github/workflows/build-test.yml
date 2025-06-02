@@ -162,7 +162,8 @@ jobs:
         tar -xzf openssl-3.5.0.tar.gz
         mkdir "$OPENSSL_PATH"
         cd openssl-3.5.0
-        CC=clang ./Configure zlib-dynamic no-brotli no-zstd no-shared no-tests no-docs --prefix="$OPENSSL_PATH" mingw64
+        CC=clang ./Configure zlib no-zlib-dynamic no-brotli no-zstd no-shared no-tests no-docs \
+        --prefix="$OPENSSL_PATH" mingw64
         make -j4
         make install
         cd ..

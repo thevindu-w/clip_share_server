@@ -74,13 +74,13 @@ static SSL_CTX *InitServerCTX(void) {
     SSL_load_error_strings();     /* load all error messages */
     method = TLS_server_method(); /* create new server-method instance */
     ctx = SSL_CTX_new(method);    /* create new context from method */
-    SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
     if (!ctx) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stderr);
 #endif
         return NULL;
     }
+    SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
     return ctx;
 }
 
