@@ -169,6 +169,25 @@ jobs:
         cd ..
         rm -rf openssl-3.5.0*
 
+    - name: Setup PatchPE
+      if: ${{ matrix.target.arch == 'x86_64' }}
+      id: cache-patchpe
+      uses: actions/cache@v4
+      with:
+        path: C:\msys64\PatchPE.exe
+        key: patchpe-windows-x86_64
+
+    - name: Download PatchPE
+      if: ${{ (matrix.target.arch == 'x86_64') && (steps.cache-patchpe.outputs.cache-hit != 'true') }}
+      run: |
+        curl -OL https://github.com/datadiode/PatchPE/releases/download/2.04/PatchPE.exe
+        if [ "$(sha256sum -b PatchPE.exe | cut -d ' ' -f 1)" != \
+            '77f81c7335a8ddc86a79315425ea6b9e4e165a53540db567ea46ef01eab2aa97' ]; then
+          echo PatchPE hash mismatch
+          exit 1
+        fi
+        mv PatchPE.exe /c/msys64/PatchPE.exe
+
     - name: Check out repository code
       uses: actions/checkout@v4
       with:
@@ -177,7 +196,7 @@ jobs:
     - name: Build
       run: |
         if [ -n "$OPENSSL_PATH" ] && [ -d "$OPENSSL_PATH" ]; then
-          export PATH="${OPENSSL_PATH}/bin:${PATH}"
+          export PATH="${OPENSSL_PATH}/bin:${PATH}:/c/msys64"
         fi
         make ARCH=${{matrix.target.arch}}
         make ARCH=${{matrix.target.arch}} no_ssl
@@ -185,7 +204,7 @@ jobs:
     - name: Test
       run: |
         if [ -n "$OPENSSL_PATH" ] && [ -d "$OPENSSL_PATH" ]; then
-          export PATH="${OPENSSL_PATH}/bin:${PATH}"
+          export PATH="${OPENSSL_PATH}/bin:${PATH}:/c/msys64"
         fi
         make ARCH=${{matrix.target.arch}} test
 
