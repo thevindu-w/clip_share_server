@@ -159,7 +159,7 @@ jobs:
 
   Windows:
     runs-on: windows-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     needs:
     - Checks
     - Build-and-Test
@@ -168,8 +168,8 @@ jobs:
       matrix:
         target:
         - arch: x86_64
-          env: x86_64
-          sys: MINGW64
+          env: clang-x86_64
+          sys: CLANG64
         - arch: x86
           env: i686
           sys: MINGW32
@@ -179,17 +179,86 @@ jobs:
         shell: msys2 {0}
 
     steps:
-    - uses: msys2/setup-msys2@v2
+    - name: Prepare packages list
+      id: prepare-msys2
+      shell: bash
+      run: |
+        install_list=" \
+          mingw-w64-${{matrix.target.env}}-libpng \
+          mingw-w64-${{matrix.target.env}}-libunistring \
+          make \
+          coreutils \
+          zip"
+        if [ "${{ matrix.target.arch }}" = 'x86_64' ]; then
+          install_list="mingw-w64-${{matrix.target.env}}-clang \
+          ${install_list}"
+        else
+          install_list="mingw-w64-${{matrix.target.env}}-gcc \
+          mingw-w64-${{matrix.target.env}}-openssl \
+          ${install_list}"
+        fi
+        echo "install_list=$install_list" >> $GITHUB_OUTPUT
+
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
       with:
         msystem: ${{matrix.target.sys}}
         update: false
-        install: >-
-          mingw-w64-${{matrix.target.env}}-gcc
-          mingw-w64-${{matrix.target.env}}-openssl
-          mingw-w64-${{matrix.target.env}}-libpng
-          mingw-w64-${{matrix.target.env}}-libunistring
-          make
-          zip
+        install: ${{ steps.prepare-msys2.outputs.install_list }}
+
+    - name: Set OpenSSL path
+      if: ${{ matrix.target.arch == 'x86_64' }}
+      run: |
+        OPENSSL_PATH=/c/msys64/openssl-x86_64
+        echo OPENSSL_PATH="$OPENSSL_PATH" >> "$GITHUB_ENV"
+        echo CPATH="${OPENSSL_PATH}/include" >> "$GITHUB_ENV"
+        echo LIBRARY_PATH="${OPENSSL_PATH}/lib64" >> "$GITHUB_ENV"
+
+    - name: Setup OpenSSL
+      if: ${{ matrix.target.arch == 'x86_64' }}
+      id: cache-openssl
+      uses: actions/cache@v4
+      with:
+        path: C:\msys64\openssl-x86_64
+        key: openssl-windows-x86_64
+
+    - name: Build OpenSSL
+      if: ${{ (matrix.target.arch == 'x86_64') && (steps.cache-openssl.outputs.cache-hit != 'true') }}
+      run: |
+        curl -OL https://github.com/openssl/openssl/releases/download/openssl-3.5.0/openssl-3.5.0.tar.gz
+        if [ "$(sha256sum -b openssl-3.5.0.tar.gz | cut -d ' ' -f 1)" != \
+            '344d0a79f1a9b08029b0744e2cc401a43f9c90acd1044d09a530b4885a8e9fc0' ]; then
+          echo OpenSSL hash mismatch
+          exit 1
+        fi
+        tar -xzf openssl-3.5.0.tar.gz
+        mkdir "$OPENSSL_PATH"
+        cd openssl-3.5.0
+        CC=clang ./Configure zlib no-zlib-dynamic no-brotli no-zstd no-shared no-tests no-docs \
+        --prefix="$OPENSSL_PATH" mingw64
+        make -j4
+        make install
+        cd ..
+        rm -rf openssl-3.5.0*
+
+    - name: Setup PatchPE
+      if: ${{ matrix.target.arch == 'x86_64' }}
+      id: cache-patchpe
+      uses: actions/cache@v4
+      with:
+        path: C:\msys64\PatchPE.exe
+        key: patchpe-windows-x86_64
+
+    - name: Download PatchPE
+      if: ${{ (matrix.target.arch == 'x86_64') && (steps.cache-patchpe.outputs.cache-hit != 'true') }}
+      run: |
+        curl -OL https://github.com/datadiode/PatchPE/releases/download/2.04/PatchPE.exe
+        if [ "$(sha256sum -b PatchPE.exe | cut -d ' ' -f 1)" != \
+            '77f81c7335a8ddc86a79315425ea6b9e4e165a53540db567ea46ef01eab2aa97' ]; then
+          echo PatchPE hash mismatch
+          exit 1
+        fi
+        mv PatchPE.exe /c/msys64/PatchPE.exe
 
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -207,6 +276,9 @@ jobs:
 
     - name: Build
       run: |
+        if [ -n "$OPENSSL_PATH" ] && [ -d "$OPENSSL_PATH" ]; then
+          export PATH="${PATH}:/c/msys64"
+        fi
         make ARCH=${{matrix.target.arch}}
         mkdir dist
         mv clip_share*.exe "dist/${{env.FILE_NAME}}"
@@ -216,6 +288,9 @@ jobs:
 
     - name: Build no_ssl
       run: |
+        if [ -n "$OPENSSL_PATH" ] && [ -d "$OPENSSL_PATH" ]; then
+          export PATH="${PATH}:/c/msys64"
+        fi
         make clean
         make ARCH=${{matrix.target.arch}} no_ssl
         mkdir dist_no_ssl
