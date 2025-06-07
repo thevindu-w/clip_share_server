@@ -42,6 +42,7 @@
 #include <direct.h>
 #include <shlobj.h>
 #include <utils/win_image.h>
+#include <utils/win_load_lib.h>
 #include <windows.h>
 #endif
 
@@ -152,6 +153,7 @@ void cleanup(void) {
     if (_XA_UTF8_STRING) freeAtomPtr(_XA_UTF8_STRING);
 #elif defined(_WIN32)
     WSACleanup();
+    cleanup_libs();
 #endif
 }
 

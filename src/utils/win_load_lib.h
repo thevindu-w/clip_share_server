@@ -1,6 +1,6 @@
 /*
  * utils/win_load_lib.h - header for win_load_lib
- * Copyright (C) 2022-2024 H. Thevindu J. Wijesekera
+ * Copyright (C) 2025 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

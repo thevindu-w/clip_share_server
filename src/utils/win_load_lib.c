@@ -1,6 +1,6 @@
 /*
  * utils/win_load_lib.c - load dynamic libraries at runtime on Windows
- * Copyright (C) 2022-2025 H. Thevindu J. Wijesekera
+ * Copyright (C) 2025 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,25 +30,25 @@ extern FARPROC __imp_GetUserProfileDirectoryW;
 extern FARPROC __imp_Shell_NotifyIconA;
 extern FARPROC __imp_DragQueryFileW;
 
-extern FARPROC __imp_CryptAcquireContextW;
-extern FARPROC __imp_CryptGenRandom;
-extern FARPROC __imp_CryptReleaseContext;
-extern FARPROC __imp_DeregisterEventSource;
 extern FARPROC __imp_OpenProcessToken;
-extern FARPROC __imp_RegisterEventSourceW;
-extern FARPROC __imp_ReportEventW;
 
 #ifndef NO_SSL
+extern FARPROC __imp_CryptAcquireContextW;
 extern FARPROC __imp_CryptCreateHash;
 extern FARPROC __imp_CryptDecrypt;
 extern FARPROC __imp_CryptDestroyHash;
 extern FARPROC __imp_CryptDestroyKey;
 extern FARPROC __imp_CryptEnumProvidersW;
 extern FARPROC __imp_CryptExportKey;
+extern FARPROC __imp_CryptGenRandom;
 extern FARPROC __imp_CryptGetProvParam;
 extern FARPROC __imp_CryptGetUserKey;
+extern FARPROC __imp_CryptReleaseContext;
 extern FARPROC __imp_CryptSetHashParam;
 extern FARPROC __imp_CryptSignHashW;
+extern FARPROC __imp_DeregisterEventSource;
+extern FARPROC __imp_RegisterEventSourceW;
+extern FARPROC __imp_ReportEventW;
 #endif
 
 static HMODULE module_userenv = NULL;
@@ -59,25 +59,25 @@ FARPROC __imp_GetUserProfileDirectoryW = NULL;
 FARPROC __imp_Shell_NotifyIconA = NULL;
 FARPROC __imp_DragQueryFileW = NULL;
 
-FARPROC __imp_CryptAcquireContextW = NULL;
-FARPROC __imp_CryptGenRandom = NULL;
-FARPROC __imp_CryptReleaseContext = NULL;
-FARPROC __imp_DeregisterEventSource = NULL;
 FARPROC __imp_OpenProcessToken = NULL;
-FARPROC __imp_RegisterEventSourceW = NULL;
-FARPROC __imp_ReportEventW = NULL;
 
 #ifndef NO_SSL
+FARPROC __imp_CryptAcquireContextW = NULL;
 FARPROC __imp_CryptCreateHash = NULL;
 FARPROC __imp_CryptDecrypt = NULL;
 FARPROC __imp_CryptDestroyHash = NULL;
 FARPROC __imp_CryptDestroyKey = NULL;
 FARPROC __imp_CryptEnumProvidersW = NULL;
 FARPROC __imp_CryptExportKey = NULL;
+FARPROC __imp_CryptGenRandom = NULL;
 FARPROC __imp_CryptGetProvParam = NULL;
 FARPROC __imp_CryptGetUserKey = NULL;
+FARPROC __imp_CryptReleaseContext = NULL;
 FARPROC __imp_CryptSetHashParam = NULL;
 FARPROC __imp_CryptSignHashW = NULL;
+FARPROC __imp_DeregisterEventSource = NULL;
+FARPROC __imp_RegisterEventSourceW = NULL;
+FARPROC __imp_ReportEventW = NULL;
 #endif
 
 static inline HMODULE LoadLibWrapper(const char *dll) {
@@ -118,28 +118,13 @@ static int _load_libs(void) {
     module_advapi32 = LoadLibWrapper("ADVAPI32.DLL");
     if (!module_advapi32) return EXIT_FAILURE;
 
-    __imp_CryptAcquireContextW = GetProcAddressWrapper(module_advapi32, "CryptAcquireContextW");
-    if (!__imp_CryptAcquireContextW) return EXIT_FAILURE;
-
-    __imp_CryptGenRandom = GetProcAddressWrapper(module_advapi32, "CryptGenRandom");
-    if (!__imp_CryptGenRandom) return EXIT_FAILURE;
-
-    __imp_CryptReleaseContext = GetProcAddressWrapper(module_advapi32, "CryptReleaseContext");
-    if (!__imp_CryptReleaseContext) return EXIT_FAILURE;
-
-    __imp_DeregisterEventSource = GetProcAddressWrapper(module_advapi32, "DeregisterEventSource");
-    if (!__imp_DeregisterEventSource) return EXIT_FAILURE;
-
     __imp_OpenProcessToken = GetProcAddressWrapper(module_advapi32, "OpenProcessToken");
     if (!__imp_OpenProcessToken) return EXIT_FAILURE;
 
-    __imp_RegisterEventSourceW = GetProcAddressWrapper(module_advapi32, "RegisterEventSourceW");
-    if (!__imp_RegisterEventSourceW) return EXIT_FAILURE;
-
-    __imp_ReportEventW = GetProcAddressWrapper(module_advapi32, "ReportEventW");
-    if (!__imp_ReportEventW) return EXIT_FAILURE;
-
 #ifndef NO_SSL
+    __imp_CryptAcquireContextW = GetProcAddressWrapper(module_advapi32, "CryptAcquireContextW");
+    if (!__imp_CryptAcquireContextW) return EXIT_FAILURE;
+
     __imp_CryptCreateHash = GetProcAddressWrapper(module_advapi32, "CryptCreateHash");
     if (!__imp_CryptCreateHash) return EXIT_FAILURE;
 
@@ -158,17 +143,32 @@ static int _load_libs(void) {
     __imp_CryptExportKey = GetProcAddressWrapper(module_advapi32, "CryptExportKey");
     if (!__imp_CryptExportKey) return EXIT_FAILURE;
 
+    __imp_CryptGenRandom = GetProcAddressWrapper(module_advapi32, "CryptGenRandom");
+    if (!__imp_CryptGenRandom) return EXIT_FAILURE;
+
     __imp_CryptGetProvParam = GetProcAddressWrapper(module_advapi32, "CryptGetProvParam");
     if (!__imp_CryptGetProvParam) return EXIT_FAILURE;
 
     __imp_CryptGetUserKey = GetProcAddressWrapper(module_advapi32, "CryptGetUserKey");
     if (!__imp_CryptGetUserKey) return EXIT_FAILURE;
 
+    __imp_CryptReleaseContext = GetProcAddressWrapper(module_advapi32, "CryptReleaseContext");
+    if (!__imp_CryptReleaseContext) return EXIT_FAILURE;
+
     __imp_CryptSetHashParam = GetProcAddressWrapper(module_advapi32, "CryptSetHashParam");
     if (!__imp_CryptSetHashParam) return EXIT_FAILURE;
 
     __imp_CryptSignHashW = GetProcAddressWrapper(module_advapi32, "CryptSignHashW");
     if (!__imp_CryptSignHashW) return EXIT_FAILURE;
+
+    __imp_DeregisterEventSource = GetProcAddressWrapper(module_advapi32, "DeregisterEventSource");
+    if (!__imp_DeregisterEventSource) return EXIT_FAILURE;
+
+    __imp_RegisterEventSourceW = GetProcAddressWrapper(module_advapi32, "RegisterEventSourceW");
+    if (!__imp_RegisterEventSourceW) return EXIT_FAILURE;
+
+    __imp_ReportEventW = GetProcAddressWrapper(module_advapi32, "ReportEventW");
+    if (!__imp_ReportEventW) return EXIT_FAILURE;
 #endif
 
     return EXIT_SUCCESS;
