@@ -15,8 +15,5 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Include Linux ARM64 version.
-- Include a Windows minimal version without SSL/TLS having a smaller file size.
-- Fix the cut_sent_files option on Windows.
-- Remove the `sed` dependency from the macOS build.
+- Fix DLL search order hijacking vulnerability in Windows x64 build.
 - Code quality improvements.
