@@ -153,7 +153,9 @@ void cleanup(void) {
     if (_XA_UTF8_STRING) freeAtomPtr(_XA_UTF8_STRING);
 #elif defined(_WIN32)
     WSACleanup();
+#ifdef _WIN64
     cleanup_libs();
+#endif
 #endif
 }
 
