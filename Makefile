@@ -34,7 +34,7 @@ INFO_NAME=clip_share
 
 CC=gcc
 CPP=cpp
-CFLAGS=-c -pipe -I$(SRC_DIR) --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Woverlength-strings
+CFLAGS=-c -pipe -I$(SRC_DIR) --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wpedantic -pedantic-errors -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Woverlength-strings
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 VPATH=$(SRC_DIR)
 
@@ -96,7 +96,7 @@ export CPATH=$(shell brew --prefix)/include
 export LIBRARY_PATH=$(shell brew --prefix)/lib
 	OBJS_M=utils/mac_utils.o utils/mac_menu.o
 	OBJS_BIN+= res/mac/icon.o
-	CFLAGS+= -fobjc-arc
+	CFLAGS+= -fobjc-arc -Wno-gnu-statement-expression
 	CFLAGS_OPTIM=-O3
 	LDLIBS_NO_SSL=-framework AppKit -lunistring -lpng -lobjc
 	LDLIBS_SSL=-lssl -lcrypto
@@ -134,7 +134,7 @@ WEB_OBJS_BIN=$(OBJS_BIN:.o=_web.o)
 WEB_OBJS=$(WEB_OBJS_C) $(WEB_OBJS_S) $(WEB_OBJS_M) $(WEB_OBJS_BIN)
 
 # append '_debug' to objects for clip_share debug executable to prevent overwriting objects for clip_share
-DEBUG_OBJS_C=$(OBJS_C:.o=_debug.o) $(_WEB_OBJS_C:.o=_debug.o)
+DEBUG_OBJS_C=$(OBJS_C:.o=_debug.o)
 DEBUG_OBJS_M=$(OBJS_M:.o=_debug.o)
 DEBUG_OBJS_BIN=$(OBJS_BIN:.o=_debug.o)
 DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_M) $(DEBUG_OBJS_BIN)

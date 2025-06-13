@@ -671,7 +671,7 @@ int main(int argc, char **argv) {
     }
 
     if (configuration.tray_icon) {
-        MSG msg = {};
+        MSG msg;
         while (running && GetMessage(&msg, NULL, 0, 0)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
