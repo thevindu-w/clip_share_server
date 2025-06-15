@@ -407,7 +407,7 @@ static char *get_user_home(void) {
 
 static char *get_user_home(void) {
     const char *home = getenv("HOME");
-    if (!home) {
+    if (!home || !*home) {
         struct passwd pw;
         struct passwd *result = NULL;
         const size_t buf_sz = 2048;
@@ -415,7 +415,7 @@ static char *get_user_home(void) {
         if (getpwuid_r(getuid(), &pw, buf, buf_sz, &result) || result == NULL) return NULL;
         home = result->pw_dir;
     }
-    if (home) return strndup(home, 512);
+    if (home) return strndup(home, 513);
     return NULL;
 }
 
@@ -429,13 +429,16 @@ __attribute__((noreturn)) static void exit_on_signal_handler(int sig) {
 static char *get_conf_file(void) {
     if (file_exists(CONFIG_FILE)) return strdup(CONFIG_FILE);
 
+    char *conf_path;
 #if defined(__linux__) || defined(__APPLE__)
     const char *xdg_conf = getenv("XDG_CONFIG_HOME");
     if (xdg_conf && *xdg_conf) {
         size_t xdg_len = strnlen(xdg_conf, 512);
-        char *conf_path = malloc(xdg_len + sizeof(CONFIG_FILE) + 3);
+        size_t conf_len = xdg_len + sizeof(CONFIG_FILE) + 2;
+        conf_path = malloc(conf_len + 1);
         if (conf_path) {
-            snprintf(conf_path, xdg_len + sizeof(CONFIG_FILE) + 2, "%s%c%s", xdg_conf, PATH_SEP, CONFIG_FILE);
+            snprintf(conf_path, conf_len, "%s%c%s", xdg_conf, PATH_SEP, CONFIG_FILE);
+            conf_path[conf_len] = 0;
             if (file_exists(conf_path)) return conf_path;
             free(conf_path);
         }
@@ -445,7 +448,26 @@ static char *get_conf_file(void) {
     char *home = get_user_home();
     if (!home) return NULL;
     size_t home_len = strnlen(home, 512);
-    char *conf_path = realloc(home, home_len + sizeof(CONFIG_FILE) + 3);
+    if (home_len >= 512) {
+        free(home);
+        return NULL;
+    }
+
+#if defined(__linux__) || defined(__APPLE__)
+    size_t conf_len = home_len + sizeof(CONFIG_FILE) + 10;
+    conf_path = malloc(conf_len + 1);
+    if (conf_path) {
+        snprintf(conf_path, conf_len, "%s%c.config%c%s", home, PATH_SEP, PATH_SEP, CONFIG_FILE);
+        conf_path[conf_len] = 0;
+        if (file_exists(conf_path)) {
+            free(home);
+            return conf_path;
+        }
+        free(conf_path);
+    }
+#endif
+
+    conf_path = realloc(home, home_len + sizeof(CONFIG_FILE) + 3);
     if (!conf_path) {
         free(home);
         return NULL;
