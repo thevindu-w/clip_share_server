@@ -99,7 +99,7 @@ brew install libunistring openssl@3 libpng
 - When the server starts, it will not display any visible window. Instead, it will run in the background.
 - On Linux or macOS, if you start the program from the terminal, it should return immediately unless the `-D` flag (no-daemonize) is used. The server will continue to run in the background.
 - On Windows, it will show a tray icon unless disabled from the configuration file. You can click on it to stop the server.
-- If something goes wrong, it will create a `server_err.log` file. That file will contain what went wrong.
+- If something goes wrong, it will create a `server_err.log` file containing what went wrong.
 
 <br>
 
@@ -114,7 +114,7 @@ brew install libunistring openssl@3 libpng
 
 You may need to allow incoming connections to the above ports for the client to connect to the server.
 
-Note that all TCP ports are for unicast, while `4337/udp` is used to receive broadcast. Therefore, the firewall rule that allows `4337/udp` should have the **broadcast** address of the interface as the destination address.
+Note that all TCP ports are for unicast, while `4337/udp` is used to receive broadcasts. Therefore, the firewall rule that allows `4337/udp` should have the **broadcast** address of the interface as the destination address.
 
 <br>
 
@@ -123,7 +123,7 @@ Note that all TCP ports are for unicast, while `4337/udp` is used to receive bro
 You can find an Android client app in [releases](https://github.com/thevindu-w/clip_share_client/releases). You can also get it from [apt.izzysoft.de](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare/). The source of the Android client app is available at [github.com/thevindu-w/clip_share_client](https://github.com/thevindu-w/clip_share_client). Or you may develop a client app according to the protocol specification described in the `docs/`.<br>
 - The client and the server devices should be on the same network. You can do that by connecting both devices to the same Wi-Fi network. It is also possible to use one of the devices as a Wi-Fi hotspot and connect the other device to that hotspot.
 - If the client supports network scanning, it can automatically find the server in the network. Otherwise, enter the server's IP address to the client.
-- Now the client can share clipboard data and files and get images from the server.<br>
+- Now, the client can share clipboard data and files and get images from the server.<br>
 Note that the server should allow the client through the firewall, as mentioned in the above section.
 
 <br>
@@ -136,7 +136,7 @@ To install the server to run on startup, use the corresponding installer script 
 
 #### Online installers
 
-Online installer scripts are attached with the releases. They will download the corresponding version during installation. Therefore, they do not require having the compiled binaries along with the installer to run it. However, they require internet access to download the binaries from GitHub during installation. Run the interactive script and follow the instructions to install ClipShare.
+Online installer scripts are attached with the releases. They will download the corresponding version during the installation. Therefore, they do not require having the compiled binaries, along with the installer, to run it. However, they require internet access to download the binaries from GitHub during the installation. Run the interactive script and follow the instructions to install ClipShare.
 
 <details>
   <summary>Linux and macOS</summary>
@@ -159,7 +159,7 @@ chmod +x install-linux-mac.sh
 
 #### Standalone installers
 
-Standalone installer scripts are available in the archives (`zip` for Windows and macOS, and `tar.gz` for Linux) attached to releases on GitHub. They are also available in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory. Standalone installers can run without an internet connection. However, you must have the `clip_share` (or `clip_share.exe` on Windows) executable in the current working directory to run the installer. If you download the archive from releases and extract it, you will have the executable along with the installer script. Run the interactive script and follow the instructions to install ClipShare.
+Standalone installer scripts are available in the archives (`zip` for Windows and macOS, and `tar.gz` for Linux) attached to releases on GitHub. They are also available in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory. Standalone installers can run without an internet connection. However, you must have the `clip_share` (or `clip_share.exe` on Windows) executable in the current working directory to run the installer. If you download the archive from releases and extract it, you will have the executable, along with the installer script. Run the interactive script and follow the instructions to install ClipShare.
 
 **Note:** These installers do NOT need admin or superuser privileges to run. Therefore, do not run them with elevated privileges.
 
@@ -198,7 +198,7 @@ The following files should be created, and their paths should be specified in th
 * `server.pfx` &ensp; - &nbsp; SSL/TLS key and certificate file of the server
 * `ca.crt` &emsp;&emsp;&ensp; - &nbsp; SSL/TLS certificate of the CA, which signed both the server's and the client's SSL/TLS certificates
 
-You may use the helper scripts `keygen.sh` or `keygen.ps1` in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory to generate TLS keys and certificates for both the server and the client. Linux and macOS users can use `keygen.sh`. Windows users can use `keygen.ps1` PowerShell script which doesn't require OpenSSL. Windows users may also use `keygen.sh` if running in a Bash shell (ex: Git Bash). However, this requires OpenSSL version 3.x or later.
+You may use the helper scripts `keygen.sh` or `keygen.ps1` in the [helper_tools/](https://github.com/thevindu-w/clip_share_server/tree/master/helper_tools) directory to generate TLS keys and certificates for both the server and the client. Linux and macOS users can use `keygen.sh`. Windows users can use `keygen.ps1` PowerShell script that doesn't require OpenSSL. Windows users may also use `keygen.sh` if running in a Bash shell (ex: Git Bash). However, this requires OpenSSL version 3.x or later.
 
 <details>
   <summary>Linux and macOS (Using OpenSSL)</summary>
@@ -277,12 +277,13 @@ If you use this script, the server's common name will be `clipshare_server`, and
 The ClipShare server can be configured using a configuration file. The configuration file should be named `clipshare.conf`.
 The server searches for the configuration file in the following paths in the same order until it finds one.
 1. Current working directory where the server was started.
-1. `$XDG_CONFIG_HOME` directory if the directory exists (on Linux and macOS only).
+1. `$XDG_CONFIG_HOME` directory if the variable is set to an existing directory (on Linux and macOS only).
+1. `~/.config/` directory if the directory exists (on Linux and macOS only).
 1. Current user's home directory (also called user profile directory on Windows).
 
 If it can't find a configuration file in any of the above directories, it will use the default values specified in the table below.
 
-To customize the server, create a file named &nbsp; `clipshare.conf` &nbsp; in any of the directories mentioned above and add the following lines to that configuration file. You may ommit some lines to keep the default values.
+To customize the server, create a file named &nbsp; `clipshare.conf` &nbsp; in any of the directories mentioned above and add the following lines to that configuration file. You may omit some lines to keep the default values.
 <details>
   <summary>Sample configuration file</summary>
 
@@ -363,7 +364,7 @@ If you changed the configuration file, you must restart the server to apply the 
 
   Compiling ClipShare needs the following tools,
 
-* gcc
+* gcc (or Clang for Windows x64)
 * make
 
 <details>
@@ -390,10 +391,10 @@ If you changed the configuration file, you must restart the server to apply the 
 <details>
   <summary>Windows</summary>
 
-  On Windows, these tools can be installed with [MinGW](https://www.mingw-w64.org/).<br>
-  In an [MSYS2](https://www.msys2.org/) environment, these tools can be installed using pacman with the following command:
+  On Windows, these tools can be installed with [MSYS2](https://www.msys2.org/).<br>
+  In an MSYS2 environment, these tools can be installed using pacman with the following command:
   ```bash
-  pacman -S mingw-w64-x86_64-gcc make
+  pacman -S mingw-w64-clang-x86_64-clang make
   ```
 </details>
 
@@ -456,10 +457,26 @@ If you changed the configuration file, you must restart the server to apply the 
 * [libssl](https://packages.msys2.org/package/mingw-w64-x86_64-openssl?repo=mingw64) (provided by OpenSSL)
 * [libunistring](https://packages.msys2.org/package/mingw-w64-x86_64-libunistring?repo=mingw64)
 
-In an [MSYS2](https://www.msys2.org/) environment, these tools can be installed using pacman with the following command:
+In an [MSYS2](https://www.msys2.org/) environment, these tools can be installed using pacman with the following commands:
 ```bash
-pacman -S mingw-w64-x86_64-openssl mingw-w64-x86_64-libpng mingw-w64-x86_64-libunistring
+pacman -S mingw-w64-clang-x86_64-libpng mingw-w64-clang-x86_64-libunistring
+pacman -S mingw-w64-clang-x86_64-openssl # See the note below
 ```
+
+**Note:** However, to avoid DLL loading issues, it is recommended to compile openssl from its source with the following configuration and use that instead of the `mingw-w64-clang-x86_64-openssl` packaged version.
+```bash
+OPENSSL_PATH='<Use a suitable existing empty directory path here>'
+CC=clang ./Configure zlib no-zlib-dynamic no-brotli no-zstd no-shared no-tests no-docs --prefix="$OPENSSL_PATH" mingw64
+make
+make install
+```
+To use it, set the following environment variables in the shell used to build ClipShare.
+```bash
+export CPATH="${OPENSSL_PATH}/include"
+export LIBRARY_PATH="${OPENSSL_PATH}/lib64"
+```
+
+Additionally, [PatchPE](https://github.com/datadiode/PatchPE) should be available, and the PATH environment variable should be set accordingly. Download PatchPE from [github.com/datadiode/PatchPE/releases/download/2.04/PatchPE.exe](https://github.com/datadiode/PatchPE/releases/download/2.04/PatchPE.exe).
 </details>
 
 <details>
