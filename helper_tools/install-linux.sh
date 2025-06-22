@@ -46,16 +46,28 @@ fi
 
 cd
 export HOME="$(pwd)"
+mkdir -p .config
 
-CONF_DIR="$HOME"
-if [ -d "$XDG_CONFIG_HOME" ] && [ -w "$XDG_CONFIG_HOME" ]; then
-    CONF_DIR="$XDG_CONFIG_HOME"
+CONF_PATHS=("$XDG_CONFIG_HOME" "${HOME}/.config" "$HOME")
+for directory in "${CONF_PATHS[@]}"; do
+    [ -d "$directory" ] || continue
+    conf_path="${directory}/clipshare.conf"
+    if [ -f "$conf_path" ] && [ -r "$conf_path" ]; then
+        CONF_DIR="$directory"
+        break
+    fi
+done
+for directory in "${CONF_PATHS[@]}"; do
+    [ -n "$CONF_DIR" ] && break
+    if [ -d "$directory" ] && [ -w "$directory" ]; then
+        CONF_DIR="$directory"
+    fi
+done
+if [ -z "$CONF_DIR" ]; then
+    echo "Error: Could not find a directory for the configuration file!"
+    exit 1
 fi
 CONF_FILE="${CONF_DIR}/clipshare.conf"
-
-if [ ! -d "$CONF_DIR" ]; then
-    mkdir -p "$CONF_DIR"
-fi
 
 if [ ! -f "$CONF_FILE" ]; then
     mkdir -p Downloads
