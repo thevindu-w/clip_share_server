@@ -132,11 +132,6 @@ static void freeAtomPtr(AtomPtr atomPtr) {
 
 void cleanup(void) {
 #ifdef DEBUG_MODE
-#ifdef _WIN32
-    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-        freopen("CONOUT$", "w", stdout);
-    }
-#endif
     puts("Cleaning up resources before exit");
 #endif
     if (error_log_file) {

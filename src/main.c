@@ -74,11 +74,6 @@ static char *get_user_home(void);
 static char *get_conf_file(void);
 
 static void print_usage(const char *prog_name) {
-#ifdef _WIN32
-    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-        freopen("CONOUT$", "w", stderr);
-    }
-#endif
     fprintf(stderr, "Usage: %s [-h] [-s] [-r] [-R] [-d] [-D]\n", prog_name);
 }
 
@@ -550,12 +545,6 @@ int main(int argc, char **argv) {
             exit(EXIT_SUCCESS);
         }
     }
-#if defined(_WIN32) && defined(DEBUG_MODE)
-    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-        freopen("CONOUT$", "w", stdout);
-        freopen("CONOUT$", "w", stderr);
-    }
-#endif
 
     if (configuration.working_dir) _change_working_dir();
     cwd = getcwd_wrapper(0);
@@ -676,6 +665,7 @@ int main(int argc, char **argv) {
 #endif
     }
 #endif
+    puts("Server Started");
 
     if (configuration.tray_icon) {
         char CLASSNAME[] = "clip";

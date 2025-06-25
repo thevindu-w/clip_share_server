@@ -208,6 +208,10 @@ void kill_other_processes(const char *prog_name) {
         }
     }
     FreeConsole();
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+    }
     CloseHandle(snapshot);
 }
 
