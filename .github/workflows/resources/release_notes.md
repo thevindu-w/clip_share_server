@@ -15,5 +15,6 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Fix DLL search order hijacking vulnerability in Windows x64 build.
+- Add ~/.config/ to the configuration file search path on Linux and macOS.
+- Fix console output issues on Windows.
 - Code quality improvements.
