@@ -1,4 +1,4 @@
-ARG DISTRO
+ARG DISTRO='ubuntu'
 
 FROM ubuntu:noble AS ubuntu_builder
 

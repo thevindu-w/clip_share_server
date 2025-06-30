@@ -1,4 +1,4 @@
-ARG DISTRO
+ARG DISTRO='ubuntu'
 ARG VERSION="latest"
 
 FROM ubuntu:${VERSION} AS ubuntu_builder
