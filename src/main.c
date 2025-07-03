@@ -462,11 +462,8 @@ static char *get_conf_file(void) {
     }
 #endif
 
-    conf_path = realloc(home, home_len + sizeof(CONFIG_FILE) + 3);
-    if (!conf_path) {
-        free(home);
-        return NULL;
-    }
+    conf_path = realloc_or_free(home, home_len + sizeof(CONFIG_FILE) + 3);
+    if (!conf_path) return NULL;
     snprintf(conf_path + home_len, sizeof(CONFIG_FILE) + 2, "%c%s", PATH_SEP, CONFIG_FILE);
     return conf_path;
 }

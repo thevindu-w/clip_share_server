@@ -159,7 +159,7 @@ static void receiver_web(socket_t *sock) {
         data += 4;
         *(data - 1) = '\0';
         unsigned int header_len = (unsigned int)(data - headers);
-        headers = (char *)realloc(headers, header_len + data_len + 1);
+        headers = (char *)realloc_or_free(headers, header_len + data_len + 1);
         data = headers + header_len;
         cnt = 0;
         char *data_end_ptr = data + strnlen(data, data_len + 1);

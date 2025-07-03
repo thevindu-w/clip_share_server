@@ -44,8 +44,14 @@ void *xcmalloc(size_t size) {
 
 /* wrapper for realloc that checks for errors */
 void *xcrealloc(void *ptr, size_t size) {
-    if (!size) error_exit("realloc zero");
-    if (size > MAX_BUF_LEN && size > configuration.max_text_length) error_exit("realloc too large");
+    if (!size) {
+        if (ptr) free(ptr);
+        error_exit("realloc zero");
+    }
+    if (size > MAX_BUF_LEN && size > configuration.max_text_length) {
+        if (ptr) free(ptr);
+        error_exit("realloc too large");
+    }
 
     void *mem = realloc(ptr, size);
     if (!mem) {

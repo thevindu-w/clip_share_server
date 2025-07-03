@@ -81,6 +81,11 @@ extern void error_exit(const char *msg) __attribute__((noreturn));
 extern void cleanup(void);
 
 /*
+ * Wrapper to realloc. In case of failure, free() the ptr and return NULL.
+ */
+extern void *realloc_or_free(void *ptr, size_t size) __attribute__((__malloc__));
+
+/*
  * Get copied text from clipboard.
  * Places the text in a buffer and sets the bufptr to point the buffer.
  * bufptr must be a valid pointer to a char * variable.

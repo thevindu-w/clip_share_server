@@ -119,7 +119,7 @@ int get_text_v1(socket_t *socket) {
     }
 #endif
     int64_t new_len = convert_eol(&buf, 1);
-    if (new_len <= 0) {
+    if (new_len <= 0 || !buf) {
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         return EXIT_FAILURE;
     }
@@ -169,7 +169,7 @@ int send_text_v1(socket_t *socket) {
     if (length < 1024) puts(data);
 #endif
     length = convert_eol(&data, 0);
-    if (length <= 0) return EXIT_FAILURE;
+    if (length <= 0 || !data) return EXIT_FAILURE;
     close_socket_no_wait(socket);
     put_clipboard_text(data, (uint32_t)length);
     free(data);
