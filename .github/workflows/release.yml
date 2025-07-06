@@ -83,7 +83,7 @@ jobs:
       run: docker buildx build -t clipshare:arch -f docker/release/Dockerfile --build-arg 'DISTRO=arch' .
 
     - name: Build on Fedora
-      run: docker buildx build -t clipshare:fedora -f docker/release/Dockerfile --build-arg 'DISTRO=arch' .
+      run: docker buildx build -t clipshare:fedora -f docker/release/Dockerfile --build-arg 'DISTRO=fedora' .
 
     - name: Copy binaries
       run: |
@@ -131,14 +131,20 @@ jobs:
         echo ARCHIVE_NAME_NO_EXT="${archive}" >> $GITHUB_ENV
         echo ARCHIVE_NAME="${archive}.tar.gz" >> $GITHUB_ENV
 
-    - name: Build
-      run: docker buildx build -t clipshare -f docker/release/Dockerfile --build-arg 'DISTRO=debian' .
+    - name: Build on Ubuntu 24
+      run: |
+        docker buildx build -t clipshare:ubuntu -f docker/release/Dockerfile \
+        --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=noble' .
+
+    - name: Build on Debian
+      run: docker buildx build -t clipshare:debian -f docker/release/Dockerfile --build-arg 'DISTRO=debian' .
 
     - name: Copy binaries
       run: |
         mkdir dist
         chmod 777 dist
-        docker run -v './dist:/home/user/src/dist' clipshare
+        docker run -v './dist:/home/user/src/dist' clipshare:ubuntu
+        docker run -v './dist:/home/user/src/dist' clipshare:debian
         [ -f helper_tools/install-linux.sh ] && cp helper_tools/install-linux.sh dist/
         sudo chmod +x dist/*
         cd dist
