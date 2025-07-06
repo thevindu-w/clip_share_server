@@ -27,6 +27,7 @@ IF /I NOT "%confirm%" == "y" (
 )
 
 RENAME clip_share*.exe clip_share.exe
+clip_share.exe -s >NUL
 MKDIR "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\" >NUL 2>&1
 COPY clip_share.exe "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\clip_share.exe" >NUL 2>&1
 
@@ -41,6 +42,7 @@ ECHO Installed ClipShare to run on startup.
 SET /P start_now=Start ClipShare now? [y/N] 
 IF /I "%start_now%" == "y" (
     START "" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\clip_share.exe"
+    SLEEP 0.1
     ECHO Started ClipShare server.
 )
 PAUSE

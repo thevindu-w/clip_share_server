@@ -679,6 +679,8 @@ int main(int argc, char **argv) {
 #endif
     }
 
+    FreeConsole();
+
     if (configuration.tray_icon) {
         MSG msg;
         while (running && GetMessage(&msg, NULL, 0, 0)) {
