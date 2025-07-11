@@ -48,7 +48,7 @@ jobs:
     - name: Check Dockerfiles
       run: |
         find . -type f -name 'Dockerfile*' -print0 | \
-        xargs -0 hadolint --ignore DL3008 --ignore DL3040 --ignore DL3041 -t warning
+        xargs -0 hadolint --ignore DL3008 --ignore DL3040 --ignore DL3041 --ignore DL3018 -t warning
 
     - name: Check yaml style
       if: ${{ success() || failure() }}

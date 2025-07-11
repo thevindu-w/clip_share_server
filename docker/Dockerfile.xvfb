@@ -1,0 +1,5 @@
+FROM alpine:3.16
+
+RUN apk add --no-cache xvfb
+
+CMD ["/bin/sh", "-c", "Xvfb :0 -screen 0 1280x720x8 2>&1 >/dev/null"]

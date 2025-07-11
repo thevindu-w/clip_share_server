@@ -85,6 +85,31 @@ jobs:
     - name: Test
       run: docker run clipshare
 
+  Test-on-Linux-ARMv7:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    needs: Style-Check
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref }}
+
+    - name: Build
+      run: |
+        docker buildx build --platform=linux/arm/v7 -t clipshare -f docker/Dockerfile --build-arg 'DISTRO=debian' \
+        --build-arg 'NO_XVFB=1' .
+
+    - name: Build Xvfb image
+      run: docker build -t xvfb -f docker/Dockerfile.xvfb .
+
+    - name: Test
+      run: |
+        xvfb="$(docker run -d -v '/tmp/xvfb:/tmp/.X11-unix' xvfb)"
+        docker run --platform=linux/arm/v7 -v '/tmp/xvfb:/tmp/.X11-unix' clipshare
+        docker kill "$xvfb" || true
+
   Test-on-Windows:
     runs-on: windows-latest
     timeout-minutes: 15

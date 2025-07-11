@@ -1,4 +1,5 @@
 ARG DISTRO='ubuntu'
+ARG NO_XVFB=''
 
 FROM ubuntu:noble AS ubuntu_builder
 
@@ -37,7 +38,8 @@ FROM debian:bullseye-slim AS debian_builder
 RUN apt-get update && apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev
 
 # Install test dependencies
-RUN apt-get install --no-install-recommends -y openssl xclip python3-minimal diffutils findutils coreutils socat sed xvfb
+RUN apt-get install --no-install-recommends -y openssl xclip python3-minimal diffutils findutils coreutils socat sed
+RUN if [ -z "$NO_XVFB" ]; then apt-get install --no-install-recommends -y xvfb; fi
 
 # hadolint ignore=DL3006
 FROM ${DISTRO}_builder
