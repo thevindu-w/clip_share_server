@@ -87,6 +87,7 @@ jobs:
 
   Test-on-Linux-ARMv7:
     runs-on: ubuntu-24.04-arm
+    if: ${{ (github.event_name != 'push') || (inputs.trigger == 'workflow_call') }}
     timeout-minutes: 15
     needs: Style-Check
 
@@ -284,6 +285,7 @@ jobs:
     needs:
     - Test-on-Linux-x86_64
     - Test-on-Linux-ARM64
+    - Test-on-Linux-ARMv7
     - Test-on-macOS
 
     permissions:
