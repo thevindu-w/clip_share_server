@@ -78,8 +78,11 @@ if [ "${confirm::1}" != 'y' ] && [ "${confirm::1}" != 'Y' ]; then
 fi
 
 if [ "$OS" = 'Linux' ]; then
-    if [ "$(uname -m)" = 'x86_64' ]; then
+    machine="$(uname -m)"
+    if [ "$machine" = 'x86_64' ]; then
         ARCH=x86_64
+    elif [ -n "$(grep -i armv7 <<<"$machine" || true)" ]; then
+        ARCH=armv7
     else
         ARCH=arm64
     fi
@@ -119,12 +122,15 @@ echo -e '\rDownload completed                   '
 
 LINUX_AMD64_SHA=
 LINUX_ARM64_SHA=
+LINUX_ARMv7_SHA=
 MAC_SHA=
 if [ "$OS" = 'Linux' ]; then
     if [ "$ARCH" = 'x86_64' ]; then
         SHA256="$LINUX_AMD64_SHA"
-    else
+    elif [ "$ARCH" = 'arm64' ]; then
         SHA256="$LINUX_ARM64_SHA"
+    elif [ "$ARCH" = 'armv7' ]; then
+        SHA256="$LINUX_ARMv7_SHA"
     fi
 elif [ "$OS" = 'Darwin' ]; then
     SHA256="$MAC_SHA"
