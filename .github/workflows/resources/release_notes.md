@@ -15,6 +15,7 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Add ~/.config/ to the configuration file search path on Linux and macOS.
-- Fix console output issues on Windows.
+- Include Linux ARMv7 version.
+- Support Linux ARM64 version for more Linux distributions and versions.
+- Fix potential memory leaks.
 - Code quality improvements.
