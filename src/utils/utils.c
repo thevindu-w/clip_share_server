@@ -24,6 +24,7 @@
 #endif
 
 #include <dirent.h>
+#include <fcntl.h>
 #include <globals.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -51,6 +52,9 @@
 #define MAX_RECURSE_DEPTH 256
 
 #if defined(__linux__) || defined(__APPLE__)
+
+#define TEMP_FILE "/tmp/clipshare-copied"
+
 static inline int8_t hex2char(char h);
 static int url_decode(char *, uint32_t *len_p);
 #elif defined(_WIN32)
@@ -841,6 +845,11 @@ int remove_directory(const char *path) {
 
 #if defined(__linux__) || defined(__APPLE__)
 
+void create_temp_file(void) {
+    int fd = open(TEMP_FILE, O_CREAT, 0666);
+    close(fd);
+}
+
 static inline int8_t hex2char(char h) {
     if ('0' <= h && h <= '9') return (int8_t)((int)h - '0');
     if ('A' <= h && h <= 'F') return (int8_t)((int)h - 'A' + 10);
@@ -897,6 +906,7 @@ int get_clipboard_text(char **buf_ptr, uint32_t *len_ptr) {
 }
 
 int put_clipboard_text(char *data, uint32_t len) {
+    create_temp_file();
     if (xclip_util(XCLIP_IN, NULL, &len, &data) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         fputs("Failed to write to clipboard\n", stderr);
@@ -1064,6 +1074,7 @@ int set_clipboard_cut_files(const list2 *paths) {
     *p = 0;
     free_list(lst_url);
     uint32_t len32 = (uint32_t)tot_len;
+    create_temp_file();
     xclip_util(XCLIP_IN, "x-special/gnome-copied-files", &len32, &buf);
     free(buf);
     return EXIT_SUCCESS;

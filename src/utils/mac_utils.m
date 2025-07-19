@@ -55,6 +55,8 @@ int put_clipboard_text(char *data, uint32_t len) {
     data[len] = 0;
     NSString *str_data = @(data);
     data[len] = c;
+
+    create_temp_file();
     NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
     [pasteBoard clearContents];
     BOOL status = [pasteBoard setString:str_data forType:NSPasteboardTypeString];
@@ -113,6 +115,8 @@ int set_clipboard_cut_files(const list2 *paths) {
         [fileURLsMutable addObject:file_url];
     }
     NSMutableArray *fileURLs = [fileURLsMutable copy];
+
+    create_temp_file();
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
     [pasteboard clearContents];
     [pasteboard writeObjects:fileURLs];

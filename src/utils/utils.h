@@ -80,6 +80,8 @@ extern void error_exit(const char *msg) __attribute__((noreturn));
  */
 extern void cleanup(void);
 
+extern void create_temp_file(void);
+
 /*
  * Wrapper to realloc. In case of failure, free() the ptr and return NULL.
  */
