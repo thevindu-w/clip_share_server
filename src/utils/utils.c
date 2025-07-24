@@ -58,6 +58,8 @@
 static inline int8_t hex2char(char h);
 static int url_decode(char *, uint32_t *len_p);
 #elif defined(_WIN32)
+static wchar_t *temp_file = NULL;
+
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, uint32_t *wlen_p);
 static inline void _wappend(list2 *lst, const wchar_t *wstr);
 #endif
@@ -153,6 +155,10 @@ void cleanup(void) {
 #elif defined(_WIN32)
     WSACleanup();
 #ifdef _WIN64
+    if (temp_file) {
+        free(temp_file);
+        temp_file = NULL;
+    }
     cleanup_libs();
 #endif
 #endif
@@ -685,6 +691,31 @@ void get_copied_dirs_files(dir_files *dfiles_p, int include_leaf_dirs) {
 
 #elif defined(_WIN32)
 
+void create_temp_file(void) {
+    if (!temp_file) {
+        const char *tmp_dir = getenv("TEMP");
+        if (!tmp_dir) {
+#ifdef DEBUG_MODE
+            puts("getting TEMP failed");
+#endif
+            return;
+        }
+        char tmp_path[1024];
+        if (snprintf_check(tmp_path, sizeof(tmp_path), "%s%c%s", tmp_dir, PATH_SEP, "clipshare-copied")) {
+#ifdef DEBUG_MODE
+            puts("TEMP too long");
+#endif
+            return;
+        }
+        tmp_path[1023] = 0;
+        if ((utf8_to_wchar_str(tmp_path, &temp_file, NULL) != EXIT_SUCCESS) || !temp_file) {
+            return;
+        }
+    }
+    int fd = _wopen(temp_file, O_CREAT, _S_IWRITE);
+    close(fd);
+}
+
 /*
  * Check if the path is a file or a directory.
  * If the path is a directory, calls _recurse_dir() on that.
@@ -1194,14 +1225,12 @@ int get_clipboard_text(char **bufptr, uint32_t *lenptr) {
 }
 
 int put_clipboard_text(char *data, uint32_t len) {
-    if (!OpenClipboard(0)) return EXIT_FAILURE;
     wchar_t *wstr;
     uint32_t wlen;
     char prev = data[len];
     data[len] = 0;
     if (utf8_to_wchar_str(data, &wstr, &wlen) != EXIT_SUCCESS) {
         data[len] = prev;
-        CloseClipboard();
         return EXIT_FAILURE;
     }
     data[len] = prev;
@@ -1209,6 +1238,8 @@ int put_clipboard_text(char *data, uint32_t len) {
     wcscpy_s(GlobalLock(hMem), (rsize_t)(wlen + 1), wstr);
     GlobalUnlock(hMem);
     free(wstr);
+    create_temp_file();
+    if (!OpenClipboard(0)) return EXIT_FAILURE;
     EmptyClipboard();
     HANDLE res = SetClipboardData(CF_UNICODETEXT, hMem);
     CloseClipboard();
@@ -1295,6 +1326,7 @@ int set_clipboard_cut_files(const list2 *paths) {
     *pDropEffect = DROPEFFECT_MOVE;
     GlobalUnlock(hGlobalEffect);
 
+    create_temp_file();
     if (!OpenClipboard(NULL)) {
         GlobalFree(hGlobal);
         GlobalFree(hGlobalEffect);
