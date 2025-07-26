@@ -15,7 +15,4 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Include Linux ARMv7 version.
-- Support Linux ARM64 version for more Linux distributions and versions.
-- Fix potential memory leaks.
-- Code quality improvements.
+- Fixes to support the auto-send feature of the desktop client.
