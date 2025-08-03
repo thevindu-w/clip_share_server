@@ -162,11 +162,17 @@ jobs:
         docker buildx build --platform=linux/arm/v7 -t clipshare:debian -f docker/release/Dockerfile \
         --build-arg 'DISTRO=debian' .
 
+    - name: Build on Ubuntu arm/v7
+      run: |
+        docker buildx build --platform=linux/arm/v7 -t clipshare:ubuntu -f docker/release/Dockerfile \
+        --build-arg 'DISTRO=ubuntu' .
+
     - name: Copy arm/v7 binaries
       run: |
         mkdir dist
         chmod 777 dist
         docker run --platform=linux/arm/v7 -v './dist:/home/user/src/dist' clipshare:debian
+        docker run --platform=linux/arm/v7 -v './dist:/home/user/src/dist' clipshare:ubuntu
         [ -f helper_tools/install-linux.sh ] && cp helper_tools/install-linux.sh dist/
         sudo chmod +x dist/*
         cd dist
