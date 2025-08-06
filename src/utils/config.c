@@ -262,6 +262,8 @@ static void parse_line(char *line, config *cfg) {
         set_is_true(value, &(cfg->secure_mode_enabled));
     } else if (!strcmp("udp_port", key)) {
         set_uint16(value, &(cfg->udp_port));
+    } else if (!strcmp("udp_server_enabled", key)) {
+        set_is_true(value, &(cfg->udp_server_enabled));
 #ifdef WEB_ENABLED
     } else if (!strcmp("web_port", key)) {
         set_uint16(value, &(cfg->web_port));
@@ -343,6 +345,7 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->secure_mode_enabled = -1;
 
     cfg->udp_port = 0;
+    cfg->udp_server_enabled = -1;
 
 #ifdef WEB_ENABLED
     cfg->web_port = 0;

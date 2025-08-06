@@ -207,6 +207,7 @@ static inline void _apply_default_conf(void) {
     if (configuration.app_port_secure <= 0) configuration.app_port_secure = APP_PORT_SECURE;
     if (configuration.secure_mode_enabled < 0) configuration.secure_mode_enabled = 0;
     if (configuration.udp_port <= 0) configuration.udp_port = APP_PORT;
+    if (configuration.udp_server_enabled < 0) configuration.udp_server_enabled = 1;
 
     if (configuration.max_text_length <= 0) configuration.max_text_length = MAX_TEXT_LENGTH;
     if (configuration.max_file_size <= 0) configuration.max_file_size = MAX_FILE_SIZE;
@@ -561,6 +562,7 @@ int main(int argc, char **argv) {
 #if defined(__linux__) || defined(__APPLE__)
     pid_t p_clip = 0;
     pid_t p_clip_ssl = 0;
+    pid_t p_scan = 0;
 #ifdef WEB_ENABLED
     pid_t p_web = 0;
 #endif
@@ -594,12 +596,14 @@ int main(int argc, char **argv) {
     }
 #endif
     puts("Server Started");
-    fflush(stdout);
-    fflush(stderr);
-    pid_t p_scan = fork();
-    if (p_scan == 0) {
-        udp_server();
-        exit(EXIT_SUCCESS);
+    if (configuration.udp_server_enabled) {
+        fflush(stdout);
+        fflush(stderr);
+        p_scan = fork();
+        if (p_scan == 0) {
+            udp_server();
+            exit(EXIT_SUCCESS);
+        }
     }
 
 #ifdef __APPLE__
@@ -631,6 +635,7 @@ int main(int argc, char **argv) {
     }
     HANDLE insecureThread = NULL;
     HANDLE secureThread = NULL;
+    HANDLE udpThread = NULL;
 #ifdef WEB_ENABLED
     HANDLE webThread = NULL;
 #endif
@@ -672,10 +677,12 @@ int main(int argc, char **argv) {
         show_tray_icon();
     }
 
-    HANDLE udpThread = CreateThread(NULL, 0, udpThreadFn, NULL, 0, NULL);
-    if (udpThread == NULL) {
+    if (configuration.udp_server_enabled) {
+        udpThread = CreateThread(NULL, 0, udpThreadFn, NULL, 0, NULL);
 #ifdef DEBUG_MODE
-        error("UDP thread creation failed");
+        if (udpThread == NULL) {
+            error("UDP thread creation failed");
+        }
 #endif
     }
 
@@ -689,6 +696,7 @@ int main(int argc, char **argv) {
         }
         if (insecureThread != NULL) TerminateThread(insecureThread, 0);
         if (secureThread != NULL) TerminateThread(secureThread, 0);
+        if (udpThread != NULL) TerminateThread(udpThread, 0);
 #ifdef WEB_ENABLED
         if (webThread != NULL) TerminateThread(webThread, 0);
 #endif

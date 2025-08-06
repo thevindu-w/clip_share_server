@@ -35,6 +35,7 @@ typedef struct _config {
     uint16_t udp_port;
     int8_t insecure_mode_enabled;
     int8_t secure_mode_enabled;
+    int8_t udp_server_enabled;
 #ifdef WEB_ENABLED
     uint16_t web_port;
     int8_t web_mode_enabled;
