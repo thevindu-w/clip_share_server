@@ -1,20 +1,20 @@
 @ECHO OFF
 
 NET SESSION >NUL 2>&1
-if %ERRORLEVEL% == 0 (
+IF %ERRORLEVEL% == 0 (
     ECHO This installer must not be run as administrator.
     ECHO Please run without administrator rights.
     ECHO Installation aborted.
-    PAUSE
-    EXIT
+    IF NOT "%~1" == "NO_PAUSE" PAUSE
+    EXIT /B 1
 )
 
 IF NOT EXIST clip_share*.exe (
     ECHO 'clip_share.exe' file does not exist.
     ECHO Please download the 'clip_share.exe' Windows version and place it in this folder.
     ECHO Install failed.
-    PAUSE
-    EXIT
+    IF NOT "%~1" == "NO_PAUSE" PAUSE
+    EXIT /B 1
 )
 
 ECHO This will install clip_share to run on startup.
@@ -22,8 +22,8 @@ SET /P confirm=Proceed? [y/N]
 IF /I NOT "%confirm%" == "y" (
     ECHO Aborted.
     ECHO You can still use clip_share by manually running the program.
-    PAUSE
-    EXIT
+    IF NOT "%~1" == "NO_PAUSE" PAUSE
+    EXIT /B 0
 )
 
 RENAME clip_share*.exe clip_share.exe
@@ -42,8 +42,8 @@ ECHO Installed ClipShare to run on startup.
 SET /P start_now=Start ClipShare now? [y/N] 
 IF /I "%start_now%" == "y" (
     START "" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\clip_share.exe"
-    SLEEP 0.1
-    ECHO Started ClipShare server.
+    START "" /B CMD /C "ECHO Started ClipShare server. & (IF NOT """%~1""" == """NO_PAUSE""" PAUSE) & EXIT"
+) else (
+    IF NOT "%~1" == "NO_PAUSE" PAUSE
+    EXIT
 )
-PAUSE
-EXIT
