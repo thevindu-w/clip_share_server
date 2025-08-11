@@ -436,13 +436,13 @@ jobs:
         echo FILE_ARM="clip_share-arm64" >> $GITHUB_ENV
 
     - name: Download macOS x86_64 version
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: "${{env.FILE_INTEL}}"
         path: "${{env.FILE_INTEL}}"
 
     - name: Download macOS ARM64 version
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: "${{env.FILE_ARM}}"
         path: "${{env.FILE_ARM}}"
@@ -500,14 +500,14 @@ jobs:
         echo FILE_MACOS="clip_share_server-${version}-macos.zip" >> $GITHUB_ENV
 
     - name: Download builds
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         pattern: clip_share_server-*
         path: ${{ github.workspace }}
         merge-multiple: true
 
     - name: Download Windows installer
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: "${{env.INSTALLER_WINDOWS}}"
         path: "${{env.INSTALLER_WINDOWS}}"
