@@ -12,7 +12,7 @@
 
 <br>
 
-ClipShare is a lightweight and cross-platform tool for clipboard sharing. ClipShare enables copying text, files, and images on one device and pasted on another. ClipShare is simple and easy to use while being highly configurable. The ClipShare server runs in the background on your desktop/laptop. Clients can connect to the server and share copied text, files, and images.
+ClipShare is a lightweight and cross-platform tool for clipboard sharing. ClipShare enables copying text, files, and images on one device and pasting on another. ClipShare is simple and easy to use while being highly configurable. The ClipShare server runs in the background on your desktop/laptop. Clients can connect to the server and share copied text, files, and images.
 
 ## Download
 
@@ -294,6 +294,7 @@ udp_port=4337
 web_port=4339
 insecure_mode_enabled=true
 secure_mode_enabled=true
+udp_server_enabled=true
 web_mode_enabled=false
 server_cert=cert_keys/server.pfx
 ca_cert=cert_keys/ca.crt
@@ -324,6 +325,7 @@ Note that all the lines in the configuration file are optional. You may omit som
 |  :----:  | :--------   | :------------   |  :---:  |
 | `insecure_mode_enabled` | Whether or not the application listens for unencrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
 | `secure_mode_enabled` | Whether or not the application listens for TLS-encrypted connections. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
+| `udp_server_enabled` | Whether or not the application listens for UDP scanning requests. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
 | `web_mode_enabled` | Whether or not the application listens for TLS-encrypted connections from web clients if the web mode is available. The values `true` or `1` will enable it, while `false` or `0` will disable it. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
 | `app_port` | The port on which the application listens for unencrypted TCP connections. (Values below 1024 may require superuser/admin privileges) | Any valid, unused TCP port number (1 - 65535) | `4337` |
 | `udp_port` | The port on which the application listens for UDP broadcasts of network scanning. (Values below 1024 may require superuser/admin privileges) | Any valid, unused UDP port number (1 - 65535) | `4337` |
