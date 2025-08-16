@@ -15,4 +15,6 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Fixes to support the auto-send feature of the desktop client.
+- Add a configuration option `udp_server_enabled` to enable/disable UDP scanning.
+- Support Linux ARMv7 version for more Linux distributions and versions.
+- Improve installer script for Linux.
