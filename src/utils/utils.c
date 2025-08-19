@@ -249,6 +249,7 @@ void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) 
     p->size += length;
 }
 
+#ifdef _WIN32
 /*
  * Allocate the required capacity for the string with EOL=CRLF including the terminating '\0'.
  * Assign the realloced string to *str_p and the length after conversion to *len_p without the terminating '\0'.
@@ -270,15 +271,15 @@ static inline int _realloc_for_crlf(char **str_p, size_t *len_p) {
         *len_p = ind;
         return 0;
     }
-    size_t req_len = ind + increase;
-    if (req_len >= 0x7FFFFFFFUL || ind >= 0x7FFFFFFFUL) {
+    uint64_t req_len = (uint64_t)ind + increase;
+    if (req_len >= 0xFFFFFFFFUL) {
         free(str);
         error("realloc size too large");
         return -1;
     }
-    *str_p = realloc_or_free(str, req_len + 1);  // +1 for terminating '\0'
+    *str_p = realloc_or_free(str, (size_t)req_len + 1);  // +1 for terminating '\0'
     if (!*str_p) return -1;
-    *len_p = req_len;
+    *len_p = (size_t)req_len;
     return 1;
 }
 
@@ -296,6 +297,7 @@ static inline void _convert_to_crlf(char *str, size_t new_len) {
         if (cur_ind == 0) break;
     }
 }
+#endif
 
 static inline int64_t _convert_to_lf(char *str) {
     // converting to CRLF shrinks string. Therefore, start from the begining to avoid overwriting
@@ -314,21 +316,23 @@ static inline int64_t _convert_to_lf(char *str) {
 }
 
 int64_t convert_eol(char **str_p, int force_lf) {
-    int crlf = 0;
 #ifdef _WIN32
-    if (!force_lf) crlf = 1;
-#else
-    (void)force_lf;
-#endif
-    if (crlf) {
+    if (!force_lf) {  // convert to CRLF
         size_t new_len;
         // realloc if available capacity is not enough
         int status = _realloc_for_crlf(str_p, &new_len);
-        if (status == 0) return (int64_t)new_len;  // no conversion needed
-        if (status < 0 || !*str_p) return -1;      // realloc failed
+        if (status == 0) {  // no conversion needed
+            return (int64_t)new_len;
+        }
+        if (status < 0 || !*str_p) {  // realloc failed
+            return -1;
+        }
         _convert_to_crlf(*str_p, new_len);
         return (int64_t)new_len;
     }
+#else
+    (void)force_lf;
+#endif
     return _convert_to_lf(*str_p);
 }
 
