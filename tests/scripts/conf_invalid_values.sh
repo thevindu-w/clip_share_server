@@ -38,6 +38,7 @@ check udp_port 4337 a
 check app_port_secure 4338 -1
 check insecure_mode_enabled true 2
 check secure_mode_enabled TRUE other
+check udp_server_enabled false F
 check server_cert server.pfx not_existing.pfx
 touch empty.txt
 check ca_cert testCA.crt empty.txt
