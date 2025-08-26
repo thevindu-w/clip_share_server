@@ -48,7 +48,7 @@ typedef int socklen_t;
 
 void udp_server(void) {
     if (configuration.udp_port <= 0) return;
-#if defined(__linux__) || defined(__APPLE__)
+#if (defined(__linux__) || defined(__APPLE__)) && !defined(NO_SSL)
     // Keys and certificates are not needed for UDP
     clear_config_key_cert(&configuration);
 #endif

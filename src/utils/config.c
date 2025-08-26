@@ -53,6 +53,7 @@ static inline void trim(char *str) {
     }
 }
 
+#ifndef NO_SSL
 /*
  * Reads the list of client names from the file given by the filename.
  * Allowed client names must not exceed 511 characters.
@@ -111,6 +112,7 @@ static inline void load_file(const char *file_name, data_buffer *buf_ptr) {
     buf_ptr->data = buf;
     buf_ptr->len = (int32_t)len;
 }
+#endif
 
 /*
  * str must be a valid and null-terminated string
@@ -270,6 +272,7 @@ static void parse_line(char *line, config *cfg) {
     } else if (!strcmp("web_mode_enabled", key)) {
         set_is_true(value, &(cfg->web_mode_enabled));
 #endif
+#ifndef NO_SSL
     } else if (!strcmp("server_cert", key)) {
         load_file(value, &(cfg->server_cert));
     } else if (!strcmp("ca_cert", key)) {
@@ -279,6 +282,7 @@ static void parse_line(char *line, config *cfg) {
         if (client_list == NULL) return;
         if (cfg->allowed_clients) free_list(cfg->allowed_clients);
         cfg->allowed_clients = client_list;
+#endif
     } else if (!strcmp("working_dir", key)) {
         if (cfg->working_dir) free(cfg->working_dir);
         cfg->working_dir = strdup(value);
@@ -407,6 +411,7 @@ void parse_conf(config *cfg, const char *file_name) {
     return;
 }
 
+#ifndef NO_SSL
 void clear_config_key_cert(config *cfg) {
     if (cfg->server_cert.data) {
         if (cfg->server_cert.len > 0) memset(cfg->server_cert.data, 0, (size_t)cfg->server_cert.len);
@@ -417,16 +422,19 @@ void clear_config_key_cert(config *cfg) {
         free(cfg->ca_cert.data);
         cfg->ca_cert.data = NULL;
     }
-}
-
-void clear_config(config *cfg) {
-    clear_config_key_cert(cfg);
-    if (cfg->working_dir) {
-        free(cfg->working_dir);
-        cfg->working_dir = NULL;
-    }
     if (cfg->allowed_clients) {
         free_list(cfg->allowed_clients);
         cfg->allowed_clients = NULL;
+    }
+}
+#endif
+
+void clear_config(config *cfg) {
+#ifndef NO_SSL
+    clear_config_key_cert(cfg);
+#endif
+    if (cfg->working_dir) {
+        free(cfg->working_dir);
+        cfg->working_dir = NULL;
     }
 }

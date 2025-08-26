@@ -266,11 +266,13 @@ static DWORD WINAPI appThreadFn(void *arg) {
     return EXIT_SUCCESS;
 }
 
+#ifndef NO_SSL
 static DWORD WINAPI appSecureThreadFn(void *arg) {
     (void)arg;
     clip_share(SECURE);
     return EXIT_SUCCESS;
 }
+#endif
 
 #ifdef WEB_ENABLED
 static DWORD WINAPI webThreadFn(void *arg) {
@@ -575,6 +577,7 @@ int main(int argc, char **argv) {
             exit(status);
         }
     }
+#ifndef NO_SSL
     if (configuration.secure_mode_enabled) {
         fflush(stdout);
         fflush(stderr);
@@ -584,6 +587,7 @@ int main(int argc, char **argv) {
             exit(status);
         }
     }
+#endif
 #ifdef WEB_ENABLED
     if (configuration.web_mode_enabled) {
         fflush(stdout);
@@ -634,7 +638,9 @@ int main(int argc, char **argv) {
         error_exit("Failed WSAStartup");
     }
     HANDLE insecureThread = NULL;
+#ifndef NO_SSL
     HANDLE secureThread = NULL;
+#endif
     HANDLE udpThread = NULL;
 #ifdef WEB_ENABLED
     HANDLE webThread = NULL;
@@ -648,6 +654,7 @@ int main(int argc, char **argv) {
 #endif
     }
 
+#ifndef NO_SSL
     if (configuration.secure_mode_enabled) {
         secureThread = CreateThread(NULL, 0, appSecureThreadFn, NULL, 0, NULL);
 #ifdef DEBUG_MODE
@@ -656,6 +663,7 @@ int main(int argc, char **argv) {
         }
 #endif
     }
+#endif
 
 #ifdef WEB_ENABLED
     if (configuration.web_mode_enabled) {
@@ -695,7 +703,9 @@ int main(int argc, char **argv) {
             DispatchMessage(&msg);
         }
         if (insecureThread != NULL) TerminateThread(insecureThread, 0);
+#ifndef NO_SSL
         if (secureThread != NULL) TerminateThread(secureThread, 0);
+#endif
         if (udpThread != NULL) TerminateThread(udpThread, 0);
 #ifdef WEB_ENABLED
         if (webThread != NULL) TerminateThread(webThread, 0);
@@ -703,7 +713,9 @@ int main(int argc, char **argv) {
     }
 
     if (insecureThread != NULL) WaitForSingleObject(insecureThread, INFINITE);
+#ifndef NO_SSL
     if (secureThread != NULL) WaitForSingleObject(secureThread, INFINITE);
+#endif
 #ifdef WEB_ENABLED
     if (webThread != NULL) WaitForSingleObject(webThread, INFINITE);
 #endif

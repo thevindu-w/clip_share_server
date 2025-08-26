@@ -46,6 +46,7 @@ static DWORD WINAPI serverThreadFn(void *arg) {
 int clip_share(const int is_secure) {
     uint16_t port = 0;
     if (is_secure == SECURE) {
+#ifndef NO_SSL
         if (configuration.allowed_clients == NULL || configuration.allowed_clients->len <= 0 ||
             configuration.app_port_secure <= 0 || configuration.server_cert.data == NULL ||
             configuration.ca_cert.data == NULL) {
@@ -55,6 +56,10 @@ int clip_share(const int is_secure) {
             return EXIT_FAILURE;
         }
         port = configuration.app_port_secure;
+#else
+        error("Secure mode cannot be enabled");
+        return EXIT_FAILURE;
+#endif
     } else {
         if (configuration.app_port <= 0) {
 #ifdef DEBUG_MODE
@@ -64,7 +69,7 @@ int clip_share(const int is_secure) {
         }
         port = configuration.app_port;
 
-#if defined(__linux__) || defined(__APPLE__)
+#if (defined(__linux__) || defined(__APPLE__)) && !defined(NO_SSL)
         // Keys and certificates are not needed for plain sockets
         clear_config_key_cert(&configuration);
 #endif
