@@ -248,7 +248,7 @@ jobs:
     strategy:
       matrix:
         os:
-        - macos-latest
+        - macos-14
         - macos-13
         exclude:
         - os: ${{ (github.event_name == 'push') && (inputs.trigger != 'workflow_call') && 'macos-13' }}
