@@ -23,7 +23,9 @@
 #include <utils/net_utils.h>
 #include <utils/utils.h>
 #if defined(__linux__) || defined(__APPLE__)
+#include <signal.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #elif defined(_WIN32)
 #include <io.h>
@@ -40,6 +42,17 @@ static DWORD WINAPI serverThreadFn(void *arg) {
     server(&socket);
     close_socket(&socket);
     return 0;
+}
+#endif
+
+#if defined(__linux__) || defined(__APPLE__)
+static volatile sig_atomic_t req_cnt = 0;
+
+static void decrement_req_cnt(int sig) {
+    (void)sig;
+    while (waitpid(-1, NULL, WNOHANG) > 0) {
+        req_cnt--;
+    }
 }
 #endif
 
@@ -89,6 +102,9 @@ int clip_share(const int is_secure) {
         return EXIT_FAILURE;
     }
 
+#if defined(__linux__) || defined(__APPLE__)
+    signal(SIGCHLD, &decrement_req_cnt);
+#endif
     while (1) {
         socket_t connect_sock;
         get_connection(&connect_sock, listener, configuration.allowed_clients);
@@ -99,6 +115,11 @@ int clip_share(const int is_secure) {
 #if defined(__linux__) || defined(__APPLE__)
         fflush(stdout);
         fflush(stderr);
+        if (req_cnt >= 64) {
+            close_socket_no_wait(&connect_sock);
+            continue;
+        }
+        req_cnt++;
         pid_t pid = fork();
         if (pid) {
             close_socket_no_shdn(&connect_sock);
