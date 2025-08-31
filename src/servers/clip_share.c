@@ -35,12 +35,15 @@
 #endif
 
 #ifdef _WIN32
+static volatile int16_t req_cnt = 0;
+
 static DWORD WINAPI serverThreadFn(void *arg) {
     socket_t socket;
     memcpy(&socket, arg, sizeof(socket_t));
     free(arg);
     server(&socket);
     close_socket(&socket);
+    req_cnt--;
     return 0;
 }
 #endif
@@ -112,14 +115,14 @@ int clip_share(const int is_secure) {
             close_socket_no_wait(&connect_sock);
             continue;
         }
-#if defined(__linux__) || defined(__APPLE__)
-        fflush(stdout);
-        fflush(stderr);
         if (req_cnt >= 64) {
             close_socket_no_wait(&connect_sock);
             continue;
         }
         req_cnt++;
+#if defined(__linux__) || defined(__APPLE__)
+        fflush(stdout);
+        fflush(stderr);
         pid_t pid = fork();
         if (pid) {
             close_socket_no_shdn(&connect_sock);
@@ -133,14 +136,14 @@ int clip_share(const int is_secure) {
         socket_t *connect_ptr = malloc(sizeof(socket_t));
         memcpy(connect_ptr, &connect_sock, sizeof(socket_t));
         HANDLE serveThread = CreateThread(NULL, 0, serverThreadFn, (LPDWORD)connect_ptr, 0, NULL);
-#ifdef DEBUG_MODE
         if (serveThread == NULL) {
+            close_socket_no_wait(&connect_sock);
+            req_cnt--;
+#ifdef DEBUG_MODE
             error("Thread creation failed");
             return EXIT_FAILURE;
-        }
-#else
-        (void)serveThread;
 #endif
+        }
 #endif
     }
     return EXIT_SUCCESS;
