@@ -186,9 +186,9 @@ static int write_png_to_mem(RGBBitmap *bitmap, char **buf_ptr, size_t *len_ptr) 
                  PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 
     /* Initialize rows of PNG. */
-    row_pointers = png_malloc(png_ptr, bitmap->height * sizeof(png_byte *));
+    row_pointers = png_malloc(png_ptr, bitmap->height * sizeof(png_byte *) + 1);
     for (y = 0; y < bitmap->height; ++y) {
-        uint8_t *row = (uint8_t *)malloc(bitmap->bytes_per_pixel * bitmap->width);
+        uint8_t *row = (uint8_t *)malloc(bitmap->bytes_per_pixel * bitmap->width + 1);
         row_pointers[y] = (png_byte *)row;
         for (x = 0; x < bitmap->width; ++x) {
             RGBPixel color = *(RGBPixel *)(((uint8_t *)(bitmap->pixels)) + ((bitmap->bytewidth) * y) +
