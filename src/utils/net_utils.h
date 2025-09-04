@@ -25,6 +25,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <utils/config.h>
 #include <utils/list_utils.h>
 
 #if defined(__linux__) || defined(__APPLE__)

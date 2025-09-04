@@ -73,6 +73,7 @@ char *get_copied_files_as_str(int *offset) {
     NSDictionary *options = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES]
                                                         forKey:NSPasteboardURLReadingFileURLsOnlyKey];
     NSArray *fileURLs = [pasteboard readObjectsForClasses:classes options:options];
+    if (!fileURLs) return NULL;
     size_t tot_len = 0;
     for (NSURL *fileURL in fileURLs) {
         NSURL *pathURL = [fileURL filePathURL];

@@ -80,7 +80,7 @@ static void print_usage(const char *prog_name) {
 /*
  * Parse command line arguments and set corresponding variables
  */
-static inline void _parse_args(int argc, char **argv, int *stop_p, int *daemonize_p) {
+static inline void _parse_args(int argc, char **argv, int8_t *stop_p, int8_t *daemonize_p) {
     int opt;
     while ((opt = getopt(argc, argv, "hvsrRdD")) != -1) {
         switch (opt) {
@@ -104,11 +104,11 @@ static inline void _parse_args(int argc, char **argv, int *stop_p, int *daemoniz
                 configuration.restart = 0;
                 break;
             }
-            case 'd': {  // stop
+            case 'd': {  // daemonize
                 *daemonize_p = 1;
                 break;
             }
-            case 'D': {  // stop
+            case 'D': {  // no-daemonize
                 *daemonize_p = 0;
                 break;
             }
@@ -238,6 +238,7 @@ static inline void _apply_default_conf(void) {
     if (configuration.tray_icon < 0) configuration.tray_icon = 1;
 #endif
 #ifdef __APPLE__
+    // binding to other interface addresses will not work
     if (configuration.bind_addr_udp.af == AF_INET)
         configuration.bind_addr_udp.addr.addr4.s_addr = INADDR_ANY;
     else if (configuration.bind_addr_udp.af == AF_INET6)
@@ -399,6 +400,99 @@ static char *get_user_home(void) {
     return home;
 }
 
+static void start_servers(int8_t daemonize) {
+    (void)daemonize;
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        error_exit("Failed WSAStartup");
+    }
+    HANDLE insecureThread = NULL;
+#ifndef NO_SSL
+    HANDLE secureThread = NULL;
+#endif
+    HANDLE udpThread = NULL;
+#ifdef WEB_ENABLED
+    HANDLE webThread = NULL;
+#endif
+    if (configuration.insecure_mode_enabled) {
+        insecureThread = CreateThread(NULL, 0, appThreadFn, NULL, 0, NULL);
+#ifdef DEBUG_MODE
+        if (insecureThread == NULL) {
+            error("App thread creation failed");
+        }
+#endif
+    }
+
+#ifndef NO_SSL
+    if (configuration.secure_mode_enabled) {
+        secureThread = CreateThread(NULL, 0, appSecureThreadFn, NULL, 0, NULL);
+#ifdef DEBUG_MODE
+        if (secureThread == NULL) {
+            error("App Secure thread creation failed");
+        }
+#endif
+    }
+#endif
+
+#ifdef WEB_ENABLED
+    if (configuration.web_mode_enabled) {
+        webThread = CreateThread(NULL, 0, webThreadFn, NULL, 0, NULL);
+#ifdef DEBUG_MODE
+        if (webThread == NULL) {
+            error("Web thread creation failed");
+        }
+#endif
+    }
+#endif
+    puts("Server Started");
+
+    if (configuration.tray_icon) {
+        char CLASSNAME[] = "clip";
+        WNDCLASS wc = {.lpfnWndProc = (WNDPROC)WindowProc, .hInstance = instance, .lpszClassName = CLASSNAME};
+        RegisterClass(&wc);
+        hWnd = CreateWindowEx(0, CLASSNAME, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, instance, NULL);
+        show_tray_icon();
+    }
+
+    if (configuration.udp_server_enabled) {
+        udpThread = CreateThread(NULL, 0, udpThreadFn, NULL, 0, NULL);
+#ifdef DEBUG_MODE
+        if (udpThread == NULL) {
+            error("UDP thread creation failed");
+        }
+#endif
+    }
+
+    FreeConsole();
+
+    if (configuration.tray_icon) {
+        MSG msg;
+        while (running && GetMessage(&msg, NULL, 0, 0)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+        if (insecureThread != NULL) TerminateThread(insecureThread, 0);
+#ifndef NO_SSL
+        if (secureThread != NULL) TerminateThread(secureThread, 0);
+#endif
+        if (udpThread != NULL) TerminateThread(udpThread, 0);
+#ifdef WEB_ENABLED
+        if (webThread != NULL) TerminateThread(webThread, 0);
+#endif
+    }
+
+    if (insecureThread != NULL) WaitForSingleObject(insecureThread, INFINITE);
+#ifndef NO_SSL
+    if (secureThread != NULL) WaitForSingleObject(secureThread, INFINITE);
+#endif
+#ifdef WEB_ENABLED
+    if (webThread != NULL) WaitForSingleObject(webThread, INFINITE);
+#endif
+
+    remove_tray_icon();
+    CloseHandle(instance);
+}
+
 #endif
 
 #if defined(__linux__) || defined(__APPLE__)
@@ -420,6 +514,77 @@ static char *get_user_home(void) {
 __attribute__((noreturn)) static void exit_on_signal_handler(int sig) {
     (void)sig;
     exit(0);
+}
+
+static void start_servers(int8_t daemonize) {
+    pid_t p_clip = 0;
+    pid_t p_clip_ssl = 0;
+    pid_t p_scan = 0;
+#ifdef WEB_ENABLED
+    pid_t p_web = 0;
+#endif
+    if (configuration.insecure_mode_enabled) {
+        fflush(stdout);
+        fflush(stderr);
+        p_clip = fork();
+        if (p_clip == 0) {
+            int status = clip_share(INSECURE);
+            exit(status);
+        }
+    }
+#ifndef NO_SSL
+    if (configuration.secure_mode_enabled) {
+        fflush(stdout);
+        fflush(stderr);
+        p_clip_ssl = fork();
+        if (p_clip_ssl == 0) {
+            int status = clip_share(SECURE);
+            exit(status);
+        }
+    }
+#endif
+#ifdef WEB_ENABLED
+    if (configuration.web_mode_enabled) {
+        fflush(stdout);
+        fflush(stderr);
+        p_web = fork();
+        if (p_web == 0) {
+            int status = web_server();
+            exit(status);
+        }
+    }
+#endif
+    puts("Server Started");
+    if (configuration.udp_server_enabled) {
+        fflush(stdout);
+        fflush(stderr);
+        p_scan = fork();
+        if (p_scan == 0) {
+            udp_server();
+            exit(EXIT_SUCCESS);
+        }
+    }
+
+#ifdef __APPLE__
+    if (configuration.tray_icon) {
+        fflush(stdout);
+        fflush(stderr);
+        pid_t p_menu = fork();
+        if (p_menu == 0) {
+            show_menu_icon();
+            exit(EXIT_SUCCESS);
+        }
+    }
+#endif
+
+    if (!daemonize) {
+        if (p_clip > 0) waitpid(p_clip, NULL, 0);
+        if (p_clip_ssl > 0) waitpid(p_clip_ssl, NULL, 0);
+        if (p_scan > 0) waitpid(p_scan, NULL, 0);
+#ifdef WEB_ENABLED
+        if (p_web > 0) waitpid(p_web, NULL, 0);
+#endif
+    }
 }
 
 #endif
@@ -527,9 +692,8 @@ int main(int argc, char **argv) {
     free(conf_path);
     _apply_default_conf();
 
-    int stop = 0;
-    int daemonize = 1;
-    // Parse command line arguments
+    int8_t stop = 0;
+    int8_t daemonize = 1;
     _parse_args(argc, argv, &stop, &daemonize);
 
     /* stop other instances of this process if any.
@@ -561,167 +725,6 @@ int main(int argc, char **argv) {
     }
 #endif
 
-#if defined(__linux__) || defined(__APPLE__)
-    pid_t p_clip = 0;
-    pid_t p_clip_ssl = 0;
-    pid_t p_scan = 0;
-#ifdef WEB_ENABLED
-    pid_t p_web = 0;
-#endif
-    if (configuration.insecure_mode_enabled) {
-        fflush(stdout);
-        fflush(stderr);
-        p_clip = fork();
-        if (p_clip == 0) {
-            int status = clip_share(INSECURE);
-            exit(status);
-        }
-    }
-#ifndef NO_SSL
-    if (configuration.secure_mode_enabled) {
-        fflush(stdout);
-        fflush(stderr);
-        p_clip_ssl = fork();
-        if (p_clip_ssl == 0) {
-            int status = clip_share(SECURE);
-            exit(status);
-        }
-    }
-#endif
-#ifdef WEB_ENABLED
-    if (configuration.web_mode_enabled) {
-        fflush(stdout);
-        fflush(stderr);
-        p_web = fork();
-        if (p_web == 0) {
-            int status = web_server();
-            exit(status);
-        }
-    }
-#endif
-    puts("Server Started");
-    if (configuration.udp_server_enabled) {
-        fflush(stdout);
-        fflush(stderr);
-        p_scan = fork();
-        if (p_scan == 0) {
-            udp_server();
-            exit(EXIT_SUCCESS);
-        }
-    }
-
-#ifdef __APPLE__
-    if (configuration.tray_icon) {
-        fflush(stdout);
-        fflush(stderr);
-        pid_t p_menu = fork();
-        if (p_menu == 0) {
-            show_menu_icon();
-            exit(EXIT_SUCCESS);
-        }
-    }
-#endif
-
-    if (!daemonize) {
-        if (p_clip > 0) waitpid(p_clip, NULL, 0);
-        if (p_clip_ssl > 0) waitpid(p_clip_ssl, NULL, 0);
-        if (p_scan > 0) waitpid(p_scan, NULL, 0);
-#ifdef WEB_ENABLED
-        if (p_web > 0) waitpid(p_web, NULL, 0);
-#endif
-    }
-
-#elif defined(_WIN32)
-
-    WSADATA wsa;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-        error_exit("Failed WSAStartup");
-    }
-    HANDLE insecureThread = NULL;
-#ifndef NO_SSL
-    HANDLE secureThread = NULL;
-#endif
-    HANDLE udpThread = NULL;
-#ifdef WEB_ENABLED
-    HANDLE webThread = NULL;
-#endif
-    if (configuration.insecure_mode_enabled) {
-        insecureThread = CreateThread(NULL, 0, appThreadFn, NULL, 0, NULL);
-#ifdef DEBUG_MODE
-        if (insecureThread == NULL) {
-            error("App thread creation failed");
-        }
-#endif
-    }
-
-#ifndef NO_SSL
-    if (configuration.secure_mode_enabled) {
-        secureThread = CreateThread(NULL, 0, appSecureThreadFn, NULL, 0, NULL);
-#ifdef DEBUG_MODE
-        if (secureThread == NULL) {
-            error("App Secure thread creation failed");
-        }
-#endif
-    }
-#endif
-
-#ifdef WEB_ENABLED
-    if (configuration.web_mode_enabled) {
-        webThread = CreateThread(NULL, 0, webThreadFn, NULL, 0, NULL);
-#ifdef DEBUG_MODE
-        if (webThread == NULL) {
-            error("Web thread creation failed");
-        }
-#endif
-    }
-#endif
-    puts("Server Started");
-
-    if (configuration.tray_icon) {
-        char CLASSNAME[] = "clip";
-        WNDCLASS wc = {.lpfnWndProc = (WNDPROC)WindowProc, .hInstance = instance, .lpszClassName = CLASSNAME};
-        RegisterClass(&wc);
-        hWnd = CreateWindowEx(0, CLASSNAME, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, instance, NULL);
-        show_tray_icon();
-    }
-
-    if (configuration.udp_server_enabled) {
-        udpThread = CreateThread(NULL, 0, udpThreadFn, NULL, 0, NULL);
-#ifdef DEBUG_MODE
-        if (udpThread == NULL) {
-            error("UDP thread creation failed");
-        }
-#endif
-    }
-
-    FreeConsole();
-
-    if (configuration.tray_icon) {
-        MSG msg;
-        while (running && GetMessage(&msg, NULL, 0, 0)) {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-        if (insecureThread != NULL) TerminateThread(insecureThread, 0);
-#ifndef NO_SSL
-        if (secureThread != NULL) TerminateThread(secureThread, 0);
-#endif
-        if (udpThread != NULL) TerminateThread(udpThread, 0);
-#ifdef WEB_ENABLED
-        if (webThread != NULL) TerminateThread(webThread, 0);
-#endif
-    }
-
-    if (insecureThread != NULL) WaitForSingleObject(insecureThread, INFINITE);
-#ifndef NO_SSL
-    if (secureThread != NULL) WaitForSingleObject(secureThread, INFINITE);
-#endif
-#ifdef WEB_ENABLED
-    if (webThread != NULL) WaitForSingleObject(webThread, INFINITE);
-#endif
-
-    remove_tray_icon();
-    CloseHandle(instance);
-#endif
+    start_servers(daemonize);
     return 0;
 }

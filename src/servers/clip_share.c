@@ -124,13 +124,16 @@ int clip_share(const int is_secure) {
         fflush(stdout);
         fflush(stderr);
         pid_t pid = fork();
-        if (pid) {
+        if (pid > 0) {
             close_socket_no_shdn(&connect_sock);
-        } else {
+        } else if (pid == 0) {
             close_listener_socket(&listener);
             server(&connect_sock);
             close_socket(&connect_sock);
             break;
+        } else {
+            close_socket_no_wait(&connect_sock);
+            req_cnt--;
         }
 #elif defined(_WIN32)
         socket_t *connect_ptr = malloc(sizeof(socket_t));

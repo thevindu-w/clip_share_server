@@ -62,7 +62,7 @@ void kill_other_processes(const char *prog_name) {
 #endif
         return;
     }
-    int killed = 0;
+    int terminated = 0;
     while ((dir_ptr = readdir(dir)) != NULL) {
         if ((strcmp(dir_ptr->d_name, ".") == 0) || (strcmp(dir_ptr->d_name, "..") == 0)) continue;
         if (DT_DIR != dir_ptr->d_type) continue;
@@ -98,14 +98,14 @@ void kill_other_processes(const char *prog_name) {
         pid_t pid = (pid_t)strtoul(dir_ptr->d_name, NULL, 10);
         if (pid != this_pid) {
 #ifdef DEBUG_MODE
-            fprintf(stderr, "killed %s\n", dir_ptr->d_name);
+            fprintf(stderr, "terminated %s\n", dir_ptr->d_name);
 #endif
             kill(pid, SIGTERM);
-            killed = 1;
+            terminated = 1;
         }
     }
     (void)closedir(dir);
-    if (killed) {
+    if (terminated) {  // wait for terminated processes to exit
         struct timespec interval = {.tv_sec = 0, .tv_nsec = 5000000L};
         nanosleep(&interval, NULL);
     }
@@ -155,7 +155,7 @@ void kill_other_processes(const char *prog_name) {
 
     pid_t this_pid = getpid();
     char pname[32];
-    int killed = 0;
+    int terminated = 0;
     for (size_t i = 0; i < count; i++) {
         pid_t pid = procs[i].kp_proc.p_pid;
         pname[0] = 0;
@@ -163,15 +163,15 @@ void kill_other_processes(const char *prog_name) {
         if (!strncmp(prog_name, pname, 32)) {
             if (pid != this_pid) {
 #ifdef DEBUG_MODE
-                fprintf(stderr, "killed %i\n", pid);
+                fprintf(stderr, "terminated %i\n", pid);
 #endif
                 kill(pid, SIGTERM);
-                killed = 1;
+                terminated = 1;
             }
         }
     }
     free(procs);
-    if (killed) {
+    if (terminated) {  // wait for terminated processes to exit
         struct timespec interval = {.tv_sec = 0, .tv_nsec = 5000000L};
         nanosleep(&interval, NULL);
     }

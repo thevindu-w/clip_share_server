@@ -221,7 +221,7 @@ $(DIRS):
 	@echo create directory $@
 	@mkdir -p $@
 
-.PHONY: all clean debug web test check install
+.PHONY: all clean debug no_ssl web test check install
 
 all: $(PROGRAM_NAME) $(PROGRAM_NAME_NO_SSL) $(PROGRAM_NAME_WEB)
 

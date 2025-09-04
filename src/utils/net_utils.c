@@ -66,14 +66,17 @@ typedef u_short in_port_t;
 static int iterate_interfaces(in_addr_common interface_addr, listener_t listener);
 
 #ifndef NO_SSL
-static SSL_CTX *InitServerCTX(void) {
-    const SSL_METHOD *method;
-    SSL_CTX *ctx;
-
-    OpenSSL_add_all_algorithms(); /* load & register all cryptos, etc. */
-    SSL_load_error_strings();     /* load all error messages */
-    method = TLS_server_method(); /* create new server-method instance */
-    ctx = SSL_CTX_new(method);    /* create new context from method */
+static SSL_CTX *init_ssl_ctx(void) {
+    OpenSSL_add_all_algorithms();
+    SSL_load_error_strings();
+    const SSL_METHOD *method = TLS_server_method();
+    if (!method) {
+#ifdef DEBUG_MODE
+        ERR_print_errors_fp(stderr);
+#endif
+        return NULL;
+    }
+    SSL_CTX *ctx = SSL_CTX_new(method);
     if (!ctx) {
 #ifdef DEBUG_MODE
         ERR_print_errors_fp(stderr);
@@ -84,12 +87,12 @@ static SSL_CTX *InitServerCTX(void) {
     return ctx;
 }
 
-static int LoadCertificates(SSL_CTX *ctx, const data_buffer *server_cert, const data_buffer *ca_cert) {
+static int load_certificates(SSL_CTX *ctx, const data_buffer *server_cert, const data_buffer *ca_cert) {
     BIO *sbio = BIO_new_mem_buf(server_cert->data, server_cert->len);
     PKCS12 *p12 = d2i_PKCS12_bio(sbio, NULL);
     if (!p12) {
 #ifdef DEBUG_MODE
-        ERR_print_errors_fp(stdout);
+        ERR_print_errors_fp(stderr);
 #endif
         BIO_free(sbio);
         return EXIT_FAILURE;
@@ -98,7 +101,7 @@ static int LoadCertificates(SSL_CTX *ctx, const data_buffer *server_cert, const 
     X509 *server_x509;
     if (!PKCS12_parse(p12, "", &key, &server_x509, NULL)) {
 #ifdef DEBUG_MODE
-        ERR_print_errors_fp(stdout);
+        ERR_print_errors_fp(stderr);
 #endif
         BIO_free(sbio);
         PKCS12_free(p12);
@@ -108,7 +111,7 @@ static int LoadCertificates(SSL_CTX *ctx, const data_buffer *server_cert, const 
     PKCS12_free(p12);
     if (SSL_CTX_use_cert_and_key(ctx, server_x509, key, NULL, 1) != 1) {
 #ifdef DEBUG_MODE
-        ERR_print_errors_fp(stdout);
+        ERR_print_errors_fp(stderr);
 #endif
         EVP_PKEY_free(key);
         X509_free(server_x509);
@@ -117,10 +120,9 @@ static int LoadCertificates(SSL_CTX *ctx, const data_buffer *server_cert, const 
     EVP_PKEY_free(key);
     X509_free(server_x509);
 
-    /* verify private key */
     if (!SSL_CTX_check_private_key(ctx)) {
 #ifdef DEBUG_MODE
-        puts("Private key does not match the public certificate");
+        fputs("Private key does not match the public certificate\n", stderr);
 #endif
         return EXIT_FAILURE;
     }
@@ -131,7 +133,7 @@ static int LoadCertificates(SSL_CTX *ctx, const data_buffer *server_cert, const 
     X509_STORE *x509store = SSL_CTX_get_cert_store(ctx);
     if (X509_STORE_add_cert(x509store, ca_x509) != 1) {
 #ifdef DEBUG_MODE
-        ERR_print_errors_fp(stdout);
+        ERR_print_errors_fp(stderr);
 #endif
         X509_free(ca_x509);
         return EXIT_FAILURE;
@@ -143,16 +145,17 @@ static int LoadCertificates(SSL_CTX *ctx, const data_buffer *server_cert, const 
     return EXIT_SUCCESS;
 }
 
-static int getClientCerts(const SSL *ssl, const list2 *allowed_clients) {
+static int check_peer_certs(const SSL *ssl, const list2 *allowed_clients) {
     X509 *cert;
 
-    cert = SSL_get_peer_certificate(ssl); /* Get certificates (if available) */
+    cert = SSL_get_peer_certificate(ssl);
     if (!cert) {
         return EXIT_FAILURE;
     }
     int verified = 0;
     char buf[256];
     X509_NAME_get_text_by_NID(X509_get_subject_name(cert), NID_commonName, buf, 255);
+    buf[255] = 0;
 #ifdef DEBUG_MODE
     printf("Client Common Name: %s\n", buf);
 #endif
@@ -187,14 +190,13 @@ void open_listener_socket(listener_t *listener, const unsigned char sock_type, c
     }
 
 #ifndef NO_SSL
-    SSL_CTX *ctx;
     SSL_library_init();
-    ctx = InitServerCTX();
+    SSL_CTX *ctx = init_ssl_ctx();
     if (!ctx) {
         return;
     }
     /* load certs and keys */
-    if (LoadCertificates(ctx, server_cert, ca_cert) != EXIT_SUCCESS) {
+    if (load_certificates(ctx, server_cert, ca_cert) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         fputs("Loading certificates failed\n", stderr);
 #endif
@@ -203,8 +205,8 @@ void open_listener_socket(listener_t *listener, const unsigned char sock_type, c
     listener->ctx = ctx;
     listener->type = sock_type;
 #else
-    listener->type = PLAIN_SOCK | VALID_SOCK;
     close_listener_socket(listener);
+    error("Requesting SSL connection in NO_SSL version");
     (void)server_cert;
     (void)ca_cert;
 #endif
@@ -466,7 +468,7 @@ static inline sock_t _accept_connection6(sock_t listener_socket) {
 }
 
 void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_clients) {
-    sock->type = 0;
+    sock->type = NULL_SOCK;
     if (IS_NULL_SOCK(listener.type)) return;
     sock_t connect_d;
     if (IS_IPv6(listener.type)) {
@@ -508,40 +510,30 @@ void get_connection(socket_t *sock, listener_t listener, const list2 *allowed_cl
     ret = SSL_set_fd(ssl, connect_d);
 #endif
     if (ret != 1) {
+        SSL_free(ssl);
         close_sock(connect_d);
         return;
     }
-    /* do SSL-protocol accept */
-    int accept_st;
-    while ((accept_st = SSL_accept(ssl)) != 1) { /* do SSL-protocol accept */
-        if (accept_st == 0) {
+
+    if (SSL_accept(ssl) != 1) {
 #ifdef DEBUG_MODE
-            puts("SSL_accept error");
+        fputs("SSL_accept error\n", stderr);
+        ERR_print_errors_fp(stderr);
 #endif
-            return;
-        }
-        switch (SSL_get_error(ssl, accept_st)) {
-            case SSL_ERROR_WANT_READ:
-                continue;
-            case SSL_ERROR_WANT_WRITE:
-                continue;
-            default: {
-#ifdef DEBUG_MODE
-                ERR_print_errors_fp(stdout);
-#endif
-                close_sock(connect_d);
-                return;
-            }
-        }
-    }
-    sock->socket.ssl = ssl;
-    if (getClientCerts(ssl, allowed_clients) != EXIT_SUCCESS) {  // get client certificates if any
-        close_socket_no_wait(sock);
-        sock->type = 0;
+        SSL_free(ssl);
+        close_sock(connect_d);
         return;
     }
+    if (check_peer_certs(ssl, allowed_clients) != EXIT_SUCCESS) {  // get client certificates if any
+        SSL_free(ssl);
+        close_socket_no_wait(sock);
+        return;
+    }
+    sock->socket.ssl = ssl;
     sock->type = listener.type;
 #else
+    close_sock(connect_d);
+    error("Requesting SSL connection in NO_SSL version");
     (void)allowed_clients;
 #endif
 }
