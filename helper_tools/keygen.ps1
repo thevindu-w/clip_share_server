@@ -2,7 +2,7 @@ $SERVER_NAME = 'clipshare_server'
 $CLIENT_NAME = 'clipshare_client'
 $CA_NAME = 'clipshare_ca'
 
-$files = "ca.pfx", "ca.cer", "ca.crt", "server.pfx", "client.pfx"
+$files = "ca.cer", "ca.crt"
 foreach($file in $files)
 {
     if (Test-Path $file) {
@@ -12,64 +12,106 @@ foreach($file in $files)
 
 $ErrorActionPreference = 'Stop'
 
-Write-Output 'Generating keys and certificates ...'
+$reused_ca = 0
+if (Test-Path ca.pfx) {
+    Write-Output 'Found previously created CA file.'
+    $confirm = Read-Host -Prompt 'Use it? [Y/n]'
+    if ( $confirm -ine 'n' ) {
+        $reused_ca = 1
+    }
+}
 
-# generate CA keys
-$CA = New-SelfSignedCertificate `
-    -Subject "CN=$CA_NAME" `
-    -KeyLength 4096 `
-    -HashAlgorithm SHA256 `
-    -KeyExportPolicy Exportable `
-    -CertStoreLocation 'Cert:\CurrentUser\My' `
-    -NotAfter (Get-Date).AddYears(5) `
-    -KeySpec Signature `
-    -KeyUsage None `
-    -TextExtension @('2.5.29.19={critical}{text}CA=true')
+$CA = $null
+if ( "$reused_ca" -eq 1 ) {
+    $CA = Import-PfxCertificate -FilePath ca.pfx -CertStoreLocation 'Cert:\CurrentUser\My'
+    Write-Output 'Exctracted CA key and certificate.'
+} else {
+    Write-Output 'Generating keys and certificates ...'
+    # generate CA keys
+    $CA = New-SelfSignedCertificate `
+        -Subject "CN=$CA_NAME" `
+        -KeyLength 4096 `
+        -HashAlgorithm SHA256 `
+        -KeyExportPolicy Exportable `
+        -CertStoreLocation 'Cert:\CurrentUser\My' `
+        -NotAfter (Get-Date).AddYears(5) `
+        -KeySpec Signature `
+        -KeyUsage None `
+        -TextExtension @('2.5.29.19={critical}{text}CA=true')
 
-Export-PfxCertificate -Cert $CA -FilePath ca.pfx -Password (New-Object System.Security.SecureString) | out-null
+    Export-PfxCertificate -Cert $CA -FilePath ca.pfx -Password (New-Object System.Security.SecureString) | out-null
+}
+
 Export-Certificate -Cert $CA -FilePath ca.cer | out-null
 certutil -encode ca.cer ca.crt | out-null
 Remove-Item ca.cer
 
-# generate server keys
-$ServerCert = New-SelfSignedCertificate `
-    -Subject "CN=$SERVER_NAME" `
-    -KeyLength 2048 `
-    -HashAlgorithm SHA256 `
-    -KeyExportPolicy Exportable `
-    -CertStoreLocation 'Cert:\CurrentUser\My' `
-    -NotAfter (Get-Date).AddYears(2) `
-    -Signer $CA `
-    -TextExtension @('2.5.29.19={critical}{text}CA=false')
+$skip_server = 0
+if (Test-Path server.pfx) {
+    $skip_server = 1
+    Write-Output ''
+    Write-Output 'Found existing server.pfx.'
+    $confirm = Read-Host -Prompt 'Overwrite it to create a new server key and certificate? [y/N]'
+    if ( $confirm -ieq 'y' ) {
+        $skip_server = 0
+    }
+}
+if ( "$skip_server" -eq 0 ) {
+    # generate server keys
+    $ServerCert = New-SelfSignedCertificate `
+        -Subject "CN=$SERVER_NAME" `
+        -KeyLength 2048 `
+        -HashAlgorithm SHA256 `
+        -KeyExportPolicy Exportable `
+        -CertStoreLocation 'Cert:\CurrentUser\My' `
+        -NotAfter (Get-Date).AddYears(2) `
+        -Signer $CA `
+        -TextExtension @('2.5.29.19={critical}{text}CA=false')
 
-Export-PfxCertificate -Cert $ServerCert -FilePath server.pfx -Password (New-Object System.Security.SecureString) | out-null
+    Export-PfxCertificate -Cert $ServerCert -FilePath server.pfx -Password (New-Object System.Security.SecureString) | out-null
+}
 
-# generate client keys
-$ClientCert = New-SelfSignedCertificate `
-    -Subject "CN=$CLIENT_NAME" `
-    -KeyLength 2048 `
-    -HashAlgorithm SHA256 `
-    -KeyExportPolicy Exportable `
-    -CertStoreLocation 'Cert:\CurrentUser\My'`
-    -NotAfter (Get-Date).AddYears(2) `
-    -Signer $CA `
-    -TextExtension @('2.5.29.19={critical}{text}CA=false')
+$skip_client = 0
+if (Test-Path client.pfx) {
+    $skip_client = 1
+    Write-Output ''
+    Write-Output 'Found existing client.pfx.'
+    $confirm = Read-Host -Prompt 'Overwrite it to create a new client key and certificate? [y/N]'
+    if ( $confirm -ieq 'y' ) {
+        $skip_client = 0
+    }
+}
+if ( "$skip_client" -eq 0 ) {
+    # generate client keys
+    $ClientCert = New-SelfSignedCertificate `
+        -Subject "CN=$CLIENT_NAME" `
+        -KeyLength 2048 `
+        -HashAlgorithm SHA256 `
+        -KeyExportPolicy Exportable `
+        -CertStoreLocation 'Cert:\CurrentUser\My'`
+        -NotAfter (Get-Date).AddYears(2) `
+        -Signer $CA `
+        -TextExtension @('2.5.29.19={critical}{text}CA=false')
 
-Write-Output 'Generated keys and certificates.'
-Write-Output ''
+    Write-Output 'Generated keys and certificates.'
+    Write-Output ''
 
-Write-Output 'Exporting client keys ...'
-Write-Output 'Please enter a password that you can remember. You will need this password when importing the key on the client.'
-Write-Output ''
-$ClientPasswd = Read-Host -Prompt 'Enter Export Password: ' -AsSecureString
-Export-PfxCertificate -Cert $ClientCert -FilePath client.pfx -Password $ClientPasswd | out-null
-Write-Output ''
-Write-Output 'Exported client keys.'
+    Write-Output 'Exporting client keys ...'
+    Write-Output 'Please enter a password that you can remember. You will need this password when importing the key on the client.'
+    Write-Output ''
+    $ClientPasswd = Read-Host -Prompt 'Enter Export Password' -AsSecureString
+    Export-PfxCertificate -Cert $ClientCert -FilePath client.pfx -Password $ClientPasswd | out-null
+    Write-Output ''
+    Write-Output 'Exported client keys.'
+}
 
+$ErrorActionPreference = 'SilentlyContinue'
 Write-Output 'Cleaning up ...'
 Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq "CN=$SERVER_NAME"} | ForEach-Object {Remove-Item $_.pspath }
 Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq "CN=$CLIENT_NAME"} | ForEach-Object {Remove-Item $_.pspath }
 Get-ChildItem Cert:\CurrentUser\My | Where-Object { $_.Subject -eq "CN=$CA_NAME"} | ForEach-Object {Remove-Item $_.pspath }
+Get-ChildItem Cert:\CurrentUser\CA | Where-Object { $_.Subject -eq "CN=$CA_NAME"} | ForEach-Object {Remove-Item $_.pspath }
+$ErrorActionPreference = 'Stop'
 
 Write-Output 'Done.'
 Write-Output ''
