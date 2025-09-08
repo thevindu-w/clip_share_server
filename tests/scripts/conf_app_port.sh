@@ -2,6 +2,8 @@
 
 . init.sh
 
+update_config secure_mode_enabled true no-restart
+update_config insecure_mode_enabled true no-restart
 update_config app_port 6337
 
 if test_port 4337; then

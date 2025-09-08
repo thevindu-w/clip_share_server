@@ -203,11 +203,12 @@ static inline void _change_working_dir(void) {
 static inline void _apply_default_conf(void) {
     if (configuration.restart < 0) configuration.restart = 1;
     if (configuration.app_port <= 0) configuration.app_port = APP_PORT;
-    if (configuration.insecure_mode_enabled < 0) configuration.insecure_mode_enabled = 1;
     if (configuration.app_port_secure <= 0) configuration.app_port_secure = APP_PORT_SECURE;
     if (configuration.secure_mode_enabled < 0) configuration.secure_mode_enabled = 0;
     if (configuration.udp_port <= 0) configuration.udp_port = APP_PORT;
     if (configuration.udp_server_enabled < 0) configuration.udp_server_enabled = 1;
+    if (configuration.insecure_mode_enabled < 0)  // enable by default if and only if secure mode is disabled
+        configuration.insecure_mode_enabled = configuration.secure_mode_enabled == 0 ? 1 : 0;
 
     if (configuration.max_text_length <= 0) configuration.max_text_length = MAX_TEXT_LENGTH;
     if (configuration.max_file_size <= 0) configuration.max_file_size = MAX_FILE_SIZE;

@@ -2,6 +2,13 @@
 
 . init.sh
 
+update_config secure_mode_enabled true
+
+if test_port 4337; then
+    showStatus info 'Accepting plaintext connections by default with secure mode enabled'
+    exit 1
+fi
+
 update_config insecure_mode_enabled false
 
 if test_port 4337; then

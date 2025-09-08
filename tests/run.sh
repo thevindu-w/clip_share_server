@@ -287,8 +287,10 @@ update_config() {
     local value="$2"
     [[ $key =~ ^[A-Za-z0-9_]+$ ]]
     sed -i -E 's@^(\s|#)*'"$key"'\s*=.*$@'"${key}=${value}"'@' clipshare.conf
-    "$program" -r &>/dev/null &
-    sleep 0.1
+    if [ "$3" != 'no-restart' ]; then
+        "$program" -r &>/dev/null &
+        sleep 0.1
+    fi
 }
 
 # Define constants

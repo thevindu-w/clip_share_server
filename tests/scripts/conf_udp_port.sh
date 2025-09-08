@@ -2,6 +2,8 @@
 
 . init.sh
 
+update_config secure_mode_enabled true no-restart
+update_config insecure_mode_enabled true no-restart
 update_config udp_port 6337
 
 responseDump="$(echo -n 'in' | client_tool -u)"

@@ -2,6 +2,8 @@
 
 . init.sh
 
+update_config secure_mode_enabled true
+
 clear_clipboard
 
 proto="$PROTO_MAX_VERSION"
