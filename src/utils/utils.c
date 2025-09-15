@@ -228,6 +228,8 @@ int is_directory(const char *path, int follow_symlinks) {
     return (stat_result == 0) && S_ISDIR(sb.st_mode);
 }
 
+#if defined(__linux__) || defined(_WIN32)
+
 void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) {
     struct mem_file *p = (struct mem_file *)png_get_io_ptr(png_ptr);
     size_t nsize = p->size + length;
@@ -248,6 +250,8 @@ void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) 
     memcpy(p->buffer + p->size, data, length);
     p->size += length;
 }
+
+#endif
 
 #ifdef _WIN32
 /*

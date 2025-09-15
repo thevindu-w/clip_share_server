@@ -1,5 +1,4 @@
 ARG DISTRO='ubuntu'
-ARG NO_XVFB=''
 
 FROM ubuntu:noble AS ubuntu_builder
 
@@ -33,6 +32,7 @@ RUN pacman -S --needed --noconfirm coreutils findutils diffutils python socat xc
 RUN pacman -Sdd --needed --noconfirm pixman freetype2 graphite harfbuzz libfontenc xorg-xkbcomp xorg-setxkbmap xkeyboard-config libxfont2 libunwind libglvnd libxkbfile xorg-server-xvfb
 
 FROM debian:bullseye-slim AS debian_builder
+ARG NO_XVFB=''
 
 # Install build dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev

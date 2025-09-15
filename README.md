@@ -83,11 +83,10 @@ ClipShare needs the following libraries to run:
 
 * [libunistring](https://formulae.brew.sh/formula/libunistring)
 * [libssl](https://formulae.brew.sh/formula/openssl@3)
-* [libpng](https://formulae.brew.sh/formula/libpng)
 
 These libraries can be installed using [Homebrew](https://brew.sh) with the following command:
 ```bash
-brew install libunistring openssl@3 libpng
+brew install libunistring openssl@3
 ```
 
 <br>
@@ -487,12 +486,11 @@ Additionally, [PatchPE](https://github.com/datadiode/PatchPE) should be availabl
 The following development libraries are required.
 
 * [openssl](https://formulae.brew.sh/formula/openssl@3)
-* [libpng](https://formulae.brew.sh/formula/libpng)
 * [libunistring](https://formulae.brew.sh/formula/libunistring)
 
 These libraries can be installed using [Homebrew](https://brew.sh) with the following command:
 ```bash
-brew install openssl@3 libpng libunistring
+brew install openssl@3 libunistring
 ```
 </details>
 

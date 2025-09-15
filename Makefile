@@ -98,7 +98,7 @@ export LIBRARY_PATH=$(shell brew --prefix)/lib
 	OBJS_BIN+= res/mac/icon.o
 	CFLAGS+= -fobjc-arc -Wno-gnu-statement-expression
 	CFLAGS_OPTIM=-O3
-	LDLIBS_NO_SSL=-framework AppKit -lunistring -lpng -lobjc
+	LDLIBS_NO_SSL=-framework AppKit -lunistring -lobjc
 	LDLIBS_SSL=-lssl -lcrypto
 else
 $(error ClipShare is not supported on this platform!)

@@ -255,7 +255,7 @@ jobs:
 
     steps:
     - name: Install build dependencies
-      run: brew install openssl@3 libpng libunistring
+      run: brew install openssl@3 libunistring
 
     - name: Check out repository code
       uses: actions/checkout@v5

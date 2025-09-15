@@ -20,11 +20,14 @@
 #define UTILS_UTILS_H_
 
 #include <globals.h>
-#include <libpng16/png.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <utils/list_utils.h>
+
+#if defined(__linux__) || defined(_WIN32)
+#include <libpng16/png.h>
+#endif
 
 #if defined(__linux__) || defined(__APPLE__)
 #define PATH_SEP '/'
@@ -36,6 +39,7 @@
 #define IMG_COPIED_ONLY 1
 #define IMG_SCRN_ONLY 2
 
+#if defined(__linux__) || defined(_WIN32)
 /*
  * In-memory file to write png image
  */
@@ -44,6 +48,7 @@ struct mem_file {
     size_t capacity;
     size_t size;
 } __attribute__((aligned(__alignof__(FILE))));
+#endif
 
 /*
  * List of files and the length of the path of their parent directory
@@ -143,12 +148,16 @@ extern int file_exists(const char *file_name);
  */
 extern int is_directory(const char *path, int follow_symlinks);
 
+#if defined(__linux__) || defined(_WIN32)
+
 /*
  * The function to be used as png write data function in libpng to write the
  * image into a memory buffer instead of a file. This will allocate memory for
  * the struct mem_file buffer.
  */
 void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length);
+
+#endif
 
 /*
  * Converts line endings to LF or CRLF based on the platform.
