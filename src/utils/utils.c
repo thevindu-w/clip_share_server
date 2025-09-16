@@ -39,6 +39,9 @@
 #include <xclip/xclip.h>
 #include <xscreenshot/xscreenshot.h>
 #endif
+#if defined(__linux__) || defined(__APPLE__)
+#include <time.h>
+#endif
 #ifdef _WIN32
 #include <direct.h>
 #include <shlobj.h>
