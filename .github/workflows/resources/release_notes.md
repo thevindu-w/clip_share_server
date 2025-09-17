@@ -15,6 +15,9 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Add a configuration option `udp_server_enabled` to enable/disable UDP scanning.
-- Support Linux ARMv7 version for more Linux distributions and versions.
-- Improve installer script for Linux.
+- Set the default value of `insecure_mode_enabled` config value to `false` when secure mode is enabled. (i.e., The plaintext mode is disabled when the secure (TLS) mode is enabled, unless the `insecure_mode_enabled` is explicitly set to `true`)
+- Limit the number of child processes / threads handling requests.
+- Avoid loading TLS certificates in the `NO_SSL` executable.
+- Remove the `libpng` dependency from macOS version.
+- Fixes for minor issues.
+- Code quality improvements.
