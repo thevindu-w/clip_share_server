@@ -116,9 +116,10 @@ static int doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_optio
             char *out_buf = xcmalloc(out_capacity);
             out_buf[0] = 0;
             while (atom_len--) {
-                char *atom_name = XGetAtomName(options->dpy, *atom_buf++);
+                char *atom_name = XGetAtomName(options->dpy, *atom_buf);
+                atom_buf++;
                 const size_t atom_name_len = strnlen(atom_name, 511);
-                if (atom_name_len + out_len + 1 >= out_capacity) {
+                if ((atom_name_len + out_len + 1) >= out_capacity) {
                     out_capacity = atom_name_len + out_len + 1;
                     out_buf = xcrealloc(out_buf, out_capacity);
                 }

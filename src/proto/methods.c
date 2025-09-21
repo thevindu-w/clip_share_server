@@ -283,7 +283,7 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
 }
 
 static int _get_files_common(int version, socket_t *socket, list2 *file_list, size_t path_len) {
-    if (!file_list || file_list->len == 0 || file_list->len >= 0xFFFFFFFFUL) {
+    if ((!file_list) || file_list->len == 0 || file_list->len >= 0xFFFFFFFFUL) {
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         if (file_list) free_list(file_list);
         close_socket_no_wait(socket);
@@ -421,7 +421,8 @@ static inline int _rename_if_exists(char *file_name, size_t max_len) {
     int n = 1;
     while (file_exists(tmp_fname)) {
         if (n > 999999L) return EXIT_FAILURE;
-        if (snprintf_check(tmp_fname, max_len, ".%c%i_%s", PATH_SEP, n++, file_name)) return EXIT_FAILURE;
+        if (snprintf_check(tmp_fname, max_len, ".%c%i_%s", PATH_SEP, n, file_name)) return EXIT_FAILURE;
+        n++;
     }
     strncpy(file_name, tmp_fname, max_len);
     file_name[max_len] = 0;
@@ -631,7 +632,8 @@ static char *_check_and_rename(const char *filename, const char *dirname) {
     int n = 1;
     while (file_exists(new_path)) {
         if (n > 999999L) return NULL;
-        if (snprintf_check(new_path, name_max_len, ".%c%i_%s", PATH_SEP, n++, filename)) return NULL;
+        if (snprintf_check(new_path, name_max_len, ".%c%i_%s", PATH_SEP, n, filename)) return NULL;
+        n++;
     }
 
     if (rename_file(old_path, new_path)) {

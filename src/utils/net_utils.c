@@ -263,7 +263,8 @@ int bind_socket(listener_t listener, in_addr_common bind_addr, uint16_t port) {
         addr_sz = sizeof(server_addr4);
     }
     int reuse = 1;
-    if (!IS_UDP(listener.type) && setsockopt(listener.socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int))) {
+    if ((!IS_UDP(listener.type)) &&
+        setsockopt(listener.socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int))) {
         error("Can't set the reuse option on the socket");
         return EXIT_FAILURE;
     }
@@ -306,7 +307,7 @@ static int iterate_interfaces(in_addr_common interface_addr, listener_t listener
     memset(if_joined, 0, sizeof(if_joined));
     for (struct ifaddrs *ptr_entry = ptr_ifaddrs; ptr_entry && (status == EXIT_SUCCESS);
          ptr_entry = ptr_entry->ifa_next) {
-        if (!(ptr_entry->ifa_addr) || ptr_entry->ifa_addr->sa_family != interface_addr.af) continue;
+        if ((!(ptr_entry->ifa_addr)) || (ptr_entry->ifa_addr->sa_family != interface_addr.af)) continue;
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-align"
@@ -322,7 +323,7 @@ static int iterate_interfaces(in_addr_common interface_addr, listener_t listener
         }
         // AF_INET6
         struct in6_addr ifaddr = (CAST_SOCKADDR_IN6(ptr_entry->ifa_addr))->sin6_addr;
-        if (!is_any_addr && !IN6_ARE_ADDR_EQUAL(&ifaddr, &(interface_addr.addr.addr6))) continue;
+        if ((!is_any_addr) && !IN6_ARE_ADDR_EQUAL(&ifaddr, &(interface_addr.addr.addr6))) continue;
         in_addr_common multicast_addr = {.af = AF_INET6};
         if (inet_pton(AF_INET6, MULTICAST_ADDR, &(multicast_addr.addr.addr6)) != 1) {
             status = EXIT_FAILURE;
@@ -652,12 +653,13 @@ int read_sock(socket_t *socket, char *buf, uint64_t size) {
             total_sz_read += (uint64_t)sz_read;
             cnt = 0;
             ptr += sz_read;
-        } else if (cnt++ > 10 || fatal) {
+        } else if (cnt > 10 || fatal) {
 #ifdef DEBUG_MODE
             fputs("Read sock failed\n", stderr);
 #endif
             return EXIT_FAILURE;
         }
+        cnt++;
     }
     return EXIT_SUCCESS;
 }
@@ -744,12 +746,13 @@ int write_sock(socket_t *socket, const char *buf, uint64_t size) {
             total_written += (uint64_t)sz_written;
             cnt = 0;
             ptr += sz_written;
-        } else if (cnt++ > 10 || fatal) {
+        } else if (cnt > 10 || fatal) {
 #ifdef DEBUG_MODE
             fputs("Write sock failed\n", stderr);
 #endif
             return EXIT_FAILURE;
         }
+        cnt++;
     }
     return EXIT_SUCCESS;
 }

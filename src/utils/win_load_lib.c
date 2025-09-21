@@ -98,7 +98,6 @@ static inline FARPROC GetProcAddressWrapper(HMODULE module, const char *funcName
     return func;
 }
 
-#pragma GCC diagnostic ignored "-Wcast-function-type"
 static int _load_libs(void) {
     module_userenv = LoadLibWrapper("USERENV.DLL");
     if (!module_userenv) return EXIT_FAILURE;

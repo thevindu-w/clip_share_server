@@ -155,7 +155,7 @@ static inline void _set_error_log_file(const char *path) {
  * Change working directory to the directory specified in the configuration
  */
 static inline void _change_working_dir(void) {
-    if (!configuration.working_dir || !*configuration.working_dir) error_exit("Invalid working directory");
+    if (!(configuration.working_dir && *configuration.working_dir)) error_exit("Invalid working directory");
     char *ptr;
     for (ptr = configuration.working_dir; *ptr; ptr++) {
         if (*ptr == PATH_SEP) *ptr = '/';
@@ -500,7 +500,7 @@ static void start_servers(int8_t daemonize) {
 
 static char *get_user_home(void) {
     const char *home = getenv("HOME");
-    if (!home || !*home) {
+    if (!(home && *home)) {
         struct passwd pw;
         struct passwd *result = NULL;
         const size_t buf_sz = 2048;

@@ -23,7 +23,7 @@ static void convertrow_lsb(unsigned char *drow, const unsigned char *srow, const
     int sx;
     int dx;
 
-    for (sx = 0, dx = 0; sx + 3 <= bytes_per_line; sx += bytes_per_pixel) {
+    for (sx = 0, dx = 0; (sx + 3) <= bytes_per_line; sx += bytes_per_pixel) {
         drow[dx++] = srow[sx + 2]; /* B -> R */
         drow[dx++] = srow[sx + 1]; /* G -> G */
         drow[dx++] = srow[sx];     /* R -> B */
@@ -37,7 +37,7 @@ static void convertrow_msb(unsigned char *drow, const unsigned char *srow, const
     int sx;
     int dx;
 
-    for (sx = 0, dx = 0; sx + 3 <= bytes_per_line; sx += bytes_per_pixel) {
+    for (sx = 0, dx = 0; (sx + 3) <= bytes_per_line; sx += bytes_per_pixel) {
         drow[dx++] = srow[sx + 1]; /* G -> R */
         drow[dx++] = srow[sx + 2]; /* B -> G */
         drow[dx++] = srow[sx + 3]; /* A -> B */
@@ -57,7 +57,7 @@ static int png_write_buf(XImage *img, char **buf_ptr, size_t *len) {
     }
 
     png_info_p = png_create_info_struct(png_write_p);
-    if (!png_info_p || setjmp(png_jmpbuf(png_write_p))) {
+    if ((!png_info_p) || setjmp(png_jmpbuf(png_write_p))) {
         png_destroy_write_struct(&png_write_p, NULL);
         *len = 0;
         return EXIT_FAILURE;
