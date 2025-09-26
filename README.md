@@ -107,13 +107,13 @@ brew install libunistring openssl@3
   This server listens on the following ports (unless different ports are assigned from the configuration),
 
 * `4337` / `TCP` &nbsp; - &nbsp; For application traffic (not encrypted)
-* `4337` / `UDP` &nbsp; - &nbsp; For network scanning using UDP broadcasts
+* `4337` / `UDP` &nbsp; - &nbsp; For network scanning using UDP broadcasts or multicasts
 * `4338` / `TCP` &nbsp; - &nbsp; For application traffic over TLS (encrypted)
 * `4339` / `TCP` &nbsp; - &nbsp; For the web server (only if the web server is available)
 
 You may need to allow incoming connections to the above ports for the client to connect to the server.
 
-Note that all TCP ports are for unicast, while `4337/udp` is used to receive broadcasts. Therefore, the firewall rule that allows `4337/udp` should have the **broadcast** address of the interface as the destination address.
+Note that all TCP ports are for unicast, while `4337/udp` is used to receive broadcasts or multicasts. IPv4 scanning uses directed broadcast, while IPv6 scanning uses multicast. Therefore, the firewall rule that allows `4337/udp` should have the **broadcast** address of the interface and/or the **multicast** address `ff05::4567` as the destination address.
 
 <br>
 
@@ -187,6 +187,12 @@ chmod +x install-mac.sh
 </details>
 
 <br>
+
+#### Homebrew (for macOS)
+
+**Note:** If you have a previous installation of ClipShare installed using other methods (ex: installer scripts), please uninstall it before installing ClipShare with Homebrew to avoid conflicts.
+
+ClipShare is available as a Homebrew service for macOS. Refer to the [Homebrew repository](https://github.com/thevindu-w/homebrew-clipshare#how-to-install-clipshare-formulae) for instructions on installing ClipShare with Homebrew.
 
 ### Create SSL/TLS certificates and key files
 
