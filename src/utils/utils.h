@@ -144,7 +144,8 @@ extern int file_exists(const char *file_name);
 
 /*
  * Check if the file at path is a directory.
- * returns 1 if its a directory or 0 otherwise
+ * Returns 1 if it is a directory or 0 if it is not a directory.
+ * Returns -1 on error.
  */
 extern int is_directory(const char *path, int follow_symlinks);
 

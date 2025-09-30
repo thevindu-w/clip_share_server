@@ -165,7 +165,7 @@ static inline void _change_working_dir(void) {
         *ptr = 0;
         ptr--;
     }
-    if (!is_directory(configuration.working_dir, 1)) {
+    if (is_directory(configuration.working_dir, 1) != 1) {
         char err[3072];
         if (snprintf_check(err, 3072, "Error: Not existing working directory \'%s\'", configuration.working_dir))
             err[0] = 0;
