@@ -13,7 +13,7 @@ foreach($file in $files)
 $ErrorActionPreference = 'Stop'
 
 $reused_ca = 0
-if (Test-Path ca.pfx) {
+if ((Test-Path ca.pfx) -or (Test-Path ca.enc.pfx)) {
     Write-Output 'Found previously created CA file.'
     $confirm = Read-Host -Prompt 'Use it? [Y/n]'
     if ( $confirm -ine 'n' ) {
@@ -22,8 +22,17 @@ if (Test-Path ca.pfx) {
 }
 
 $CA = $null
+$encrypted_ca = 0
 if ( "$reused_ca" -eq 1 ) {
-    $CA = Import-PfxCertificate -FilePath ca.pfx -CertStoreLocation 'Cert:\CurrentUser\My'
+    if (Test-Path ca.enc.pfx) {
+        Write-Output ''
+        Write-Output 'Please enter the password for ca.enc.pfx file.'
+        $CAPasswd = Read-Host -Prompt 'Enter Password' -AsSecureString
+        $CA = Import-PfxCertificate -FilePath ca.enc.pfx -Password $CAPasswd -CertStoreLocation 'Cert:\CurrentUser\My'
+        $encrypted_ca = 1
+    } else {
+        $CA = Import-PfxCertificate -FilePath ca.pfx -CertStoreLocation 'Cert:\CurrentUser\My'
+    }
     Write-Output 'Exctracted CA key and certificate.'
 } else {
     Write-Output 'Generating keys and certificates ...'
@@ -114,6 +123,26 @@ Get-ChildItem Cert:\CurrentUser\CA | Where-Object { $_.Subject -eq "CN=$CA_NAME"
 $ErrorActionPreference = 'Stop'
 
 Write-Output 'Done.'
+
+if ( "$reused_ca" -ne 1 ) {
+    Write-Output ''
+    $confirm = Read-Host -Prompt 'Do you plan to create more keys in the future and like to encrypt the CA key file to secure it? [y/N]'
+    if ( $confirm -ieq 'y' ) {
+        Write-Output 'Encrypting CA key ...'
+        Write-Output ''
+        Write-Output 'Please enter a password that you can remember. You will need this password when using the key to sign more certificates in the future.'
+        Write-Output ''
+        $CAPasswd = Read-Host -Prompt 'Enter Password' -AsSecureString
+        Export-PfxCertificate -Cert $CA -FilePath ca.enc.pfx -Password $CAPasswd | out-null
+        Remove-Item ca.pfx
+        Write-Output 'Stored the encrypted CA key in "ca.enc.pfx"'
+        $encrypted_ca = 1
+    } else {
+        Write-Output ''
+        Write-Output 'The CA key is stored in "ca.pfx" without encrypting. If you do not plan to create more keys, please delete that file for security.'
+    }
+}
+
 Write-Output ''
 Write-Output '> server.pfx - The TLS key and certificate file of the server. Keep this file securely.'
 Write-Output '> ca.crt     - The TLS certificate file of the CA. You need this file on both the server and the client devices.'
@@ -122,5 +151,7 @@ Write-Output '> client.pfx - The TLS key and certificate store file for the clie
 Write-Output ''
 Write-Output "# the server's name is $SERVER_NAME"
 Write-Output "# the client's name is $CLIENT_NAME"
-Write-Output ''
-Write-Output 'Note: If you do not plan to create more keys in the future, you may safely delete the "ca.pfx" file. Otherwise, store the "ca.pfx" file securely.'
+if ( "$encrypted_ca" -ne 1 ) {
+    Write-Output ''
+    Write-Output 'Note: If you do not plan to create more keys in the future, you may safely delete the "ca.pfx" file. Otherwise, store the "ca.pfx" file securely.'
+}
