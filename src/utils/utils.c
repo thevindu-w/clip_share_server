@@ -1228,11 +1228,15 @@ int get_clipboard_text(char **bufptr, uint32_t *lenptr) {
         return EXIT_FAILURE;
     }
     HANDLE h = GetClipboardData(CF_UNICODETEXT);
-    char *data;
-    uint32_t len;
-    if (wchar_to_utf8_str((wchar_t *)h, &data, &len) != EXIT_SUCCESS) {
-        data = NULL;
-        len = 0;
+    char *data = NULL;
+    uint32_t len = 0;
+    wchar_t *wstr = (wchar_t *)GlobalLock(h);
+    if (wstr) {
+        if (wchar_to_utf8_str(wstr, &data, &len) != EXIT_SUCCESS) {
+            data = NULL;
+            len = 0;
+        }
+        GlobalUnlock(wstr);
     }
     CloseClipboard();
 
@@ -1260,15 +1264,36 @@ int put_clipboard_text(char *data, uint32_t len) {
     }
     data[len] = prev;
     HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, (size_t)(wlen + 1) * sizeof(wchar_t));
-    wcscpy_s(GlobalLock(hMem), (rsize_t)(wlen + 1), wstr);
+    if (!hMem) {
+        free(wstr);
+        return EXIT_FAILURE;
+    }
+    wchar_t *memLock = (wchar_t *)GlobalLock(hMem);
+    if (!memLock) {
+        GlobalFree(hMem);
+        free(wstr);
+        return EXIT_FAILURE;
+    }
+    wcscpy_s(memLock, (rsize_t)(wlen + 1), wstr);
     GlobalUnlock(hMem);
     free(wstr);
     create_temp_file();
-    if (!OpenClipboard(0)) return EXIT_FAILURE;
-    EmptyClipboard();
+    if (!OpenClipboard(NULL)) {
+        GlobalFree(hMem);
+        return EXIT_FAILURE;
+    }
+    if (!EmptyClipboard()) {
+        GlobalFree(hMem);
+        CloseClipboard();
+        return EXIT_FAILURE;
+    }
     HANDLE res = SetClipboardData(CF_UNICODETEXT, hMem);
     CloseClipboard();
-    return (res == NULL ? EXIT_FAILURE : EXIT_SUCCESS);
+    if (!res) {
+        GlobalFree(hMem);
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }
 
 int get_image(char **buf_ptr, uint32_t *len_ptr, int mode, uint16_t disp) {
@@ -1357,9 +1382,23 @@ int set_clipboard_cut_files(const list2 *paths) {
         GlobalFree(hGlobalEffect);
         return EXIT_FAILURE;
     }
-    EmptyClipboard();
-    SetClipboardData(CF_HDROP, hGlobal);
-    SetClipboardData(RegisterClipboardFormat(CFSTR_PREFERREDDROPEFFECT), hGlobalEffect);
+    if (!EmptyClipboard()) {
+        GlobalFree(hGlobal);
+        GlobalFree(hGlobalEffect);
+        CloseClipboard();
+        return EXIT_FAILURE;
+    }
+    if (!SetClipboardData(CF_HDROP, hGlobal)) {
+        GlobalFree(hGlobal);
+        GlobalFree(hGlobalEffect);
+        CloseClipboard();
+        return EXIT_FAILURE;
+    }
+    if (!SetClipboardData(RegisterClipboardFormat(CFSTR_PREFERREDDROPEFFECT), hGlobalEffect)) {
+        GlobalFree(hGlobalEffect);
+        CloseClipboard();
+        return EXIT_FAILURE;
+    }
     CloseClipboard();
     return EXIT_SUCCESS;
 }
