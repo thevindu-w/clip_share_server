@@ -55,6 +55,7 @@ cd
 export HOME="$(pwd)"
 
 CONF_PATHS=("$XDG_CONFIG_HOME" "${HOME}/.config" "$HOME")
+CONF_DIR=''
 for directory in "${CONF_PATHS[@]}"; do
     [ -d "$directory" ] || continue
     conf_path="${directory}/clipshare.conf"

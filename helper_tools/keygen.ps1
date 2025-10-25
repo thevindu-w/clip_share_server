@@ -66,6 +66,10 @@ if (Test-Path server.pfx) {
     }
 }
 if ( "$skip_server" -eq 0 ) {
+    $server_cn = Read-Host -Prompt "Name of the server? ($SERVER_NAME)"
+    if ( $server_cn -ine '' ) {
+        $SERVER_NAME = $server_cn
+    }
     # generate server keys
     $ServerCert = New-SelfSignedCertificate `
         -Subject "CN=$SERVER_NAME" `
@@ -91,6 +95,10 @@ if (Test-Path client.pfx) {
     }
 }
 if ( "$skip_client" -eq 0 ) {
+    $client_cn = Read-Host -Prompt "Name of the client? ($CLIENT_NAME)"
+    if ( $client_cn -ine '' ) {
+        $CLIENT_NAME = $client_cn
+    }
     # generate client keys
     $ClientCert = New-SelfSignedCertificate `
         -Subject "CN=$CLIENT_NAME" `

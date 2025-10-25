@@ -44,7 +44,7 @@ reused_ca=0
 encrypted_ca=0
 if [ -f ca.pfx ] || [ -f ca.enc.pfx ]; then
     echo 'Found previously created CA file.'
-    read -p 'Use it? [Y/n] ' confirm
+    read -rp 'Use it? [Y/n] ' confirm
     if [ "${confirm::1}" != 'n' ] && [ "${confirm::1}" != 'N' ]; then
         echo
         if [ -f ca.enc.pfx ]; then
@@ -79,12 +79,16 @@ if [ -f server.pfx ]; then
     skip_server=1
     echo
     echo 'Found existing server.pfx.'
-    read -p 'Overwrite it to create a new server key and certificate? [y/N] ' confirm
+    read -rp 'Overwrite it to create a new server key and certificate? [y/N] ' confirm
     if [ "${confirm::1}" = 'y' ] || [ "${confirm::1}" = 'Y' ]; then
         skip_server=0
     fi
 fi
 if [ "$skip_server" = 0 ]; then
+    read -rp "Name of the server? ($SERVER_NAME) " server_cn
+    if [ "$server_cn" != '' ]; then
+        SERVER_NAME="$server_cn"
+    fi
     openssl genrsa -out server.key 2048 >>keygen.log 2>&1
     openssl req -new -key server.key -out server.csr -subj "/CN=$SERVER_NAME" >>keygen.log 2>&1
     openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 730 -sha256 -extfile clipshare.ext >>keygen.log 2>&1
@@ -101,12 +105,16 @@ if [ -f client.pfx ]; then
     skip_client=1
     echo
     echo 'Found existing client.pfx.'
-    read -p 'Overwrite it to create a new client key and certificate? [y/N] ' confirm
+    read -rp 'Overwrite it to create a new client key and certificate? [y/N] ' confirm
     if [ "${confirm::1}" = 'y' ] || [ "${confirm::1}" = 'Y' ]; then
         skip_client=0
     fi
 fi
 if [ "$skip_client" = 0 ]; then
+    read -rp "Name of the client? ($CLIENT_NAME) " client_cn
+    if [ "$client_cn" != '' ]; then
+        CLIENT_NAME="$client_cn"
+    fi
     openssl genrsa -out client.key 2048 >>keygen.log 2>&1
     openssl req -new -key client.key -out client.csr -subj "/CN=$CLIENT_NAME" >>keygen.log 2>&1
     openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -days 730 -sha256 -extfile clipshare.ext >>keygen.log 2>&1
@@ -126,7 +134,7 @@ echo 'Done.'
 
 if [ "$reused_ca" != 1 ]; then
     echo
-    read -p 'Do you plan to create more keys in the future and like to encrypt the CA key file to secure it? [y/N] ' confirm
+    read -rp 'Do you plan to create more keys in the future and like to encrypt the CA key file to secure it? [y/N] ' confirm
     if [ "${confirm::1}" = 'y' ] || [ "${confirm::1}" = 'Y' ]; then
         echo 'Encrypting CA key ...'
         echo
