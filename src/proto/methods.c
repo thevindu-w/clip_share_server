@@ -51,10 +51,7 @@
 
 #define MIN(x, y) (x < y ? x : y)
 
-#define STR1(z) #z
-#define STR(z) STR1(z)
-#define JOIN(a, b, c) STR(a) b STR(c)
-const char *bad_path = JOIN(PATH_SEP, "..", PATH_SEP);
+const char bad_path[] = {PATH_SEP, '.', '.', PATH_SEP, '\0'};  // /../
 
 /*
  * Send a data buffer to the peer.
