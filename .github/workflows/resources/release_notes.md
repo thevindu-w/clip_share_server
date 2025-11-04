@@ -15,9 +15,6 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Set the default value of `insecure_mode_enabled` config value to `false` when secure mode is enabled. (i.e., The plaintext mode is disabled when the secure (TLS) mode is enabled, unless the `insecure_mode_enabled` is explicitly set to `true`)
-- Limit the number of child processes / threads handling requests.
-- Avoid loading TLS certificates in the `NO_SSL` executable.
-- Remove the `libpng` dependency from macOS version.
-- Fixes for minor issues.
+- Improvements in TLS key generation helper scripts.
+- Improved error handling.
 - Code quality improvements.
