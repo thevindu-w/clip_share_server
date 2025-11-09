@@ -241,17 +241,9 @@ jobs:
         make ARCH=${{matrix.target.arch}} test
 
   Test-on-macOS:
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-14
     timeout-minutes: 10
     needs: Style-Check
-
-    strategy:
-      matrix:
-        os:
-        - macos-14
-        - macos-13
-        exclude:
-        - os: ${{ (github.event_name == 'push') && (inputs.trigger != 'workflow_call') && 'macos-13' }}
 
     steps:
     - name: Install build dependencies

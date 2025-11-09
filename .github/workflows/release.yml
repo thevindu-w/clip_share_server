@@ -379,7 +379,7 @@ jobs:
         compression-level: 6
 
   macOS:
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-14
     timeout-minutes: 10
     needs:
     - Checks
@@ -387,26 +387,36 @@ jobs:
 
     strategy:
       matrix:
-        os:
-        - macos-14
-        - macos-13
+        target:
+        - arm64
+        - x86_64
 
     steps:
-    - name: Install dependencies
-      run: brew install openssl@3 libunistring
+    - name: Install build dependencies
+      run: |
+        if [ "${{matrix.target}}" = x86_64 ]; then
+          arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          eval "$(/usr/local/homebrew/bin/brew shellenv)"
+          which brew
+          arch -x86_64 brew install --force-bottle --ignore-dependencies openssl@3 libunistring
+        else
+          brew install openssl@3 libunistring
+        fi
 
     - name: Check out repository code
       uses: actions/checkout@v5
 
     - name: Set version
       run: |
-        arch_suffix="$(uname -a | grep -q x86_64 && echo x86_64 || echo arm64)"
-        filename="clip_share-${arch_suffix}"
+        filename="clip_share-${{matrix.target}}"
         echo FILE_NAME="$filename" >> $GITHUB_ENV
 
     - name: Build
       run: |
-        make
+        if [ "${{matrix.target}}" = x86_64 ]; then
+          eval "$(/usr/local/homebrew/bin/brew shellenv)"
+        fi
+        make ARCH="${{matrix.target}}"
         mv "clip_share" "${{env.FILE_NAME}}"
 
     - name: Upload macOS binary

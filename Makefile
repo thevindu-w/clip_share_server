@@ -49,12 +49,16 @@ OTHER_DEPENDENCIES=
 LINK_FLAGS_BUILD=
 
 ifeq ($(OS),Windows_NT)
-    detected_OS := Windows
+	detected_OS := Windows
+	ARCH?=x86_64
 else
-    detected_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
+	detected_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
+	ARCH?=$(shell sh -c 'uname -m 2>/dev/null || echo Unknown')
+	ifeq ($(ARCH),aarch64)
+		ARCH:=arm64
+	endif
 endif
 
-ARCH?=x86_64
 ifeq ($(ARCH),x86)
 	BUILD_DIR:=$(BUILD_DIR)_x86
 	CFLAGS+= -m32
@@ -96,9 +100,9 @@ export CPATH=$(shell brew --prefix)/include
 export LIBRARY_PATH=$(shell brew --prefix)/lib
 	OBJS_M=utils/mac_utils.o utils/mac_menu.o
 	OBJS_BIN+= res/mac/icon.o
-	CFLAGS+= -fobjc-arc -Wno-gnu-statement-expression
+	CFLAGS+= -target $(ARCH)-apple-macos11 -fobjc-arc -Wno-gnu-statement-expression
 	CFLAGS_OPTIM=-O3
-	LDLIBS_NO_SSL=-framework AppKit -lunistring -lobjc
+	LDLIBS_NO_SSL=-target $(ARCH)-apple-macos11 -framework AppKit -lunistring -lobjc
 	LDLIBS_SSL=-lssl -lcrypto
 else
 $(error ClipShare is not supported on this platform!)
