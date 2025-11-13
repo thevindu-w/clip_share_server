@@ -124,11 +124,11 @@ static inline void _parse_args(int argc, char **argv, int8_t *stop_p, int8_t *da
  * Set the error_log_file absolute path
  */
 static inline void _set_error_log_file(const char *path) {
-    char *working_dir = getcwd_wrapper(2050);
+    char *working_dir = getcwd_wrapper(MAX_FILE_NAME_LEN + 2);
     if (!working_dir) exit(EXIT_FAILURE);
-    working_dir[2049] = 0;
-    size_t working_dir_len = strnlen(working_dir, 2048);
-    if (working_dir_len == 0 || working_dir_len >= 2048) {
+    working_dir[MAX_FILE_NAME_LEN + 1] = 0;
+    size_t working_dir_len = strnlen(working_dir, MAX_FILE_NAME_LEN);
+    if (working_dir_len == 0 || working_dir_len >= MAX_FILE_NAME_LEN) {
         free(working_dir);
         exit(EXIT_FAILURE);
     }
@@ -285,9 +285,9 @@ static DWORD WINAPI webThreadFn(void *arg) {
 #endif
 
 static inline void setGUID(void) {
-    char file_path[2048];
-    GetModuleFileName(NULL, (char *)file_path, 2048);
-    size_t size = strnlen(file_path, 2048);
+    char file_path[MAX_FILE_NAME_LEN + 1];
+    GetModuleFileName(NULL, (char *)file_path, MAX_FILE_NAME_LEN);
+    size_t size = strnlen(file_path, MAX_FILE_NAME_LEN);
     uint64_t h = 0xcbf29ce484222325ULL;
     for (size_t i = 0; i < size; i++) {
         h ^= (unsigned char)file_path[i];
@@ -503,9 +503,8 @@ static char *get_user_home(void) {
     if (!(home && *home)) {
         struct passwd pw;
         struct passwd *result = NULL;
-        const size_t buf_sz = 2048;
-        char buf[buf_sz];
-        if (getpwuid_r(getuid(), &pw, buf, buf_sz, &result) || result == NULL) return NULL;
+        char buf[MAX_FILE_NAME_LEN];
+        if (getpwuid_r(getuid(), &pw, buf, MAX_FILE_NAME_LEN, &result) || result == NULL) return NULL;
         home = result->pw_dir;
     }
     if (home) return strndup(home, 513);
@@ -713,7 +712,7 @@ int main(int argc, char **argv) {
 
     if (configuration.working_dir) _change_working_dir();
     cwd = getcwd_wrapper(0);
-    cwd_len = strnlen(cwd, 2048);
+    cwd_len = strnlen(cwd, MAX_FILE_NAME_LEN);
 
 #ifdef NO_SSL
     if (configuration.secure_mode_enabled) {

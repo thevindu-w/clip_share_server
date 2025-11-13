@@ -81,7 +81,7 @@ char *get_copied_files_as_str(int *offset) {
         NSString *absString = [pathURL absoluteString];
         if (!absString) continue;
         const char *cstring = [absString UTF8String];
-        tot_len += strnlen(cstring, 2047) + 1;  // +1 for separator (\n) or terminator (\0)
+        tot_len += strnlen(cstring, MAX_FILE_NAME_LEN) + 1;  // +1 for separator (\n) or terminator (\0)
     }
 
     char *all_files = malloc(tot_len);
@@ -93,9 +93,9 @@ char *get_copied_files_as_str(int *offset) {
         NSString *absString = [pathURL absoluteString];
         if (!absString) continue;
         const char *cstring = [absString UTF8String];
-        strncpy(ptr, cstring, MIN(tot_len, 2047));
-        size_t url_len = strnlen(cstring, 2047);
-        ptr += strnlen(cstring, 2047);
+        strncpy(ptr, cstring, MIN(tot_len, MAX_FILE_NAME_LEN));
+        size_t url_len = strnlen(cstring, MAX_FILE_NAME_LEN);
+        ptr += strnlen(cstring, MAX_FILE_NAME_LEN);
         *ptr = '\n';
         ptr++;
         tot_len -= url_len + 1;

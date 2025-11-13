@@ -22,6 +22,7 @@
 #include <utils/config.h>
 
 #define CONFIG_FILE "clipshare.conf"
+#define MAX_FILE_NAME_LEN 2048
 
 extern config configuration;
 extern char *error_log_file;

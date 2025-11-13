@@ -385,7 +385,7 @@ list2 *get_copied_files(void) {
     }
     char *fname = file_path;
     for (size_t i = 0; i < file_cnt; i++) {
-        size_t off = strnlen(fname, 2047) + 1;
+        size_t off = strnlen(fname, MAX_FILE_NAME_LEN) + 1;
         if (url_decode(fname, NULL) != EXIT_SUCCESS) break;
 
         struct stat statbuf;
@@ -514,8 +514,8 @@ int mkdirs(const char *dir_path) {
         }
     }
 
-    size_t len = strnlen(dir_path, 2050);
-    if (len > 2048) {
+    size_t len = strnlen(dir_path, MAX_FILE_NAME_LEN + 2);
+    if (len > MAX_FILE_NAME_LEN) {
         error("Too long file name.");
         return EXIT_FAILURE;
     }
@@ -616,8 +616,8 @@ static void _recurse_dir(const char *_path, list2 *lst, int depth, int include_l
 #endif
         return;
     }
-    size_t p_len = strnlen(_path, 2050);
-    if (p_len > 2048) {
+    size_t p_len = strnlen(_path, MAX_FILE_NAME_LEN + 2);
+    if (p_len > MAX_FILE_NAME_LEN) {
         error("Too long file name.");
         (void)closedir(d);
         return;
@@ -636,7 +636,7 @@ static void _recurse_dir(const char *_path, list2 *lst, int depth, int include_l
         if (!(strcmp(filename, ".") && strcmp(filename, ".."))) continue;
         is_empty = 0;
         const size_t _fname_len = strnlen(filename, sizeof(dir->d_name));
-        if ((_fname_len + p_len) > 2048) {
+        if ((_fname_len + p_len) > MAX_FILE_NAME_LEN) {
             error("Too long file name.");
             (void)closedir(d);
             return;
@@ -683,9 +683,9 @@ void get_copied_dirs_files(dir_files *dfiles_p, int include_leaf_dirs) {
     dfiles_p->lst = lst;
     char *fname = file_path;
     for (size_t i = 0; i < file_cnt; i++) {
-        const size_t off = strnlen(fname, 2047) + 1;
+        const size_t off = strnlen(fname, MAX_FILE_NAME_LEN) + 1;
         uint32_t fname_len;
-        if (url_decode(fname, &fname_len) != EXIT_SUCCESS || fname_len == 0 || fname_len > 2047) break;
+        if (url_decode(fname, &fname_len) != EXIT_SUCCESS || fname_len == 0 || fname_len > MAX_FILE_NAME_LEN) break;
         // fname has changed after url_decode
         if (i == 0) {
             if (fname[fname_len - 1] == PATH_SEP) fname[fname_len - 1] = 0;  // if directory, remove ending /
@@ -705,11 +705,10 @@ void get_copied_dirs_files(dir_files *dfiles_p, int include_leaf_dirs) {
         }
         if (S_ISDIR(statbuf.st_mode)) {
             _recurse_dir(fname, lst, 1, include_leaf_dirs);
-            fname += off;
         } else if (S_ISREG(statbuf.st_mode)) {
             append(lst, strdup(fname));
-            fname += off;
         }
+        fname += off;
     }
     free(fnames);
 }
@@ -774,8 +773,8 @@ static void _recurse_dir(const wchar_t *_path, list2 *lst, int depth, int includ
 #endif
         return;
     }
-    size_t p_len = wcsnlen(_path, 2050);
-    if (p_len > 2048) {
+    size_t p_len = wcsnlen(_path, MAX_FILE_NAME_LEN + 2);
+    if (p_len > MAX_FILE_NAME_LEN) {
         error("Too long file name.");
         (void)_wclosedir(d);
         return;
@@ -794,7 +793,7 @@ static void _recurse_dir(const wchar_t *_path, list2 *lst, int depth, int includ
         if (!(wcscmp(filename, L".") && wcscmp(filename, L".."))) continue;
         is_empty = 0;
         const size_t _fname_len = wcslen(filename);
-        if (_fname_len + p_len > 2048) {
+        if (_fname_len + p_len > MAX_FILE_NAME_LEN) {
             error("Too long file name.");
             (void)_wclosedir(d);
             return;
@@ -1353,7 +1352,7 @@ int set_clipboard_cut_files(const list2 *paths) {
 #pragma clang diagnostic pop
 #endif
     for (size_t i = 0; i < wpaths->len; i++) {
-        size_t len = wcsnlen(wpaths->array[i], 2048);
+        size_t len = wcsnlen(wpaths->array[i], MAX_FILE_NAME_LEN);
         memcpy(pFiles, wpaths->array[i], len * sizeof(wchar_t));
         pFiles += len;
         *pFiles++ = '\0';

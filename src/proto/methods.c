@@ -45,8 +45,7 @@
 #define STATUS_OK 1
 #define STATUS_NO_DATA 2
 
-#define FILE_BUF_SZ 65536L  // 64 KiB
-#define MAX_FILE_NAME_LENGTH 2048
+#define FILE_BUF_SZ 65536L           // 64 KiB
 #define MAX_IMAGE_SIZE 1073741824UL  // 1 GiB
 
 #define MIN(x, y) (x < y ? x : y)
@@ -255,8 +254,8 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
         }
     }
 
-    const size_t fname_len = strnlen(tmp_fname, MAX_FILE_NAME_LENGTH + 1);
-    if (fname_len <= 0 || fname_len > MAX_FILE_NAME_LENGTH) {
+    const size_t fname_len = strnlen(tmp_fname, MAX_FILE_NAME_LEN + 1);
+    if (fname_len <= 0 || fname_len > MAX_FILE_NAME_LEN) {
         error("Invalid file name length.");
         return EXIT_FAILURE;
     }
@@ -442,10 +441,10 @@ int send_file_v1(socket_t *socket) {
     printf("name_len = %zi\n", (ssize_t)name_length);
 #endif
     // limit file name length to 1024 chars
-    if (name_length <= 0 || name_length > MAX_FILE_NAME_LENGTH) return EXIT_FAILURE;
+    if (name_length <= 0 || name_length > MAX_FILE_NAME_LEN) return EXIT_FAILURE;
 
     const size_t name_max_len = (size_t)(name_length + 16);
-    if (name_max_len > MAX_FILE_NAME_LENGTH) {
+    if (name_max_len > MAX_FILE_NAME_LEN) {
         error("Too long file name.");
         return EXIT_FAILURE;
     }
@@ -555,8 +554,8 @@ static int save_file(int version, socket_t *socket, const char *dirname) {
 #ifdef DEBUG_MODE
     printf("name_len = %" PRIi64 "\n", fname_size);
 #endif
-    // limit file name length to MAX_FILE_NAME_LENGTH chars
-    if (fname_size <= 0 || fname_size > MAX_FILE_NAME_LENGTH) {
+    // limit file name length to MAX_FILE_NAME_LEN chars
+    if (fname_size <= 0 || fname_size > MAX_FILE_NAME_LEN) {
         return EXIT_FAILURE;
     }
 
@@ -610,8 +609,8 @@ static int save_file(int version, socket_t *socket, const char *dirname) {
 }
 
 static char *_check_and_rename(const char *filename, const char *dirname) {
-    const size_t name_len = strnlen(filename, MAX_FILE_NAME_LENGTH + 1);
-    if (name_len > MAX_FILE_NAME_LENGTH) {
+    const size_t name_len = strnlen(filename, MAX_FILE_NAME_LEN + 1);
+    if (name_len > MAX_FILE_NAME_LEN) {
         error("Too long file name.");
         return NULL;
     }
