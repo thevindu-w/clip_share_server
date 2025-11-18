@@ -235,8 +235,10 @@ You may use the helper scripts `keygen.sh` or `keygen.ps1` in the [helper_tools/
   ```
 </details>
 
-If you use this script, the server's common name will be `clipshare_server`, and the client's common name will be `clipshare_client`. You may change those names in the script you used.
+If you use this script, the server's common name will be `clipshare_server`, and the client's common name will be `clipshare_client`. You may change those names in the script you used. It is highly recommended to use unique names for each server and client.
 
+Once you generate the TLS certificates, if you do not intend to create more certificates for your devices in the future, you may delete the CA key file (i.e. `ca.pfx`) to prevent creating more certificates with the same CA.
+If you decide to keep the CA key file instead, it is recommended to keep it encrypted for added security. The `keygen` script will provide you with this option, where you can encrypt the CA key with a password. You will need this password to generate more certificates for servers or clients in the future. If you keep the CA key file (`ca.pfx` or `ca.enc.pfx`) for future use, make sure to store it securely.
 
 <br>
 
@@ -459,10 +461,10 @@ If you changed the configuration file, you must restart the server to apply the 
 
   The following development libraries are required.
 
-* [libz](https://packages.msys2.org/package/mingw-w64-x86_64-libzip?repo=mingw64)
-* [libpng16](https://packages.msys2.org/package/mingw-w64-x86_64-libpng?repo=mingw64)
-* [libssl](https://packages.msys2.org/package/mingw-w64-x86_64-openssl?repo=mingw64) (provided by OpenSSL)
-* [libunistring](https://packages.msys2.org/package/mingw-w64-x86_64-libunistring?repo=mingw64)
+* [libpng16](https://packages.msys2.org/package/mingw-w64-clang-x86_64-libpng?repo=mingw64)
+* [libssl](https://packages.msys2.org/package/mingw-w64-clang-x86_64-openssl?repo=mingw64) (provided by OpenSSL)
+* [libunistring](https://packages.msys2.org/package/mingw-w64-clang-x86_64-libunistring?repo=mingw64)
+* [libz](https://packages.msys2.org/package/mingw-w64-clang-x86_64-libzip?repo=mingw64)
 
 In an [MSYS2](https://www.msys2.org/) environment, these tools can be installed using pacman with the following commands:
 ```bash
