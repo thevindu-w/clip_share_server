@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Set version
       run: |
@@ -50,7 +50,7 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Set version
       run: |
@@ -122,7 +122,7 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Set version
       run: |
@@ -304,7 +304,7 @@ jobs:
         mv PatchPE.exe /c/msys64/PatchPE.exe
 
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Set variables
       run: |
@@ -404,7 +404,7 @@ jobs:
         fi
 
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Set version
       run: |
@@ -435,7 +435,7 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Set version
       run: |
@@ -491,7 +491,7 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Set variables
       run: |

@@ -51,7 +51,7 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ github.ref }}
 
@@ -75,7 +75,7 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ github.ref }}
 
@@ -93,7 +93,7 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ github.ref }}
 
@@ -221,7 +221,7 @@ jobs:
         mv PatchPE.exe /c/msys64/PatchPE.exe
 
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ github.ref }}
 
@@ -250,7 +250,7 @@ jobs:
       run: brew install openssl@3 libunistring
 
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ github.ref }}
 
@@ -293,7 +293,7 @@ jobs:
         libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev
 
     - name: Check out repository code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ github.ref }}
 
