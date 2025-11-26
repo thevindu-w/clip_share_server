@@ -227,7 +227,12 @@ static int write_png_to_mem(RGBBitmap *bitmap, char **buf_ptr, size_t *len_ptr) 
 
 void getCopiedImage(char **buf_ptr, uint32_t *len_ptr) {
     *len_ptr = 0;
-    if (!OpenClipboard(0)) return;
+    if (!OpenClipboard(0)) {
+        Sleep(20);  // retry after a short delay
+        if (!OpenClipboard(0)) {
+            return;
+        }
+    }
     if (!IsClipboardFormatAvailable(CF_BITMAP)) {
         CloseClipboard();
         return;

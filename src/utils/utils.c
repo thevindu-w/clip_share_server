@@ -65,6 +65,7 @@ static wchar_t *temp_file = NULL;
 
 static int utf8_to_wchar_str(const char *utf8str, wchar_t **wstr_p, uint32_t *wlen_p);
 static inline void _wappend(list2 *lst, const wchar_t *wstr);
+static inline BOOL OpenClipboardWrapper(HWND hwnd);
 #endif
 static inline int milli_sleep(unsigned int millis);
 
@@ -412,8 +413,19 @@ list2 *get_copied_files(void) {
 
 #elif defined(_WIN32)
 
+static inline BOOL OpenClipboardWrapper(HWND hwnd) {
+    BOOL res = OpenClipboard(hwnd);
+    if (res) {
+        return res;
+    }
+    Sleep(20);  // retry after a short delay
+    return OpenClipboard(hwnd);
+}
+
 list2 *get_copied_files(void) {
-    if (!OpenClipboard(0)) return NULL;
+    if (!OpenClipboardWrapper(NULL)) {
+        return NULL;
+    }
     if (!IsClipboardFormatAvailable(CF_HDROP)) {
         CloseClipboard();
         return NULL;
@@ -814,7 +826,9 @@ void get_copied_dirs_files(dir_files *dfiles_p, int include_leaf_dirs) {
     dfiles_p->lst = NULL;
     dfiles_p->path_len = 0;
 
-    if (!OpenClipboard(0)) return;
+    if (!OpenClipboardWrapper(NULL)) {
+        return;
+    }
     if (!IsClipboardFormatAvailable(CF_HDROP)) {
         CloseClipboard();
         return;
@@ -1221,7 +1235,9 @@ static inline void _wappend(list2 *lst, const wchar_t *wstr) {
 }
 
 int get_clipboard_text(char **bufptr, uint32_t *lenptr) {
-    if (!OpenClipboard(0)) return EXIT_FAILURE;
+    if (!OpenClipboardWrapper(NULL)) {
+        return EXIT_FAILURE;
+    }
     if (!IsClipboardFormatAvailable(CF_TEXT)) {
         CloseClipboard();
         return EXIT_FAILURE;
@@ -1277,7 +1293,7 @@ int put_clipboard_text(char *data, uint32_t len) {
     GlobalUnlock(hMem);
     free(wstr);
     create_temp_file();
-    if (!OpenClipboard(NULL)) {
+    if (!OpenClipboardWrapper(NULL)) {
         GlobalFree(hMem);
         return EXIT_FAILURE;
     }
@@ -1376,7 +1392,7 @@ int set_clipboard_cut_files(const list2 *paths) {
     GlobalUnlock(hGlobalEffect);
 
     create_temp_file();
-    if (!OpenClipboard(NULL)) {
+    if (!OpenClipboardWrapper(NULL)) {
         GlobalFree(hGlobal);
         GlobalFree(hGlobalEffect);
         return EXIT_FAILURE;

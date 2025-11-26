@@ -397,7 +397,6 @@ jobs:
         if [ "${{matrix.target}}" = x86_64 ]; then
           arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           eval "$(/usr/local/homebrew/bin/brew shellenv)"
-          which brew
           arch -x86_64 brew install --force-bottle --ignore-dependencies openssl@3 libunistring
         else
           brew install openssl@3 libunistring
