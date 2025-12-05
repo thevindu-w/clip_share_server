@@ -651,6 +651,32 @@ static char *_check_and_rename(const char *filename, const char *dirname) {
     return path;
 }
 
+static inline list2 *clean_temp_dir(const char *tmp_dir, list2 *files) {
+    list2 *dest_files = init_list(files->len);
+    if (!dest_files) {
+        return NULL;
+    }
+
+    int status = EXIT_SUCCESS;
+    for (uint32_t i = 0; i < files->len; i++) {
+        const char *filename = files->array[i];
+        char *new_path = _check_and_rename(filename, tmp_dir);
+        if (!new_path) {
+            status = EXIT_FAILURE;
+            continue;
+        }
+        append(dest_files, new_path);
+    }
+    if (status == EXIT_SUCCESS && remove_directory(tmp_dir)) {
+        status = EXIT_FAILURE;
+    }
+    if (status == EXIT_SUCCESS) {
+        return dest_files;
+    }
+    free_list(dest_files);
+    return NULL;
+}
+
 static int _send_files_dirs(int version, socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) return EXIT_FAILURE;
     int64_t cnt;
@@ -669,35 +695,33 @@ static int _send_files_dirs(int version, socket_t *socket) {
 
     if (mkdirs(dirname) != EXIT_SUCCESS) return EXIT_FAILURE;
 
+    int status = EXIT_SUCCESS;
     for (int64_t file_num = 0; file_num < cnt; file_num++) {
         if (save_file(version, socket, dirname) != EXIT_SUCCESS) {
-            return EXIT_FAILURE;
+            status = EXIT_FAILURE;
+            break;
         }
     }
     close_socket_no_wait(socket);
 
     list2 *files = list_dir(dirname);
-    if (!files) return EXIT_FAILURE;
-    int status = EXIT_SUCCESS;
-    list2 *dest_files = init_list(files->len);
-    if (!dest_files) {
-        free_list(files);
-        return EXIT_FAILURE;
+    if (!files) {
+        status = EXIT_FAILURE;
+    } else if (files->len == 0) {
+        status = EXIT_FAILURE;
+        remove_directory(dirname);
     }
-    for (uint32_t i = 0; i < files->len; i++) {
-        const char *filename = files->array[i];
-        char *new_path = _check_and_rename(filename, dirname);
-        if (!new_path) {
-            status = EXIT_FAILURE;
-            continue;
-        }
-        append(dest_files, new_path);
+    list2 *dest_files = NULL;
+    if (status == EXIT_SUCCESS) {
+        dest_files = clean_temp_dir(dirname, files);
     }
     free_list(files);
-    if (status == EXIT_SUCCESS && remove_directory(dirname)) status = EXIT_FAILURE;
-    if (configuration.cut_sent_files && status == EXIT_SUCCESS && set_clipboard_cut_files(dest_files) != EXIT_SUCCESS)
-        status = EXIT_FAILURE;
-    free_list(dest_files);
+    if (dest_files) {
+        if (configuration.cut_sent_files && set_clipboard_cut_files(dest_files) != EXIT_SUCCESS) {
+            status = EXIT_FAILURE;
+        }
+        free_list(dest_files);
+    }
     return status;
 }
 
