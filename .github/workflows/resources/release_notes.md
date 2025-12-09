@@ -15,6 +15,6 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Improvements in TLS key generation helper scripts.
 - Improved error handling.
+- Support cross-compiling on macOS
 - Code quality improvements.
