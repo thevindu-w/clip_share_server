@@ -32,13 +32,8 @@ create_encrypted_pfx() {
     fi
 }
 
-extract_ca_pem() {
-    openssl x509 -in ca.pem -out ca.crt
-    openssl rsa -in ca.pem -out ca.key >>keygen.log 2>&1
-    rm ca.pem >>keygen.log 2>&1
-}
-
 export MSYS2_ARG_CONV_EXCL='/CN'
+rm -f keygen.log
 
 reused_ca=0
 encrypted_ca=0
@@ -56,21 +51,19 @@ if [ -f ca.pfx ] || [ -f ca.enc.pfx ]; then
             fi
             encrypted_ca=1
         else
-            if type winpty &>/dev/null; then
-                winpty openssl pkcs12 -in ca.pfx -passin pass: -nodes -out ca.pem
-            else
-                openssl pkcs12 -in ca.pfx -passin pass: -nodes -out ca.pem
-            fi
+            openssl pkcs12 -in ca.pfx -passin pass: -nodes -out ca.pem
         fi
-        extract_ca_pem
-        echo 'Extracted CA key and certificate.'
+        openssl x509 -in ca.pem -out ca.crt >>keygen.log 2>&1
+        openssl rsa -in ca.pem -out ca.key >>keygen.log 2>&1
+        rm ca.pem >>keygen.log 2>&1
         reused_ca=1
+        echo 'Extracted CA key and certificate.'
     fi
 fi
 
 if [ "$reused_ca" != 1 ]; then
     echo 'Generating CA key and certificate ...'
-    openssl genrsa -out ca.key 4096 >keygen.log 2>&1
+    openssl genrsa -out ca.key 4096 >>keygen.log 2>&1
     openssl req -x509 -new -nodes -key ca.key -sha256 -days 1826 -out ca.crt -reqexts v3_req -extensions v3_ca -subj '/CN=clipshare_ca' >>keygen.log 2>&1
 fi
 
@@ -92,12 +85,8 @@ if [ "$skip_server" = 0 ]; then
     openssl genrsa -out server.key 2048 >>keygen.log 2>&1
     openssl req -new -key server.key -out server.csr -subj "/CN=$SERVER_NAME" >>keygen.log 2>&1
     openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 730 -sha256 -extfile clipshare.ext >>keygen.log 2>&1
+    openssl pkcs12 -export -in server.crt -inkey server.key -passout pass: -out server.pfx >>keygen.log 2>&1
     echo 'Generated server keys and certificates.'
-    if type winpty &>/dev/null; then
-        winpty openssl pkcs12 -export -in server.crt -inkey server.key -passout pass: -out server.pfx >>keygen.log 2>&1
-    else
-        openssl pkcs12 -export -in server.crt -inkey server.key -passout pass: -out server.pfx >>keygen.log 2>&1
-    fi
 fi
 
 skip_client=0
@@ -142,14 +131,10 @@ if [ "$reused_ca" != 1 ]; then
         echo
         create_encrypted_pfx ca
         mv ca.pfx ca.enc.pfx >>keygen.log 2>&1
-        echo 'Stored the encrypted CA key in "ca.enc.pfx"'
         encrypted_ca=1
+        echo 'Stored the encrypted CA key in "ca.enc.pfx"'
     else
-        if type winpty &>/dev/null; then
-            winpty openssl pkcs12 -export -in ca.crt -inkey ca.key -passout pass: -out ca.pfx >>keygen.log 2>&1
-        else
-            openssl pkcs12 -export -in ca.crt -inkey ca.key -passout pass: -out ca.pfx >>keygen.log 2>&1
-        fi
+        openssl pkcs12 -export -in ca.crt -inkey ca.key -passout pass: -out ca.pfx >>keygen.log 2>&1
         echo
         echo 'The CA key is stored in "ca.pfx" without encrypting. If you do not plan to create more keys, please delete that file for security.'
     fi
