@@ -177,7 +177,7 @@ jobs:
     - name: Setup OpenSSL
       if: ${{ matrix.target.arch == 'x86_64' }}
       id: cache-openssl
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: C:\msys64\openssl-x86_64
         key: openssl-windows-x86_64
@@ -204,7 +204,7 @@ jobs:
     - name: Setup PatchPE
       if: ${{ matrix.target.arch == 'x86_64' }}
       id: cache-patchpe
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: C:\msys64\PatchPE.exe
         key: patchpe-windows-x86_64
