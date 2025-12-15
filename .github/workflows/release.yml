@@ -105,7 +105,7 @@ jobs:
         gzip -9 >"${{env.ARCHIVE_NAME}}"
 
     - name: Upload Linux version
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: "${{env.ARCHIVE_NAME}}"
         path: "${{env.ARCHIVE_NAME}}"
@@ -183,7 +183,7 @@ jobs:
         gzip -9 >"${{env.ARCHIVE_NAMEv7}}"
 
     - name: Upload Linux arm64 version
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: "${{env.ARCHIVE_NAME64}}"
         path: "${{env.ARCHIVE_NAME64}}"
@@ -192,7 +192,7 @@ jobs:
         compression-level: 0
 
     - name: Upload Linux arm/v7 version
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: "${{env.ARCHIVE_NAMEv7}}"
         path: "${{env.ARCHIVE_NAMEv7}}"
@@ -260,7 +260,7 @@ jobs:
     - name: Setup OpenSSL
       if: ${{ matrix.target.arch == 'x86_64' }}
       id: cache-openssl
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: C:\msys64\openssl-x86_64
         key: openssl-windows-x86_64
@@ -287,7 +287,7 @@ jobs:
     - name: Setup PatchPE
       if: ${{ matrix.target.arch == 'x86_64' }}
       id: cache-patchpe
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: C:\msys64\PatchPE.exe
         key: patchpe-windows-x86_64
@@ -343,7 +343,7 @@ jobs:
         zip -9 "../${{env.ARCHIVE_NAME_NO_SSL}}" *
 
     - name: Upload Windows version
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: "${{env.ARCHIVE_NAME}}"
         path: "${{env.ARCHIVE_NAME}}"
@@ -352,7 +352,7 @@ jobs:
         compression-level: 9
 
     - name: Upload Windows no-ssl version
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: "${{env.ARCHIVE_NAME_NO_SSL}}"
         path: "${{env.ARCHIVE_NAME_NO_SSL}}"
@@ -370,7 +370,7 @@ jobs:
 
     - name: Upload online installer
       if: ${{ matrix.target.arch == 'x86_64' }}
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: "${{env.INSTALLER_NAME}}"
         path: "${{env.INSTALLER_NAME}}"
@@ -419,7 +419,7 @@ jobs:
         mv "clip_share" "${{env.FILE_NAME}}"
 
     - name: Upload macOS binary
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: "${{env.FILE_NAME}}"
         path: "${{env.FILE_NAME}}"
@@ -445,13 +445,13 @@ jobs:
         echo FILE_ARM="clip_share-arm64" >> $GITHUB_ENV
 
     - name: Download macOS x86_64 version
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: "${{env.FILE_INTEL}}"
         path: "${{env.FILE_INTEL}}"
 
     - name: Download macOS ARM64 version
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: "${{env.FILE_ARM}}"
         path: "${{env.FILE_ARM}}"
@@ -467,7 +467,7 @@ jobs:
         zip -9 "../${{env.ARCHIVE_NAME}}" *
 
     - name: Upload macOS version
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: "${{env.ARCHIVE_NAME}}"
         path: "${{env.ARCHIVE_NAME}}"
@@ -509,14 +509,14 @@ jobs:
         echo FILE_MACOS="clip_share_server-${version}-macos.zip" >> $GITHUB_ENV
 
     - name: Download builds
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         pattern: clip_share_server-*
         path: ${{ github.workspace }}
         merge-multiple: true
 
     - name: Download Windows installer
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: "${{env.INSTALLER_WINDOWS}}"
         path: "${{env.INSTALLER_WINDOWS}}"
