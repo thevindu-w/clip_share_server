@@ -63,6 +63,8 @@ Download the desktop client from <a href="https://github.com/thevindu-w/clip_sha
   - [Installation](#installation) (optional)
     - [Online installers](#online-installers)
     - [Standalone installers](#standalone-installers)
+    - [Homebrew (for macOS)](#homebrew-for-macos)
+    - [apt, dnf, or yum (for Ubuntu or Fedora-based Linux)](#apt-dnf-or-yum-for-ubuntu-or-fedora-based-linux)
   - [Create SSL/TLS certificates and key files](#create-ssltls-certificates-and-key-files) (optional)
   - [Command line options](#command-line-options)
   - [Configuration](#configuration)
@@ -77,7 +79,7 @@ Download the desktop client from <a href="https://github.com/thevindu-w/clip_sha
 
 ### Install dependencies
 
-**Note:** This section is required only for macOS.
+**Note:** This section is required only when installing on macOS without Homebrew.
 
 ClipShare needs the following libraries to run:
 
@@ -154,7 +156,6 @@ chmod +x install-linux-mac.sh
 1. Download the `install-windows.bat` file from [release assets](https://github.com/thevindu-w/clip_share_server/releases/latest).
 1. Double-click on the `install-windows.bat` installer script to run it. It will open a Command Prompt window. Follow the instructions on it to install ClipShare. (If double-clicking did not run the installer, right-click on it and select Run)
 </details>
-<br>
 
 #### Standalone installers
 
@@ -186,13 +187,17 @@ chmod +x install-mac.sh
 1. Double-click on the `install-windows.bat` installer script to run it. It will open a Command Prompt window. Follow the instructions on it to install ClipShare. (If double-clicking did not run the installer, right-click on it and select Run)
 </details>
 
-<br>
-
 #### Homebrew (for macOS)
 
 **Note:** If you have a previous installation of ClipShare installed using other methods (ex: installer scripts), please uninstall it before installing ClipShare with Homebrew to avoid conflicts.
 
 ClipShare is available as a Homebrew service for macOS. Refer to the [Homebrew repository](https://github.com/thevindu-w/homebrew-clipshare#how-to-install-clipshare-formulae) for instructions on installing ClipShare with Homebrew.
+
+#### apt, dnf, or yum (for Ubuntu or Fedora-based Linux)
+
+**Note:** If you have a previous installation of ClipShare installed using other methods (ex: installer scripts), please uninstall it before installing ClipShare with the package manager to avoid conflicts.
+
+ClipShare server is available as `deb` and `rpm` packages for Linux. Refer to [https://thevindu-w.github.io/clipshare-packages/](https://thevindu-w.github.io/clipshare-packages/) for instructions on installing ClipShare with the default package manager.
 
 ### Create SSL/TLS certificates and key files
 
