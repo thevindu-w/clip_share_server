@@ -282,7 +282,7 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
 }
 
 static int _get_files_common(int version, socket_t *socket, list2 *file_list, size_t path_len) {
-    if ((!file_list) || file_list->len == 0 || file_list->len >= 0xFFFFFFFFUL) {
+    if ((!file_list) || file_list->len == 0 || file_list->len > configuration.max_file_count) {
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         if (file_list) free_list(file_list);
         close_socket_no_wait(socket);
@@ -683,7 +683,7 @@ static int _send_files_dirs(int version, socket_t *socket) {
     if (read_size(socket, &cnt) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
-    if (cnt <= 0 || cnt >= 0xFFFFFFFFLL) {
+    if (cnt <= 0 || (uint64_t)cnt > configuration.max_file_count) {
         return EXIT_FAILURE;
     }
     char dirname[17];

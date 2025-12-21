@@ -52,6 +52,7 @@ typedef struct _config {
 
     uint32_t max_text_length;
     int64_t max_file_size;
+    uint32_t max_file_count;
 
     int8_t cut_sent_files;
     int8_t client_selects_display;
