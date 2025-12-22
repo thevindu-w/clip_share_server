@@ -2,6 +2,10 @@
 
 SERVER_NAME='clipshare_server'
 CLIENT_NAME='clipshare_client'
+CLIENT_COMPAT_FLAGS=(
+    # Uncomment for Android <=13:
+    # -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES
+)
 
 set -e
 
@@ -25,10 +29,11 @@ fi
 
 create_encrypted_pfx() {
     local name="$1"
+    shift
     if type winpty &>/dev/null; then
-        winpty openssl pkcs12 -export -in "${name}.crt" -inkey "${name}.key" -out "${name}.pfx"
+        winpty openssl pkcs12 -export -in "${name}.crt" -inkey "${name}.key" -out "${name}.pfx" "$@"
     else
-        openssl pkcs12 -export -in "${name}.crt" -inkey "${name}.key" -out "${name}.pfx"
+        openssl pkcs12 -export -in "${name}.crt" -inkey "${name}.key" -out "${name}.pfx" "$@"
     fi
 }
 
@@ -112,7 +117,7 @@ if [ "$skip_client" = 0 ]; then
     echo 'Exporting client keys ...'
     echo 'Please enter a password that you can remember. You will need this password when importing the key on the client.'
     echo
-    create_encrypted_pfx client
+    create_encrypted_pfx client "${CLIENT_COMPAT_FLAGS[@]}"
     echo
     echo 'Exported client keys.'
 fi
