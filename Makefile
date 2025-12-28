@@ -103,6 +103,11 @@ export LIBRARY_PATH=$(shell brew --prefix)/lib
 	CFLAGS+= -target $(ARCH)-apple-macos11 -fobjc-arc -Wno-gnu-statement-expression
 	CFLAGS_OPTIM=-O3
 	LDLIBS_NO_SSL=-target $(ARCH)-apple-macos11 -framework AppKit -lunistring -lobjc
+	MACOS_MAJOR:=$(shell sw_vers -productVersion | cut -d. -f1)
+	ifeq ($(shell [ $(MACOS_MAJOR) -ge 15 ] && echo 15),15)
+		CFLAGS+= -DUSE_SCREEN_CAPTURE_KIT
+		LDLIBS_NO_SSL+= -framework ScreenCaptureKit
+	endif
 	LDLIBS_SSL=-lssl -lcrypto
 else
 $(error ClipShare is not supported on this platform!)

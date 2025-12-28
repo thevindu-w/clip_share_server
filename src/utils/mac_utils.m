@@ -27,11 +27,14 @@
 #import <string.h>
 #import <utils/utils.h>
 
+#ifdef USE_SCREEN_CAPTURE_KIT
+#import <ScreenCaptureKit/ScreenCaptureKit.h>
+#endif
+
 #if !__has_feature(objc_arc)
 #error This file must be compiled with ARC.
 #endif
 
-static inline CGDirectDisplayID get_display_id(uint16_t disp);
 static inline NSBitmapImageRep *get_copied_image(void);
 
 int get_clipboard_text(char **bufptr, uint32_t *lenptr) {
@@ -139,6 +142,56 @@ static inline NSBitmapImageRep *get_copied_image(void) {
     return imgRep;
 }
 
+#ifdef USE_SCREEN_CAPTURE_KIT
+
+static NSBitmapImageRep *get_screen_image(uint16_t disp) {
+    __block NSBitmapImageRep *bitmap = NULL;
+    @autoreleasepool {
+        if (@available(macOS 14.0, *)) {
+            dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+
+            [SCShareableContent
+                getShareableContentWithCompletionHandler:^(SCShareableContent *shareableContent, NSError *error) {
+                    if (error) {
+                        dispatch_semaphore_signal(sema);
+                        return;
+                    }
+
+                    NSArray<SCDisplay *> *displays = [shareableContent displays];
+                    if (!displays || (unsigned long)[displays count] < disp) {
+                        dispatch_semaphore_signal(sema);
+                        return;
+                    }
+                    SCDisplay *display = [displays objectAtIndex:(disp - 1)];
+                    SCContentFilter *filter = [[SCContentFilter alloc] initWithDisplay:display excludingWindows:@[]];
+                    SCStreamConfiguration *scConf = [[SCStreamConfiguration alloc] init];
+                    scConf.capturesAudio = NO;
+                    scConf.excludesCurrentProcessAudio = YES;
+                    scConf.preservesAspectRatio = YES;
+                    scConf.showsCursor = NO;
+                    scConf.captureResolution = SCCaptureResolutionBest;
+                    scConf.width = (size_t)(NSWidth(filter.contentRect) * (CGFloat)filter.pointPixelScale);
+                    scConf.height = (size_t)(NSHeight(filter.contentRect) * (CGFloat)filter.pointPixelScale);
+                    [SCScreenshotManager captureImageWithFilter:filter
+                                                  configuration:scConf
+                                              completionHandler:^(CGImageRef cgImage, NSError *err) {
+                                                  if (err) {
+                                                      dispatch_semaphore_signal(sema);
+                                                      return;
+                                                  }
+                                                  bitmap = [[NSBitmapImageRep alloc] initWithCGImage:cgImage];
+                                                  dispatch_semaphore_signal(sema);
+                                                  return;
+                                              }];
+                }];
+            dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+        }
+        return bitmap;
+    }
+}
+
+#else
+
 static inline CGDirectDisplayID get_display_id(uint16_t disp) {
     CGDirectDisplayID disp_ids[65536UL];
     uint32_t disp_cnt;
@@ -151,6 +204,22 @@ static inline CGDirectDisplayID get_display_id(uint16_t disp) {
     return (CGDirectDisplayID)-1;
 }
 
+static NSBitmapImageRep *get_screen_image(uint16_t disp) {
+    CGDirectDisplayID disp_id = get_display_id(disp);
+    CGImageRef screenshot = NULL;
+    if (disp_id != (CGDirectDisplayID)-1) {
+        screenshot = CGDisplayCreateImage(disp_id);
+    }
+    if (!screenshot) {
+        return NULL;
+    }
+    NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithCGImage:screenshot];
+    CGImageRelease(screenshot);
+    return bitmap;
+}
+
+#endif
+
 int get_image(char **buf_ptr, uint32_t *len_ptr, int mode, uint16_t disp) {
     *len_ptr = 0;
     *buf_ptr = NULL;
@@ -160,15 +229,14 @@ int get_image(char **buf_ptr, uint32_t *len_ptr, int mode, uint16_t disp) {
     }
     if (mode != IMG_COPIED_ONLY && !bitmap) {
         // If configured to force use the display from conf, override the disp value
-        if (disp <= 0 || !configuration.client_selects_display) disp = (uint16_t)configuration.display;
-        CGDirectDisplayID disp_id = get_display_id(disp);
-        CGImageRef screenshot = NULL;
-        if (disp_id != (CGDirectDisplayID)-1) screenshot = CGDisplayCreateImage(disp_id);
-        if (!screenshot) return EXIT_FAILURE;
-        bitmap = [[NSBitmapImageRep alloc] initWithCGImage:screenshot];
-        CGImageRelease(screenshot);
+        if (disp <= 0 || !configuration.client_selects_display) {
+            disp = (uint16_t)configuration.display;
+        }
+        bitmap = get_screen_image(disp);
     }
-    if (!bitmap) return EXIT_FAILURE;
+    if (!bitmap) {
+        return EXIT_FAILURE;
+    }
     NSData *data = [bitmap representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
     NSUInteger size = [data length];
     char *buf = malloc((size_t)size);
