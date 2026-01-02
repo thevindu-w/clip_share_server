@@ -317,6 +317,7 @@ bind_address_udp=0.0.0.0
 restart=true
 max_text_length=4194304
 max_file_size=68719476736
+max_file_count=4294967294
 display=1
 client_selects_display=false
 cut_sent_files=false
@@ -350,8 +351,9 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `bind_address_udp` | The IP address to which the application should bind when listening for UDP scanning requests. It will listen on all addresses if this is set to `0.0.0.0` | IP address of an interface or wildcard address. IPv4 dot-decimal notation (ex: `192.168.37.5`) or `0.0.0.0`, or IPv6 hexadecimal notation (ex: `fc00::abcd:12`) or `::` | `0.0.0.0` |
 | `restart` | Whether the application should start or restart by default. The values `true` or `1` will make the server restart by default, while `false` or `0` will make it just start without stopping any running instances of the server. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
 | `working_dir` | The working directory where the application should run. All the files, that are sent from a client, will be saved in this directory. It will follow symlinks if this is a path to a symlink. The user running this application should have write access to the directory | Absolute or relative path to an existing directory | `.` (i.e. Current directory) |
-| `max_text_length` | The maximum length of text that can be transferred. This is the number of bytes of the text encoded in UTF-8. | Any integer between 1 and 4294967295 (nearly 4 GiB) inclusive. Suffixes K, M, and G (case insensitive) denote x10<sup>3</sup>, x10<sup>6</sup>, and x10<sup>9</sup>, respectively. | 4194304 (i.e. 4 MiB) |
-| `max_file_size` | The maximum size of a single file in bytes that can be transferred. | Any integer between 1 and 9223372036854775807 (nearly 8 EiB) inclusive. Suffixes K, M, G, and T (case insensitive) denote x10<sup>3</sup>, x10<sup>6</sup>, x10<sup>9</sup>, and x10<sup>12</sup>, respectively. | 68719476736 (i.e. 64 GiB) |
+| `max_text_length` | The maximum length of text that can be transferred. This is the number of bytes of the text encoded in UTF-8. | Any integer between 1 and 4294967294 (nearly 4 GiB) inclusive. Suffixes K, M, and G (case insensitive) denote x10<sup>3</sup>, x10<sup>6</sup>, and x10<sup>9</sup>, respectively. | `4194304` (i.e. 4 MiB) |
+| `max_file_size` | The maximum size of a single file in bytes that can be transferred. | Any integer between 1 and 9223372036854775807 (nearly 8 EiB) inclusive. Suffixes K, M, G, and T (case insensitive) denote x10<sup>3</sup>, x10<sup>6</sup>, x10<sup>9</sup>, and x10<sup>12</sup>, respectively. | `68719476736` (i.e. 64 GiB) |
+| `max_file_count` | The maximum number of files that can be transferred. | Any integer between 1 and 4294967294 inclusive. | `4294967294` |
 | `display` | The display that should be used for screenshots. | Display number (1 - 65535) | `1` |
 | `cut_sent_files` | Whether to automatically cut the files into the clipboard on the _Send Files_ method. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
 | `client_selects_display` | Whether the client can override the default/configured display for screenshots in protocol version 3. The values `true` or `1` will allow overriding the default, while `false` or `0` will force using the default/configured display. | `true`, `false`, `1`, `0` (Case insensitive) | `false` |
