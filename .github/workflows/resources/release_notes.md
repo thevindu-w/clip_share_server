@@ -15,6 +15,5 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Improved error handling.
-- Support cross-compiling on macOS
-- Code quality improvements.
+- Add a configuration option `max_file_count` to limit the maximum number of files transferred with Get Files and Send Files.
+- Update screen capture API for builds on macOS 15 and above.
