@@ -72,6 +72,7 @@ Download the desktop client from <a href="https://github.com/thevindu-w/clip_sha
   - [Build tools](#build-tools)
   - [Dependencies](#dependencies)
   - [Compiling](#compiling)
+    - [Cross-Compiling on macOS for x86_64 target on arm64](#cross-compiling-on-macos-for-x86_64-target-on-arm64-machines)
 
 <br>
 
@@ -79,7 +80,7 @@ Download the desktop client from <a href="https://github.com/thevindu-w/clip_sha
 
 ### Install dependencies
 
-**Note:** This section is required only when installing on macOS without Homebrew.
+**Note:** This section is required only when installing on macOS using other methods than the [Homebrew package of ClipShare](#homebrew-for-macos).
 
 ClipShare needs the following libraries to run:
 
@@ -507,6 +508,11 @@ These libraries can be installed using [Homebrew](https://brew.sh) with the foll
 ```bash
 brew install openssl@3 libunistring
 ```
+Use the `x86_64` brew installation when cross-compiling for `x86_64` target on `arm64` machines.
+```bash
+eval "$(/usr/local/homebrew/bin/brew shellenv)"
+arch -x86_64 brew install --force-bottle --ignore-dependencies openssl@3 libunistring
+```
 </details>
 
 <br>
@@ -523,3 +529,17 @@ brew install openssl@3 libunistring
     make
     ```
     This will generate the executable named clip_share (or clip_share.exe on Windows).
+
+#### Cross-Compiling on macOS for x86_64 target on arm64 machines
+
+1. Make sure the libraries for the target architecture is installed with the correct Homebrew installation. (Refer to the [Dependencies section](#dependencies))
+
+1. Set the correct environment to use the correct libraries for `x86_64`.
+    ```bash
+    eval "$(/usr/local/homebrew/bin/brew shellenv)"
+    ```
+
+1. Invoke the `make` command with `ARCH` variable set to `x86_64`.
+    ```bash
+    make ARCH=x86_64
+    ```
