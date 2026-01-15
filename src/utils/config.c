@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistr.h>
 #include <utils/config.h>
 #include <utils/list_utils.h>
 #include <utils/net_utils.h>
@@ -64,16 +65,31 @@ static inline list2 *get_client_list(const char *filename) {
     FILE *f = fopen(filename, "r");
     if (!f) error_exit("Error: allowed client list file not found");
     list2 *client_list = init_list(1);
+    if (!client_list) {
+        exit(EXIT_FAILURE);
+    }
     char client[512];
+    int has_error = 0;
     while (fscanf(f, "%511[^\n]%*c", client) != EOF) {
         client[511] = 0;
-        trim(client);
         size_t len = strnlen(client, 512);
+        if (u8_check((uint8_t *)client, len + 1)) {
+            has_error = 1;
+            break;
+        }
+        trim(client);
+        len = strnlen(client, 512);  // string length may have been reduced after trim()
         if (len < 1) continue;
         if (client[0] == '#') continue;
         append(client_list, strdup(client));
     }
     fclose(f);
+    if (has_error) {
+        free_list(client_list);
+        char msg[2048];
+        snprintf_check(msg, sizeof(msg), "Error: file %s has invalid utf8 encoding", filename);
+        error_exit(msg);
+    }
     return client_list;
 }
 
@@ -406,6 +422,13 @@ void parse_conf(config *cfg, const char *file_name) {
     char line[LINE_MAX_LEN + 1];
     while (fgets(line, LINE_MAX_LEN, f)) {
         line[LINE_MAX_LEN] = 0;
+        size_t len = strnlen(line, LINE_MAX_LEN);
+        if (u8_check((uint8_t *)line, len + 1)) {
+            fclose(f);
+            char msg[2048];
+            snprintf_check(msg, sizeof(msg), "Error: Config file %s has invalid utf8 encoding", file_name);
+            error_exit(msg);
+        }
         parse_line(line, cfg);
     }
     fclose(f);

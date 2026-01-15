@@ -74,7 +74,7 @@ int snprintf_check(char *dest, size_t size, const char *fmt, ...) {
     va_start(ap, fmt);
     int ret = vsnprintf(dest, size, fmt, ap);
     va_end(ap);
-    return (ret < 0 || ret > (long)size);
+    return (ret < 0 || ret >= (long)size);
 }
 
 #ifdef _WIN32
