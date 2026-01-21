@@ -272,7 +272,7 @@ clear_clipboard() {
     elif [ "$DETECTED_OS" = 'Windows' ]; then
         powershell -c 'Set-Clipboard -Value $null'
     elif [ "$DETECTED_OS" = 'macOS' ]; then
-        pbcopy </dev/null
+        osascript -e 'tell application "System Events" to set the clipboard to {}'
     else
         echo "Clear clipboard is not available for OS: $DETECTED_OS"
         exit 1
