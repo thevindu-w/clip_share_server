@@ -64,26 +64,26 @@ int clip_share(const int is_secure) {
     if (is_secure == SECURE) {
 #ifndef NO_SSL
         if (configuration.allowed_clients == NULL || configuration.allowed_clients->len <= 0 ||
-            configuration.app_port_secure <= 0 || configuration.server_cert.data == NULL ||
+            configuration.ports.tls <= 0 || configuration.server_cert.data == NULL ||
             configuration.ca_cert.data == NULL) {
 #ifdef DEBUG_MODE
             puts("Invalid config for secure mode");
 #endif
             return EXIT_FAILURE;
         }
-        port = configuration.app_port_secure;
+        port = configuration.ports.tls;
 #else
         error("Secure mode cannot be enabled");
         return EXIT_FAILURE;
 #endif
     } else {
-        if (configuration.app_port <= 0) {
+        if (configuration.ports.plaintext <= 0) {
 #ifdef DEBUG_MODE
             puts("Invalid port for insecure mode");
 #endif
             return EXIT_FAILURE;
         }
-        port = configuration.app_port;
+        port = configuration.ports.plaintext;
 
 #if (defined(__linux__) || defined(__APPLE__)) && !defined(NO_SSL)
         // Keys and certificates are not needed for plain sockets

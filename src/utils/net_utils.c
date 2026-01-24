@@ -317,7 +317,7 @@ static int iterate_interfaces(in_addr_common interface_addr, listener_t listener
             in_addr_common broadcast = {.af = AF_INET};
             broadcast.addr.addr4.s_addr = (CAST_SOCKADDR_IN(ptr_entry->ifa_addr))->sin_addr.s_addr |
                                           ~(CAST_SOCKADDR_IN(ptr_entry->ifa_netmask))->sin_addr.s_addr;
-            if (bind_socket(listener, broadcast, configuration.udp_port) == EXIT_SUCCESS) break;
+            if (bind_socket(listener, broadcast, configuration.ports.udp) == EXIT_SUCCESS) break;
             status = EXIT_FAILURE;
             continue;
         }
@@ -383,7 +383,7 @@ static int iterate_interfaces(in_addr_common interface_addr, listener_t listener
         if (interface_addr.af == AF_INET) {
             if (((struct sockaddr_in *)(socket_addr.lpSockaddr))->sin_addr.s_addr != interface_addr.addr.addr4.s_addr)
                 continue;
-            if (bind_socket(listener, interface_addr, configuration.udp_port) != EXIT_SUCCESS) {
+            if (bind_socket(listener, interface_addr, configuration.ports.udp) != EXIT_SUCCESS) {
                 status = EXIT_FAILURE;
                 break;
             }
@@ -425,7 +425,7 @@ int bind_udp(listener_t listener) {
 #else
         if (inet_pton(AF_INET6, MULTICAST_ADDR, &(bind_addr.addr.addr6)) != 1) return EXIT_FAILURE;
 #endif
-        return bind_socket(listener, bind_addr, configuration.udp_port);
+        return bind_socket(listener, bind_addr, configuration.ports.udp);
     }
     // IPv4
     if (configuration.bind_addr_udp.addr.addr4.s_addr != INADDR_ANY) {
@@ -433,7 +433,7 @@ int bind_udp(listener_t listener) {
     }
     in_addr_common any_addr = {.af = AF_INET};
     any_addr.addr.addr4.s_addr = INADDR_ANY;
-    return bind_socket(listener, any_addr, configuration.udp_port);
+    return bind_socket(listener, any_addr, configuration.ports.udp);
 }
 
 static inline sock_t _accept_connection4(sock_t listener_socket) {

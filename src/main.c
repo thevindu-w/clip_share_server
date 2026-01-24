@@ -202,10 +202,10 @@ static inline void _change_working_dir(void) {
  */
 static inline void _apply_default_conf(void) {
     if (configuration.restart < 0) configuration.restart = 1;
-    if (configuration.app_port <= 0) configuration.app_port = APP_PORT;
-    if (configuration.app_port_secure <= 0) configuration.app_port_secure = APP_PORT_SECURE;
+    if (configuration.ports.plaintext <= 0) configuration.ports.plaintext = APP_PORT;
+    if (configuration.ports.tls <= 0) configuration.ports.tls = APP_PORT_SECURE;
     if (configuration.secure_mode_enabled < 0) configuration.secure_mode_enabled = 0;
-    if (configuration.udp_port <= 0) configuration.udp_port = APP_PORT;
+    if (configuration.ports.udp <= 0) configuration.ports.udp = APP_PORT;
     if (configuration.udp_server_enabled < 0) configuration.udp_server_enabled = 1;
     if (configuration.insecure_mode_enabled < 0)  // enable by default if and only if secure mode is disabled
         configuration.insecure_mode_enabled = configuration.secure_mode_enabled == 0 ? 1 : 0;
@@ -233,7 +233,7 @@ static inline void _apply_default_conf(void) {
     if (configuration.method_enabled.info < 0) configuration.method_enabled.info = 1;
 
 #ifdef WEB_ENABLED
-    if (configuration.web_port <= 0) configuration.web_port = WEB_PORT;
+    if (configuration.ports.web <= 0) configuration.ports.web = WEB_PORT;
     if (configuration.web_mode_enabled < 0) configuration.web_mode_enabled = 0;
 #endif
 #if defined(_WIN32) || defined(__APPLE__)

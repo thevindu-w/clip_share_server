@@ -280,20 +280,20 @@ static void parse_line(char *line, config *cfg) {
     if (value_len <= 0 || value_len >= LINE_MAX_LEN) error_exit("Error: invalid config value");
 
     if (!strcmp("app_port", key)) {
-        set_uint16(value, &(cfg->app_port));
+        set_uint16(value, &(cfg->ports.plaintext));
     } else if (!strcmp("insecure_mode_enabled", key)) {
         set_is_true(value, &(cfg->insecure_mode_enabled));
     } else if (!strcmp("app_port_secure", key)) {
-        set_uint16(value, &(cfg->app_port_secure));
+        set_uint16(value, &(cfg->ports.tls));
     } else if (!strcmp("secure_mode_enabled", key)) {
         set_is_true(value, &(cfg->secure_mode_enabled));
     } else if (!strcmp("udp_port", key)) {
-        set_uint16(value, &(cfg->udp_port));
+        set_uint16(value, &(cfg->ports.udp));
     } else if (!strcmp("udp_server_enabled", key)) {
         set_is_true(value, &(cfg->udp_server_enabled));
 #ifdef WEB_ENABLED
     } else if (!strcmp("web_port", key)) {
-        set_uint16(value, &(cfg->web_port));
+        set_uint16(value, &(cfg->ports.web));
     } else if (!strcmp("web_mode_enabled", key)) {
         set_is_true(value, &(cfg->web_mode_enabled));
 #endif
@@ -369,17 +369,17 @@ static void parse_line(char *line, config *cfg) {
 }
 
 void parse_conf(config *cfg, const char *file_name) {
-    cfg->app_port = 0;
+    cfg->ports.plaintext = 0;
     cfg->insecure_mode_enabled = -1;
 
-    cfg->app_port_secure = 0;
+    cfg->ports.tls = 0;
     cfg->secure_mode_enabled = -1;
 
-    cfg->udp_port = 0;
+    cfg->ports.udp = 0;
     cfg->udp_server_enabled = -1;
 
 #ifdef WEB_ENABLED
-    cfg->web_port = 0;
+    cfg->ports.web = 0;
     cfg->web_mode_enabled = -1;
 #endif
 

@@ -651,7 +651,7 @@ static char *_check_and_rename(const char *filename, const char *dirname) {
     return path;
 }
 
-static inline list2 *clean_temp_dir(const char *tmp_dir, list2 *files) {
+static inline list2 *clean_temp_dir(const char *tmp_dir, const list2 *files) {
     list2 *dest_files = init_list(files->len);
     if (!dest_files) {
         return NULL;
