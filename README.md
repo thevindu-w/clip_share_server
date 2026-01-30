@@ -14,6 +14,18 @@
 
 ClipShare is a lightweight and cross-platform tool for clipboard sharing. ClipShare enables copying text, files, and images on one device and pasting on another. ClipShare is simple and easy to use while being highly configurable. The ClipShare server runs in the background on your desktop/laptop. Clients can connect to the server and share copied text, files, and images.
 
+## 🚀 Quick-start
+
+1. Download and install the ClipShare server: [https://github.com/thevindu-w/clip_share_server/releases](https://github.com/thevindu-w/clip_share_server/releases/latest) (Other installation methods are available in the [Installation section](#installation).)
+1. Download and install the ClipShare client.
+    - Mobile client (Android): [https://github.com/thevindu-w/clip_share_client/releases](https://github.com/thevindu-w/clip_share_client/releases/latest) or [apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare)
+    - Desktop client: [https://github.com/thevindu-w/clip_share_desktop/releases](https://github.com/thevindu-w/clip_share_desktop/releases/latest) (Other installation methods are available in the [Installation section of the desktop client](https://github.com/thevindu-w/clip_share_desktop#installation).)
+1. Start sharing clipboard contents across devices.
+
+    Copy some text on one device and use the ClipShare client to share it to the device running the server.
+
+More customization options, other installation options, and detailed instructions on each step are described below in the [How to Use](#how-to-use) section.
+
 ## Download
 
 ### Server
@@ -55,20 +67,20 @@ Download the desktop client from <a href="https://github.com/thevindu-w/clip_sha
 
 ## Table of Contents
 
-- [How to Use](#how-to-use)
-  - [Install dependencies](#install-dependencies)
-  - [Run the server](#run-the-server)
-  - [Allow through firewall](#allow-through-firewall)
-  - [Connect the client application](#connect-the-client-application)
-  - [Installation](#installation) (optional)
+- [📖 How to Use](#how-to-use)
+  - [🧰 Install dependencies](#install-dependencies)
+  - [▶️ Run the server](#run-the-server)
+  - [🛡️ Allow through the firewall](#allow-through-the-firewall)
+  - [💬 Connect the client application](#connect-the-client-application)
+  - [📦 Installation](#installation) (optional)
     - [Online installers](#online-installers)
     - [Standalone installers](#standalone-installers)
     - [Homebrew (for macOS)](#homebrew-for-macos)
     - [apt, dnf, or yum (for Ubuntu or Fedora-based Linux)](#apt-dnf-or-yum-for-ubuntu-or-fedora-based-linux)
-  - [Create SSL/TLS certificates and key files](#create-ssltls-certificates-and-key-files) (optional)
-  - [Command line options](#command-line-options)
-  - [Configuration](#configuration)
-- [Build from Source](#build-from-source)
+  - [🔑 Create SSL/TLS certificates and key files](#create-ssltls-certificates-and-key-files) (optional)
+  - [⌨️ Command line options](#command-line-options)
+  - [⚙️ Configuration](#configuration)
+- [🛠️ Build from Source](#build-from-source) (for developers)
   - [Build tools](#build-tools)
   - [Dependencies](#dependencies)
   - [Compiling](#compiling)
@@ -105,7 +117,7 @@ brew install libunistring openssl@3
 
 <br>
 
-### Allow through firewall
+### Allow through the firewall
 
   This server listens on the following ports (unless different ports are assigned from the configuration),
 
@@ -122,7 +134,7 @@ Note that all TCP ports are for unicast, while `4337/udp` is used to receive bro
 
 ### Connect the client application
 
-You can find an Android client app in [releases](https://github.com/thevindu-w/clip_share_client/releases). You can also get it from [apt.izzysoft.de](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare/). The source of the Android client app is available at [github.com/thevindu-w/clip_share_client](https://github.com/thevindu-w/clip_share_client). Or you may develop a client app according to the protocol specification described in the `docs/`.<br>
+You can find an Android client app in [releases](https://github.com/thevindu-w/clip_share_client/releases/latest). You can also get it from [apt.izzysoft.de](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare/). The source of the Android client app is available at [github.com/thevindu-w/clip_share_client](https://github.com/thevindu-w/clip_share_client). Or you may develop a client app according to the protocol specification described in the `docs/`.<br>
 - The client and the server devices should be on the same network. You can do that by connecting both devices to the same Wi-Fi network. It is also possible to use one of the devices as a Wi-Fi hotspot and connect the other device to that hotspot.
 - If the client supports network scanning, it can automatically find the server in the network. Otherwise, enter the server's IP address to the client.
 - Now, the client can share clipboard data and files and get images from the server.<br>
@@ -284,6 +296,7 @@ If you decide to keep the CA key file instead, it is recommended to keep it encr
                       only on Linux and macOS.
 ```
 </details>
+<br>
 
 ### Configuration
 
