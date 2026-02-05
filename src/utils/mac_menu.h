@@ -1,5 +1,5 @@
 /*
- * utils/mac_menu.h - header for mac_menu.c
+ * utils/mac_menu.h - header for mac_menu.m
  * Copyright (C) 2024 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify

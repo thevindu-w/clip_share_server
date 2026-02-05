@@ -1,5 +1,5 @@
 /*
- * utils/mac_menu.c - show menu icon on macos
+ * utils/mac_menu.m - show menu icon on macos
  * Copyright (C) 2024-2025 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
