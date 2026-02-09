@@ -1,6 +1,6 @@
 /*
  * proto/versions.c - platform independent implementation of protocol versions
- * Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
+ * Copyright (C) 2022-2026 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -210,6 +210,53 @@ int version_3(socket_t *socket) {
         }
         case METHOD_INFO: {
             return info_v1(socket);
+        }
+        default: {  // unknown method
+            write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);
+            close_socket_no_wait(socket);
+            return EXIT_FAILURE;
+        }
+    }
+    return EXIT_SUCCESS;
+}
+#endif
+
+#if (PROTOCOL_MIN <= 4) && (4 <= PROTOCOL_MAX)
+
+int version_4(socket_t *socket) {
+    unsigned char method;
+    if (read_sock(socket, (char *)&method, 1) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    if (check_method_enabled(socket, method) != EXIT_SUCCESS) {
+        return EXIT_SUCCESS;
+    }
+
+    switch (method) {
+        case METHOD_GET_TEXT: {
+            return get_text_v4(socket);
+        }
+        case METHOD_SEND_TEXT: {
+            return send_text_v4(socket);
+        }
+        case METHOD_GET_FILE: {
+            return get_files_v4(socket);
+        }
+        case METHOD_SEND_FILE: {
+            return send_files_v4(socket);
+        }
+        case METHOD_GET_IMAGE: {
+            return get_image_v4(socket);
+        }
+        case METHOD_GET_COPIED_IMAGE: {
+            return get_copied_image_v4(socket);
+        }
+        case METHOD_GET_SCREENSHOT: {
+            return get_screenshot_v4(socket);
+        }
+        case METHOD_INFO: {
+            return info_v4(socket);
         }
         default: {  // unknown method
             write_sock(socket, &(char){STATUS_UNKNOWN_METHOD}, 1);

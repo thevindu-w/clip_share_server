@@ -479,7 +479,7 @@ list2 *get_copied_files(void) {
 
 #endif  // PROTOCOL_MIN <= 1
 
-#if (PROTOCOL_MIN <= 3) && (2 <= PROTOCOL_MAX)
+#if (PROTOCOL_MIN <= 4) && (2 <= PROTOCOL_MAX)
 
 /*
  * Try to create the directory at path.
@@ -910,7 +910,7 @@ int remove_directory(const char *path) {
 
 #endif
 
-#endif  // (PROTOCOL_MIN <= 3) && (2 <= PROTOCOL_MAX)
+#endif  // (PROTOCOL_MIN <= 4) && (2 <= PROTOCOL_MAX)
 
 #if defined(__linux__) || defined(__APPLE__)
 

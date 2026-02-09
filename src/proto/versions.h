@@ -1,6 +1,6 @@
 /*
  * proto/versions.h - header for declaring protocol versions
- * Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
+ * Copyright (C) 2022-2026 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,16 @@ extern int version_2(socket_t *socket);
  * method handler.
  */
 extern int version_3(socket_t *socket);
+#endif
+
+#if (PROTOCOL_MIN <= 4) && (4 <= PROTOCOL_MAX)
+/*
+ * Accepts a socket connection after the protocol version 4 is selected
+ * after the negotiation phase.
+ * Reads the method code from the client and pass the control to the respective
+ * method handler.
+ */
+extern int version_4(socket_t *socket);
 #endif
 
 #endif  // PROTO_VERSIONS_H_

@@ -1,6 +1,6 @@
 /*
  * proto/methods.h - declarations of methods
- * Copyright (C) 2022-2023 H. Thevindu J. Wijesekera
+ * Copyright (C) 2022-2026 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,18 @@ extern int get_files_v3(socket_t *socket);
 extern int send_files_v3(socket_t *socket);
 extern int get_copied_image_v3(socket_t *socket);
 extern int get_screenshot_v3(socket_t *socket);
+#endif
+
+// Version 4 methods
+#if (PROTOCOL_MIN <= 4) && (4 <= PROTOCOL_MAX)
+extern int get_text_v4(socket_t *socket);
+extern int send_text_v4(socket_t *socket);
+extern int get_files_v4(socket_t *socket);
+extern int send_files_v4(socket_t *socket);
+extern int get_image_v4(socket_t *socket);
+extern int get_copied_image_v4(socket_t *socket);
+extern int get_screenshot_v4(socket_t *socket);
+extern int info_v4(socket_t *socket);
 #endif
 
 #endif  // PROTO_METHODS_H_
