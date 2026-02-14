@@ -1,6 +1,6 @@
 /*
  * proto/methods.c - platform independent implementation of methods
- * Copyright (C) 2022-2025 H. Thevindu J. Wijesekera
+ * Copyright (C) 2022-2026 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,7 +108,7 @@ int get_text_v1(socket_t *socket) {
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         if (buf) free(buf);
         close_socket_no_wait(socket);
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
 #ifdef DEBUG_MODE
     printf("Len = %" PRIu32 "\n", length);
@@ -757,4 +757,33 @@ int get_files_v3(socket_t *socket) {
 }
 
 int send_files_v3(socket_t *socket) { return _send_files_dirs(3, socket); }
+#endif
+
+#if (PROTOCOL_MIN <= 4) && (4 <= PROTOCOL_MAX)
+
+static inline int _read_ack(socket_t *socket) {
+    char status;
+    if (read_sock(socket, &status, 1) != EXIT_SUCCESS) {
+#ifdef DEBUG_MODE
+        fputs("Read status failed\n", stderr);
+#endif
+        return EXIT_FAILURE;
+    }
+    if (status != 1) {
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
+int get_text_v4(socket_t *socket) {
+    if (get_text_v1(socket) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    if (_read_ack(socket) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    close_socket_no_wait(socket);
+    return EXIT_SUCCESS;
+}
+
 #endif
