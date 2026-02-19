@@ -502,7 +502,7 @@ static inline int _get_image_common(socket_t *socket, int mode, uint16_t disp) {
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
         if (buf) free(buf);
         close_socket_no_wait(socket);
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
 #ifdef DEBUG_MODE
     printf("Len = %" PRIu32 "\n", length);
@@ -777,6 +777,17 @@ static inline int _read_ack(socket_t *socket) {
 
 int get_text_v4(socket_t *socket) {
     if (get_text_v1(socket) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    if (_read_ack(socket) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    close_socket_no_wait(socket);
+    return EXIT_SUCCESS;
+}
+
+int get_image_v4(socket_t *socket) {
+    if (get_image_v1(socket) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
     if (_read_ack(socket) != EXIT_SUCCESS) {
