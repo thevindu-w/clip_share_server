@@ -240,9 +240,10 @@ static int _transfer_single_file(int version, socket_t *socket, const char *file
             break;
         }
 #endif
-#if (PROTOCOL_MIN <= 3) && (2 <= PROTOCOL_MAX)
+#if (PROTOCOL_MIN <= 4) && (2 <= PROTOCOL_MAX)
         case 2:
-        case 3: {
+        case 3:
+        case 4: {
             tmp_fname = file_path + path_len;
             break;
         }
@@ -777,6 +778,19 @@ static inline int _read_ack(socket_t *socket) {
 
 int get_text_v4(socket_t *socket) {
     if (get_text_v1(socket) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    if (_read_ack(socket) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    close_socket_no_wait(socket);
+    return EXIT_SUCCESS;
+}
+
+int get_files_v4(socket_t *socket) {
+    dir_files copied_dir_files;
+    get_copied_dirs_files(&copied_dir_files, 1);
+    if (_get_files_common(4, socket, copied_dir_files.lst, copied_dir_files.path_len) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
     if (_read_ack(socket) != EXIT_SUCCESS) {
