@@ -738,10 +738,8 @@ int get_files_v2(socket_t *socket) {
 int send_files_v2(socket_t *socket) { return _send_files_dirs(2, socket); }
 #endif
 
-#if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
-int get_copied_image_v3(socket_t *socket) { return _get_image_common(socket, IMG_COPIED_ONLY, 0); }
-
-int get_screenshot_v3(socket_t *socket) {
+#if (PROTOCOL_MIN <= 4) && (3 <= PROTOCOL_MAX)
+static inline int _get_screenshot_common(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
@@ -749,6 +747,14 @@ int get_screenshot_v3(socket_t *socket) {
     if (read_size(socket, &disp) != EXIT_SUCCESS) return EXIT_FAILURE;
     if (disp <= 0 || disp > 65536L) disp = 0;
     return _get_image_common(socket, IMG_SCRN_ONLY, (uint16_t)disp);
+}
+#endif
+
+#if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
+int get_copied_image_v3(socket_t *socket) { return _get_image_common(socket, IMG_COPIED_ONLY, 0); }
+
+int get_screenshot_v3(socket_t *socket) {
+    return _get_screenshot_common(socket);
 }
 
 int get_files_v3(socket_t *socket) {
@@ -802,6 +808,17 @@ int get_files_v4(socket_t *socket) {
 
 int get_image_v4(socket_t *socket) {
     if (get_image_v1(socket) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    if (_read_ack(socket) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    close_socket_no_wait(socket);
+    return EXIT_SUCCESS;
+}
+
+int get_screenshot_v4(socket_t *socket) {
+    if (_get_screenshot_common(socket) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
     if (_read_ack(socket) != EXIT_SUCCESS) {
