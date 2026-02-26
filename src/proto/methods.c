@@ -753,9 +753,7 @@ static inline int _get_screenshot_common(socket_t *socket) {
 #if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
 int get_copied_image_v3(socket_t *socket) { return _get_image_common(socket, IMG_COPIED_ONLY, 0); }
 
-int get_screenshot_v3(socket_t *socket) {
-    return _get_screenshot_common(socket);
-}
+int get_screenshot_v3(socket_t *socket) { return _get_screenshot_common(socket); }
 
 int get_files_v3(socket_t *socket) {
     dir_files copied_dir_files;
