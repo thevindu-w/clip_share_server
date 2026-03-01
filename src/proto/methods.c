@@ -815,6 +815,17 @@ int get_image_v4(socket_t *socket) {
     return EXIT_SUCCESS;
 }
 
+int get_copied_image_v4(socket_t *socket) {
+    if (_get_image_common(socket, IMG_COPIED_ONLY, 0) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    if (_read_ack(socket) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    close_socket_no_wait(socket);
+    return EXIT_SUCCESS;
+}
+
 int get_screenshot_v4(socket_t *socket) {
     if (_get_screenshot_common(socket) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
