@@ -97,6 +97,10 @@ static inline int _is_valid_fname(const char *fname, size_t name_length);
 
 static int _transfer_single_file(int version, socket_t *socket, const char *file_path, size_t path_len);
 
+#if PROTOCOL_MAX >= 4
+static inline int _send_ack(socket_t *socket);
+#endif
+
 int get_text_v1(socket_t *socket) {
     uint32_t length = 0;
     char *buf = NULL;
@@ -134,7 +138,7 @@ int get_text_v1(socket_t *socket) {
     return EXIT_SUCCESS;
 }
 
-int send_text_v1(socket_t *socket) {
+static inline int _send_text_common(socket_t *socket, int version) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) return EXIT_FAILURE;
     int64_t length;
     if (read_size(socket, &length) != EXIT_SUCCESS) {
@@ -149,6 +153,9 @@ int send_text_v1(socket_t *socket) {
     }
 
     char *data = malloc((size_t)length + 1);
+    if (!data) {
+        return EXIT_FAILURE;
+    }
     if (read_sock(socket, data, (uint64_t)length) != EXIT_SUCCESS) {
 #ifdef DEBUG_MODE
         fputs("Read data failed\n", stderr);
@@ -156,7 +163,22 @@ int send_text_v1(socket_t *socket) {
         free(data);
         return EXIT_FAILURE;
     }
+#if PROTOCOL_MAX >= 4
+    if (version >= 4) {
+        if (_send_ack(socket) != EXIT_SUCCESS) {
+            free(data);
+            return EXIT_FAILURE;
+        }
+        close_socket(socket);
+    } else {
+        close_socket_no_wait(socket);
+    }
+#else
+    (void)version;
+    close_socket_no_wait(socket);
+#endif
     data[length] = 0;
+
     if (u8_check((uint8_t *)data, (size_t)length)) {
 #ifdef DEBUG_MODE
         fputs("Invalid UTF-8\n", stderr);
@@ -169,11 +191,12 @@ int send_text_v1(socket_t *socket) {
 #endif
     length = convert_eol(&data, 0);
     if (length <= 0 || !data) return EXIT_FAILURE;
-    close_socket_no_wait(socket);
     put_clipboard_text(data, (uint32_t)length);
     free(data);
     return EXIT_SUCCESS;
 }
+
+int send_text_v1(socket_t *socket) { return _send_text_common(socket, 1); }
 
 static int _transfer_regular_file(socket_t *socket, const char *file_path, const char *filename, size_t fname_len) {
     FILE *fp = open_file(file_path, "rb");
@@ -780,6 +803,17 @@ static inline int _read_ack(socket_t *socket) {
     return EXIT_SUCCESS;
 }
 
+static inline int _send_ack(socket_t *socket) {
+    char status = 1;
+    if (write_sock(socket, &status, 1) != EXIT_SUCCESS) {
+#ifdef DEBUG_MODE
+        fputs("Send status failed\n", stderr);
+#endif
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
 int get_text_v4(socket_t *socket) {
     if (get_text_v1(socket) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
@@ -790,6 +824,8 @@ int get_text_v4(socket_t *socket) {
     close_socket_no_wait(socket);
     return EXIT_SUCCESS;
 }
+
+int send_text_v4(socket_t *socket) { return _send_text_common(socket, 4); }
 
 int get_files_v4(socket_t *socket) {
     dir_files copied_dir_files;
