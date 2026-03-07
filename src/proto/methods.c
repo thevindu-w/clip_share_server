@@ -28,18 +28,8 @@
 #include <string.h>
 #include <time.h>
 #include <utils/net_utils.h>
+#include <utils/unistr_wrap.h>
 #include <utils/utils.h>
-
-#ifndef __GLIBC__
-#define __GLIBC__ 0
-#endif
-#ifndef __NO_INLINE__
-#define __NO_INLINE__
-#endif
-#ifndef _LIBUNISTRING_NO_CONST_GENERICS
-#define _LIBUNISTRING_NO_CONST_GENERICS
-#endif
-#include <unistr.h>
 
 // status codes
 #define STATUS_OK 1
