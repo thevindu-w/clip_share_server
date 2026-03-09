@@ -63,7 +63,7 @@ static inline int _send_data(socket_t *socket, int64_t length, const char *data)
 }
 
 /*
- * Common function to get files in v1 and v2.
+ * Common function to get files.
  */
 static int _get_files_common(int version, socket_t *socket, list2 *file_list, size_t path_len);
 
@@ -73,7 +73,7 @@ static int _get_files_common(int version, socket_t *socket, list2 *file_list, si
 static int _save_file_common(int version, socket_t *socket, const char *file_name);
 
 /*
- * Common function to get image in v1 and v3.
+ * Common function to get image.
  */
 static inline int _get_image_common(socket_t *socket, int mode, uint16_t disp);
 
@@ -348,8 +348,8 @@ static int _save_file_common(int version, socket_t *socket, const char *file_nam
         return EXIT_FAILURE;
     }
 
-#if (PROTOCOL_MIN <= 3) && (3 <= PROTOCOL_MAX)
-    if (file_size == -1 && version == 3) {
+#if (PROTOCOL_MIN <= 4) && (3 <= PROTOCOL_MAX)
+    if (file_size == -1 && version >= 3) {
         return mkdirs(file_name);
     }
 #else
@@ -544,7 +544,7 @@ int info_v1(socket_t *socket) {
     return EXIT_SUCCESS;
 }
 
-#if (PROTOCOL_MIN <= 3) && (2 <= PROTOCOL_MAX)
+#if (PROTOCOL_MIN <= 4) && (2 <= PROTOCOL_MAX)
 /*
  * Make parent directories for path
  */
@@ -716,7 +716,19 @@ static int _send_files_dirs(int version, socket_t *socket) {
             break;
         }
     }
+
+#if PROTOCOL_MAX >= 4
+    if (status == EXIT_SUCCESS && version >= 4) {
+        if (_send_ack(socket) != EXIT_SUCCESS) {
+            status = EXIT_FAILURE;
+        }
+        close_socket(socket);
+    } else {
+        close_socket_no_wait(socket);
+    }
+#else
     close_socket_no_wait(socket);
+#endif
 
     list2 *files = list_dir(dirname);
     if (!files) {
@@ -829,6 +841,8 @@ int get_files_v4(socket_t *socket) {
     close_socket_no_wait(socket);
     return EXIT_SUCCESS;
 }
+
+int send_files_v4(socket_t *socket) { return _send_files_dirs(4, socket); }
 
 int get_image_v4(socket_t *socket) {
     if (get_image_v1(socket) != EXIT_SUCCESS) {
