@@ -877,4 +877,18 @@ int get_screenshot_v4(socket_t *socket) {
     return EXIT_SUCCESS;
 }
 
+int info_v4(socket_t *socket) {
+    if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) return EXIT_FAILURE;
+    const size_t len = sizeof(INFO_NAME) - 1;
+    if (_send_data(socket, (int64_t)len, INFO_NAME) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    // TODO(thevindu-w): Send more info
+    if (_read_ack(socket) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    close_socket_no_wait(socket);
+    return EXIT_SUCCESS;
+}
+
 #endif
