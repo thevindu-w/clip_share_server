@@ -4,9 +4,10 @@
 
 update_config max_text_length 20
 
-short_sample='short text'
 proto="$PROTO_MAX_VERSION"
 method="$METHOD_SEND_TEXT"
+
+short_sample='short text'
 length=$(printf '%016x' "${#short_sample}")
 short_sampleDump=$(echo -n "$short_sample" | bin2hex)
 
@@ -17,7 +18,7 @@ responseDump=$(echo -n "${proto}${method}${length}${short_sampleDump}" | hex2bin
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"
 
-expected="${protoAck}${methodAck}"
+expected="${protoAck}${methodAck}${ACK_V4}"
 
 if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect server response.'
@@ -36,8 +37,6 @@ if [ "$clip" != "$short_sampleDump" ]; then
 fi
 
 long_sample='This is a long text that is longer than 20 characters.'
-proto="$PROTO_MAX_VERSION"
-method="$METHOD_SEND_TEXT"
 length=$(printf '%016x' "${#long_sample}")
 long_sampleDump=$(echo -n "$long_sample" | bin2hex)
 

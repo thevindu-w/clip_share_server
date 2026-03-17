@@ -5,7 +5,7 @@
 check_method() {
     payload="$1"
     status="$2"
-    responseDump=$(echo -n "${PROTO_MAX_VERSION}${payload}" | hex2bin | client_tool)
+    responseDump=$(echo -n "${PROTO_MAX_VERSION}${payload}" | hex2bin | client_tool | head -c 4)
     expected="${PROTO_SUPPORTED}${status}"
     if [ "${responseDump::4}" != "$expected" ]; then
         showStatus info 'Incorrect server response.'

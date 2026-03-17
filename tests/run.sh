@@ -317,10 +317,12 @@ export PROTO_OBSOLETE=$(printf '\x02' | bin2hex)
 export PROTO_UNKNOWN=$(printf '\x03' | bin2hex)
 
 # Method ack
-export METHOD_OK=$(printf '\x01' | bin2hex)
-export METHOD_NO_DATA=$(printf '\x02' | bin2hex)
-export METHOD_UNKNOWN_METHOD=$(printf '\x03' | bin2hex)
-export METHOD_NOT_IMPLEMENTED=$(printf '\x04' | bin2hex)
+export METHOD_OK="$(printf '\x01' | bin2hex)"
+export METHOD_NO_DATA="$(printf '\x02' | bin2hex)"
+export METHOD_UNKNOWN_METHOD="$(printf '\x03' | bin2hex)"
+export METHOD_NOT_IMPLEMENTED="$(printf '\x04' | bin2hex)"
+
+export ACK_V4='01'
 
 export imgSample="89504e470d0a1a0a0000000d4948445200000005000000050802000000020db1b20\
 00000264944415408d755cb2112002010804070fcff973168f0681bb042b99501f5ac8bbf9ad6c\
