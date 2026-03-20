@@ -32,6 +32,7 @@
 #define METHOD_GET_IMAGE 5
 #define METHOD_GET_COPIED_IMAGE 6
 #define METHOD_GET_SCREENSHOT 7
+#define METHOD_GET_ANY 124
 #define METHOD_INFO 125
 
 // status codes
@@ -254,6 +255,11 @@ int version_4(socket_t *socket) {
         }
         case METHOD_GET_SCREENSHOT: {
             return get_screenshot_v4(socket);
+        }
+        case METHOD_GET_ANY: {
+            // TODO(thevindu-w): Implement the method
+            write_sock(socket, &(char){STATUS_METHOD_NOT_IMPLEMENTED}, 1);
+            return EXIT_SUCCESS;
         }
         case METHOD_INFO: {
             return info_v4(socket);
