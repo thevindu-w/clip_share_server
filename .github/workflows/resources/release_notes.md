@@ -1,4 +1,4 @@
-This is Version <VERSION> with support for protocol versions 1, 2, and 3.
+This is Version <VERSION> with support for protocol versions 1, 2, 3, and 4.
 
 **Notes:**
 - To use ClipShare, you will need a client app. An Android client app is available at [apt.izzysoft.de](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare/). (Source: [github.com/thevindu-w/clip_share_client](https://github.com/thevindu-w/clip_share_client))
@@ -15,5 +15,4 @@ This is Version <VERSION> with support for protocol versions 1, 2, and 3.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Validate configuration file encoding and handle errors.
-- Code quality improvements.
+- Add protocol version 4.
