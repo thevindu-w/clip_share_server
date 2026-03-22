@@ -13,7 +13,7 @@
     <div id="nav">
         <span><a href="proto_v2.html">&lt (Protocol v2) Previous</a></span>
         <span class="growx"></span>
-        <span><a href="examples/index.html">Next (Examples) &gt</a></span>
+        <span><a href="proto_v4.html">Next (Protocol v4) &gt</a></span>
     </div>
     <div class="page">
         <h1>Protocol Version 3</h1>
@@ -27,7 +27,7 @@
 
         <h2 id="method-selection">Selecting the Method</h2>
         Selecting the method in protocol version 3 is identical to the procedure of <a
-            href="proto_v2.html#method-selection">selecting the method in protocol version 2</a>.<br>
+            href="proto_v1.html#method-selection">selecting the method in protocol version 1</a>.<br>
         <a href="#method-codes">Method codes</a> in protocol version 3 are almost the same as the method codes in
         version 2, except for some differences in the <a href="#get-files">Get Files</a> and <a href="#send-files">Send
             Files</a> methods and some newly added methods. They are described in the <a
@@ -81,8 +81,8 @@
         </table>
 
         <h2 id="method-status-codes">Method Status Codes</h2>
-        <p>Method status codes in protocol version 3 are identical to <a href="proto_v2.html#method-status-codes">method
-                status codes of version 2</a>.</p>
+        <p>Method status codes in protocol version 3 are identical to <a href="proto_v1.html#method-status-codes">method
+                status codes of version 1</a>.</p>
 
         <h2 id="supported-methods">Supported Methods</h2>
         <p>
@@ -100,7 +100,6 @@
         <h3 id="send-text">Send Text</h3>
         <p>
             This method is identical to the <a href="proto_v1.html#send-text">Send Text method of Version 1 and 2</a>.
-        </p>
         </p>
         <h3 id="get-files">Get Files</h3>
         <p>
@@ -161,27 +160,17 @@
         may not always honor the display number sent by the client. Also note that if the display number is invalid or
         the server fails to get the screenshot, the server may respond with the status NO_DATA instead of OK and
         terminate the communication immediately.
+        </p>
         <h3 id="info">Info</h3>
         <p>
-            This method is similar to the <a href="proto_v2.html#info">Info method of Version 2</a> with the exception
-            that this method in version 3 can send some additional name-value pairs describing the server information
-            after the server name. The length field sent first denotes the total length of the response text. The first
-            line of the response text contains the server's name, "clip_share", as in previous versions. Other
-            name-value pairs appear in separate lines, where one line contains a single name-value pair. Lines are
-            separated with LF (i.e. '\n').</p>
-        <p>
-            A name-value pair is separated by a colon (':'). The name and value fields can contain alpha-numeric
-            characters, period ('.'), hyphen ('-'), and underscore ('_'). In addition to that, the value field may
-            contain any other ASCII characters from '\x20' to '\x7e' inclusive, except colon (':'), which is the
-            name-value separator. The maximum length of the name field is limited to 64 characters, and the maximum
-            length of the value is limited to 256 characters.
+            This method is identical to the <a href="proto_v1.html#info">Info method of Version 1</a>.
         </p>
     </div>
     <div id="fill-page"></div>
     <div id="foot">
         <span><a href="proto_v2.html">&lt (Protocol v2) Previous</a></span>
         <span class="growx"></span>
-        <span><a href="examples/index.html">Next (Examples) &gt</a></span>
+        <span><a href="proto_v4.html">Next (Protocol v4) &gt</a></span>
     </div>
 </body>
 

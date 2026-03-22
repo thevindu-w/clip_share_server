@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Protocol Version 4</title>
+</head>
+
+<body>
+    <div id="nav">
+        <span><a href="proto_v3.html">&lt (Protocol v3) Previous</a></span>
+        <span class="growx"></span>
+        <span><a href="examples/index.html">Next (Examples) &gt</a></span>
+    </div>
+    <div class="page">
+        <h1>Protocol Version 4</h1>
+
+        <p>
+            If the client and the server agree on protocol version 4 after <a
+                href="index.html#proto-negotiation">negotiation</a>, the client starts communicating using that
+            protocol. First, the client selects the method and requests it from the server. Then, the server accepts the
+            request and continues the communication.
+        </p>
+
+        <h2 id="method-selection">Selecting the Method</h2>
+        Selecting the method in protocol version 4 is identical to the procedure of <a
+            href="proto_v1.html#method-selection">selecting the method in protocol version 1</a>.<br>
+        <a href="#method-codes">Method codes</a> in protocol version 4 are identical to the method codes in
+        version 3, except for the <a href="#acknowledgement">acknowledgement sent or received at the end</a> and the
+        changes in the <a href="#info">Info</a> method. These differences are described in the <a
+            href="#supported-methods">Supported Methods</a> section.
+
+        <h2 id="method-codes">Method Codes</h2>
+        <p>Note that the method codes in Version 4 are identical to the <a href="proto_v3.html#method-codes">method
+                codes
+                in Version 3</a></p>
+        <table>
+            <caption>The supported method codes and their names.</caption>
+            <thead>
+                <tr>
+                    <th>Method code</th>
+                    <th>Method name</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td><a href="#get-text">Get Text</a></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td><a href="#send-text">Send Text</a></td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td><a href="#get-files">Get Files</a></td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td><a href="#send-files">Send Files</a></td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td><a href="#get-image">Get Image/Screenshot</a></td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td><a href="#get-copied-image-only">Get Copied Image Only</a></td>
+                </tr>
+                <tr>
+                    <td>7</td>
+                    <td><a href="#get-screenshot-only">Get Screenshot Only</a></td>
+                </tr>
+                <tr>
+                    <td>124</td>
+                    <td><a href="#get-any">Get Any</a></td>
+                </tr>
+                <tr>
+                    <td>125</td>
+                    <td><a href="#info">Info</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 id="method-status-codes">Method Status Codes</h2>
+        <p>Method status codes in protocol version 4 are identical to <a href="proto_v1.html#method-status-codes">method
+                status codes of version 1</a>.</p>
+
+        <h2 id="supported-methods">Supported Methods</h2>
+        <p>
+            Most of the supported methods are similar to those of <a href="proto_v3.html#supported-methods">Version
+                3</a>, except for the <a href="#acknowledgement">acknowledgement</a> sent or received at the end and the
+            changes in the Info method.<br>
+            The encoding of lengths, text, file names, file contents, and images and the maximum allowed text lengths,
+            file name lengths, file sizes, and image sizes are identical to those of <a
+                href="proto_v1.html#encoding-notes">previous versions</a>.
+        </p>
+
+        <h3 id="get-text">Get Text</h3>
+        <p>
+            This method is similar to the <a href="proto_v1.html#get-text">Get Text method of previous versions</a>,
+            with the difference being that the client sends <a href="#acknowledgement">acknowledgement information</a>
+            to the server after successfully receiving the text (i.e., immediately before terminating the connection).
+        </p>
+        <h3 id="send-text">Send Text</h3>
+        <p>
+            This method is similar to the <a href="proto_v1.html#send-text">Send Text method of previous versions</a>,
+            with the difference being that the server sends <a href="#acknowledgement">acknowledgement information</a>
+            to the client after successfully receiving the text (i.e., immediately before terminating the connection).
+        </p>
+        <h3 id="get-files">Get Files</h3>
+        <p>
+            This method is similar to the <a href="proto_v3.html#get-files">Get Files method of Version 3</a>, with
+            the difference being that the client sends <a href="#acknowledgement">acknowledgement information</a> to the
+            server after successfully receiving all files (i.e., immediately before terminating the connection).
+        </p>
+        <h3 id="send-files">Send Files</h3>
+        <p>
+            This method is similar to the <a href="proto_v3.html#send-files">Send Files method of Version 3</a>,
+            with the difference being that the server sends <a href="#acknowledgement">acknowledgement information</a>
+            to the client after successfully receiving all files (i.e., immediately before terminating the connection).
+        </p>
+        <h3 id="get-image">Get Image/Screenshot</h3>
+        <p>
+            This method is similar to the <a href="proto_v1.html#get-image">Get Image method of previous versions</a>,
+            with the difference being that the client sends <a href="#acknowledgement">acknowledgement information</a>
+            to the server after successfully receiving the image (i.e., immediately before terminating the connection).
+        </p>
+        <h3 id="get-copied-image-only">Get Copied Image Only</h3>
+        <p>
+            This method is similar to the <a href="proto_v3.html#get-copied-image-only">Get Copied Image method of
+                Version 3</a>, with the difference being that the client sends <a
+                href="#acknowledgement">acknowledgement information</a> to the server after successfully receiving the
+            image (i.e., immediately before terminating the connection).
+        </p>
+        <h3 id="get-screenshot-only">Get Screenshot Only</h3>
+        <p>
+            This method is similar to the <a href="proto_v3.html#get-screenshot-only">Get Screenshot method of Version
+                3</a>, with the difference being that the client sends <a href="#acknowledgement">acknowledgement
+                information</a> to the server after successfully receiving the image (i.e., immediately before
+            terminating the connection).
+        </p>
+        <h3 id="info">Info</h3>
+        <p>
+            This method is similar to the <a href="proto_v1.html#info">Info method of previous versions</a>, with the
+            exception that this method in version 4 can send some additional name-value pairs describing the server
+            information after the server name, and the acknowledgement information is sent before terminating the
+            connection.
+        </p>
+        <p>
+            Once the client requests this method code from the server, the server acknowledges the client with the
+            status OK. Then, the server will send the length of the remaining payload, followed by the payload
+            containing the server information, to the client. Once the information is transmitted, the client sends the
+            acknowledgement information to the server. Then, the communication ends, and the connection can be closed.
+        <ul>
+            <li>The length field sent first denotes the total length of the response text. The length is limited to at
+                most 4096 bytes.</li>
+            <li>The payload is a UTF-8 text, encoded as described in <a href="proto_v1.html#encoding-notes">Version 1
+                    notes</a>.</li>
+            <li>The first line of the response text contains the server's name, "clip_share", as in previous versions.
+            </li>
+            <li>Other name-value pairs appear in separate lines, where one line contains a single name-value pair. Lines
+                are separated with LF (i.e., line feed character, '\n', or '\x0a').</li>
+            <li>A name-value pair is separated by a '=' character. The name and value fields can contain alpha-numeric
+                characters, period ('.'), hyphen ('-'), and underscore ('_'). In addition to that, the value field may
+                contain any other ASCII characters from '\x20' to '\x7e' inclusive, except the '=' character, which is
+                the name-value separator. The maximum length of the name field is limited to 64 characters, and the
+                maximum length of the value is limited to 256 characters.</li>
+        </ul>
+        </p>
+        <h2 id="acknowledgement">Acknowledgement Information</h2>
+    </div>
+    <div id="fill-page"></div>
+    <div id="foot">
+        <span><a href="proto_v3.html">&lt (Protocol v3) Previous</a></span>
+        <span class="growx"></span>
+        <span><a href="examples/index.html">Next (Examples) &gt</a></span>
+    </div>
+</body>
+
+</html>
