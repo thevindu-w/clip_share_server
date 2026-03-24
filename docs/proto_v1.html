@@ -11,9 +11,9 @@
 
 <body>
     <div id="nav">
-        <span><a href="index.html">&lt (Home) Previous</a></span>
+        <span><a href="index.html">&lt; (Home) Previous</a></span>
         <span class="growx"></span>
-        <span><a href="proto_v2.html">Next (Protocol v2) &gt</a></span>
+        <span><a href="proto_v2.html">Next (Protocol v2) &gt;</a></span>
     </div>
     <div class="page">
         <h1>Protocol Version 1</h1>
@@ -146,6 +146,7 @@
         <p>The following methods are supported in this protocol version.</p>
         <p id="encoding-notes">
             <b>Notes:</b>
+        </p>
         <ul>
             <li>All numeric values (ex: lengths and number of files) are sent/received as 64-bit signed integers in
                 big-endian format.</li>
@@ -160,7 +161,6 @@
             <li>Optional: Strings having line breaks should prefer LF ("\n") over CRLF ("\r\n") as the line separator.
             </li>
         </ul>
-        </p>
         <h3 id="get-text">Get Text</h3>
         <p>
             This method is used to get the copied text from the server to the client. Once the client requests this
@@ -168,13 +168,13 @@
             the length of the copied text followed by the copied text to the client. Once the copied text is
             transmitted, the communication ends, and the connection can be closed. The client may copy the received text
             to the clipboard of the client device.
+        </p>
         <ul>
             <li>The length is the number of bytes in the text sent after this. It should be less than 4 MiB in size. The
                 length is encoded and sent, as specified above in the notes.</li>
             <li>The copied text is the text that is copied to the clipboard of the server device. It is encoded as
                 specified above in the notes.</li>
         </ul>
-        </p>
         <h3 id="send-text">Send Text</h3>
         <p>
             This method is used to send the copied text from the client to the server. Once the client requests this
@@ -182,20 +182,21 @@
             the length of the copied text followed by the copied text to the server. Once the copied text is
             transmitted, the communication ends, and the connection can be closed. The server may copy the received text
             to the clipboard of the server device.
+        </p>
         <ul>
             <li>The length is the number of bytes in the text sent after this. It should be less than 4 MiB in size. The
                 length is encoded and sent, as specified above in the notes.</li>
             <li>The copied text is the text that is copied to the clipboard of the client device. It is encoded as
                 specified above in the notes.</li>
         </ul>
-        </p>
         <h3 id="get-files">Get Files</h3>
         <p>
             This method is used to get the copied files from the server to the client. This method only supports sending
             regular files (i.e., directories, links, or other types are not supported). Once the client requests this
             method code from the server and the server acknowledges the client with the status OK, the server will send
             the number of files encoded as a numeric value as specified above in the notes. After sending the number of
-            files, each file is sent sequentially, as follows.<br>
+            files, each file is sent sequentially, as follows.
+        </p>
         <ul>
             <li>First, the length of the file name is sent. A file name can have at most 1024 bytes after encoding. It
                 is encoded as specified above in the notes.</li>
@@ -205,14 +206,16 @@
                 as a numeric value, as specified above in the notes.</li>
             <li>Then, the file content is sent as a stream of bytes, as specified above in the notes.</li>
         </ul>
-        Once all the files are transmitted, the communication ends, and the connection can be closed.
+        <p>
+            Once all the files are transmitted, the communication ends, and the connection can be closed.
         </p>
         <h3 id="send-file">Send File</h3>
         <p>
             This method is used to send a file from the client to the server. This method only supports sending a single
             regular file at a time (i.e., directories, links, or other types are not supported). Once the client
             requests this method code from the server and the server acknowledges the client with the status OK, the
-            client will send the file to the server as follows.<br>
+            client will send the file to the server as follows.
+        </p>
         <ul>
             <li>First, the length of the file name is sent. A file name can have at most 1024 bytes after encoding. It
                 is encoded as specified above in the notes.</li>
@@ -222,24 +225,25 @@
                 as a numeric value, as specified above in the notes.</li>
             <li>Then, the file content is sent as a stream of bytes, as specified above in the notes.</li>
         </ul>
-        Once the file is transmitted, the communication ends, and the connection can be closed.
+        <p>
+            Once the file is transmitted, the communication ends, and the connection can be closed.
         </p>
         <h3 id="get-image">Get Image/Screenshot</h3>
-        <p>
-            This method is used to get a copied image or a screenshot from the server to the client. If the server
+        <p>This method is used to get a copied image or a screenshot from the server to the client. If the server
             device has an image copied to the clipboard, it will be sent. Otherwise, a screenshot of the server device
             will be sent as an image. The image gets encoded as a PNG image. Once the client requests this method code
             from the server, and if the server can get the image, the server acknowledges the client with the status OK.
-            Then, the server will send the image as follows.<br>
+            Then, the server will send the image as follows.</p>
         <ul>
             <li>First, the size of the image in bytes is sent. The image can be at most 1 GiB in size. It is encoded as
                 a numeric value, as specified above in the notes.</li>
             <li>Then, the image is sent as a stream of bytes, as specified above in the notes.</li>
         </ul>
-        Once the image is transmitted, the communication ends, and the connection can be closed. Note that there is no
-        file name for the image. The client should create a file name if it needs to save this image as a file. If the
-        server fails to get the image, it will send the status NO_DATA for the client's request instead of the status
-        OK and terminate the connection without sending any further data.
+        <p>
+            Once the image is transmitted, the communication ends, and the connection can be closed. Note that there is
+            no file name for the image. The client should create a file name if it needs to save this image as a file.
+            If the server fails to get the image, it will send the status NO_DATA for the client's request instead of
+            the status OK and terminate the connection without sending any further data.
         </p>
         <h3 id="info">Info</h3>
         <p>
@@ -247,18 +251,18 @@
             server, and the server acknowledges the client with the status OK, the server will send the length of the
             name, followed by the server's name, "clip_share", to the client. Once the name is transmitted, the
             communication ends, and the connection can be closed.
+        </p>
         <ul>
             <li>The length is the number of bytes in the name sent after this. It is encoded and sent, as
                 specified above in the notes.</li>
             <li>The server's name is encoded as a text, as specified above in the notes.</li>
         </ul>
-        </p>
     </div>
     <div id="fill-page"></div>
     <div id="foot">
-        <span><a href="index.html">&lt (Home) Previous</a></span>
+        <span><a href="index.html">&lt; (Home) Previous</a></span>
         <span class="growx"></span>
-        <span><a href="proto_v2.html">Next (Protocol v2) &gt</a></span>
+        <span><a href="proto_v2.html">Next (Protocol v2) &gt;</a></span>
     </div>
 </body>
 

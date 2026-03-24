@@ -7,6 +7,7 @@ body {
     min-height: calc(100vh - 32px);
     display: flex;
     flex-direction: column;
+    font-size: 1rem;
 }
 
 div.page {
@@ -63,8 +64,17 @@ td.center {
     text-align: center;
 }
 
+td.desc {
+    font-size: 0.9rem;
+}
+
 th#status-code-value {
     min-width: 10ch;
+}
+
+pre.tree {
+    font-size: 0.9rem;
+    font-family: Courier, monospace;
 }
 
 div#fill-page {
@@ -100,7 +110,7 @@ h3 {
 }
 
 caption {
-    font-size: small;
+    font-size: 0.8rem;
     text-align: left;
 }
 

@@ -6,22 +6,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../style.css">
-    <title>Protocol Version 3</title>
+    <title>Protocol Version 4</title>
 </head>
 
 <body>
     <div id="nav">
-        <span><a href="v2.html">&lt; (Examples v2) Previous</a></span>
-        <span class="growx"></span>
-        <span><a href="v4.html">Next (Examples v4) &gt;</a></span>
+        <span><a href="v3.html">&lt; (Examples v3) Previous</a></span>
     </div>
     <div class="page">
-        <h1>Protocol Version 3</h1>
+        <h1>Protocol Version 4</h1>
 
         <h2 id="get_text-success">Get Text</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Get Text method in protocol version 3</caption>
+            <caption>Example of Get Text method in protocol version 4</caption>
             <thead>
                 <tr>
                     <th>Phase</th>
@@ -35,15 +33,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">03</td>
+                    <td class="mono">04</td>
                     <td></td>
-                    <td class="desc">Client requests protocol version 3</td>
+                    <td class="desc">Client requests protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td class="desc">Server accepts the request to use protocol version 3</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -74,6 +72,13 @@
                         in UTF-8. The text is "Hello ClipShare!" (without quotes) when decoded.</td>
                 </tr>
                 <tr>
+                    <td class="center">Acknowledge</td>
+                    <td class="center">1</td>
+                    <td class="mono">01</td>
+                    <td></td>
+                    <td class="desc">Client sends the acknowledgement.</td>
+                </tr>
+                <tr>
                     <td class="center" colspan="5">Communication ends and connection closes</td>
                 </tr>
             </tbody>
@@ -82,7 +87,7 @@
         <h2 id="get_text-no_data">Get Text (no data)</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Get Text method with no data in protocol version 3</caption>
+            <caption>Example of Get Text method with no data in protocol version 4</caption>
             <thead>
                 <tr>
                     <th>Phase</th>
@@ -96,15 +101,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">03</td>
+                    <td class="mono">04</td>
                     <td></td>
-                    <td class="desc">Client requests protocol version 3</td>
+                    <td class="desc">Client requests protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td class="desc">Server accepts the request to use protocol version 3</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -128,7 +133,7 @@
         <h2 id="send_text">Send Text</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Send Text method in protocol version 3</caption>
+            <caption>Example of Send Text method in protocol version 4</caption>
             <thead>
                 <tr>
                     <th>Phase</th>
@@ -142,15 +147,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">03</td>
+                    <td class="mono">04</td>
                     <td></td>
-                    <td class="desc">Client requests protocol version 3</td>
+                    <td class="desc">Client requests protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td class="desc">Server accepts the request to use protocol version 3</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -181,6 +186,13 @@
                         in UTF-8. The text is "Hello ClipShare!" (without quotes) when decoded.</td>
                 </tr>
                 <tr>
+                    <td class="center">Acknowledge</td>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td class="desc">Server sends the acknowledgement.</td>
+                </tr>
+                <tr>
                     <td class="center" colspan="5">Communication ends and connection closes</td>
                 </tr>
             </tbody>
@@ -189,7 +201,7 @@
         <h2 id="get_files-success">Get Files</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Get Files method in protocol version 3</caption>
+            <caption>Example of Get Files method in protocol version 4</caption>
             <thead>
                 <tr>
                     <th colspan="2">Phase</th>
@@ -203,15 +215,15 @@
                 <tr>
                     <td class="center" rowspan="2" colspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">03</td>
+                    <td class="mono">04</td>
                     <td></td>
-                    <td class="desc">Client requests protocol version 3</td>
+                    <td class="desc">Client requests protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td class="desc">Server accepts the request to use protocol version 3</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2" colspan="2">Method selection</td>
@@ -406,6 +418,13 @@
                     </td>
                 </tr>
                 <tr>
+                    <td class="center" colspan="2">Acknowledge</td>
+                    <td class="center">1</td>
+                    <td class="mono">01</td>
+                    <td></td>
+                    <td class="desc">Client sends the acknowledgement.</td>
+                </tr>
+                <tr>
                     <td class="center" colspan="6">Communication ends and connection closes</td>
                 </tr>
             </tbody>
@@ -427,7 +446,7 @@
         <h2 id="get_files-no_data">Get Files (no data)</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Get Files method with no data in protocol version 3</caption>
+            <caption>Example of Get Files method with no data in protocol version 4</caption>
             <thead>
                 <tr>
                     <th>Phase</th>
@@ -441,15 +460,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">03</td>
+                    <td class="mono">04</td>
                     <td></td>
-                    <td class="desc">Client requests protocol version 3</td>
+                    <td class="desc">Client requests protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td class="desc">Server accepts the request to use protocol version 3</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -473,7 +492,7 @@
         <h2 id="send_files">Send Files</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Send Files method in protocol version 3</caption>
+            <caption>Example of Send Files method in protocol version 4</caption>
             <thead>
                 <tr>
                     <th colspan="2">Phase</th>
@@ -487,15 +506,15 @@
                 <tr>
                     <td class="center" rowspan="2" colspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">03</td>
+                    <td class="mono">04</td>
                     <td></td>
-                    <td class="desc">Client requests protocol version 3</td>
+                    <td class="desc">Client requests protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td class="desc">Server accepts the request to use protocol version 3</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2" colspan="2">Method selection</td>
@@ -532,7 +551,8 @@
                     <td class="mono">66 69 72 73 74 5F 66 69 6C 65 2E 74 78 74</td>
                     <td></td>
                     <td class="desc">Client sends the name of the first file, which is 14 bytes long when encoded in
-                        UTF-8. The file name is "first_file.txt" (without quotes) when decoded.</td>
+                        UTF-8. The file
+                        name is "first_file.txt" (without quotes) when decoded.</td>
                 </tr>
                 <tr>
                     <td class="center">8</td>
@@ -562,7 +582,8 @@
                     <td class="mono">66 6F 6C 64 65 72 31 2F 73 65 63 6F 6E 64 5F 66 69 6C 65 2E 74 78 74</td>
                     <td></td>
                     <td class="desc">Client sends the name of the second file, which is 23 bytes long when encoded in
-                        UTF-8. The file name is "folder1/second_file.txt" (without quotes) when decoded.</td>
+                        UTF-8. The file
+                        name is "folder1/second_file.txt" (without quotes) when decoded.</td>
                 </tr>
                 <tr>
                     <td class="center">8</td>
@@ -592,7 +613,8 @@
                     <td class="mono">66 6F 6C 64 65 72 32 2F 74 68 69 72 64 5F 66 69 6C 65 2E 74 78 74</td>
                     <td></td>
                     <td class="desc">Client sends the name of the third file, which is 22 bytes long when encoded in
-                        UTF-8. The file name is "folder2/third_file.txt" (without quotes) when decoded.</td>
+                        UTF-8. The file
+                        name is "folder2/third_file.txt" (without quotes) when decoded.</td>
                 </tr>
                 <tr>
                     <td class="center">8</td>
@@ -646,8 +668,9 @@
                     <td class="mono">00 00 00 00 00 00 00 0D</td>
                     <td></td>
                     <td class="desc">Client sends the length of the fifth file name (which is an empty directory) as 13
-                        bytes as a 64-bit signed integer in big-endian format. 000000000000000D in hexadecimal is 13 in
-                        decimal.</td>
+                        bytes as a
+                        64-bit signed integer in big-endian format. 000000000000000D in hexadecimal is 13 in decimal.
+                    </td>
                 </tr>
                 <tr>
                     <td class="center">13</td>
@@ -671,7 +694,8 @@
                     <td></td>
                     <td class="desc">Client sends the length of the sixth file name (which is an empty directory) as 7
                         bytes as a 64-bit signed integer in big-endian format. 0000000000000007 in hexadecimal is 7 in
-                        decimal.</td>
+                        decimal.
+                    </td>
                 </tr>
                 <tr>
                     <td class="center">7</td>
@@ -686,8 +710,15 @@
                     <td class="mono">FF FF FF FF FF FF FF FF</td>
                     <td></td>
                     <td class="desc">Client sends the size of the sixth file (empty directory) as -1 as a 64-bit signed
-                        integer in big-endian format. FFFFFFFFFFFFFFFF in hexadecimal is -1 in 64-bit signed decimal.
-                    </td>
+                        integer in
+                        big-endian format. FFFFFFFFFFFFFFFF in hexadecimal is -1 in 64-bit signed decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="2">Acknowledge</td>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td class="desc">Server sends the acknowledgement.</td>
                 </tr>
                 <tr>
                     <td class="center" colspan="6">Communication ends and connection closes</td>
@@ -711,7 +742,7 @@
         <h2 id="get_image">Get Image/Screenshot</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Get Image/Screenshot method in protocol version 3</caption>
+            <caption>Example of Get Image/Screenshot method in protocol version 4</caption>
             <thead>
                 <tr>
                     <th>Phase</th>
@@ -725,15 +756,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">03</td>
+                    <td class="mono">04</td>
                     <td></td>
-                    <td class="desc">Client requests protocol version 3</td>
+                    <td class="desc">Client requests protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td class="desc">Server accepts the request to use protocol version 3</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -772,6 +803,13 @@
                     </td>
                 </tr>
                 <tr>
+                    <td class="center">Acknowledge</td>
+                    <td class="center">1</td>
+                    <td class="mono">01</td>
+                    <td></td>
+                    <td class="desc">Client sends the acknowledgement.</td>
+                </tr>
+                <tr>
                     <td class="center" colspan="5">Communication ends and connection closes</td>
                 </tr>
             </tbody>
@@ -780,7 +818,7 @@
         <h2 id="get_copied_image_only">Get Copied Image Only</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Get Copied Image method in protocol version 3</caption>
+            <caption>Example of Get Copied Image method in protocol version 4</caption>
             <thead>
                 <tr>
                     <th>Phase</th>
@@ -794,15 +832,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">03</td>
+                    <td class="mono">04</td>
                     <td></td>
-                    <td class="desc">Client requests protocol version 3</td>
+                    <td class="desc">Client requests protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td class="desc">Server accepts the request to use protocol version 3</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -840,6 +878,13 @@
                     </td>
                 </tr>
                 <tr>
+                    <td class="center">Acknowledge</td>
+                    <td class="center">1</td>
+                    <td class="mono">01</td>
+                    <td></td>
+                    <td class="desc">Client sends the acknowledgement.</td>
+                </tr>
+                <tr>
                     <td class="center" colspan="5">Communication ends and connection closes</td>
                 </tr>
             </tbody>
@@ -848,7 +893,7 @@
         <h2 id="get_copied_image_only_no_data">Get Copied Image Only (no data)</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Get Copied Image method with no data in protocol version 3</caption>
+            <caption>Example of Get Copied Image method with no data in protocol version 4</caption>
             <thead>
                 <tr>
                     <th>Phase</th>
@@ -862,15 +907,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">03</td>
+                    <td class="mono">04</td>
                     <td></td>
-                    <td class="desc">Client requests protocol version 3</td>
+                    <td class="desc">Client requests protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td class="desc">Server accepts the request to use protocol version 3</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -894,7 +939,7 @@
         <h2 id="get_screenshot_only">Get Screenshot Only</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Get Screenshot method in protocol version 3</caption>
+            <caption>Example of Get Screenshot method in protocol version 4</caption>
             <thead>
                 <tr>
                     <th>Phase</th>
@@ -908,15 +953,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">03</td>
+                    <td class="mono">04</td>
                     <td></td>
-                    <td class="desc">Client requests protocol version 3</td>
+                    <td class="desc">Client requests protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td class="desc">Server accepts the request to use protocol version 3</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -959,6 +1004,13 @@
                     <td class="desc">Server sends the screenshot, which is 136573 bytes long.</td>
                 </tr>
                 <tr>
+                    <td class="center">Acknowledge</td>
+                    <td class="center">1</td>
+                    <td class="mono">01</td>
+                    <td></td>
+                    <td class="desc">Client sends the acknowledgement.</td>
+                </tr>
+                <tr>
                     <td class="center" colspan="5">Communication ends and connection closes</td>
                 </tr>
             </tbody>
@@ -967,7 +1019,7 @@
         <h2 id="get_screenshot_only_no_data">Get Screenshot Only (no data)</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Get Screenshot method with invalid display in protocol version 3</caption>
+            <caption>Example of Get Screenshot method with invalid display in protocol version 4</caption>
             <thead>
                 <tr>
                     <th>Phase</th>
@@ -981,15 +1033,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">03</td>
+                    <td class="mono">04</td>
                     <td></td>
-                    <td class="desc">Client requests protocol version 3</td>
+                    <td class="desc">Client requests protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td class="desc">Server accepts the request to use protocol version 3</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -1027,7 +1079,7 @@
         <h2 id="info">Info</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
-            <caption>Example of Info method in protocol version 3</caption>
+            <caption>Example of Info method in protocol version 4</caption>
             <thead>
                 <tr>
                     <th>Phase</th>
@@ -1041,15 +1093,15 @@
                 <tr>
                     <td class="center" rowspan="2">Version Negotiation</td>
                     <td class="center">1</td>
-                    <td class="mono">03</td>
+                    <td class="mono">04</td>
                     <td></td>
-                    <td class="desc">Client requests protocol version 3</td>
+                    <td class="desc">Client requests protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center">1</td>
                     <td></td>
                     <td class="mono">01</td>
-                    <td class="desc">Server accepts the request to use protocol version 3</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
                 </tr>
                 <tr>
                     <td class="center" rowspan="2">Method selection</td>
@@ -1080,6 +1132,13 @@
                         text is "clip_share" (without quotes) when decoded.</td>
                 </tr>
                 <tr>
+                    <td class="center">Acknowledge</td>
+                    <td class="center">1</td>
+                    <td class="mono">01</td>
+                    <td></td>
+                    <td class="desc">Client sends the acknowledgement.</td>
+                </tr>
+                <tr>
                     <td class="center" colspan="5">Communication ends and connection closes</td>
                 </tr>
             </tbody>
@@ -1087,9 +1146,7 @@
     </div>
     <div id="fill-page"></div>
     <div id="foot">
-        <span><a href="v2.html">&lt; (Examples v2) Previous</a></span>
-        <span class="growx"></span>
-        <span><a href="v4.html">Next (Examples v4) &gt;</a></span>
+        <span><a href="v3.html">&lt; (Examples v3) Previous</a></span>
     </div>
 </body>
 

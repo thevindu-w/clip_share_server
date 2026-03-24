@@ -11,9 +11,9 @@
 
 <body>
     <div id="nav">
-        <span><a href="proto_v2.html">&lt (Protocol v2) Previous</a></span>
+        <span><a href="proto_v2.html">&lt; (Protocol v2) Previous</a></span>
         <span class="growx"></span>
-        <span><a href="proto_v4.html">Next (Protocol v4) &gt</a></span>
+        <span><a href="proto_v4.html">Next (Protocol v4) &gt;</a></span>
     </div>
     <div class="page">
         <h1>Protocol Version 3</h1>
@@ -140,7 +140,8 @@
             PNG image. Once the client requests this method code from the server, the server acknowledges the client
             with the status OK. Then, the client sends the display number from the server, and the server acknowledges
             the client with the status OK if the display number is valid. Then, the server will send the screenshot. The
-            communication after protocol version negotiation happens as follows.<br>
+            communication after protocol version negotiation happens as follows.
+        </p>
         <ul>
             <li>First, the client sends the method request code.</li>
             <li>The server responds with the status OK.</li>
@@ -156,10 +157,11 @@
             <li>Finally, the screenshot is sent as a stream of bytes, as specified in <a
                     href="proto_v1.html#encoding-notes">data encoding notes</a>.</li>
         </ul>
-        Once the image is transmitted, the communication ends, and the connection can be closed. Note that the server
-        may not always honor the display number sent by the client. Also note that if the display number is invalid or
-        the server fails to get the screenshot, the server may respond with the status NO_DATA instead of OK and
-        terminate the communication immediately.
+        <p>
+            Once the image is transmitted, the communication ends, and the connection can be closed. Note that the
+            server may not always honor the display number sent by the client. Also note that if the display number is
+            invalid or the server fails to get the screenshot, the server may respond with the status NO_DATA instead of
+            OK and terminate the communication immediately.
         </p>
         <h3 id="info">Info</h3>
         <p>
@@ -168,9 +170,9 @@
     </div>
     <div id="fill-page"></div>
     <div id="foot">
-        <span><a href="proto_v2.html">&lt (Protocol v2) Previous</a></span>
+        <span><a href="proto_v2.html">&lt; (Protocol v2) Previous</a></span>
         <span class="growx"></span>
-        <span><a href="proto_v4.html">Next (Protocol v4) &gt</a></span>
+        <span><a href="proto_v4.html">Next (Protocol v4) &gt;</a></span>
     </div>
 </body>
 
