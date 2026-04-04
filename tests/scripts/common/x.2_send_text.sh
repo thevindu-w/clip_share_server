@@ -15,7 +15,7 @@ responseDump=$(echo -n "${proto}${method}${length}${sampleDump}" | hex2bin | cli
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"
 
-expected="${protoAck}${methodAck}"
+expected="${protoAck}${methodAck}${ack_v4}"
 
 if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect server response.'
