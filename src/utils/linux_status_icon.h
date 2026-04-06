@@ -1,6 +1,6 @@
 /*
- * globals.h - header containing global variables
- * Copyright (C) 2022-2025 H. Thevindu J. Wijesekera
+ * utils/linux_status_icon.h - header for linux_status_icon.c
+ * Copyright (C) 2026 H. Thevindu J. Wijesekera
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,21 +16,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef GLOBALS_H_
-#define GLOBALS_H_
+#ifndef UTILS_LINUX_STATUS_ICON_H_
+#define UTILS_LINUX_STATUS_ICON_H_
+#ifdef __linux__
 
-#include <utils/config.h>
+extern void show_status_icon(void);
 
-#define CONFIG_FILE "clipshare.conf"
-#define MAX_FILE_NAME_LEN 2048
+extern void cleanup_status_icon(void);
 
-extern config configuration;
-extern char *error_log_file;
-extern char *cwd;
-extern size_t cwd_len;
-
-#if defined(__linux__) || defined(__APPLE__)
-extern const char *global_prog_name;
 #endif
-
-#endif  // GLOBALS_H_
+#endif  // UTILS_LINUX_STATUS_ICON_H_

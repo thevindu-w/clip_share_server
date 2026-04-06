@@ -42,6 +42,7 @@ OBJS_C=main.o servers/clip_share.o servers/udp_serve.o proto/server.o proto/vers
 
 _WEB_OBJS_C=servers/clip_share_web.o
 _WEB_OBJS_S=servers/page_blob.o
+OBJS_S=
 OBJS_M=
 OBJS_BIN=
 
@@ -69,10 +70,11 @@ ifeq ($(ARCH),x86)
 endif
 
 ifeq ($(detected_OS),Linux)
-	OBJS_C+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
-	CFLAGS+= -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
+	OBJS_C+= utils/linux_status_icon.o xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
+	OBJS_S+= res/linux/icon_blob.o
+	CFLAGS+= $(shell pkg-config --cflags gtk+-3.0) -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS_OPTIM=-Os
-	LDLIBS_NO_SSL=-lunistring -lX11 -lXmu -lXt -lxcb -lxcb-randr -lpng
+	LDLIBS_NO_SSL=-lunistring -lX11 -lXmu -lXt -lxcb -lxcb-randr -lpng -ldl
 	LDLIBS_SSL=-lssl -lcrypto
 	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections
 else ifeq ($(detected_OS),Windows)
@@ -129,6 +131,7 @@ VERSION=$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
 CFLAGS+= -DVERSION=\"$(VERSION)\"
 
 OBJS_C:=$(addprefix $(BUILD_DIR)/,$(OBJS_C))
+OBJS_S:=$(addprefix $(BUILD_DIR)/,$(OBJS_S))
 OBJS_M:=$(addprefix $(BUILD_DIR)/,$(OBJS_M))
 OBJS_BIN:=$(addprefix $(BUILD_DIR)/,$(OBJS_BIN))
 _WEB_OBJS_C:=$(addprefix $(BUILD_DIR)/,$(_WEB_OBJS_C))
@@ -137,24 +140,26 @@ OTHER_DEPENDENCIES:=$(addprefix $(BUILD_DIR)/,$(OTHER_DEPENDENCIES))
 
 # append '_web' to objects for clip_share_web to prevent overwriting objects for clip_share
 WEB_OBJS_C=$(OBJS_C:.o=_web.o) $(_WEB_OBJS_C:.o=_web.o)
-WEB_OBJS_S=$(_WEB_OBJS_S:.o=_web.o)
+WEB_OBJS_S=$(OBJS_S:.o=_web.o) $(_WEB_OBJS_S:.o=_web.o)
 WEB_OBJS_M=$(OBJS_M:.o=_web.o)
 WEB_OBJS_BIN=$(OBJS_BIN:.o=_web.o)
 WEB_OBJS=$(WEB_OBJS_C) $(WEB_OBJS_S) $(WEB_OBJS_M) $(WEB_OBJS_BIN)
 
 # append '_debug' to objects for clip_share debug executable to prevent overwriting objects for clip_share
 DEBUG_OBJS_C=$(OBJS_C:.o=_debug.o)
+DEBUG_OBJS_S=$(OBJS_S:.o=_debug.o)
 DEBUG_OBJS_M=$(OBJS_M:.o=_debug.o)
 DEBUG_OBJS_BIN=$(OBJS_BIN:.o=_debug.o)
-DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_M) $(DEBUG_OBJS_BIN)
+DEBUG_OBJS=$(DEBUG_OBJS_C) $(DEBUG_OBJS_S) $(DEBUG_OBJS_M) $(DEBUG_OBJS_BIN)
 
 # append '_no_ssl' to objects for clip_share_no_ssl executable to prevent overwriting objects for clip_share
 NO_SSL_OBJS_C=$(OBJS_C:.o=_no_ssl.o) # Web mode is not supported with no_ssl
+NO_SSL_OBJS_S=$(OBJS_S:.o=_no_ssl.o)
 NO_SSL_OBJS_M=$(OBJS_M:.o=_no_ssl.o)
 NO_SSL_OBJS_BIN=$(OBJS_BIN:.o=_no_ssl.o)
-NO_SSL_OBJS=$(NO_SSL_OBJS_C) $(NO_SSL_OBJS_M) $(NO_SSL_OBJS_BIN)
+NO_SSL_OBJS=$(NO_SSL_OBJS_C) $(NO_SSL_OBJS_S) $(NO_SSL_OBJS_M) $(NO_SSL_OBJS_BIN)
 
-OBJS=$(OBJS_C) $(OBJS_M) $(OBJS_BIN)
+OBJS=$(OBJS_C) $(OBJS_S) $(OBJS_M) $(OBJS_BIN)
 ALL_DEPENDENCIES=$(OBJS) $(WEB_OBJS) $(DEBUG_OBJS) $(NO_SSL_OBJS) $(OTHER_DEPENDENCIES)
 DIRS=$(foreach file,$(ALL_DEPENDENCIES),$(dir $(file)))
 DIRS:=$(sort $(DIRS))
@@ -182,6 +187,7 @@ $(ALL_DEPENDENCIES): %: | $$(dir %)
 
 $(OBJS_C): $(BUILD_DIR)/%.o: %.c
 $(OBJS_M): $(BUILD_DIR)/%.o: %.m
+$(OBJS_S): $(BUILD_DIR)/%.o: %.S
 $(OBJS_BIN): $(BUILD_DIR)/%.o: %_.c
 $(BUILD_DIR)/main.o: $(VERSION_FILE)
 $(OBJS):
@@ -199,6 +205,7 @@ $(WEB_OBJS):
 
 $(DEBUG_OBJS_C): $(BUILD_DIR)/%_debug.o: %.c
 $(DEBUG_OBJS_M): $(BUILD_DIR)/%_debug.o: %.m
+$(DEBUG_OBJS_S): $(BUILD_DIR)/%_debug.o: %.S
 $(DEBUG_OBJS_BIN): $(BUILD_DIR)/%_debug.o: %_.c
 $(BUILD_DIR)/main_debug.o: $(VERSION_FILE)
 $(DEBUG_OBJS):
@@ -207,6 +214,7 @@ $(DEBUG_OBJS):
 
 $(NO_SSL_OBJS_C): $(BUILD_DIR)/%_no_ssl.o: %.c
 $(NO_SSL_OBJS_M): $(BUILD_DIR)/%_no_ssl.o: %.m
+$(NO_SSL_OBJS_S): $(BUILD_DIR)/%_no_ssl.o: %.S
 $(NO_SSL_OBJS_BIN): $(BUILD_DIR)/%_no_ssl.o: %_.c
 $(BUILD_DIR)/main_no_ssl.o: $(VERSION_FILE)
 $(NO_SSL_OBJS):
