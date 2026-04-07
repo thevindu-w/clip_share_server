@@ -3,7 +3,7 @@ ARG DISTRO='ubuntu'
 FROM ubuntu:noble AS ubuntu_builder
 
 # Install build dependencies
-RUN apt-get update && apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev
+RUN apt-get update && apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev libgtk-3-dev
 
 # Install test dependencies
 RUN apt-get install --no-install-recommends -y openssl xclip python3-minimal diffutils findutils coreutils socat sed
@@ -16,7 +16,7 @@ RUN dpkg --force-depends -i ./*.deb 2>/dev/null && apt-get clean -y
 FROM fedora:43 AS fedora_builder
 
 # Install build dependencies
-RUN dnf install --setopt=install_weak_deps=False -y gcc make glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel libunistring-devel
+RUN dnf install --setopt=install_weak_deps=False -y gcc make glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel libunistring-devel gtk3-devel
 
 # Install test dependencies
 RUN dnf install --setopt=install_weak_deps=False -y xorg-x11-server-Xvfb openssl xclip python3 findutils diffutils coreutils socat sed && dnf clean all
@@ -25,7 +25,7 @@ FROM archlinux:base AS arch_builder
 
 # Install build dependencies
 RUN pacman -Sy && \
-    pacman -S --needed --noconfirm gcc make glibc libx11 libxmu libpng openssl libunistring
+    pacman -S --needed --noconfirm gcc make pkgconf glibc libx11 libxmu libpng openssl libunistring gtk3
 
 # Install test dependencies
 RUN pacman -S --needed --noconfirm coreutils findutils diffutils python socat xclip sed
@@ -35,7 +35,7 @@ FROM debian:bullseye-slim AS debian_builder
 ARG NO_XVFB=''
 
 # Install build dependencies
-RUN apt-get update && apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev
+RUN apt-get update && apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev libgtk-3-dev
 
 # Install test dependencies
 RUN apt-get install --no-install-recommends -y openssl xclip python3-minimal diffutils findutils coreutils socat sed
