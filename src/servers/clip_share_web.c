@@ -48,7 +48,7 @@ static void receiver_web(socket_t *sock) {
     char method[8];
     int ind = 0;
     do {
-        if (read_sock(sock, method + ind, 1) != EXIT_SUCCESS) return;
+        if (ind >= (int)sizeof(method) || read_sock(sock, method + ind, 1) != EXIT_SUCCESS) return;
         ind++;
     } while (method[ind - 1] != ' ');
     method[ind - 1] = 0;
@@ -59,7 +59,7 @@ static void receiver_web(socket_t *sock) {
     char path[2049];
     ind = 0;
     do {
-        if (read_sock(sock, path + ind, 1) != EXIT_SUCCESS) return;
+        if (ind >= (int)sizeof(path) || read_sock(sock, path + ind, 1) != EXIT_SUCCESS) return;
         ind++;
     } while (path[ind - 1] != ' ');
     path[ind - 1] = 0;
