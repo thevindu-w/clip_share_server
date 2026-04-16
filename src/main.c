@@ -237,9 +237,7 @@ static inline void _apply_default_conf(void) {
     if (configuration.ports.web <= 0) configuration.ports.web = WEB_PORT;
     if (configuration.web_mode_enabled < 0) configuration.web_mode_enabled = 0;
 #endif
-#if defined(_WIN32) || defined(__APPLE__)
     if (configuration.tray_icon < 0) configuration.tray_icon = 1;
-#endif
 #ifdef __APPLE__
     // binding to other interface addresses will not work
     if (configuration.bind_addr_udp.af == AF_INET)
@@ -568,12 +566,14 @@ static void start_servers(int8_t daemonize) {
     }
 
 #ifdef __linux__
-    fflush(stdout);
-    fflush(stderr);
-    pid_t p_status = fork();
-    if (p_status == 0) {
-        show_status_icon();
-        exit(EXIT_SUCCESS);
+    if (configuration.tray_icon) {
+        fflush(stdout);
+        fflush(stderr);
+        pid_t p_status = fork();
+        if (p_status == 0) {
+            show_status_icon();
+            exit(EXIT_SUCCESS);
+        }
     }
 #endif
 #ifdef __APPLE__

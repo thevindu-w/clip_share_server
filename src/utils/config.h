@@ -77,9 +77,7 @@ typedef struct _config {
         int8_t info;
     } method_enabled;
 
-#if defined(_WIN32) || defined(__APPLE__)
     int8_t tray_icon;
-#endif
 } config;
 
 /*
