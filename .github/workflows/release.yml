@@ -58,6 +58,7 @@ jobs:
         archive="clip_share_server-${version}-linux-x86_64"
         echo ARCHIVE_NAME_NO_EXT="${archive}" >> $GITHUB_ENV
         echo ARCHIVE_NAME="${archive}.tar.gz" >> $GITHUB_ENV
+        echo APPIMAGE_NAME="clipshare-server-${version}-x86_64.AppImage" >> $GITHUB_ENV
 
     - name: Build on Ubuntu 18
       run: |
@@ -67,7 +68,7 @@ jobs:
     - name: Build on Ubuntu 20
       run: |
         docker buildx build -t clipshare:ubuntu20 -f docker/release/Dockerfile \
-        --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=focal' .
+        --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=focal' --build-arg APPIMAGE=1 .
 
     - name: Build on Ubuntu 22
       run: |
@@ -98,6 +99,7 @@ jobs:
         [ -f helper_tools/install-linux.sh ] && cp helper_tools/install-linux.sh dist/
         sudo chmod +x dist/*
         cd dist
+        mv clipshare-server.AppImage "../${{env.APPIMAGE_NAME}}"
         sha256sum -b * >SHA2-256SUM
         cd ..
         mv dist "${{env.ARCHIVE_NAME_NO_EXT}}"
@@ -112,6 +114,15 @@ jobs:
         retention-days: 3
         if-no-files-found: error
         compression-level: 0
+
+    - name: Upload AppImage
+      uses: actions/upload-artifact@v7
+      with:
+        name: "${{env.APPIMAGE_NAME}}"
+        path: "${{env.APPIMAGE_NAME}}"
+        retention-days: 1
+        if-no-files-found: error
+        compression-level: 9
 
   Linux-ARM:
     runs-on: ubuntu-24.04-arm
@@ -511,7 +522,14 @@ jobs:
     - name: Download builds
       uses: actions/download-artifact@v8
       with:
-        pattern: clip_share_server-*
+        pattern: "clip_share_server-*"
+        path: ${{ github.workspace }}
+        merge-multiple: true
+
+    - name: Download AppImage
+      uses: actions/download-artifact@v8
+      with:
+        pattern: "*.AppImage"
         path: ${{ github.workspace }}
         merge-multiple: true
 
@@ -526,7 +544,7 @@ jobs:
         mkdir release
         mv "${{env.FILE_LINUX_AMD64}}" "${{env.FILE_LINUX_ARM64}}" "${{env.FILE_LINUX_ARMv7}}" \
         "${{env.FILE_WINDOWS32}}" "${{env.FILE_WINDOWS64}}" "${{env.FILE_WINDOWS32_NO_SSL}}" \
-        "${{env.FILE_WINDOWS64_NO_SSL}}" "${{env.FILE_MACOS}}" release/
+        "${{env.FILE_WINDOWS64_NO_SSL}}" "${{env.FILE_MACOS}}" *.AppImage release/
         mv "${{env.INSTALLER_WINDOWS}}/${{env.INSTALLER_WINDOWS}}" release/
         mv .github/workflows/resources/clipshare.conf release/
         mv helper_tools/install-online-linux-mac.sh release/install-linux-mac.sh

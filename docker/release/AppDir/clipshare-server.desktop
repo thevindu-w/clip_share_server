@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=ClipShare Server
+Exec=clip_share
+Icon=clipshare_icon
+Categories=Utility;
+Name[en_US]=clipshare-server.desktop

@@ -6,3 +6,7 @@ glibc_version=$(echo -n "${ldd_head##* }" | grep -oE '[0-9]+\.[0-9]+' | head -n 
 libssl_version="$(ldd clip_share | grep -oE 'libssl\.so\.[0-9]+' | head -n 1 | cut -d '.' -f 3)"
 
 mv -n clip_share "dist/clip_share_GLIBC-${glibc_version}_libssl-${libssl_version}" || echo 'Not replacing'
+
+if [ -f clipshare-server.AppImage ]; then
+    mv -n clipshare-server.AppImage dist/
+fi

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+tmpdir="$(dirname "$0")"
+export LD_LIBRARY_PATH="${tmpdir}/usr/lib/x86_64-linux-gnu/"
+exec "${tmpdir}/usr/bin/clip_share" "$@"

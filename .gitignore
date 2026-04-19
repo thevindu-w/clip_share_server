@@ -2,8 +2,10 @@
 clip_share
 clip_share_no_ssl
 clip_share_web
-build*
+*.AppImage
+build*/
 *.tar.*
+*.tgz
 *.tar
 *.exe
 *.res
