@@ -2,7 +2,7 @@
 
 . init.sh
 
-responseDump=$(echo -n "${proto}${method}${disp}" | hex2bin | client_tool)
+responseDump=$(echo -n "${proto}${method}${disp}${ack_v4}" | hex2bin | client_tool)
 
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"

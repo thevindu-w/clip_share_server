@@ -4,7 +4,7 @@
 
 copy_image "$imgSample"
 
-responseDump=$(echo -n "${proto}${method}" | hex2bin | client_tool)
+responseDump=$(echo -n "${proto}${method}${ack_v4}" | hex2bin | client_tool)
 
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"
