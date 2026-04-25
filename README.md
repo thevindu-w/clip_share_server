@@ -22,7 +22,7 @@ ClipShare is a lightweight and cross-platform tool for clipboard sharing. ClipSh
     - Desktop client: [https://github.com/thevindu-w/clip_share_desktop/releases](https://github.com/thevindu-w/clip_share_desktop/releases/latest) (Other installation methods are available in the [Installation section of the desktop client](https://github.com/thevindu-w/clip_share_desktop#installation).)
 1. Start sharing clipboard contents across devices.
 
-    Copy some text on one device and use the ClipShare client to share it to the device running the server.
+    Copy some text on one device and use the ClipShare client to share it from/to the device running the server.
 
 More customization options, other installation options, and detailed instructions on each step are described below in the [How to Use](#how-to-use) section.
 
@@ -51,9 +51,9 @@ Download the server from <a href="https://github.com/thevindu-w/clip_share_serve
 </tr>
 <tr>
 <td align="center">
-<a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" width="250"/></a><br>
+<a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroidLogo.png" alt="Get it on IzzyOnDroid" width="100"/></a><br>
 Download the Android client app
-from <a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare">apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare</a>.<br>
+from <a href="https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare">IzzyOnDroid</a>
 or from <a href="https://github.com/thevindu-w/clip_share_client/releases">GitHub Releases</a>.
 </td>
 <td align="center">
@@ -337,8 +337,6 @@ client_selects_display=false
 cut_sent_files=false
 min_proto_version=1
 max_proto_version=3
-
-# Windows and macOS only
 tray_icon=true
 ```
 </details>
@@ -374,7 +372,7 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `min_proto_version` | The minimum protocol version the server should accept from a client after negotiation. | Any protocol version number greater than or equal to the minimum protocol version the server has implemented. (ex: `2`) | The minimum protocol version the server has implemented |
 | `max_proto_version` | The maximum protocol version the server should accept from a client after negotiation. | Any protocol version number less than or equal to the maximum protocol version the server has implemented. (ex: `3`) | The maximum protocol version the server has implemented |
 | `method_get_text_enabled`<br>`method_send_text_enabled`<br>`method_get_files_enabled`<br>`method_send_files_enabled`<br>`method_get_image_enabled`<br>`method_get_copied_image_enabled`<br>`method_get_screenshot_enabled`<br>`method_info_enabled` | These configuration keys map to methods in ClipShare. They separately define whether the corresponding method is enabled or not. The values `true` or `1` will allow clients to use the method, while `false` or `0` will disable the method. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
-| `tray_icon` | Whether the application should display a system tray icon (menu icon on macOS). This option is available only on Windows and macOS. The values `true` or `1` will display the icon, while `false` or `0` will prevent displaying the icon. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
+| `tray_icon` | Whether the application should display a system tray icon (menu icon on macOS). The values `true` or `1` will display the icon, while `false` or `0` will prevent displaying the icon. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
 
 <br>
 
