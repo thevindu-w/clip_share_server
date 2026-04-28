@@ -41,7 +41,7 @@ responseDump=$(echo -n "${proto}${method}${fileCount}${chunks}" | hex2bin | clie
 protoAck="$PROTO_SUPPORTED"
 methodAck="$METHOD_OK"
 
-expected="${protoAck}${methodAck}"
+expected="${protoAck}${methodAck}${ack_v4}"
 
 if [ "$responseDump" != "$expected" ]; then
     showStatus info 'Incorrect response.'
