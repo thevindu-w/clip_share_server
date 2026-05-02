@@ -1,6 +1,6 @@
 ARG DISTRO='ubuntu'
 
-FROM ubuntu:noble AS ubuntu_builder
+FROM ubuntu:resolute AS ubuntu_builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev libgtk-3-dev
@@ -10,7 +10,7 @@ RUN apt-get install --no-install-recommends -y openssl xclip python3-minimal dif
 
 RUN mkdir -p /debs
 WORKDIR /debs
-RUN apt-get download xvfb libunwind8 libgl1 libpixman-1-0 libxfont2 libglvnd0 libglx0 libfontenc1 libfreetype6 libbrotli1 xkb-data libxkbfile1 x11-xkb-utils
+RUN apt-get download xvfb libnettle8t64 libunwind8 libgl1 libpixman-1-0 libxfont2 libglvnd0 libglx0 libfontenc1 libfreetype6 libbrotli1 xkb-data libxkbfile1 x11-xkb-utils
 RUN dpkg --force-depends -i ./*.deb 2>/dev/null && apt-get clean -y
 
 FROM fedora:43 AS fedora_builder
