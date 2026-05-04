@@ -72,11 +72,11 @@ endif
 ifeq ($(detected_OS),Linux)
 	OBJS_C+= utils/linux_status_icon.o xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 	OBJS_S+= res/linux/icon_blob.o
-	CFLAGS+= $(shell pkg-config --cflags gtk+-3.0) -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
+	CFLAGS+= $(shell pkg-config --cflags gtk+-3.0 ayatana-appindicator3-0.1) -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS_OPTIM=-Os
 	LDLIBS_NO_SSL=-lunistring -lX11 -lXmu -lXt -lxcb -lxcb-randr -lpng -ldl
 	LDLIBS_SSL=-lssl -lcrypto
-	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections
+	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections,-z,noexecstack
 else ifeq ($(detected_OS),Windows)
 	OBJS_C+= utils/win_image.o
 	CFLAGS+= -Wformat-signedness
