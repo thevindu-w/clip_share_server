@@ -10,7 +10,7 @@ if (([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]:
 $VERSION_DEFAULT =
 $VERSION = "$VERSION_DEFAULT"
 if (-Not "$VERSION") {
-    $VERSION = Read-Host 'Enter version (ex: 3.2.0)'
+    $VERSION = Read-Host 'Enter version (ex: 4.1.1)'
 }
 $VERSION = ([regex]'[0-9]+\.[0-9]+\.[0-9]+').Matches("$VERSION")[0]
 if (-Not "$VERSION") {

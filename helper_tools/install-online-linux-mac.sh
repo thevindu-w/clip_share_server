@@ -66,7 +66,7 @@ require_tool grep
 
 VERSION_DEFAULT=
 if [ -z "$VERSION_DEFAULT" ]; then
-    read -p 'Enter version (ex: 3.2.0): ' VERSION_DEFAULT
+    read -p 'Enter version (ex: 4.1.1): ' VERSION_DEFAULT
 fi
 VERSION="$(echo -n "${VERSION_DEFAULT}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')" || error_exit 'Invalid version'
 
