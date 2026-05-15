@@ -43,7 +43,7 @@ jobs:
 
   Linux-x86_64:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     needs:
     - Checks
     - Build-and-Test
@@ -80,6 +80,11 @@ jobs:
         docker buildx build -t clipshare:ubuntu24 -f docker/release/Dockerfile \
         --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=noble' .
 
+    - name: Build on Ubuntu 26
+      run: |
+        docker buildx build -t clipshare:ubuntu26 -f docker/release/Dockerfile \
+        --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=resolute' .
+
     - name: Build on Arch Linux
       run: docker buildx build -t clipshare:arch -f docker/release/Dockerfile --build-arg 'DISTRO=arch' .
 
@@ -94,6 +99,7 @@ jobs:
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu20
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu22
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu24
+        docker run -v './dist:/home/user/src/dist' clipshare:ubuntu26
         docker run -v './dist:/home/user/src/dist' clipshare:arch
         docker run -v './dist:/home/user/src/dist' clipshare:fedora
         [ -f helper_tools/install-linux.sh ] && cp helper_tools/install-linux.sh dist/
