@@ -504,6 +504,7 @@ jobs:
       contents: write
       id-token: write
       attestations: write
+      artifact-metadata: write
 
     steps:
     - name: Check out repository code
@@ -566,7 +567,7 @@ jobs:
         sha256sum -b * >SHA2-256SUM
 
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v4
+      uses: actions/attest@v4
       with:
         subject-path: "release/SHA2-256SUM"
 
