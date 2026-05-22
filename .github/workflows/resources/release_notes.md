@@ -15,5 +15,5 @@ This is Version <VERSION> with support for protocol versions 1, 2, 3, and 4.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Add a new feature to show a status icon on Linux.
-- Enable the config option `tray_icon` on Linux to control the status icon.
+- Use AppIndicator for the status icon on Linux.
+- Fix Windows installer not creating the configuration file on a different drive.
