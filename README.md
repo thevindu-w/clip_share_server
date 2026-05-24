@@ -448,22 +448,24 @@ If you changed the configuration file, you must restart the server to apply the 
 * libpng
 * libssl
 * libunistring
+* libgtk-3
+* libayatana-appindicator3
 
   They can be installed with the following command:
 
 * On Debian-based or Ubuntu-based distros,
   ```bash
-  sudo apt-get install libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev
+  sudo apt-get install libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev libgtk-3-dev libayatana-appindicator3-dev
   ```
 
 * On Redhat-based or Fedora-based distros,
   ```bash
-  sudo yum install glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel libunistring-devel
+  sudo yum install glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel libunistring-devel gtk3-devel libayatana-appindicator-gtk3-devel
   ```
 
 * On Arch-based distros,
   ```bash
-  sudo pacman -S libx11 libxmu libpng openssl libunistring
+  sudo pacman -S libx11 libxmu libpng openssl libunistring gtk3 libayatana-appindicator
   ```
 
   glibc should already be available on Arch distros. But you may need to upgrade it with the following command. (You need to do this only if the build fails)
