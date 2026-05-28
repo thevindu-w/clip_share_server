@@ -17,7 +17,7 @@ RUN apt-get download xvfb libnettle8t64 libunwind8 libgl1 libpixman-1-0 libxfont
 RUN apt-get install --no-install-recommends -y -s libgtk-3-dev libayatana-appindicator3-dev | grep "^Inst" | awk '{print $2}' | grep "\-dev$" | sort -u | xargs apt-get download
 RUN ls -1 *.deb | xargs -I {} dpkg -x {} / && rm -f *.deb && if [ -d /lib ] && [ -z "$(ls -A /lib)" ]; then rmdir /lib && ln -s /usr/lib /lib; fi && apt-get install -f -y && apt-get clean -y
 
-FROM fedora:43 AS fedora_builder
+FROM fedora:44 AS fedora_builder
 
 # Install build dependencies
 RUN dnf install --setopt=install_weak_deps=False -y gcc make glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel libunistring-devel gtk3-devel libayatana-appindicator-gtk3-devel

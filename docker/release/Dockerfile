@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y coreutils gcc m
     if [ "$APPIMAGE" = '1' ]; then apt-get install --no-install-recommends -y ca-certificates wget file; fi && \
     apt-get clean -y
 
-FROM fedora:43 AS fedora_builder
+FROM fedora:44 AS fedora_builder
 
 # Install dependencies
 RUN dnf install --setopt=install_weak_deps=False -y coreutils gcc make glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel libunistring-devel gtk3-devel libayatana-appindicator-gtk3-devel
