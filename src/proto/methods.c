@@ -877,6 +877,47 @@ int get_screenshot_v4(socket_t *socket) {
     return EXIT_SUCCESS;
 }
 
+static inline int _get_any_text(socket_t *socket) {
+    uint32_t length = 0;
+    char *buf = NULL;
+    if (get_clipboard_text(&buf, &length) != EXIT_SUCCESS || length <= 0 ||
+        length > configuration.max_text_length) {  // do not change the order
+        write_sock(socket, &(char){STATUS_NO_DATA}, 1);
+        if (buf) free(buf);
+        close_socket_no_wait(socket);
+        return EXIT_FAILURE;
+    }
+    int64_t new_len = convert_eol(&buf, 1);
+    if (new_len <= 0 || !buf) {
+        write_sock(socket, &(char){STATUS_NO_DATA}, 1);
+        return EXIT_FAILURE;
+    }
+    if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) {
+        free(buf);
+        return EXIT_FAILURE;
+    }
+    if (write_sock(socket, &(char){1}, 1) != EXIT_SUCCESS) {
+        free(buf);
+        return EXIT_FAILURE;
+    }
+    if (_send_data(socket, new_len, buf) != EXIT_SUCCESS) {
+        free(buf);
+        return EXIT_FAILURE;
+    }
+    free(buf);
+    return EXIT_SUCCESS;
+}
+
+int get_any_v4(socket_t *socket) {
+    int res = _get_any_text(socket);
+    if (res != EXIT_SUCCESS) {
+        return res;
+    }
+    res = _read_ack(socket);
+    close_socket_no_wait(socket);
+    return res;
+}
+
 int info_v4(socket_t *socket) {
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) return EXIT_FAILURE;
     const size_t len = sizeof(INFO_NAME) - 1;

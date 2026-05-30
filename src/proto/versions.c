@@ -257,8 +257,7 @@ int version_4(socket_t *socket) {
             return get_screenshot_v4(socket);
         }
         case METHOD_GET_ANY: {
-            // TODO(thevindu-w): Implement the method
-            write_sock(socket, &(char){STATUS_METHOD_NOT_IMPLEMENTED}, 1);
+            return get_any_v4(socket);
             return EXIT_SUCCESS;
         }
         case METHOD_INFO: {

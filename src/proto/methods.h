@@ -54,6 +54,7 @@ extern int send_files_v4(socket_t *socket);
 extern int get_image_v4(socket_t *socket);
 extern int get_copied_image_v4(socket_t *socket);
 extern int get_screenshot_v4(socket_t *socket);
+extern int get_any_v4(socket_t *socket);
 extern int info_v4(socket_t *socket);
 #endif
 
