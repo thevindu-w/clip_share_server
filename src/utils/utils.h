@@ -39,6 +39,10 @@
 #define IMG_COPIED_ONLY 1
 #define IMG_SCRN_ONLY 2
 
+#define COPIED_TYPE_NONE 0
+#define COPIED_TYPE_TEXT 1
+#define COPIED_TYPE_FILE 2
+
 #if defined(__linux__) || defined(_WIN32)
 /*
  * In-memory file to write png image
@@ -91,6 +95,11 @@ extern void create_temp_file(void);
  * Wrapper to realloc. In case of failure, free() the ptr and return NULL.
  */
 extern void *realloc_or_free(void *ptr, size_t size) __attribute__((__malloc__));
+
+/*
+ * Returns the data type available in the clipboard
+ */
+extern int8_t get_copied_type(void);
 
 /*
  * Get copied text from clipboard.

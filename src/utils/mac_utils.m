@@ -37,6 +37,23 @@
 
 static inline NSBitmapImageRep *get_copied_image(void);
 
+int8_t get_copied_type(void) {
+    @autoreleasepool {
+        NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+        NSArray *types = [pasteboard types];
+        if (!types) {
+            return COPIED_TYPE_NONE;
+        }
+        if ([types containsObject:NSPasteboardTypeFileURL]) {
+            return COPIED_TYPE_FILE;
+        }
+        if ([types containsObject:NSPasteboardTypeString]) {
+            return COPIED_TYPE_TEXT;
+        }
+        return COPIED_TYPE_NONE;
+    }
+}
+
 int get_clipboard_text(char **bufptr, uint32_t *lenptr) {
     NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
     NSString *copiedString = [pasteBoard stringForType:NSPasteboardTypeString];

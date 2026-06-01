@@ -883,8 +883,9 @@ static inline int _get_any_text(socket_t *socket) {
     if (get_clipboard_text(&buf, &length) != EXIT_SUCCESS || length <= 0 ||
         length > configuration.max_text_length) {  // do not change the order
         write_sock(socket, &(char){STATUS_NO_DATA}, 1);
-        if (buf) free(buf);
-        close_socket_no_wait(socket);
+        if (buf) {
+            free(buf);
+        }
         return EXIT_FAILURE;
     }
     int64_t new_len = convert_eol(&buf, 1);
@@ -896,7 +897,7 @@ static inline int _get_any_text(socket_t *socket) {
         free(buf);
         return EXIT_FAILURE;
     }
-    if (write_sock(socket, &(char){1}, 1) != EXIT_SUCCESS) {
+    if (write_sock(socket, &(char){COPIED_TYPE_TEXT}, 1) != EXIT_SUCCESS) {
         free(buf);
         return EXIT_FAILURE;
     }
@@ -908,12 +909,71 @@ static inline int _get_any_text(socket_t *socket) {
     return EXIT_SUCCESS;
 }
 
-int get_any_v4(socket_t *socket) {
-    int res = _get_any_text(socket);
-    if (res != EXIT_SUCCESS) {
-        return res;
+static inline int _respond_any_files(socket_t *socket, list2 *file_list, size_t path_len) {
+    uint32_t file_cnt = file_list->len;
+    char **files = (char **)file_list->array;
+    if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
     }
-    res = _read_ack(socket);
+    if (write_sock(socket, &(char){COPIED_TYPE_FILE}, 1) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    if (send_size(socket, (int64_t)file_cnt) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    for (uint32_t i = 0; i < file_cnt; i++) {
+        const char *file_path = files[i];
+        if (_transfer_single_file(4, socket, file_path, path_len) != EXIT_SUCCESS) {
+#ifdef DEBUG_MODE
+            puts("Transfer failed");
+#endif
+            return EXIT_FAILURE;
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
+static inline int _get_any_files(socket_t *socket) {
+    dir_files copied_dir_files;
+    get_copied_dirs_files(&copied_dir_files, 1);
+    list2 *file_list = copied_dir_files.lst;
+
+    if ((!file_list) || file_list->len == 0 || file_list->len > configuration.max_file_count) {
+        write_sock(socket, &(char){STATUS_NO_DATA}, 1);
+        if (file_list) {
+            free_list(file_list);
+        }
+        return EXIT_FAILURE;
+    }
+
+    int res = _respond_any_files(socket, file_list, copied_dir_files.path_len);
+    free_list(file_list);
+    return res;
+}
+
+int get_any_v4(socket_t *socket) {
+    int8_t copied_type = get_copied_type();
+    int res;
+    switch (copied_type) {
+        case COPIED_TYPE_TEXT: {
+            res = _get_any_text(socket);
+            break;
+        }
+
+        case COPIED_TYPE_FILE: {
+            res = _get_any_files(socket);
+            break;
+        }
+
+        default: {
+            write_sock(socket, &(char){STATUS_NO_DATA}, 1);
+            return EXIT_FAILURE;
+        }
+    }
+    if (res == EXIT_SUCCESS) {
+        res = _read_ack(socket);
+    }
     close_socket_no_wait(socket);
     return res;
 }

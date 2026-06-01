@@ -965,6 +965,57 @@ static int url_decode(char *str, uint32_t *len_p) {
 
 #ifdef __linux__
 
+int8_t get_copied_type(void) {
+    char *targets;
+    uint32_t targets_len;
+    if (xclip_util(XCLIP_OUT, "TARGETS", &targets_len, &targets) || targets_len <= 0) {  // do not change the order
+#ifdef DEBUG_MODE
+        printf("xclip read TARGETS. len = %" PRIu32 "\n", targets_len);
+#endif
+        if (targets) {
+            free(targets);
+        }
+        return COPIED_TYPE_NONE;
+    }
+
+    // search for copied files
+    const char *token;
+    char found = 0;
+    char *copy = targets;
+    const char *const endptr = targets + targets_len;
+    while ((token = strsep(&copy, "\n"))) {
+        if (!strncmp(token, "x-special/gnome-copied-files", 28)) {
+            found = 1;
+            break;
+        }
+        if (copy < endptr && copy > targets) {
+            *(copy - 1) = '\n';  // restore delemeter of targets
+        }
+    }
+    if (found) {
+        free(targets);
+        return COPIED_TYPE_FILE;
+    }
+
+    // search for text
+    copy = targets;
+    while ((token = strsep(&copy, "\n"))) {
+        if (!(strncmp(token, "text/plain", 10) && strncmp(token, "text/html", 9) && strcmp(token, "UTF8_STRING") &&
+              strcmp(token, "TEXT"))) {
+            found = 1;
+            break;
+        }
+    }
+    free(targets);
+    if (found) {
+        return COPIED_TYPE_TEXT;
+    }
+#ifdef DEBUG_MODE
+    puts("No copied files");
+#endif
+    return COPIED_TYPE_NONE;
+}
+
 int get_clipboard_text(char **buf_ptr, uint32_t *len_ptr) {
     if (xclip_util(XCLIP_OUT, NULL, len_ptr, buf_ptr) != EXIT_SUCCESS || *len_ptr <= 0) {  // do not change the order
 #ifdef DEBUG_MODE
@@ -1234,6 +1285,23 @@ static inline void _wappend(list2 *lst, const wchar_t *wstr) {
         return;
     }
     append(lst, utf8path);
+}
+
+int8_t get_copied_type(void) {
+    int8_t copied_type = COPIED_TYPE_NONE;
+    if (!OpenClipboardWrapper(NULL)) {
+        return copied_type;
+    }
+    if (IsClipboardFormatAvailable(CF_HDROP)) {
+        copied_type = COPIED_TYPE_FILE;
+    } else if (IsClipboardFormatAvailable(CF_UNICODETEXT)) {
+        copied_type = COPIED_TYPE_TEXT;
+    }
+    CloseClipboard();
+#ifdef DEBUG_MODE
+    printf("Copied type = %hhi\n", copied_type);
+#endif
+    return copied_type;
 }
 
 int get_clipboard_text(char **bufptr, uint32_t *lenptr) {
