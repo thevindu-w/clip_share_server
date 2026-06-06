@@ -47,6 +47,9 @@ int8_t get_copied_type(void) {
         if ([types containsObject:NSPasteboardTypeFileURL]) {
             return COPIED_TYPE_FILE;
         }
+        if ([types containsObject:NSPasteboardTypeTIFF] || [types containsObject:NSPasteboardTypePNG]) {
+            return COPIED_TYPE_IMAGE;
+        }
         if ([types containsObject:NSPasteboardTypeString]) {
             return COPIED_TYPE_TEXT;
         }

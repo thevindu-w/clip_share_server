@@ -997,6 +997,22 @@ int8_t get_copied_type(void) {
         return COPIED_TYPE_FILE;
     }
 
+    // search for image
+    copy = targets;
+    while ((token = strsep(&copy, "\n"))) {
+        if (!(strcmp(token, "image/png") && strcmp(token, "image/jpeg"))) {
+            found = 1;
+            break;
+        }
+        if (copy < endptr && copy > targets) {
+            *(copy - 1) = '\n';  // restore delemeter of targets
+        }
+    }
+    if (found) {
+        free(targets);
+        return COPIED_TYPE_IMAGE;
+    }
+
     // search for text
     copy = targets;
     while ((token = strsep(&copy, "\n"))) {
@@ -1294,6 +1310,8 @@ int8_t get_copied_type(void) {
     }
     if (IsClipboardFormatAvailable(CF_HDROP)) {
         copied_type = COPIED_TYPE_FILE;
+    } else if (IsClipboardFormatAvailable(CF_BITMAP)) {
+        copied_type = COPIED_TYPE_IMAGE;
     } else if (IsClipboardFormatAvailable(CF_UNICODETEXT)) {
         copied_type = COPIED_TYPE_TEXT;
     }

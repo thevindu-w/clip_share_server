@@ -42,6 +42,7 @@
 #define COPIED_TYPE_NONE 0
 #define COPIED_TYPE_TEXT 1
 #define COPIED_TYPE_FILE 2
+#define COPIED_TYPE_IMAGE 3
 
 #if defined(__linux__) || defined(_WIN32)
 /*

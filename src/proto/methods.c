@@ -952,6 +952,33 @@ static inline int _get_any_files(socket_t *socket) {
     return res;
 }
 
+static inline int _get_any_image(socket_t *socket) {
+    uint32_t length = 0;
+    char *buf = NULL;
+    if (get_image(&buf, &length, IMG_COPIED_ONLY, 0) != EXIT_SUCCESS || length == 0 ||
+        length > MAX_IMAGE_SIZE) {  // do not change the order
+        write_sock(socket, &(char){STATUS_NO_DATA}, 1);
+        if (buf) {
+            free(buf);
+        }
+        return EXIT_FAILURE;
+    }
+    if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) {
+        free(buf);
+        return EXIT_FAILURE;
+    }
+    if (write_sock(socket, &(char){COPIED_TYPE_IMAGE}, 1) != EXIT_SUCCESS) {
+        free(buf);
+        return EXIT_FAILURE;
+    }
+    if (_send_data(socket, (int64_t)length, buf) != EXIT_SUCCESS) {
+        free(buf);
+        return EXIT_FAILURE;
+    }
+    free(buf);
+    return EXIT_SUCCESS;
+}
+
 int get_any_v4(socket_t *socket) {
     int8_t copied_type = get_copied_type();
     int res;
@@ -963,6 +990,11 @@ int get_any_v4(socket_t *socket) {
 
         case COPIED_TYPE_FILE: {
             res = _get_any_files(socket);
+            break;
+        }
+
+        case COPIED_TYPE_IMAGE: {
+            res = _get_any_image(socket);
             break;
         }
 
