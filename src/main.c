@@ -231,6 +231,7 @@ static inline void _apply_default_conf(void) {
     if (configuration.method_enabled.get_image < 0) configuration.method_enabled.get_image = 1;
     if (configuration.method_enabled.get_copied_image < 0) configuration.method_enabled.get_copied_image = 1;
     if (configuration.method_enabled.get_screenshot < 0) configuration.method_enabled.get_screenshot = 1;
+    if (configuration.method_enabled.get_any < 0) configuration.method_enabled.get_any = 1;
     if (configuration.method_enabled.info < 0) configuration.method_enabled.info = 1;
 
 #ifdef WEB_ENABLED

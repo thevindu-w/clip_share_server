@@ -345,6 +345,8 @@ static void parse_line(char *line, config *cfg) {
         set_is_true(value, &(cfg->method_enabled.get_copied_image));
     } else if (!strcmp("method_get_screenshot_enabled", key)) {
         set_is_true(value, &(cfg->method_enabled.get_screenshot));
+    } else if (!strcmp("method_get_any_enabled", key)) {
+        set_is_true(value, &(cfg->method_enabled.get_any));
     } else if (!strcmp("method_info_enabled", key)) {
         set_is_true(value, &(cfg->method_enabled.info));
     } else if (!strcmp("tray_icon", key)) {
@@ -396,6 +398,7 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->method_enabled.get_image = -1;
     cfg->method_enabled.get_copied_image = -1;
     cfg->method_enabled.get_screenshot = -1;
+    cfg->method_enabled.get_any = -1;
     cfg->method_enabled.info = -1;
 
     cfg->tray_icon = -1;

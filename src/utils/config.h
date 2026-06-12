@@ -74,6 +74,7 @@ typedef struct _config {
         int8_t get_image;
         int8_t get_copied_image;
         int8_t get_screenshot;
+        int8_t get_any;
         int8_t info;
     } method_enabled;
 

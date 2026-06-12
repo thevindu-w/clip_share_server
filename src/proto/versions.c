@@ -70,6 +70,10 @@ static int check_method_enabled(socket_t *socket, int method) {
             if (!configuration.method_enabled.get_screenshot) disabled = 1;
             break;
         }
+        case METHOD_GET_ANY: {
+            if (!configuration.method_enabled.get_any) disabled = 1;
+            break;
+        }
         case METHOD_INFO: {
             if (!configuration.method_enabled.info) disabled = 1;
             break;
