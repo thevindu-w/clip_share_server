@@ -143,6 +143,51 @@
                 information</a> to the server after successfully receiving the image (i.e., immediately before
             terminating the connection).
         </p>
+        <h3 id="get-any">Get Any</h3>
+        <p>
+            This method is used to get any copied type from the server to the client. Once the client requests this
+            method code from the server, and if the server has data of any supported type copied, it acknowledges the
+            client with the status OK. Then the server sends the data type in a single byte. The following data types
+            are supported.
+        </p>
+        <table>
+            <caption>Supported data types</caption>
+            <thead>
+                <tr>
+                    <th>Data type</th>
+                    <th>Type indicator byte (hex encoded)</th>
+                    <th>Rest of the payload</th>
+                </tr>
+            </thead>
+            <tbody class="left-align">
+                <tr>
+                    <td class="center">Text</td>
+                    <td class="center mono">01</td>
+                    <td class="desc">Rest of the payload is the same as the payload of the <a href="#get-text">Get Text
+                            method</a>, starting from the text length.</td>
+                </tr>
+                <tr>
+                    <td class="center">Files</td>
+                    <td class="center mono">02</td>
+                    <td class="desc">Rest of the payload is the same as the payload of the <a href="#get-files">Get
+                            Files method</a>, starting from the number of files.</td>
+                </tr>
+                <tr>
+                    <td class="center">Copied image</td>
+                    <td class="center mono">03</td>
+                    <td class="desc">Rest of the payload is the same as the payload of the <a
+                            href="#get-copied-image-only">Get Copied Image method</a>, starting from the image size.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <p>
+            Once the server sends the data type indicator byte, it sends the copied data, similar to the previous
+            methods as mentioned above in the table. The client sends <a href="#acknowledgement">acknowledgement
+                information</a> to the server after successfully receiving the data item(s). Then, the communication
+            ends, and the connection can be closed. The client may copy the received data item(s) to the clipboard of
+            the client device.
+        </p>
         <h3 id="info">Info</h3>
         <p>
             This method is similar to the <a href="proto_v1.html#info">Info method of previous versions</a>, with the
@@ -172,6 +217,8 @@
                 maximum length of the value is limited to 256 characters.</li>
         </ul>
         <h2 id="acknowledgement">Acknowledgement Information</h2>
+        <p>The device that received the last piece of data should acknowledge the sender with a single acknowledgement
+            byte. This can be used to send the success or failure status of processing the received data.</p>
     </div>
     <div id="fill-page"></div>
     <div id="foot">

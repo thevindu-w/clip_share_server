@@ -115,10 +115,11 @@
                     <td>2</td>
                     <td>NO_DATA</td>
                     <td class="justify">
-                        This status occurs only for methods that get data from the server (ex: get_text, get_files).
-                        This status implies that the method is valid and accepted, but the server has no data to send
-                        (possibly because there is no text or files copied into the clipboard of the server device).
-                        Therefore, the communication ends at this point, and the connection can be closed now.
+                        This status occurs only for methods that get data from the server (ex: get_text, get_files,
+                        etc). This status implies that the method is valid and accepted, but the server has no data to
+                        send (possibly because there is no data of the requested type copied into the clipboard of the
+                        server device). Therefore, the communication ends at this point, and the connection can be
+                        closed now.
                     </td>
                 </tr>
                 <tr>
@@ -164,8 +165,8 @@
         <h3 id="get-text">Get Text</h3>
         <p>
             This method is used to get the copied text from the server to the client. Once the client requests this
-            method code from the server and the server acknowledges the client with the status OK, the server will send
-            the length of the copied text followed by the copied text to the client. Once the copied text is
+            method code from the server, and if the server acknowledges the client with the status OK, the server will
+            send the length of the copied text followed by the copied text to the client. Once the copied text is
             transmitted, the communication ends, and the connection can be closed. The client may copy the received text
             to the clipboard of the client device.
         </p>
@@ -193,9 +194,9 @@
         <p>
             This method is used to get the copied files from the server to the client. This method only supports sending
             regular files (i.e., directories, links, or other types are not supported). Once the client requests this
-            method code from the server and the server acknowledges the client with the status OK, the server will send
-            the number of files encoded as a numeric value as specified above in the notes. After sending the number of
-            files, each file is sent sequentially, as follows.
+            method code from the server, and if the server acknowledges the client with the status OK, the server will
+            send the number of files encoded as a numeric value as specified above in the notes. After sending the
+            number of files, each file is sent sequentially, as follows.
         </p>
         <ul>
             <li>First, the length of the file name is sent. A file name can have at most 1024 bytes after encoding. It
