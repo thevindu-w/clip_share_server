@@ -51,7 +51,7 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         ref: ${{ github.ref }}
 
@@ -75,7 +75,7 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         ref: ${{ github.ref }}
 
@@ -93,7 +93,7 @@ jobs:
 
     steps:
     - name: Check out repository code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         ref: ${{ github.ref }}
 
@@ -221,7 +221,7 @@ jobs:
         mv PatchPE.exe /c/msys64/PatchPE.exe
 
     - name: Check out repository code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         ref: ${{ github.ref }}
 
@@ -250,7 +250,7 @@ jobs:
       run: brew install openssl@3 libunistring
 
     - name: Check out repository code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         ref: ${{ github.ref }}
 
@@ -294,7 +294,7 @@ jobs:
         libgtk-3-dev libayatana-appindicator3-dev
 
     - name: Check out repository code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         ref: ${{ github.ref }}
 
