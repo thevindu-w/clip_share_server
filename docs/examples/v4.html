@@ -1076,6 +1076,371 @@
             </tbody>
         </table>
 
+        <h2 id="get_any-text">Get Any - Text</h2>
+        <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
+        <table>
+            <caption>Example of Get Any method in protocol version 4 with copied text</caption>
+            <thead>
+                <tr>
+                    <th>Phase</th>
+                    <th>Size (bytes)</th>
+                    <th>Client sends</th>
+                    <th>Server sends</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody class="left-align">
+                <tr>
+                    <td class="center" rowspan="2">Version Negotiation</td>
+                    <td class="center">1</td>
+                    <td class="mono">04</td>
+                    <td></td>
+                    <td class="desc">Client requests protocol version 4</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="2">Method selection</td>
+                    <td class="center">1</td>
+                    <td class="mono">7c</td>
+                    <td></td>
+                    <td class="desc">Client requests the Get Any method</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td class="desc">Server accepts the request</td>
+                </tr>
+                <tr>
+                    <td class="center">Data type</td>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td class="desc">Server sends the type of copied data as Text in a single byte \x01.</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="2">Get text</td>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 10</td>
+                    <td class="desc">Server sends the length of copied text as 16 bytes as a 64-bit signed integer in
+                        big-endian format. 0000000000000010 in hexadecimal is 16 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">16</td>
+                    <td></td>
+                    <td class="mono">48 65 6C 6C 6F 20 43 6C 69 70 53 68 61 72 65 21</td>
+                    <td class="desc">Server sends the text copied to the clipboard, which is 16 bytes long when encoded
+                        in UTF-8. The text is "Hello ClipShare!" (without quotes) when decoded.</td>
+                </tr>
+                <tr>
+                    <td class="center">Acknowledge</td>
+                    <td class="center">1</td>
+                    <td class="mono">01</td>
+                    <td></td>
+                    <td class="desc">Client sends the acknowledgement.</td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="5">Communication ends and connection closes</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 id="get_any-files">Get Any - Files</h2>
+        <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
+        <table>
+            <caption>Example of Get Any method in protocol version 4 with copied files</caption>
+            <thead>
+                <tr>
+                    <th colspan="2">Phase</th>
+                    <th>Size (bytes)</th>
+                    <th>Client sends</th>
+                    <th>Server sends</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody class="left-align">
+                <tr>
+                    <td class="center" rowspan="2" colspan="2">Version Negotiation</td>
+                    <td class="center">1</td>
+                    <td class="mono">04</td>
+                    <td></td>
+                    <td class="desc">Client requests protocol version 4</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="2" colspan="2">Method selection</td>
+                    <td class="center">1</td>
+                    <td class="mono">7c</td>
+                    <td></td>
+                    <td class="desc">Client requests the Get Any method</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td class="desc">Server accepts the request</td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="2">Data type</td>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">02</td>
+                    <td class="desc">Server sends the type of copied data as Files in a single byte \x02.</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="12">Get files</td>
+                    <td class="center">File count</td>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 03</td>
+                    <td class="desc">Server sends the number of files as 3 in a 64-bit signed integer in big-endian
+                        format.</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="4">First file</td>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 0E</td>
+                    <td class="desc">Server sends the length of the first file name as 14 bytes as a 64-bit signed
+                        integer in big-endian format. 000000000000000E in hexadecimal is 14 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">14</td>
+                    <td></td>
+                    <td class="mono">66 69 72 73 74 5F 66 69 6C 65 2E 74 78 74</td>
+                    <td class="desc">Server sends the name of the first file, which is 14 bytes long when encoded in
+                        UTF-8. The file name is "first_file.txt" (without quotes) when decoded.</td>
+                </tr>
+                <tr>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 25</td>
+                    <td class="desc">Server sends the size of the first file as 37 bytes as a 64-bit signed integer in
+                        big-endian format. 0000000000000025 in hexadecimal is 37 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">37</td>
+                    <td></td>
+                    <td class="mono">74 68 69 73 20 69 73 20 74 68 65 20 63 6F 6E 74 65 6E 74 20 6F 66 20 74 68 65 20 66
+                        69 72 73 74 20 66 69 6C 65</td>
+                    <td class="desc">Server sends the content of the first file, which is 37 bytes in size. The file
+                        content is "this is the content of the first file" (without quotes).</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="4">Second file</td>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 16</td>
+                    <td class="desc">Server sends the length of the second file name as 22 bytes as a 64-bit signed
+                        integer in big-endian format. 0000000000000016 in hexadecimal is 22 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">22</td>
+                    <td></td>
+                    <td class="mono">66 6F 6C 64 65 72 2F 73 65 63 6F 6E 64 5F 66 69 6C 65 2E 74 78 74</td>
+                    <td class="desc">Server sends the name of the second file, which is 22 bytes long when encoded in
+                        UTF-8. The file name is "folder/second_file.txt" (without quotes) when decoded.</td>
+                </tr>
+                <tr>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 26</td>
+                    <td class="desc">Server sends the size of the second file as 38 bytes as a 64-bit signed integer in
+                        big-endian format. 0000000000000026 in hexadecimal is 38 in decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">38</td>
+                    <td></td>
+                    <td class="mono">74 68 69 73 20 69 73 20 74 68 65 20 63 6F 6E 74 65 6E 74 20 6F 66 20 74 68 65 20 73
+                        65 63 6F 6E 64 20 66 69 6C 65</td>
+                    <td class="desc">Server sends the content of the second file, which is 38 bytes in size. The file
+                        content is "this is the content of the second file" (without quotes).</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="3">Third file</td>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 06</td>
+                    <td class="desc">Server sends the length of the third file name (which is an empty directory) as 6
+                        bytes as a 64-bit signed integer in big-endian format. 0000000000000006 in hexadecimal is 6 in
+                        decimal.</td>
+                </tr>
+                <tr>
+                    <td class="center">6</td>
+                    <td></td>
+                    <td class="mono">65 6D 70 74 79 2F</td>
+                    <td class="desc">Server sends the name of the third file, which is 6 bytes long when encoded in
+                        UTF-8. The file name is "empty/" (without quotes) when decoded. This file name includes the
+                        optional trailing '/' for empty directories.</td>
+                </tr>
+                <tr>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">FF FF FF FF FF FF FF FF</td>
+                    <td class="desc">Server sends the size of the third file (empty directory) as -1 as a 64-bit signed
+                        integer in big-endian format. FFFFFFFFFFFFFFFF in hexadecimal is -1 in 64-bit signed decimal.
+                    </td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="2">Acknowledge</td>
+                    <td class="center">1</td>
+                    <td class="mono">01</td>
+                    <td></td>
+                    <td class="desc">Client sends the acknowledgement.</td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="6">Communication ends and connection closes</td>
+                </tr>
+            </tbody>
+        </table>
+        <p>The files transfered are in the following structure,</p>
+        <pre class="tree">
+.
+├── folder/
+│   └── second_file.txt
+├── empty/
+└── first_file.txt
+        </pre>
+
+        <h2 id="get_any-image">Get Any - Image</h2>
+        <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
+        <table>
+            <caption>Example of Get Any method in protocol version 4 with copied image</caption>
+            <thead>
+                <tr>
+                    <th>Phase</th>
+                    <th>Size (bytes)</th>
+                    <th>Client sends</th>
+                    <th>Server sends</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody class="left-align">
+                <tr>
+                    <td class="center" rowspan="2">Version Negotiation</td>
+                    <td class="center">1</td>
+                    <td class="mono">04</td>
+                    <td></td>
+                    <td class="desc">Client requests protocol version 4</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="2">Method selection</td>
+                    <td class="center">1</td>
+                    <td class="mono">7c</td>
+                    <td></td>
+                    <td class="desc">Client requests the Get Any method</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td class="desc">Server accepts the request</td>
+                </tr>
+                <tr>
+                    <td class="center">Data type</td>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">03</td>
+                    <td class="desc">Server sends the type of copied data as Image in a single byte \x03.</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="2">Get Copied Image</td>
+                    <td class="center">8</td>
+                    <td></td>
+                    <td class="mono">00 00 00 00 00 00 00 5F</td>
+                    <td class="desc">Server sends the length of the image copied to the clipboard as 95 bytes as a
+                        64-bit signed integer in big-endian format. 000000000000005F in hexadecimal is 95 in decimal.
+                    </td>
+                </tr>
+                <tr>
+                    <td class="center">95</td>
+                    <td></td>
+                    <td class="mono">89 50 4E 47 0D 0A 1A 0A 00 00 00 0D 49 48 44 52 00 00 00 05 00 00 00 05 08 02 00 00
+                        00 02 0D B1 B2 00 00 00 26 49 44 41 54 08 D7 55 CB 21 12 00 20 10 80 40 70 FC FF 97 31 68 F0 68
+                        1B B0 42 B9 95 01 F5 AC 8B BF 9A D6 CD FC 0F 82 8C 0E 05 22 B1 80 9C 00 00 00 00 49 45 4E 44 AE
+                        42 60 82</td>
+                    <td class="desc">Server sends the image copied to the clipboard, which is 95 bytes long.<br>
+                        <div class="image"><span>The image is: </span><img alt="shared item"
+                                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAIAAAACDbGyAAAAJklEQVQI11XLIRIAIBCAQHD8/5cxaPBoG7BCuZUB9ayLv5rWzfwPgowOBSKxgJwAAAAASUVORK5CYII=">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="center">Acknowledge</td>
+                    <td class="center">1</td>
+                    <td class="mono">01</td>
+                    <td></td>
+                    <td class="desc">Client sends the acknowledgement.</td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="5">Communication ends and connection closes</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 id="get_any-no_data">Get Any (no data)</h2>
+        <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
+        <table>
+            <caption>Example of Get Any method in protocol version 4 with no copied data</caption>
+            <thead>
+                <tr>
+                    <th>Phase</th>
+                    <th>Size (bytes)</th>
+                    <th>Client sends</th>
+                    <th>Server sends</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody class="left-align">
+                <tr>
+                    <td class="center" rowspan="2">Version Negotiation</td>
+                    <td class="center">1</td>
+                    <td class="mono">04</td>
+                    <td></td>
+                    <td class="desc">Client requests protocol version 4</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">01</td>
+                    <td class="desc">Server accepts the request to use protocol version 4</td>
+                </tr>
+                <tr>
+                    <td class="center" rowspan="2">Method selection</td>
+                    <td class="center">1</td>
+                    <td class="mono">7c</td>
+                    <td></td>
+                    <td class="desc">Client requests the Get Any method</td>
+                </tr>
+                <tr>
+                    <td class="center">1</td>
+                    <td></td>
+                    <td class="mono">02</td>
+                    <td class="desc">Server indicates that there is no data copied to the clipboard.</td>
+                </tr>
+                <tr>
+                    <td class="center" colspan="5">Communication ends and connection closes</td>
+                </tr>
+            </tbody>
+        </table>
+
         <h2 id="info">Info</h2>
         <p>Note that all the bytes in the "Client sends" and "Server Sends" columns are hex-encoded.</p>
         <table>
