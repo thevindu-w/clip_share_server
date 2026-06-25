@@ -36,7 +36,8 @@ More customization options, other installation options, and detailed instruction
 </tr>
 <tr>
 <td align="center">
-<a href="https://github.com/thevindu-w/clip_share_server/releases"><img src="https://raw.githubusercontent.com/thevindu-w/clip_share_client/master/fastlane/metadata/android/en-US/images/icon.png" alt="Get it on GitHub" width="100"/></a><br>
+<a href="https://github.com/thevindu-w/clip_share_server/releases"><img src="https://raw.githubusercontent.com/thevindu-w/clip_share_client/master/fastlane/metadata/android/en-US/images/icon.png" alt="Get it on GitHub" width="100" style="vertical-align: middle"/></a>&nbsp;
+<a href="https://github.com/thevindu-w/clip_share_server/releases"><img src="https://docs.appimage.org/_images/download-appimage-banner.svg" alt="Get it on GitHub" width="150" style="vertical-align: middle"/></a><br>
 Download the server from <a href="https://github.com/thevindu-w/clip_share_server/releases">Releases</a>.
 </td>
 </tr>
