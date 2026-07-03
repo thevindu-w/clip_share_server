@@ -245,6 +245,19 @@ static inline void set_uint16(const char *str, uint16_t *conf_ptr) {
     *conf_ptr = (uint16_t)value;
 }
 
+static inline int validate_name(const char *name) {
+    for (unsigned i = 0; i <= 256; i++) {
+        char c = name[i];
+        if (c == '\0') {
+            return i > 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+        }
+        if (c == '=' || c < 0x20 || c > 0x7e) {
+            return EXIT_FAILURE;
+        }
+    }
+    return EXIT_FAILURE;
+}
+
 /*
  * Parse a single line in the config file and update the config if the line
  * contained a valid configuration.
@@ -351,6 +364,14 @@ static void parse_line(char *line, config *cfg) {
         set_is_true(value, &(cfg->method_enabled.info));
     } else if (!strcmp("tray_icon", key)) {
         set_is_true(value, &(cfg->tray_icon));
+    } else if (!strcmp("info_name", key)) {
+        if (validate_name(value) != EXIT_SUCCESS) {
+            char msg[64];
+            if (snprintf_check(msg, 64, "Error: Invalid server name %s", value)) msg[0] = 0;
+            error_exit(msg);
+        }
+        if (cfg->info.name) free(cfg->info.name);
+        cfg->info.name = strdup(value);
 #ifdef DEBUG_MODE
     } else {
         printf("Unknown key \"%s\"\n", key);
@@ -402,6 +423,8 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->method_enabled.info = -1;
 
     cfg->tray_icon = -1;
+
+    cfg->info.name = NULL;
 
     if (parse_ip(NULL, &(cfg->bind_addr)) != EXIT_SUCCESS) error_exit("Error initializing bind address");
     if (parse_ip(NULL, &(cfg->bind_addr_udp)) != EXIT_SUCCESS) error_exit("Error initializing bind address UDP");
@@ -462,5 +485,9 @@ void clear_config(config *cfg) {
     if (cfg->working_dir) {
         free(cfg->working_dir);
         cfg->working_dir = NULL;
+    }
+    if (cfg->info.name) {
+        free(cfg->info.name);
+        cfg->info.name = NULL;
     }
 }

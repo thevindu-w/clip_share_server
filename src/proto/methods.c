@@ -1011,12 +1011,23 @@ int get_any_v4(socket_t *socket) {
 }
 
 int info_v4(socket_t *socket) {
+    char payload[4097] = INFO_NAME;
+    size_t rem = sizeof(payload) - sizeof(INFO_NAME);
+    char *ptr = payload + sizeof(INFO_NAME) - 1;
+
+    if (configuration.info.name) {
+        if (!snprintf_check(ptr, rem, "\nserver_name=%s", configuration.info.name)) {
+            size_t len = strnlen(ptr, rem);
+            ptr += len;
+            rem -= len;
+        }
+    }
+    *ptr = '\0';
+
     if (write_sock(socket, &(char){STATUS_OK}, 1) != EXIT_SUCCESS) return EXIT_FAILURE;
-    const size_t len = sizeof(INFO_NAME) - 1;
-    if (_send_data(socket, (int64_t)len, INFO_NAME) != EXIT_SUCCESS) {
+    if (_send_data(socket, (int64_t)(ptr - payload), payload) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
-    // TODO(thevindu-w): Send more info
     if (_read_ack(socket) != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }

@@ -79,6 +79,10 @@ typedef struct _config {
     } method_enabled;
 
     int8_t tray_icon;
+
+    struct {
+        char *name;
+    } info;
 } config;
 
 /*
