@@ -132,7 +132,7 @@ jobs:
 
   Linux-ARM:
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 20
+    timeout-minutes: 25
     needs:
     - Checks
     - Build-and-Test
@@ -151,20 +151,46 @@ jobs:
         echo ARCHIVE_NAMEv7_NO_EXT="${archiveV7}" >> $GITHUB_ENV
         echo ARCHIVE_NAMEv7="${archiveV7}.tar.gz" >> $GITHUB_ENV
 
+    - name: Build on Ubuntu 22 arm64
+      run: |
+        docker buildx build -t clipshare:ubuntu22 -f docker/release/Dockerfile \
+        --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=jammy' .
+
     - name: Build on Ubuntu 24 arm64
       run: |
-        docker buildx build -t clipshare:ubuntu -f docker/release/Dockerfile \
+        docker buildx build -t clipshare:ubuntu24 -f docker/release/Dockerfile \
         --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=noble' .
 
-    - name: Build on Debian arm64
-      run: docker buildx build -t clipshare:debian -f docker/release/Dockerfile --build-arg 'DISTRO=debian' .
+    - name: Build on Ubuntu 26 arm64
+      run: |
+        docker buildx build -t clipshare:ubuntu26 -f docker/release/Dockerfile \
+        --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=resolute' .
+
+    - name: Build on Debian Bullseye arm64
+      run: |
+        docker buildx build -t clipshare:debian11 -f docker/release/Dockerfile \
+        --build-arg 'DISTRO=debian' --build-arg 'VERSION=bullseye' .
+
+    - name: Build on Debian Bookworm arm64
+      run: |
+        docker buildx build -t clipshare:debian12 -f docker/release/Dockerfile \
+        --build-arg 'DISTRO=debian' --build-arg 'VERSION=bookworm' .
+
+    - name: Build on Debian Trixie arm64
+      run: |
+        docker buildx build -t clipshare:debian13 -f docker/release/Dockerfile \
+        --build-arg 'DISTRO=debian' --build-arg 'VERSION=trixie' .
 
     - name: Copy arm64 binaries
       run: |
         mkdir dist
         chmod 777 dist
-        docker run -v './dist:/home/user/src/dist' clipshare:ubuntu
-        docker run -v './dist:/home/user/src/dist' clipshare:debian
+        docker run -v './dist:/home/user/src/dist' clipshare:ubuntu22
+        docker run -v './dist:/home/user/src/dist' clipshare:ubuntu24
+        docker run -v './dist:/home/user/src/dist' clipshare:ubuntu26
+        docker run -v './dist:/home/user/src/dist' clipshare:debian11
+        docker run -v './dist:/home/user/src/dist' clipshare:debian12
+        docker run -v './dist:/home/user/src/dist' clipshare:debian13
         [ -f helper_tools/install-linux.sh ] && cp helper_tools/install-linux.sh dist/
         sudo chmod +x dist/*
         cd dist
@@ -177,12 +203,12 @@ jobs:
     - name: Build on Debian arm/v7
       run: |
         docker buildx build --platform=linux/arm/v7 -t clipshare:debian -f docker/release/Dockerfile \
-        --build-arg 'DISTRO=debian' .
+        --build-arg 'DISTRO=debian' --build-arg 'VERSION=bullseye' .
 
     - name: Build on Ubuntu arm/v7
       run: |
         docker buildx build --platform=linux/arm/v7 -t clipshare:ubuntu -f docker/release/Dockerfile \
-        --build-arg 'DISTRO=ubuntu' .
+        --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=resolute' .
 
     - name: Copy arm/v7 binaries
       run: |

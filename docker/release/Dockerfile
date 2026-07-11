@@ -21,7 +21,7 @@ FROM archlinux:base AS arch_builder
 RUN pacman -Sy && \
     pacman -S --needed --noconfirm coreutils gcc make pkgconf glibc libx11 libxmu libpng openssl libunistring gtk3 libayatana-appindicator
 
-FROM debian:bullseye-slim AS debian_builder
+FROM debian:${VERSION}-slim AS debian_builder
 
 # Install dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y coreutils gcc make libc6-dev libx11-dev libxmu-dev libxcb-randr0-dev libpng-dev libssl-dev libunistring-dev libgtk-3-dev libayatana-appindicator3-dev && apt-get clean -y
