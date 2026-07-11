@@ -152,6 +152,10 @@ static int doOut(Window win, unsigned long *len_ptr, char **buf_ptr, xclip_optio
 
     *len_ptr = sel_len;
     if (sel_len > 0) {
+        if (sel_len + 1 == 0) {
+            if (sel_buf) free(sel_buf);
+            return EXIT_FAILURE;
+        }
         *buf_ptr = xcmalloc(sel_len + 1);
         memcpy(*buf_ptr, sel_buf, sel_len);
         (*buf_ptr)[sel_len] = 0;
