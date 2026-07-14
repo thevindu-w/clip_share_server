@@ -15,5 +15,4 @@ This is Version <VERSION> with support for protocol versions 1, 2, 3, and 4.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Implement method "Get Any" to retrieve any copied type.
-- Add new configuration option method_get_any_enabled to enable/disable the method.
+- Add new configuration option info_name to send a server name to clients.
