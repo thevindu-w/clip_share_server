@@ -374,6 +374,7 @@ Note that all the lines in the configuration file are optional. You may omit som
 | `max_proto_version` | The maximum protocol version the server should accept from a client after negotiation. | Any protocol version number less than or equal to the maximum protocol version the server has implemented. (ex: `3`) | The maximum protocol version the server has implemented |
 | `method_get_text_enabled`<br>`method_send_text_enabled`<br>`method_get_files_enabled`<br>`method_send_files_enabled`<br>`method_get_image_enabled`<br>`method_get_copied_image_enabled`<br>`method_get_screenshot_enabled`<br>`method_get_any_enabled`<br>`method_info_enabled` | These configuration keys map to methods in ClipShare. They separately define whether the corresponding method is enabled or not. The values `true` or `1` will allow clients to use the method, while `false` or `0` will disable the method. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
 | `tray_icon` | Whether the application should display a system tray icon (menu icon on macOS). The values `true` or `1` will display the icon, while `false` or `0` will prevent displaying the icon. | `true`, `false`, `1`, `0` (Case insensitive) | `true` |
+| `info_name` | The name of the server to be sent to clients. The name is sent to clients only if this configuration option is present in the file. | Any name of length not exceeding 255 printable ASCII characters except '`=`'. | \<Unspecified\> |
 
 <br>
 
