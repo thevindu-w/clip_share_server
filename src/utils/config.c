@@ -87,7 +87,10 @@ static inline list2 *get_client_list(const char *filename) {
     if (has_error) {
         free_list(client_list);
         char msg[2048];
-        snprintf_check(msg, sizeof(msg), "Error: file %s has invalid utf8 encoding", filename);
+        if (snprintf_check(msg, sizeof(msg), "Error: file %s has invalid utf8 encoding", filename)) {
+            error_exit("Error: client list file has invalid utf8 encoding");
+        }
+        msg[2047] = '\0';
         error_exit(msg);
     }
     return client_list;
@@ -317,13 +320,17 @@ static void parse_line(char *line, config *cfg) {
     } else if (!strcmp("bind_address", key)) {
         if (parse_ip(value, &(cfg->bind_addr)) != EXIT_SUCCESS) {
             char msg[64];
-            if (snprintf_check(msg, 64, "Error: Invalid bind address %s", value)) msg[0] = 0;
+            if (snprintf_check(msg, sizeof(msg), "Error: Invalid bind address %s", value)) {
+                error_exit("Error: Invalid bind address: bind_address");
+            }
             error_exit(msg);
         }
     } else if (!strcmp("bind_address_udp", key)) {
         if (parse_ip(value, &(cfg->bind_addr_udp)) != EXIT_SUCCESS) {
             char msg[64];
-            if (snprintf_check(msg, 64, "Error: Invalid UDP bind address %s", value)) msg[0] = 0;
+            if (snprintf_check(msg, sizeof(msg), "Error: Invalid UDP bind address %s", value)) {
+                error_exit("Error: Invalid UDP bind address: bind_address_udp");
+            }
             error_exit(msg);
         }
     } else if (!strcmp("restart", key)) {
@@ -367,7 +374,9 @@ static void parse_line(char *line, config *cfg) {
     } else if (!strcmp("info_name", key)) {
         if (validate_name(value) != EXIT_SUCCESS) {
             char msg[64];
-            if (snprintf_check(msg, 64, "Error: Invalid server name %s", value)) msg[0] = 0;
+            if (snprintf_check(msg, sizeof(msg), "Error: Invalid server name %s", value)) {
+                error_exit("Error: Invalid server name: info_name");
+            }
             error_exit(msg);
         }
         if (cfg->info.name) free(cfg->info.name);
