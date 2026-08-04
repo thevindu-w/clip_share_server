@@ -46,6 +46,9 @@
 typedef int socklen_t;
 #endif
 
+#define RCV_BUF_SZ 4
+#define INFO_LEN (sizeof(INFO_NAME) - 1)
+
 void udp_server(void) {
     if (configuration.ports.udp <= 0) return;
 #if (defined(__linux__) || defined(__APPLE__)) && !defined(NO_SSL)
@@ -88,12 +91,9 @@ void udp_server(void) {
         addr_len = sizeof(client_addr4);
     }
 
-    const size_t info_len = sizeof(INFO_NAME) - 1;
-
     int n;
     socklen_t len;
-    const int buf_sz = 4;
-    char buffer[buf_sz];
+    char buffer[RCV_BUF_SZ];
 #ifdef DEBUG_MODE
     puts("UDP server started");
 #endif
@@ -103,7 +103,7 @@ void udp_server(void) {
         if (n <= 0) {
             continue;
         }
-        if (n >= buf_sz) n = buf_sz - 1;
+        if (n >= RCV_BUF_SZ) n = RCV_BUF_SZ - 1;
         buffer[n] = '\0';
 
 #ifdef DEBUG_MODE
@@ -113,10 +113,6 @@ void udp_server(void) {
         if (strcmp(buffer, "in")) {
             continue;
         }
-#ifdef _WIN32
-        sendto(sockfd, INFO_NAME, (int)info_len, MSG_CONFIRM, addr_p, len);
-#else
-        sendto(sockfd, INFO_NAME, info_len, MSG_CONFIRM, addr_p, len);
-#endif
+        sendto(sockfd, INFO_NAME, INFO_LEN, MSG_CONFIRM, addr_p, len);
     }
 }
