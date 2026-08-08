@@ -1,7 +1,9 @@
 This is Version <VERSION> with support for protocol versions 1, 2, 3, and 4.
 
 **Notes:**
-- To use ClipShare, you will need a client app. An Android client app is available at [apt.izzysoft.de](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare/). (Source: [github.com/thevindu-w/clip_share_client](https://github.com/thevindu-w/clip_share_client))
+- To use ClipShare, you will need a client app.
+  - An Android client app is available at [apt.izzysoft.de](https://apt.izzysoft.de/fdroid/index/apk/com.tw.clipshare/). (Source: [github.com/thevindu-w/clip_share_client](https://github.com/thevindu-w/clip_share_client))
+  - A Desktop client app is available at [github.com/thevindu-w/clip_share_desktop](https://github.com/thevindu-w/clip_share_desktop/releases/latest)
 - The `clipshare.conf` file in assets is a sample. You may need to modify it.
 - Windows version is tested on Windows 7 and later. It has 32-bit (`x86`) and 64-bit (`x86_64`) versions. You can select the one that is suitable for your OS. If you use the installer script, it will automatically select the suitable version.
 - There is a `no_ssl` variant for Windows. It is smaller in size but lacks SSL/TLS support.
@@ -15,4 +17,5 @@ This is Version <VERSION> with support for protocol versions 1, 2, 3, and 4.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Add new configuration option info_name to send a server name to clients.
+- Fix potential buffer overflows and other issues.
+- Code quality improvements.
