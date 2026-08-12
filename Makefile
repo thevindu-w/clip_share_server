@@ -31,10 +31,12 @@ BUILD_DIR=build
 MIN_PROTO=1
 MAX_PROTO=4
 INFO_NAME=clip_share
+HEADLESS=0
 
 CC=gcc
 CPP=cpp
 CFLAGS=-c -pipe -I$(SRC_DIR) --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wpedantic -pedantic-errors -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Woverlength-strings
+CFLAGS+= -DHEADLESS=$(HEADLESS)
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 VPATH=$(SRC_DIR)
 

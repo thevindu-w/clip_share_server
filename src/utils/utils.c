@@ -35,10 +35,12 @@
 #include <utils/list_utils.h>
 #include <utils/utils.h>
 #ifdef __linux__
-#include <X11/Xmu/Atoms.h>
 #include <utils/linux_status_icon.h>
+#if HEADLESS != 1
+#include <X11/Xmu/Atoms.h>
 #include <xclip/xclip.h>
 #include <xscreenshot/xscreenshot.h>
+#endif
 #endif
 #if defined(__linux__) || defined(__APPLE__)
 #include <time.h>
@@ -116,7 +118,7 @@ void error_exit(const char *msg) {
     exit(EXIT_FAILURE);
 }
 
-#ifdef __linux__
+#if defined(__linux__) && (HEADLESS != 1)
 typedef struct _DisplayRec {
     struct _DisplayRec *next;
     Display *dpy;
@@ -156,8 +158,10 @@ void cleanup(void) {
     clear_config(&configuration);
 #ifdef __linux__
     cleanup_status_icon();
+#if HEADLESS != 1
     if (_XA_CLIPBOARD) freeAtomPtr(_XA_CLIPBOARD);
     if (_XA_UTF8_STRING) freeAtomPtr(_XA_UTF8_STRING);
+#endif
 #elif defined(_WIN32)
     WSACleanup();
     if (temp_file) {
@@ -965,6 +969,115 @@ static int url_decode(char *str, uint32_t *len_p) {
 
 #ifdef __linux__
 
+#if HEADLESS == 1
+
+#define CLIPBOARD_DATA_DIR "/tmp/clipshare-data/"
+#define CLIPBOARD_TYPE_FILE "type"
+#define CLIPBOARD_TEXT_FILE "text"
+
+int8_t get_copied_type(void) {
+    FILE *f = fopen(CLIPBOARD_DATA_DIR CLIPBOARD_TYPE_FILE, "r");
+    if (!f) {
+        return COPIED_TYPE_NONE;
+    }
+    char line[8];
+    line[0] = '\0';
+    if (fscanf(f, "%7[^\n]%*c", line) < 1) {
+        fclose(f);
+        return COPIED_TYPE_NONE;
+    }
+    line[sizeof(line) - 1] = '\0';
+    fclose(f);
+    if (!strcmp(line, "TEXT")) {
+        return COPIED_TYPE_TEXT;
+    } else if (!strcmp(line, "FILE")) {
+        return COPIED_TYPE_FILE;
+    } else if (!strcmp(line, "IMAGE")) {
+        return COPIED_TYPE_IMAGE;
+    }
+    return COPIED_TYPE_NONE;
+}
+
+int get_clipboard_text(char **buf_ptr, uint32_t *len_ptr) {
+    *len_ptr = 0;
+    if (get_copied_type() != COPIED_TYPE_TEXT) {
+        return EXIT_FAILURE;
+    }
+    FILE *f = fopen(CLIPBOARD_DATA_DIR CLIPBOARD_TEXT_FILE, "r");
+    if (!f) {
+        return EXIT_FAILURE;
+    }
+    int64_t szi = get_file_size(f);
+    if (szi <= 0 || szi > configuration.max_text_length) {
+        fclose(f);
+        return EXIT_FAILURE;
+    }
+    size_t sz = (size_t)szi;
+    char *buf = malloc(sz + 1);
+    if (!buf) {
+        fclose(f);
+        return EXIT_FAILURE;
+    }
+    buf[0] = '\0';
+    size_t rd = fread(buf, 1, sz, f);
+    fclose(f);
+    if (rd != sz || buf[0] == '\0') {
+        return EXIT_FAILURE;
+    }
+    buf[sz] = '\0';
+    *buf_ptr = buf;
+    *len_ptr = (uint32_t)strlen(buf);
+    return EXIT_SUCCESS;
+}
+
+int put_clipboard_text(char *data, uint32_t len) {
+    create_temp_file();
+    FILE *ft = fopen(CLIPBOARD_DATA_DIR CLIPBOARD_TYPE_FILE, "w");
+    if (!ft) {
+        return EXIT_FAILURE;
+    }
+    FILE *fd = fopen(CLIPBOARD_DATA_DIR CLIPBOARD_TEXT_FILE, "w");
+    if (!fd) {
+        fclose(ft);
+        return EXIT_FAILURE;
+    }
+    if (fwrite(data, 1, len, fd) != len) {
+        fclose(fd);
+        fclose(ft);
+        return EXIT_FAILURE;
+    }
+    fclose(fd);
+    if (fwrite("TEXT", 1, 4, ft) != 4) {
+        fclose(ft);
+        return EXIT_FAILURE;
+    }
+    fclose(ft);
+    return EXIT_SUCCESS;
+}
+
+int get_image(char **buf_ptr, uint32_t *len_ptr, int mode, uint16_t disp) {
+    // TODO(thevindu-w): Implement
+    (void)buf_ptr;
+    (void)len_ptr;
+    (void)mode;
+    (void)disp;
+    return EXIT_FAILURE;
+}
+
+char *get_copied_files_as_str(int *offset) {
+    // TODO(thevindu-w): Implement
+    (void)offset;
+    return NULL;
+}
+
+int set_clipboard_cut_files(const list2 *paths) {
+    // TODO(thevindu-w): Implement
+    (void)paths;
+    return EXIT_FAILURE;
+}
+
+#else
+
 int8_t get_copied_type(void) {
     char *targets;
     uint32_t targets_len;
@@ -1217,6 +1330,7 @@ int set_clipboard_cut_files(const list2 *paths) {
     free(buf);
     return EXIT_SUCCESS;
 }
+#endif
 
 #elif defined(_WIN32)
 
