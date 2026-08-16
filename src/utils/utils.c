@@ -36,7 +36,11 @@
 #include <utils/utils.h>
 #ifdef __linux__
 #include <utils/linux_status_icon.h>
-#if HEADLESS != 1
+#if HEADLESS == 1
+#define _XOPEN_SOURCE 500
+#define __USE_XOPEN_EXTENDED
+#include <ftw.h>
+#else
 #include <X11/Xmu/Atoms.h>
 #include <xclip/xclip.h>
 #include <xscreenshot/xscreenshot.h>
@@ -972,6 +976,7 @@ static int url_decode(char *str, uint32_t *len_p) {
 #if HEADLESS == 1
 
 #define CLIPBOARD_DATA_DIR "/tmp/clipshare-data/"
+#define CLIPBOARD_FILES_DIR CLIPBOARD_DATA_DIR "files"
 #define CLIPBOARD_TYPE_FILE "type"
 #define CLIPBOARD_TEXT_FILE "text"
 
@@ -1071,9 +1076,66 @@ char *get_copied_files_as_str(int *offset) {
 }
 
 int set_clipboard_cut_files(const list2 *paths) {
-    // TODO(thevindu-w): Implement
     (void)paths;
-    return EXIT_FAILURE;
+    create_temp_file();
+    FILE *ft = fopen(CLIPBOARD_DATA_DIR CLIPBOARD_TYPE_FILE, "w");
+    if (!ft) {
+        return EXIT_FAILURE;
+    }
+    if (fwrite("FILE", 1, 4, ft) != 4) {
+        fclose(ft);
+        return EXIT_FAILURE;
+    }
+    fclose(ft);
+    return EXIT_SUCCESS;
+}
+
+static int _remove_cb(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
+    (void)sb;
+    (void)typeflag;
+    (void)ftwbuf;
+    remove(fpath);
+    return EXIT_SUCCESS;
+}
+
+void cleanup_cur_dir(void) {
+    list2 *files = list_dir(".");
+    if (!files || files->len == 0) {
+        return;
+    }
+    for (uint32_t i = 0; i < files->len; i++) {
+        char path[2048] = "./";
+        strncat(path, files->array[i], sizeof(path) - 3);
+        nftw(path, _remove_cb, 64, FTW_DEPTH | FTW_MOUNT | FTW_PHYS);
+    }
+}
+
+char *get_data_dir(void) {
+    if (file_exists(CLIPBOARD_FILES_DIR)) {
+        if (is_directory(CLIPBOARD_FILES_DIR, 0) == 1) {
+            return strdup(CLIPBOARD_FILES_DIR);
+        } else {
+            return NULL;
+        }
+    }
+
+    const size_t sz = sizeof(CLIPBOARD_FILES_DIR);
+    char path[sz];
+    strncpy(path, CLIPBOARD_FILES_DIR, sz);
+    if (path[sizeof(path) - 1] != 0) {
+        return NULL;
+    }
+
+    for (size_t i = 1; i <= sz; i++) {
+        if (path[i] != PATH_SEP && path[i] != 0) continue;
+        path[i] = 0;
+        if (_mkdir_check(path) != EXIT_SUCCESS) {
+            return NULL;
+        }
+        if (i < sz) path[i] = PATH_SEP;
+    }
+
+    return strdup(CLIPBOARD_FILES_DIR);
 }
 
 #else

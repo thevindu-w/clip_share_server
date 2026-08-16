@@ -722,6 +722,16 @@ int main(int argc, char **argv) {
         }
     }
 
+#if HEADLESS == 1
+    if (configuration.working_dir) {
+        free(configuration.working_dir);
+    }
+    configuration.working_dir = get_data_dir();
+    if (!configuration.working_dir) {
+        error_exit("Could not use temp data directory");
+    }
+    configuration.cut_sent_files = 1;
+#endif
     if (configuration.working_dir) _change_working_dir();
     cwd = getcwd_wrapper(0);
     cwd_len = strnlen(cwd, MAX_FILE_NAME_LEN);

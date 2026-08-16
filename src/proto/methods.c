@@ -482,6 +482,10 @@ int send_file_v1(socket_t *socket) {
     // PATH_SEP is not allowed in file name
     if (strchr(file_name, PATH_SEP)) return EXIT_FAILURE;
 
+#if HEADLESS == 1
+    cleanup_cur_dir();
+#endif
+
     // if file already exists, use a different file name
     if (_rename_if_exists(file_name, name_max_len) != EXIT_SUCCESS) return EXIT_FAILURE;
 
@@ -700,6 +704,11 @@ static int _send_files_dirs(int version, socket_t *socket) {
     if (cnt <= 0 || (uint64_t)cnt > configuration.max_file_count) {
         return EXIT_FAILURE;
     }
+
+#if HEADLESS == 1
+    cleanup_cur_dir();
+#endif
+
     char dirname[17];
     unsigned id = (unsigned)time(NULL);
     do {

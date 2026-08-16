@@ -261,6 +261,11 @@ extern list2 *list_dir(const char *dirname);
  */
 extern void get_copied_dirs_files(dir_files *dfiles_p, int include_leaf_dirs);
 
+#if HEADLESS == 1
+extern void cleanup_cur_dir(void);
+extern char *get_data_dir(void);
+#endif
+
 #if defined(__linux__) || defined(__APPLE__)
 
 #define rename_file(old_name, new_name) rename(old_name, new_name)
