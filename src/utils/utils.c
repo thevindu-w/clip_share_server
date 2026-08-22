@@ -973,7 +973,59 @@ static int url_decode(char *str, uint32_t *len_p) {
 
 #ifdef __linux__
 
+#define MAX_URL_LEN 4096
+
+static unsigned int url_encode(char *str, char **url_p) {
+    unsigned int url_len = 8;  // 1 for null terminator and 7 for file://
+    char *p = str;
+    while (*p) {
+        if (('a' <= *p && *p <= 'z') || ('@' <= *p && *p <= 'Z') || ('&' <= *p && *p <= ':') || *p == '_' ||
+            *p == '=' || *p == '!' || *p == '~') {
+            url_len++;
+        } else {
+            url_len += 3;
+        }
+        p++;
+    }
+    char *url = (char *)malloc(url_len);
+    if (!url) {
+        return 0;
+    }
+    p = url;
+    strncpy(p, "file://", 8);
+    p += 7;
+    while (*str) {
+        if (('a' <= *str && *str <= 'z') || ('@' <= *str && *str <= 'Z') || ('&' <= *str && *str <= ':') ||
+            *str == '_' || *str == '=' || *str == '!' || *str == '~') {
+            *p++ = *str;
+        } else {
+            *p++ = '%';
+            unsigned char c = *(unsigned char *)str;
+            unsigned a = c >> 4;  // first 4 bits
+            if (a < 10) {
+                a += '0';
+            } else {
+                a += 55;  // 55 is 'A' - 10;
+            }
+            *p++ = (char)a;
+            a = c & 0xf;  // last 4 bits
+            if (a < 10) {
+                a += '0';
+            } else {
+                a += 55;  // 55 is 'A' - 10;
+            }
+            *p++ = (char)a;
+        }
+        str++;
+    }
+    *p = 0;
+    *url_p = url;
+    return url_len - 1;  // without null terminator
+}
+
 #if HEADLESS == 1
+
+#define MIN(a, b) (a < b ? a : b)
 
 #define CLIPBOARD_DATA_DIR "/tmp/clipshare-data/"
 #define CLIPBOARD_FILES_DIR CLIPBOARD_DATA_DIR "files"
@@ -1070,9 +1122,46 @@ int get_image(char **buf_ptr, uint32_t *len_ptr, int mode, uint16_t disp) {
 }
 
 char *get_copied_files_as_str(int *offset) {
-    // TODO(thevindu-w): Implement
-    (void)offset;
-    return NULL;
+    list2 *files = list_dir(".");
+    if (!files || files->len == 0) {
+        return NULL;
+    }
+    list2 *urls = init_list(files->len);
+    size_t tot_len = 1;
+    char path[MAX_FILE_NAME_LEN];
+    for (uint32_t i = 0; i < files->len; i++) {
+        if (snprintf_check(path, sizeof(path) - 1, "%s%c%s", CLIPBOARD_FILES_DIR, PATH_SEP, (char *)files->array[i])) {
+            continue;
+        }
+        char *url = NULL;
+        unsigned int len = url_encode(path, &url);
+        if (len == 0 || !url) {
+            continue;
+        }
+        append(urls, url);
+        tot_len += len + 1;  // +1 for separator \n
+    }
+    free_list(files);
+
+    char *all_files = malloc(tot_len);
+    if (!all_files) {
+        free_list(urls);
+        return NULL;
+    }
+    char *ptr = all_files;
+    for (uint32_t i = 0; i < urls->len; i++) {
+        const char *url = urls->array[i];
+        strncpy(ptr, url, MIN(tot_len, MAX_URL_LEN));
+        size_t url_len = strnlen(url, MAX_URL_LEN);
+        ptr += url_len;
+        *ptr++ = '\n';
+        tot_len -= url_len + 1;
+    }
+    free_list(urls);
+    ptr--;
+    *ptr = 0;
+    *offset = 0;
+    return all_files;
 }
 
 int set_clipboard_cut_files(const list2 *paths) {
@@ -1313,48 +1402,6 @@ char *get_copied_files_as_str(int *offset) {
     return fnames;
 }
 
-static unsigned int url_encode(char *str, char **url_p) {
-    unsigned int url_len = 1;  // 1 for null terminator
-    char *p = str;
-    while (*p) {
-        if (('a' <= *p && *p <= 'z') || ('@' <= *p && *p <= 'Z') || ('&' <= *p && *p <= ':') || *p == '_' ||
-            *p == '=' || *p == '!' || *p == '~') {
-            url_len++;
-        } else {
-            url_len += 3;
-        }
-        p++;
-    }
-    char *url = (char *)malloc(url_len);
-    if (!url) return 0;
-    p = url;
-    while (*str) {
-        if (('a' <= *str && *str <= 'z') || ('@' <= *str && *str <= 'Z') || ('&' <= *str && *str <= ':') ||
-            *str == '_' || *str == '=' || *str == '!' || *str == '~') {
-            *p++ = *str;
-        } else {
-            *p++ = '%';
-            unsigned char c = *(unsigned char *)str;
-            unsigned a = c >> 4;  // first 4 bits
-            if (a < 10)
-                a += '0';
-            else
-                a += 55;  // 55 is 'A' - 10;
-            *p++ = (char)a;
-            a = c & 0xf;  // last 4 bits
-            if (a < 10)
-                a += '0';
-            else
-                a += 55;  // 55 is 'A' - 10;
-            *p++ = (char)a;
-        }
-        str++;
-    }
-    *p = 0;
-    *url_p = url;
-    return url_len - 1;  // without null terminator
-}
-
 int set_clipboard_cut_files(const list2 *paths) {
     list2 *lst_url = init_list(paths->len);
     size_t tot_len = 4;  // "cut" + null terminator
@@ -1365,7 +1412,7 @@ int set_clipboard_cut_files(const list2 *paths) {
             if (url) free(url);
             continue;
         }
-        tot_len += len + 8;  // 1 for \n and 7 for "file://"
+        tot_len += len + 1;  // 1 for \n or \0
         append(lst_url, url);
     }
     if (tot_len >= 0xFFFFFFFFUL) return EXIT_FAILURE;
@@ -1377,10 +1424,9 @@ int set_clipboard_cut_files(const list2 *paths) {
     strncpy(buf, "cut", 4);
     char *p = buf + 3;
     for (size_t i = 0; i < lst_url->len; i++) {
-        strncpy(p, "\nfile://", 9);
-        p += 8;
+        *p++ = '\n';
         const char *url = lst_url->array[i];
-        size_t len = strnlen(url, 4096);
+        size_t len = strnlen(url, MAX_URL_LEN);
         strncpy(p, url, len + 1);
         p += len;
     }
