@@ -1350,40 +1350,16 @@ int get_image(char **buf_ptr, uint32_t *len_ptr, int mode, uint16_t disp) {
 }
 
 char *get_copied_files_as_str(int *offset) {
-    const char *const expected_target = "x-special/gnome-copied-files";
-    char *targets;
-    uint32_t targets_len;
-    if (xclip_util(XCLIP_OUT, "TARGETS", &targets_len, &targets) || targets_len <= 0) {  // do not change the order
-#ifdef DEBUG_MODE
-        printf("xclip read TARGETS. len = %" PRIu32 "\n", targets_len);
-#endif
-        if (targets) free(targets);
-        return NULL;
-    }
-    char found = 0;
-    char *copy = targets;
-    const char *token;
-    while ((token = strsep(&copy, "\n"))) {
-        if (!strcmp(token, expected_target)) {
-            found = 1;
-            break;
-        }
-    }
-    free(targets);
-    if (!found) {
-#ifdef DEBUG_MODE
-        puts("No copied files");
-#endif
-        return NULL;
-    }
-
     char *fnames;
     uint32_t fname_len;
-    if (xclip_util(XCLIP_OUT, expected_target, &fname_len, &fnames) || fname_len <= 0) {  // do not change the order
+    if (xclip_util(XCLIP_OUT, "x-special/gnome-copied-files", &fname_len, &fnames) ||
+        fname_len <= 0) {  // do not change the order
 #ifdef DEBUG_MODE
         printf("xclip read copied files. len = %" PRIu32 "\n", fname_len);
 #endif
-        if (fnames) free(fnames);
+        if (fnames) {
+            free(fnames);
+        }
         return NULL;
     }
     fnames[fname_len] = 0;

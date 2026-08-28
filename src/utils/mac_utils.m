@@ -118,7 +118,7 @@ char *get_copied_files_as_str(int *offset) {
         const char *cstring = [absString UTF8String];
         strncpy(ptr, cstring, MIN(tot_len, MAX_FILE_NAME_LEN));
         size_t url_len = strnlen(cstring, MAX_FILE_NAME_LEN);
-        ptr += strnlen(cstring, MAX_FILE_NAME_LEN);
+        ptr += url_len;
         *ptr = '\n';
         ptr++;
         tot_len -= url_len + 1;
