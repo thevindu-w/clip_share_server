@@ -5,6 +5,9 @@ CLIENT_NAME='clipshare_client'
 CLIENT_COMPAT_FLAGS=(
     # Uncomment for Android <=13:
     # -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES
+
+    # If the line above doesn't help, use this instead:
+    # -legacy
 )
 
 set -e
