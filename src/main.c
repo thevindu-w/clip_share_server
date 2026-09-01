@@ -566,7 +566,7 @@ static void start_servers(int8_t daemonize) {
         }
     }
 
-#ifdef __linux__
+#if defined(__linux__) && HEADLESS != 1
     if (configuration.tray_icon) {
         fflush(stdout);
         fflush(stderr);

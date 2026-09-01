@@ -49,13 +49,14 @@ OBJS_M=
 OBJS_BIN=
 
 OTHER_DEPENDENCIES=
+LINK_FLAGS=
 LINK_FLAGS_BUILD=
 
 ifeq ($(OS),Windows_NT)
-	detected_OS := Windows
+	detected_OS:=Windows
 	ARCH?=x86_64
 else
-	detected_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
+	detected_OS:=$(shell sh -c 'uname 2>/dev/null || echo Unknown')
 	ARCH?=$(shell sh -c 'uname -m 2>/dev/null || echo Unknown')
 	ifeq ($(ARCH),aarch64)
 		ARCH:=arm64
@@ -65,18 +66,22 @@ endif
 ifeq ($(ARCH),x86)
 	BUILD_DIR:=$(BUILD_DIR)_x86
 	CFLAGS+= -m32
-	LDLIBS+= -m32
+	LINK_FLAGS+= -m32
 	PROGRAM_NAME:=$(PROGRAM_NAME)32
 	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB)32
 	PROGRAM_NAME_NO_SSL:=$(PROGRAM_NAME_NO_SSL)32
 endif
 
 ifeq ($(detected_OS),Linux)
-	OBJS_C+= utils/linux_status_icon.o xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
-	OBJS_S+= res/linux/icon_blob.o
-	CFLAGS+= $(shell pkg-config --cflags gtk+-3.0 ayatana-appindicator3-0.1) -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
+	CFLAGS+= -ftree-vrp -Wformat-signedness -Wshift-overflow=2 -Wstringop-overflow=4 -Walloc-zero -Wduplicated-branches -Wduplicated-cond -Wtrampolines -Wjump-misses-init -Wlogical-op -Wvla-larger-than=65536
 	CFLAGS_OPTIM=-Os
-	LDLIBS_NO_SSL=-lunistring -lX11 -lXmu -lXt -lxcb -lxcb-randr -lpng -ldl
+	LDLIBS_NO_SSL=-lunistring
+	ifneq ($(HEADLESS),1)
+		CFLAGS+= $(shell pkg-config --cflags gtk+-3.0 ayatana-appindicator3-0.1)
+		OBJS_C+= utils/linux_status_icon.o xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
+		OBJS_S+= res/linux/icon_blob.o
+		LDLIBS_NO_SSL+= -lX11 -lXmu -lXt -lxcb -lxcb-randr -lpng -ldl
+	endif
 	LDLIBS_SSL=-lssl -lcrypto
 	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections,-z,noexecstack
 else ifeq ($(detected_OS),Windows)
@@ -116,7 +121,8 @@ export LIBRARY_PATH=$(shell brew --prefix)/lib
 else
 $(error ClipShare is not supported on this platform!)
 endif
-LDLIBS+= $(LDLIBS_SSL) $(LDLIBS_NO_SSL)
+LINK_FLAGS_BUILD:=$(LINK_FLAGS) $(LINK_FLAGS_BUILD)
+LDLIBS=$(LDLIBS_SSL) $(LDLIBS_NO_SSL)
 CFLAGS+= -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=$(MIN_PROTO) -DPROTOCOL_MAX=$(MAX_PROTO)
 CFLAGS_OPTIM+= -Werror
 
@@ -246,7 +252,7 @@ all: $(PROGRAM_NAME) $(PROGRAM_NAME_NO_SSL) $(PROGRAM_NAME_WEB)
 
 debug: $(DEBUG_OBJS) $(OTHER_DEPENDENCIES)
 	@echo CCLD $$'\t' $@ $(PROGRAM_NAME)
-	@$(CC) $^ $(LDLIBS) -o $(PROGRAM_NAME)
+	@$(CC) $^ $(LINK_FLAGS) $(LDLIBS) -o $(PROGRAM_NAME)
 
 web: $(PROGRAM_NAME_WEB)
 no_ssl: $(PROGRAM_NAME_NO_SSL)

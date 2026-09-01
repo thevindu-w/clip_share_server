@@ -35,12 +35,12 @@
 #include <utils/list_utils.h>
 #include <utils/utils.h>
 #ifdef __linux__
-#include <utils/linux_status_icon.h>
 #if HEADLESS == 1
 #define _XOPEN_SOURCE 500
 #define __USE_XOPEN_EXTENDED
 #include <ftw.h>
 #else
+#include <utils/linux_status_icon.h>
 #include <X11/Xmu/Atoms.h>
 #include <xclip/xclip.h>
 #include <xscreenshot/xscreenshot.h>
@@ -161,8 +161,8 @@ void cleanup(void) {
     }
     clear_config(&configuration);
 #ifdef __linux__
-    cleanup_status_icon();
 #if HEADLESS != 1
+    cleanup_status_icon();
     if (_XA_CLIPBOARD) freeAtomPtr(_XA_CLIPBOARD);
     if (_XA_UTF8_STRING) freeAtomPtr(_XA_UTF8_STRING);
 #endif
@@ -253,7 +253,7 @@ int is_directory(const char *path, int follow_symlinks) {
     }
 }
 
-#if defined(__linux__) || defined(_WIN32)
+#if defined(__linux__) && HEADLESS != 1 || defined(_WIN32)
 
 void png_mem_write_data(png_structp png_ptr, png_bytep data, png_size_t length) {
     struct mem_file *p = (struct mem_file *)png_get_io_ptr(png_ptr);

@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include <utils/list_utils.h>
 
-#if defined(__linux__) || defined(_WIN32)
+#if defined(__linux__) && HEADLESS != 1 || defined(_WIN32)
 #include <libpng16/png.h>
 #endif
 
@@ -44,7 +44,7 @@
 #define COPIED_TYPE_FILE 2
 #define COPIED_TYPE_IMAGE 3
 
-#if defined(__linux__) || defined(_WIN32)
+#if defined(__linux__) && HEADLESS != 1 || defined(_WIN32)
 /*
  * In-memory file to write png image
  */
@@ -159,7 +159,7 @@ extern int file_exists(const char *file_name);
  */
 extern int is_directory(const char *path, int follow_symlinks);
 
-#if defined(__linux__) || defined(_WIN32)
+#if defined(__linux__) && HEADLESS != 1 || defined(_WIN32)
 
 /*
  * The function to be used as png write data function in libpng to write the
