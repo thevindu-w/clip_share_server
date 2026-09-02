@@ -40,8 +40,8 @@
 #define __USE_XOPEN_EXTENDED
 #include <ftw.h>
 #else
-#include <utils/linux_status_icon.h>
 #include <X11/Xmu/Atoms.h>
+#include <utils/linux_status_icon.h>
 #include <xclip/xclip.h>
 #include <xscreenshot/xscreenshot.h>
 #endif
