@@ -18,11 +18,13 @@
 
 #ifndef UTILS_LINUX_STATUS_ICON_H_
 #define UTILS_LINUX_STATUS_ICON_H_
+#ifndef NO_STATUS_ICON
 #ifdef __linux__
 
 extern void show_status_icon(void);
 
 extern void cleanup_status_icon(void);
 
+#endif
 #endif
 #endif  // UTILS_LINUX_STATUS_ICON_H_

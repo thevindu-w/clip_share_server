@@ -162,7 +162,9 @@ void cleanup(void) {
     clear_config(&configuration);
 #ifdef __linux__
 #if HEADLESS != 1
+#ifndef NO_STATUS_ICON
     cleanup_status_icon();
+#endif
     if (_XA_CLIPBOARD) freeAtomPtr(_XA_CLIPBOARD);
     if (_XA_UTF8_STRING) freeAtomPtr(_XA_UTF8_STRING);
 #endif

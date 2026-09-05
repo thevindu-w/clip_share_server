@@ -16,6 +16,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#ifndef NO_STATUS_ICON
 #ifdef __linux__
 
 #include <dlfcn.h>
@@ -278,4 +279,5 @@ void cleanup_status_icon(void) {
     remove(icon_path);
 }
 
+#endif
 #endif

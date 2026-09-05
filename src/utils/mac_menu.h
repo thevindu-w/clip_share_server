@@ -18,9 +18,11 @@
 
 #ifndef UTILS_MAC_MENU_H_
 #define UTILS_MAC_MENU_H_
+#ifndef NO_STATUS_ICON
 #ifdef __APPLE__
 
 extern void show_menu_icon(void);
 
+#endif
 #endif
 #endif  // UTILS_MAC_MENU_H_

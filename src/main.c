@@ -250,13 +250,6 @@ static inline void _apply_default_conf(void) {
 
 #ifdef _WIN32
 
-#define TRAY_CB_MSG (WM_USER + 0x100)
-
-static volatile HINSTANCE instance = NULL;
-static volatile HWND hWnd = NULL;
-static volatile GUID guid = {0};
-static volatile char running = 1;
-
 static DWORD WINAPI udpThreadFn(void *arg) {
     (void)arg;
     udp_server();
@@ -284,6 +277,15 @@ static DWORD WINAPI webThreadFn(void *arg) {
     return EXIT_SUCCESS;
 }
 #endif
+
+#ifndef NO_STATUS_ICON
+
+#define TRAY_CB_MSG (WM_USER + 0x100)
+
+static volatile HINSTANCE instance = NULL;
+static volatile HWND hWnd = NULL;
+static volatile GUID guid = {0};
+static volatile char running = 1;
 
 static inline void setGUID(void) {
     char file_path[MAX_FILE_NAME_LEN + 1];
@@ -367,6 +369,7 @@ static LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wParam, LPARAM 
     }
     return DefWindowProc(window, msg, wParam, lParam);
 }
+#endif
 
 static char *get_user_home(void) {
     DWORD pid = GetCurrentProcessId();
@@ -448,6 +451,7 @@ static void start_servers(int8_t daemonize) {
 #endif
     puts("Server Started");
 
+#ifndef NO_STATUS_ICON
     if (configuration.tray_icon) {
         char CLASSNAME[] = "clip";
         WNDCLASS wc = {.lpfnWndProc = (WNDPROC)WindowProc, .hInstance = instance, .lpszClassName = CLASSNAME};
@@ -455,6 +459,7 @@ static void start_servers(int8_t daemonize) {
         hWnd = CreateWindowEx(0, CLASSNAME, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, instance, NULL);
         show_tray_icon();
     }
+#endif
 
     if (configuration.udp_server_enabled) {
         udpThread = CreateThread(NULL, 0, udpThreadFn, NULL, 0, NULL);
@@ -467,6 +472,7 @@ static void start_servers(int8_t daemonize) {
 
     FreeConsole();
 
+#ifndef NO_STATUS_ICON
     if (configuration.tray_icon) {
         MSG msg;
         while (running && GetMessage(&msg, NULL, 0, 0)) {
@@ -482,6 +488,9 @@ static void start_servers(int8_t daemonize) {
         if (webThread != NULL) TerminateThread(webThread, 0);
 #endif
     }
+#else
+    (void)udpThread;
+#endif
 
     if (insecureThread != NULL) WaitForSingleObject(insecureThread, INFINITE);
 #ifndef NO_SSL
@@ -491,8 +500,10 @@ static void start_servers(int8_t daemonize) {
     if (webThread != NULL) WaitForSingleObject(webThread, INFINITE);
 #endif
 
+#ifndef NO_STATUS_ICON
     remove_tray_icon();
     CloseHandle(instance);
+#endif
 }
 
 #endif
@@ -566,6 +577,7 @@ static void start_servers(int8_t daemonize) {
         }
     }
 
+#ifndef NO_STATUS_ICON
 #if defined(__linux__) && HEADLESS != 1
     if (configuration.tray_icon) {
         fflush(stdout);
@@ -587,6 +599,7 @@ static void start_servers(int8_t daemonize) {
             exit(EXIT_SUCCESS);
         }
     }
+#endif
 #endif
 
     if (!daemonize) {
@@ -690,7 +703,7 @@ int main(int argc, char **argv) {
 
     _set_error_log_file(ERROR_LOG_FILE);
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(NO_STATUS_ICON)
     // initialize instance and guid
     instance = GetModuleHandle(NULL);
     setGUID();
@@ -711,7 +724,7 @@ int main(int argc, char **argv) {
     /* stop other instances of this process if any.
     Stop this process if stop flag is set */
     if (stop || configuration.restart) {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(NO_STATUS_ICON)
         remove_tray_icon();
 #endif
         kill_other_processes(prog_name);

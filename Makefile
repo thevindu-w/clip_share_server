@@ -31,7 +31,11 @@ BUILD_DIR=build
 MIN_PROTO=1
 MAX_PROTO=4
 INFO_NAME=clip_share
-HEADLESS=0
+HEADLESS?=0
+NO_STATUS_ICON?=0
+ifeq ($(HEADLESS),1)
+	override NO_STATUS_ICON=1
+endif
 
 CC=gcc
 CPP=cpp
@@ -77,9 +81,12 @@ ifeq ($(detected_OS),Linux)
 	CFLAGS_OPTIM=-Os
 	LDLIBS_NO_SSL=-lunistring
 	ifneq ($(HEADLESS),1)
-		CFLAGS+= $(shell pkg-config --cflags gtk+-3.0 ayatana-appindicator3-0.1)
-		OBJS_C+= utils/linux_status_icon.o xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
-		OBJS_S+= res/linux/icon_blob.o
+		ifneq ($(NO_STATUS_ICON),1)
+			CFLAGS+= $(shell pkg-config --cflags gtk+-3.0 ayatana-appindicator3-0.1)
+			OBJS_C+= utils/linux_status_icon.o
+			OBJS_S+= res/linux/icon_blob.o
+		endif
+		OBJS_C+= xclip/xclip.o xclip/xclib.o xscreenshot/xscreenshot.o
 		LDLIBS_NO_SSL+= -lX11 -lXmu -lXt -lxcb -lxcb-randr -lpng -ldl
 	endif
 	LDLIBS_SSL=-lssl -lcrypto
@@ -107,8 +114,11 @@ else ifeq ($(detected_OS),Windows)
 else ifeq ($(detected_OS),Darwin)
 export CPATH=$(shell brew --prefix)/include
 export LIBRARY_PATH=$(shell brew --prefix)/lib
-	OBJS_M=utils/mac_utils.o utils/mac_menu.o
-	OBJS_BIN+= res/mac/icon.o
+	OBJS_M=utils/mac_utils.o
+	ifneq ($(NO_STATUS_ICON),1)
+		OBJS_M+= utils/mac_menu.o
+		OBJS_BIN+= res/mac/icon.o
+	endif
 	CFLAGS+= -target $(ARCH)-apple-macos11 -fobjc-arc -Wno-gnu-statement-expression
 	CFLAGS_OPTIM=-O3
 	LDLIBS_NO_SSL=-target $(ARCH)-apple-macos11 -framework AppKit -lunistring -lobjc
@@ -124,6 +134,9 @@ endif
 LINK_FLAGS_BUILD:=$(LINK_FLAGS) $(LINK_FLAGS_BUILD)
 LDLIBS=$(LDLIBS_SSL) $(LDLIBS_NO_SSL)
 CFLAGS+= -DINFO_NAME=\"$(INFO_NAME)\" -DPROTOCOL_MIN=$(MIN_PROTO) -DPROTOCOL_MAX=$(MAX_PROTO)
+ifeq ($(NO_STATUS_ICON),1)
+	CFLAGS+= -DNO_STATUS_ICON=1
+endif
 CFLAGS_OPTIM+= -Werror
 
 VERSION_FILE=$(SRC_DIR)/res/version
