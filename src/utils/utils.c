@@ -1031,11 +1031,12 @@ static unsigned int url_encode(char *str, char **url_p) {
 
 #define CLIPBOARD_DATA_DIR "/tmp/clipshare-data/"
 #define CLIPBOARD_FILES_DIR CLIPBOARD_DATA_DIR "files"
-#define CLIPBOARD_TYPE_FILE "type"
-#define CLIPBOARD_TEXT_FILE "text"
+#define CLIPBOARD_TYPE_FILE CLIPBOARD_DATA_DIR "type"
+#define CLIPBOARD_TEXT_FILE CLIPBOARD_DATA_DIR "text"
+#define CLIPBOARD_IMG_FILE CLIPBOARD_DATA_DIR "image"
 
 int8_t get_copied_type(void) {
-    FILE *f = fopen(CLIPBOARD_DATA_DIR CLIPBOARD_TYPE_FILE, "r");
+    FILE *f = fopen(CLIPBOARD_TYPE_FILE, "r");
     if (!f) {
         return COPIED_TYPE_NONE;
     }
@@ -1062,7 +1063,7 @@ int get_clipboard_text(char **buf_ptr, uint32_t *len_ptr) {
     if (get_copied_type() != COPIED_TYPE_TEXT) {
         return EXIT_FAILURE;
     }
-    FILE *f = fopen(CLIPBOARD_DATA_DIR CLIPBOARD_TEXT_FILE, "r");
+    FILE *f = fopen(CLIPBOARD_TEXT_FILE, "r");
     if (!f) {
         return EXIT_FAILURE;
     }
@@ -1091,11 +1092,11 @@ int get_clipboard_text(char **buf_ptr, uint32_t *len_ptr) {
 
 int put_clipboard_text(char *data, uint32_t len) {
     create_temp_file();
-    FILE *ft = fopen(CLIPBOARD_DATA_DIR CLIPBOARD_TYPE_FILE, "w");
+    FILE *ft = fopen(CLIPBOARD_TYPE_FILE, "w");
     if (!ft) {
         return EXIT_FAILURE;
     }
-    FILE *fd = fopen(CLIPBOARD_DATA_DIR CLIPBOARD_TEXT_FILE, "w");
+    FILE *fd = fopen(CLIPBOARD_TEXT_FILE, "w");
     if (!fd) {
         fclose(ft);
         return EXIT_FAILURE;
@@ -1115,12 +1116,49 @@ int put_clipboard_text(char *data, uint32_t len) {
 }
 
 int get_image(char **buf_ptr, uint32_t *len_ptr, int mode, uint16_t disp) {
-    // TODO(thevindu-w): Implement
-    (void)buf_ptr;
-    (void)len_ptr;
-    (void)mode;
     (void)disp;
-    return EXIT_FAILURE;
+    *len_ptr = 0;
+    *buf_ptr = NULL;
+    if (mode == IMG_SCRN_ONLY) {
+        return EXIT_FAILURE;
+    }
+    if (get_copied_type() != COPIED_TYPE_IMAGE) {
+        return EXIT_FAILURE;
+    }
+
+    FILE *fd = fopen(CLIPBOARD_IMG_FILE, "r");
+    if (!fd) {
+        return EXIT_FAILURE;
+    }
+    char path[MAX_FILE_NAME_LEN];
+    if (!fgets(path, sizeof(path), fd)) {
+        fclose(fd);
+        return EXIT_FAILURE;
+    }
+    fclose(fd);
+
+    fd = fopen(path, "rb");
+    if (!fd) {
+        return EXIT_FAILURE;
+    }
+    int64_t sz = get_file_size(fd);
+    if (sz <= 0 || sz > 20000000) {
+        fclose(fd);
+        return EXIT_FAILURE;
+    }
+    char *data = malloc((size_t)sz);
+    if (!data) {
+        fclose(fd);
+        return EXIT_FAILURE;
+    }
+    size_t rd = fread(data, 1, (size_t)sz, fd);
+    fclose(fd);
+    if (rd != (size_t)sz) {
+        return EXIT_FAILURE;
+    }
+    *buf_ptr = data;
+    *len_ptr = (uint32_t)sz;
+    return EXIT_SUCCESS;
 }
 
 char *get_copied_files_as_str(int *offset) {
@@ -1167,13 +1205,31 @@ char *get_copied_files_as_str(int *offset) {
 }
 
 int set_clipboard_cut_files(const list2 *paths) {
-    (void)paths;
     create_temp_file();
-    FILE *ft = fopen(CLIPBOARD_DATA_DIR CLIPBOARD_TYPE_FILE, "w");
+    FILE *ft = fopen(CLIPBOARD_TYPE_FILE, "w");
     if (!ft) {
         return EXIT_FAILURE;
     }
-    if (fwrite("FILE", 1, 4, ft) != 4) {
+    const char *type = "FILE";
+    if (paths->len == 1) {
+        const char *fname = paths->array[0];
+        const char *ext = fname + strlen(fname) - 4;
+        if (fname < ext && *(ext - 1) != PATH_SEP && strcmp(ext, ".png") == 0) {
+            FILE *fd = fopen(CLIPBOARD_IMG_FILE, "w");
+            if (!fd) {
+                fclose(ft);
+                return EXIT_FAILURE;
+            }
+            if (fputs(fname, fd) < 0) {
+                fclose(ft);
+                fclose(fd);
+                return EXIT_FAILURE;
+            }
+            fclose(fd);
+            type = "IMAGE";
+        }
+    }
+    if (fputs(type, ft) < 0) {
         fclose(ft);
         return EXIT_FAILURE;
     }
