@@ -1162,6 +1162,9 @@ int get_image(char **buf_ptr, uint32_t *len_ptr, int mode, uint16_t disp) {
 }
 
 char *get_copied_files_as_str(int *offset) {
+    if (get_copied_type() != COPIED_TYPE_FILE) {
+        return NULL;
+    }
     list2 *files = list_dir(".");
     if (!files || files->len == 0) {
         return NULL;
