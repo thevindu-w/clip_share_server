@@ -16,7 +16,11 @@
 
 MAKEFLAGS+= -j4 --warn-undefined-variables --no-builtin-rules
 
-SHELL:=bash
+ifneq ($(wildcard /bin/bash),)
+	SHELL:=bash
+else ifneq ($(wildcard /bin/ash),)
+	SHELL:=ash
+endif
 .SHELLFLAGS:=-eu -o pipefail -c
 .ONESHELL:
 .DELETE_ON_ERROR:
@@ -91,6 +95,10 @@ ifeq ($(detected_OS),Linux)
 	endif
 	LDLIBS_SSL=-lssl -lcrypto
 	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections,-z,noexecstack
+	STATIC?=0
+	ifeq ($(STATIC),1)
+		LINK_FLAGS_BUILD+= -static
+	endif
 else ifeq ($(detected_OS),Windows)
 	OBJS_C+= utils/win_image.o
 	CFLAGS+= -Wformat-signedness

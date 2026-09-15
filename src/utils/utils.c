@@ -36,7 +36,9 @@
 #include <utils/utils.h>
 #ifdef __linux__
 #if HEADLESS == 1
+#ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 500
+#endif
 #define __USE_XOPEN_EXTENDED
 #include <ftw.h>
 #else
