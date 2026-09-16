@@ -1379,10 +1379,55 @@ int put_clipboard_text(char *data, uint32_t len) {
     return EXIT_SUCCESS;
 }
 
+// Wayland-native fallback for reading the copied image, since xclip/xclib only talks to the
+// X11 selection, which is not reliably bridged from native Wayland clients on all compositors
+// (Sway/wlroots included). Uses the `wl-paste` CLI (from wl-clipboard) if available.
+static int get_image_wlpaste(char **buf_ptr, uint32_t *len_ptr) {
+    if (!getenv("WAYLAND_DISPLAY")) {
+        return EXIT_FAILURE;
+    }
+    FILE *pp = popen("/usr/bin/wl-paste --no-newline --type image/png 2>/dev/null", "r");
+    if (!pp) {
+        return EXIT_FAILURE;
+    }
+    size_t cap = 1 << 18;  // 256 KiB initial buffer
+    size_t len = 0;
+    char *buf = malloc(cap);
+    if (!buf) {
+        pclose(pp);
+        return EXIT_FAILURE;
+    }
+    size_t n;
+    while ((n = fread(buf + len, 1, cap - len, pp)) > 0) {
+        len += n;
+        if (len == cap) {
+            cap *= 2;
+            char *nbuf = realloc(buf, cap);
+            if (!nbuf) {
+                free(buf);
+                pclose(pp);
+                return EXIT_FAILURE;
+            }
+            buf = nbuf;
+        }
+    }
+    int rc = pclose(pp);
+    if (rc != 0 || len <= 8) {
+        free(buf);
+        return EXIT_FAILURE;
+    }
+    *buf_ptr = buf;
+    *len_ptr = (uint32_t)len;
+    return EXIT_SUCCESS;
+}
+
 int get_image(char **buf_ptr, uint32_t *len_ptr, int mode, uint16_t disp) {
     *buf_ptr = NULL;
 
     // Try to get copied image unless the mode is screenshot only
+    if (mode != IMG_SCRN_ONLY && get_image_wlpaste(buf_ptr, len_ptr) == EXIT_SUCCESS) {
+        return EXIT_SUCCESS;
+    }
     if (mode != IMG_SCRN_ONLY && xclip_util(XCLIP_OUT, "image/png", len_ptr, buf_ptr) == EXIT_SUCCESS &&
         *len_ptr > 8) {  // do not change the order
         return EXIT_SUCCESS;
