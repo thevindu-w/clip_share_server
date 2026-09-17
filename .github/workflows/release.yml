@@ -243,6 +243,52 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
+  Linux-MIPS:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs:
+    - Checks
+    - Build-and-Test
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v7
+
+    - name: Set version
+      run: |
+        version="$(echo '${{github.ref_name}}' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+        archive="clip_share_server-${version}-headless-linux-mipsel_mips32"
+        echo ARCHIVE_NAME_NO_EXT="${archive}" >> $GITHUB_ENV
+        echo ARCHIVE_NAME="${archive}.tar.gz" >> $GITHUB_ENV
+
+    - name: Build for mipsel_mips32
+      run: |
+        curl -OL https://github.com/thevindu-w/toolchain-cache/releases/download/musl/mipsel-linux-musl-cross.tgz || \
+        echo Download failed
+        docker buildx build -t clipshare -f docker/release/Dockerfile.mipsel .
+
+    - name: Copy binaries
+      run: |
+        mkdir dist
+        chmod 777 dist
+        docker run -v './dist:/dist' clipshare
+        sudo chmod +x dist/*
+        cd dist
+        sha256sum -b * >SHA2-256SUM
+        cd ..
+        mv dist "${{env.ARCHIVE_NAME_NO_EXT}}"
+        tar -cf - --sort=name --owner=root:0 --group=root:0 --no-same-owner "${{env.ARCHIVE_NAME_NO_EXT}}" | \
+        gzip -9 >"${{env.ARCHIVE_NAME}}"
+
+    - name: Upload Linux headless version
+      uses: actions/upload-artifact@v7
+      with:
+        name: "${{env.ARCHIVE_NAME}}"
+        path: "${{env.ARCHIVE_NAME}}"
+        retention-days: 3
+        if-no-files-found: error
+        compression-level: 0
+
   Windows:
     runs-on: windows-latest
     timeout-minutes: 15
@@ -522,6 +568,7 @@ jobs:
     needs:
     - Linux-x86_64
     - Linux-ARM
+    - Linux-MIPS
     - Windows
     - macOS-all
     runs-on: ubuntu-latest
@@ -545,6 +592,7 @@ jobs:
         echo FILE_LINUX_AMD64="clip_share_server-${version}-linux-x86_64.tar.gz" >> $GITHUB_ENV
         echo FILE_LINUX_ARM64="clip_share_server-${version}-linux-arm64.tar.gz" >> $GITHUB_ENV
         echo FILE_LINUX_ARMv7="clip_share_server-${version}-linux-armv7.tar.gz" >> $GITHUB_ENV
+        echo FILE_LINUX_MIPSEL32="clip_share_server-${version}-headless-linux-mipsel_mips32.tar.gz" >> $GITHUB_ENV
         echo FILE_WINDOWS32="clip_share_server-${version}-windows-x86.zip" >> $GITHUB_ENV
         echo FILE_WINDOWS64="clip_share_server-${version}-windows-x86_64.zip" >> $GITHUB_ENV
         echo FILE_WINDOWS32_NO_SSL="clip_share_server-no_ssl-${version}-windows-x86.zip" >> $GITHUB_ENV
@@ -576,6 +624,7 @@ jobs:
       run: |
         mkdir release
         mv "${{env.FILE_LINUX_AMD64}}" "${{env.FILE_LINUX_ARM64}}" "${{env.FILE_LINUX_ARMv7}}" \
+        "${{env.FILE_LINUX_MIPSEL32}}" \
         "${{env.FILE_WINDOWS32}}" "${{env.FILE_WINDOWS64}}" "${{env.FILE_WINDOWS32_NO_SSL}}" \
         "${{env.FILE_WINDOWS64_NO_SSL}}" "${{env.FILE_MACOS}}" *.AppImage release/
         mv "${{env.INSTALLER_WINDOWS}}/${{env.INSTALLER_WINDOWS}}" release/

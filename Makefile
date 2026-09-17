@@ -41,8 +41,9 @@ ifeq ($(HEADLESS),1)
 	override NO_STATUS_ICON=1
 endif
 
-CC=gcc
+CC?=gcc
 CPP=cpp
+EXTRA_CFLAGS?=
 CFLAGS=-c -pipe -I$(SRC_DIR) --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wpedantic -pedantic-errors -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Woverlength-strings
 CFLAGS+= -DHEADLESS=$(HEADLESS)
 CFLAGS_DEBUG=-g -DDEBUG_MODE
@@ -97,7 +98,8 @@ ifeq ($(detected_OS),Linux)
 	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections,-z,noexecstack
 	STATIC?=0
 	ifeq ($(STATIC),1)
-		LINK_FLAGS_BUILD+= -static
+		CFLAGS+= -I/opt/static-deps/include -ffunction-sections -fdata-sections
+		LINK_FLAGS_BUILD+= -L/opt/static-deps/lib -static
 	endif
 else ifeq ($(detected_OS),Windows)
 	OBJS_C+= utils/win_image.o
@@ -146,6 +148,7 @@ ifeq ($(NO_STATUS_ICON),1)
 	CFLAGS+= -DNO_STATUS_ICON=1
 endif
 CFLAGS_OPTIM+= -Werror
+CFLAGS:=$(EXTRA_CFLAGS) $(CFLAGS)
 
 VERSION_FILE=$(SRC_DIR)/res/version
 ifeq (4.2,$(firstword $(sort $(MAKE_VERSION) 4.2)))

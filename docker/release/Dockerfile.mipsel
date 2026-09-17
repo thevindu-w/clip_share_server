@@ -1,0 +1,40 @@
+FROM alpine:3
+
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
+
+# Install build dependencies
+RUN apk add --no-cache make wget tar xz
+
+WORKDIR /
+COPY mipsel-linux-musl-cross.tgz* ./
+RUN if [ ! -f mipsel-linux-musl-cross.tgz ]; then wget https://musl.cc/mipsel-linux-musl-cross.tgz; fi
+RUN if [ "$(sha256sum -b mipsel-linux-musl-cross.tgz | cut -d ' ' -f 1)" != '82626533bf7e677c225e7cbedf1d5b0d6bc60c3daaf28249e54f0eb805d89b13' ]; then \
+    echo 'mipsel-linux-musl-cross.tgz hash mismatch'; exit 1; fi
+RUN tar -xzf mipsel-linux-musl-cross.tgz && rm mipsel-linux-musl-cross.tgz \
+    && mv mipsel-linux-musl-cross /opt/toolchain
+
+ENV PATH="/opt/toolchain/bin:$PATH"
+ENV TARGET=mipsel-linux-musl
+
+RUN wget https://ftpmirror.gnu.org/libunistring/libunistring-1.4.2.tar.xz || wget https://ftp.gnu.org/gnu/libunistring/libunistring-1.4.2.tar.xz
+RUN if [ "$(sha256sum -b libunistring-1.4.2.tar.xz | cut -d ' ' -f 1)" != '5b46e74377ed7409c5b75e7a96f95377b095623b689d8522620927964a41499c' ]; then \
+    echo 'libunistring-1.4.2.tar.xz hash mismatch'; exit 1; fi
+RUN tar -xJf libunistring-1.4.2.tar.xz && rm libunistring-1.4.2.tar.xz
+
+WORKDIR /libunistring-1.4.2
+RUN ./configure --host="$TARGET" --enable-static --disable-shared --disable-rpath --prefix=/opt/static-deps \
+    CC="${TARGET}-gcc" CPP="${TARGET}-cpp" CFLAGS='-march=mips32r2 -mhard-float -Os' \
+    && make -j4 \
+    && make install
+
+RUN mkdir -p /src
+WORKDIR /src
+
+# Copy the source files
+COPY Makefile ./
+COPY ./src src
+
+# Build
+RUN make CC=${TARGET}-gcc EXTRA_CFLAGS='-march=mips32r2 -mhard-float' STATIC=1 HEADLESS=1 no_ssl
+
+CMD ["mv", "clip_share_no_ssl", "/dist/"]
