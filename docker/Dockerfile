@@ -35,7 +35,7 @@ RUN pacman -Sy && \
 RUN pacman -S --needed --noconfirm coreutils findutils diffutils python socat xclip sed
 RUN pacman -Sdd --needed --noconfirm pixman freetype2 graphite harfbuzz libfontenc xorg-xkbcomp xorg-setxkbmap xkeyboard-config libxfont2 libunwind libglvnd libxkbfile xorg-server-xvfb
 
-FROM debian:bullseye-slim AS debian_builder
+FROM debian:trixie-slim AS debian_builder
 ARG NO_XVFB=''
 
 ENV DEBIAN_FRONTEND=noninteractive

@@ -166,11 +166,6 @@ jobs:
         docker buildx build -t clipshare:ubuntu26 -f docker/release/Dockerfile \
         --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=resolute' .
 
-    - name: Build on Debian Bullseye arm64
-      run: |
-        docker buildx build -t clipshare:debian11 -f docker/release/Dockerfile \
-        --build-arg 'DISTRO=debian' --build-arg 'VERSION=bullseye' .
-
     - name: Build on Debian Bookworm arm64
       run: |
         docker buildx build -t clipshare:debian12 -f docker/release/Dockerfile \
@@ -203,7 +198,7 @@ jobs:
     - name: Build on Debian arm/v7
       run: |
         docker buildx build --platform=linux/arm/v7 -t clipshare:debian -f docker/release/Dockerfile \
-        --build-arg 'DISTRO=debian' --build-arg 'VERSION=bullseye' .
+        --build-arg 'DISTRO=debian' --build-arg 'VERSION=bookworm' .
 
     - name: Build on Ubuntu arm/v7
       run: |
