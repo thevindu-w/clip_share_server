@@ -185,7 +185,7 @@ extern int64_t convert_eol(char **str_p, int force_lf);
 #define open_file(filename, mode) fopen(filename, mode)
 #define remove_file(filename) remove(filename)
 #define chdir_wrapper(path) chdir(path)
-#define getcwd_wrapper(len) getcwd(NULL, len)
+#define getcwd_wrapper() getcwd(NULL, 0)
 
 /**
  * Get a list of copied files and directories as a single string.
@@ -208,7 +208,7 @@ extern int chdir_wrapper(const char *path);
  * the array is at least len bytes long.
  * Returns NULL if the directory couldn't be determined.
  */
-extern char *getcwd_wrapper(int len);
+extern char *getcwd_wrapper(void);
 
 /*
  * A wrapper for fopen() to be platform independent.

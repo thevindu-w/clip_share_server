@@ -1513,8 +1513,8 @@ int chdir_wrapper(const char *path) {
     return result;
 }
 
-char *getcwd_wrapper(int len) {
-    wchar_t *wcwd = _wgetcwd(NULL, len);
+char *getcwd_wrapper(void) {
+    wchar_t *wcwd = _wgetcwd(NULL, 0);
     if (!wcwd) return NULL;
     char *utf8path;
     uint32_t alloc_len;
@@ -1523,7 +1523,6 @@ char *getcwd_wrapper(int len) {
         return NULL;
     }
     free(wcwd);
-    if ((int)alloc_len < len) utf8path = realloc_or_free(utf8path, (size_t)len);
     return utf8path;
 }
 

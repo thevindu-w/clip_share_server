@@ -125,8 +125,14 @@ static inline void _parse_args(int argc, char **argv, int8_t *stop_p, int8_t *da
  * Set the error_log_file absolute path
  */
 static inline void _set_error_log_file(const char *path) {
-    char *working_dir = getcwd_wrapper(MAX_FILE_NAME_LEN + 2);
-    if (!working_dir) exit(EXIT_FAILURE);
+    char *wdir = getcwd_wrapper();
+    if (!wdir) {
+        exit(EXIT_FAILURE);
+    }
+    char *working_dir = realloc_or_free(wdir, MAX_FILE_NAME_LEN + 2);
+    if (!working_dir) {
+        exit(EXIT_FAILURE);
+    }
     working_dir[MAX_FILE_NAME_LEN + 1] = 0;
     size_t working_dir_len = strnlen(working_dir, MAX_FILE_NAME_LEN);
     if (working_dir_len == 0 || working_dir_len >= MAX_FILE_NAME_LEN) {
@@ -173,7 +179,7 @@ static inline void _change_working_dir(void) {
         fprintf(stderr, "%s\n", err);
         error_exit(err);
     }
-    char *old_work_dir = getcwd_wrapper(0);
+    char *old_work_dir = getcwd_wrapper();
     if (chdir_wrapper(configuration.working_dir)) {
         char err[3072];
         if (snprintf_check(err, 3072, "Error: Failed changing working directory to \'%s\'", configuration.working_dir))
@@ -182,7 +188,7 @@ static inline void _change_working_dir(void) {
         if (old_work_dir) free(old_work_dir);
         error_exit(err);
     }
-    char *new_work_dir = getcwd_wrapper(0);
+    char *new_work_dir = getcwd_wrapper();
     if (old_work_dir == NULL || new_work_dir == NULL) {
         const char *err = "Error occurred during changing working directory.";
         fprintf(stderr, "%s\n", err);
@@ -746,7 +752,7 @@ int main(int argc, char **argv) {
     configuration.cut_sent_files = 1;
 #endif
     if (configuration.working_dir) _change_working_dir();
-    cwd = getcwd_wrapper(0);
+    cwd = getcwd_wrapper();
     cwd_len = strnlen(cwd, MAX_FILE_NAME_LEN);
 
 #ifdef NO_SSL
