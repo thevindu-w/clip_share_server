@@ -183,7 +183,6 @@ jobs:
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu22
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu24
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu26
-        docker run -v './dist:/home/user/src/dist' clipshare:debian11
         docker run -v './dist:/home/user/src/dist' clipshare:debian12
         docker run -v './dist:/home/user/src/dist' clipshare:debian13
         [ -f helper_tools/install-linux.sh ] && cp helper_tools/install-linux.sh dist/
@@ -473,7 +472,6 @@ jobs:
       matrix:
         target:
         - arm64
-        - x86_64
 
     steps:
     - name: Install build dependencies
@@ -528,12 +526,6 @@ jobs:
         echo FILE_INTEL="clip_share-x86_64" >> $GITHUB_ENV
         echo FILE_ARM="clip_share-arm64" >> $GITHUB_ENV
 
-    - name: Download macOS x86_64 version
-      uses: actions/download-artifact@v8
-      with:
-        name: "${{env.FILE_INTEL}}"
-        path: "${{env.FILE_INTEL}}"
-
     - name: Download macOS ARM64 version
       uses: actions/download-artifact@v8
       with:
@@ -543,7 +535,7 @@ jobs:
     - name: Archive
       run: |
         mkdir dist
-        mv "${{env.FILE_INTEL}}/${{env.FILE_INTEL}}" "${{env.FILE_ARM}}/${{env.FILE_ARM}}" dist/
+        mv "${{env.FILE_ARM}}/${{env.FILE_ARM}}" dist/
         [ -f helper_tools/install-mac.sh ] && cp helper_tools/install-mac.sh dist/
         chmod +x dist/*
         cd dist
