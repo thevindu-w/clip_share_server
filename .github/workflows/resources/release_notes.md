@@ -17,5 +17,5 @@ This is Version <VERSION> with support for protocol versions 1, 2, 3, and 4.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Fix potential buffer overflows and other issues.
+- Add support for mipsel_mips32 Linux.
 - Code quality improvements.
