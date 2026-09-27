@@ -36,8 +36,8 @@ More customization options, other installation options, and detailed instruction
 </tr>
 <tr>
 <td align="center">
-<a href="https://github.com/thevindu-w/clip_share_server/releases"><img src="https://raw.githubusercontent.com/thevindu-w/clip_share_client/master/fastlane/metadata/android/en-US/images/icon.png" alt="Get it on GitHub" width="100" style="vertical-align: middle"/></a>&nbsp;
-<a href="https://github.com/thevindu-w/clip_share_server/releases"><img src="https://docs.appimage.org/_images/download-appimage-banner.svg" alt="Get it on GitHub" width="150" style="vertical-align: middle"/></a><br>
+<a href="https://github.com/thevindu-w/clip_share_server/releases"><img src="https://raw.githubusercontent.com/thevindu-w/clip_share_client/master/fastlane/metadata/android/en-US/images/icon.png" alt="Get it on GitHub" width="100" align="middle"/></a>&emsp;
+<a href="https://github.com/thevindu-w/clip_share_server/releases"><img src="https://docs.appimage.org/_images/download-appimage-banner.svg" alt="Get it on GitHub" width="150" align="middle"/></a><br>
 Download the server from <a href="https://github.com/thevindu-w/clip_share_server/releases">Releases</a>.
 </td>
 </tr>
@@ -484,10 +484,10 @@ If you changed the configuration file, you must restart the server to apply the 
 
   The following development libraries are required.
 
-* [libpng16](https://packages.msys2.org/package/mingw-w64-clang-x86_64-libpng?repo=mingw64)
-* [libssl](https://packages.msys2.org/package/mingw-w64-clang-x86_64-openssl?repo=mingw64) (provided by OpenSSL)
-* [libunistring](https://packages.msys2.org/package/mingw-w64-clang-x86_64-libunistring?repo=mingw64)
-* [libz](https://packages.msys2.org/package/mingw-w64-clang-x86_64-libzip?repo=mingw64)
+* [libpng16](https://packages.msys2.org/package/mingw-w64-clang-x86_64-libpng?repo=clang64)
+* [libssl](https://github.com/openssl/openssl/releases/) (provided by OpenSSL)
+* [libunistring](https://packages.msys2.org/package/mingw-w64-clang-x86_64-libunistring?repo=clang64)
+* [libz](https://packages.msys2.org/package/mingw-w64-clang-x86_64-libzip?repo=clang64)
 
 In an [MSYS2](https://www.msys2.org/) environment, these tools can be installed using pacman with the following commands:
 ```bash
@@ -544,6 +544,8 @@ arch -x86_64 brew install --force-bottle --ignore-dependencies openssl@3 libunis
     make
     ```
     This will generate the executable named clip_share (or clip_share.exe on Windows).
+
+Using the option `make NO_STATUS_ICON=1` will compile without the status icon. (libgtk-3 and libayatana-appindicator3 development libraries will not be required if using this option)
 
 #### Cross-Compiling on macOS for x86_64 target on arm64 machines
 
