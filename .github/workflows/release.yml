@@ -257,7 +257,8 @@ jobs:
 
     - name: Build for mipsel_mips32
       run: |
-        curl -OL https://github.com/thevindu-w/toolchain-cache/releases/download/musl/mipsel-linux-musl-cross.tgz || \
+        toolchain=openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+        curl -OL "https://github.com/thevindu-w/toolchain-cache/releases/download/musl/$toolchain" || \
         echo Download failed
         docker buildx build -t clipshare -f docker/release/Dockerfile.mipsel .
 

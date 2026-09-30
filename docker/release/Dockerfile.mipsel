@@ -1,19 +1,22 @@
-FROM alpine:3
+FROM ubuntu:resolute
 
-SHELL ["/bin/ash", "-o", "pipefail", "-c"]
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Install build dependencies
-RUN apk add --no-cache make wget tar xz
+RUN apt-get update && apt-get install --no-install-recommends -y ca-certificates make wget tar xz-utils zstd && apt-get clean -y
 
 WORKDIR /
-COPY mipsel-linux-musl-cross.tgz* ./
-RUN if [ ! -f mipsel-linux-musl-cross.tgz ]; then wget https://musl.cc/mipsel-linux-musl-cross.tgz; fi
-RUN if [ "$(sha256sum -b mipsel-linux-musl-cross.tgz | cut -d ' ' -f 1)" != '82626533bf7e677c225e7cbedf1d5b0d6bc60c3daaf28249e54f0eb805d89b13' ]; then \
-    echo 'mipsel-linux-musl-cross.tgz hash mismatch'; exit 1; fi
-RUN tar -xzf mipsel-linux-musl-cross.tgz && rm mipsel-linux-musl-cross.tgz \
-    && mv mipsel-linux-musl-cross /opt/toolchain
+COPY openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst* ./
+RUN if [ ! -f openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst ]; then \
+    wget https://downloads.openwrt.org/releases/25.12.5/targets/ramips/mt7621/openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst; fi
+RUN if [ "$(sha256sum -b openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst | cut -d ' ' -f 1)" != '04316e081dcaea0394d3a8eca761500c91d7d54e9d49ccb8f855ae257ea4f995' ]; then \
+    echo 'openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst hash mismatch'; exit 1; fi
+RUN tar --zstd -xf openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst && \
+    mv openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64/toolchain-mipsel_24kc_gcc-14.3.0_musl /opt/toolchain && \
+    rm -rf openwrt-*.tar.zst openwrt-toolchain-*/
 
 ENV PATH="/opt/toolchain/bin:$PATH"
+ENV TOOL_PREFIX=mipsel-openwrt-linux-musl
 ENV TARGET=mipsel-linux-musl
 
 RUN wget https://ftpmirror.gnu.org/libunistring/libunistring-1.4.2.tar.xz || wget https://ftp.gnu.org/gnu/libunistring/libunistring-1.4.2.tar.xz
@@ -23,7 +26,8 @@ RUN tar -xJf libunistring-1.4.2.tar.xz && rm libunistring-1.4.2.tar.xz
 
 WORKDIR /libunistring-1.4.2
 RUN ./configure --host="$TARGET" --enable-static --disable-shared --disable-rpath --prefix=/opt/static-deps \
-    CC="${TARGET}-gcc" CPP="${TARGET}-cpp" CFLAGS='-march=mips32r2 -mhard-float -Os' \
+    CC="${TOOL_PREFIX}-gcc" CPP="${TOOL_PREFIX}-cpp" AR="${TOOL_PREFIX}-ar" AS="${TOOL_PREFIX}-as" LD="${TOOL_PREFIX}-ld" NM="${TOOL_PREFIX}-nm" \
+    CFLAGS='-march=mips32r2 -mtune=mips32r2 -msoft-float -mabi=32 -Os' \
     && make -j4 \
     && make install
 
@@ -35,6 +39,6 @@ COPY Makefile ./
 COPY ./src src
 
 # Build
-RUN make CC=${TARGET}-gcc EXTRA_CFLAGS='-march=mips32r2 -mhard-float' STATIC=1 HEADLESS=1 no_ssl
+RUN make CC=${TOOL_PREFIX}-gcc EXTRA_CFLAGS='-march=mips32r2 -mtune=mips32r2 -msoft-float -mabi=32' STATIC=1 HEADLESS=1 no_ssl
 
 CMD ["mv", "clip_share_no_ssl", "/dist/"]
