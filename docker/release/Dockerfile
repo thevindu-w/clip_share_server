@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y coreutils gcc m
 FROM fedora:44 AS fedora_builder
 
 # Install dependencies
-RUN dnf install --setopt=install_weak_deps=False -y coreutils gcc make glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel libunistring-devel gtk3-devel libayatana-appindicator-gtk3-devel
+RUN dnf install --setopt=install_weak_deps=False -y coreutils gcc make glibc-devel libX11-devel libXmu-devel libpng-devel openssl-devel libunistring-devel gtk3-devel libayatana-appindicator-gtk3-devel && dnf clean all
 
 FROM archlinux:base AS arch_builder
 
@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y coreutils gcc m
 # hadolint ignore=DL3006
 FROM ${DISTRO}_builder
 
-RUN if [ "$APPIMAGE" = '1' ]; then wget https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage && mv appimagetool-x86_64.AppImage /usr/bin/appimagetool && chmod +x /usr/bin/appimagetool; fi
+RUN if [ "$APPIMAGE" = '1' ]; then wget --progress=dot:giga https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage && mv appimagetool-x86_64.AppImage /usr/bin/appimagetool && chmod +x /usr/bin/appimagetool; fi
 
 RUN useradd -mU -s /bin/bash user
 USER user

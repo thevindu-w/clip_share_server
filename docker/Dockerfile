@@ -15,7 +15,7 @@ WORKDIR /debs
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN apt-get download xvfb libnettle8t64 libunwind8 libgl1 libpixman-1-0 libxfont2 libglvnd0 libglx0 libfontenc1 libfreetype6 libbrotli1 xkb-data libxkbfile1 x11-xkb-utils shared-mime-info
 RUN apt-get install --no-install-recommends -y -s libgtk-3-dev libayatana-appindicator3-dev | grep "^Inst" | awk '{print $2}' | grep "\-dev$" | sort -u | xargs apt-get download
-RUN ls -1 *.deb | xargs -I {} dpkg -x {} / && rm -f *.deb && if [ -d /lib ] && [ -z "$(ls -A /lib)" ]; then rmdir /lib && ln -s /usr/lib /lib; fi && apt-get install -f -y && apt-get clean -y
+RUN find . -name '*.deb' -print0 | xargs -0 -I {} dpkg -x {} / && rm -f ./*.deb && if [ -d /lib ] && [ -z "$(ls -A /lib)" ]; then rmdir /lib && ln -s /usr/lib /lib; fi && apt-get install --no-install-recommends -f -y && apt-get clean -y
 
 FROM fedora:44 AS fedora_builder
 

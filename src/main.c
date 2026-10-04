@@ -198,6 +198,7 @@ static inline void _change_working_dir(void) {
     }
     // if the working directory did not change, set configuration.working_dir to NULL
     if (!strcmp(old_work_dir, new_work_dir)) {
+        free(configuration.working_dir);
         configuration.working_dir = NULL;
     }
     free(old_work_dir);

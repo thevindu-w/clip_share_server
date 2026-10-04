@@ -3,12 +3,12 @@ FROM ubuntu:resolute
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Install build dependencies
-RUN apt-get update && apt-get install --no-install-recommends -y ca-certificates make wget tar xz-utils zstd && apt-get clean -y
+RUN apt-get update && apt-get install --no-install-recommends -y ca-certificates make wget tar xz-utils zstd && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
 COPY openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst* ./
 RUN if [ ! -f openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst ]; then \
-    wget https://downloads.openwrt.org/releases/25.12.5/targets/ramips/mt7621/openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst; fi
+    wget --progress=dot:giga https://downloads.openwrt.org/releases/25.12.5/targets/ramips/mt7621/openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst; fi
 RUN if [ "$(sha256sum -b openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst | cut -d ' ' -f 1)" != '04316e081dcaea0394d3a8eca761500c91d7d54e9d49ccb8f855ae257ea4f995' ]; then \
     echo 'openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst hash mismatch'; exit 1; fi
 RUN tar --zstd -xf openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst && \
@@ -19,7 +19,7 @@ ENV PATH="/opt/toolchain/bin:$PATH"
 ENV TOOL_PREFIX=mipsel-openwrt-linux-musl
 ENV TARGET=mipsel-linux-musl
 
-RUN wget https://ftpmirror.gnu.org/libunistring/libunistring-1.4.2.tar.xz || wget https://ftp.gnu.org/gnu/libunistring/libunistring-1.4.2.tar.xz
+RUN wget --progress=dot:giga https://ftpmirror.gnu.org/libunistring/libunistring-1.4.2.tar.xz || wget --progress=dot:giga https://ftp.gnu.org/gnu/libunistring/libunistring-1.4.2.tar.xz
 RUN if [ "$(sha256sum -b libunistring-1.4.2.tar.xz | cut -d ' ' -f 1)" != '5b46e74377ed7409c5b75e7a96f95377b095623b689d8522620927964a41499c' ]; then \
     echo 'libunistring-1.4.2.tar.xz hash mismatch'; exit 1; fi
 RUN tar -xJf libunistring-1.4.2.tar.xz && rm libunistring-1.4.2.tar.xz
