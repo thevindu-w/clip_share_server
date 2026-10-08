@@ -29,7 +29,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y coreutils gcc m
 # hadolint ignore=DL3006
 FROM ${DISTRO}_builder
 
-RUN if [ "$APPIMAGE" = '1' ]; then wget --progress=dot:giga https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage && mv appimagetool-x86_64.AppImage /usr/bin/appimagetool && chmod +x /usr/bin/appimagetool; fi
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN if [ "$APPIMAGE" = '1' ]; then wget --progress=dot:giga https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage; fi
+RUN if [ "$(sha256sum -b appimagetool-x86_64.AppImage | cut -d ' ' -f 1)" != 'ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0' ]; then \
+    echo 'appimagetool-x86_64.AppImage hash mismatch'; exit 1; \
+    else mv appimagetool-x86_64.AppImage /usr/bin/appimagetool && chmod +x /usr/bin/appimagetool; fi
 
 RUN useradd -mU -s /bin/bash user
 USER user
