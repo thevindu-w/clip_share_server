@@ -3,8 +3,9 @@ FROM ubuntu:resolute
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Install build dependencies
-RUN apt-get update && apt-get install --no-install-recommends -y ca-certificates make wget tar xz-utils zstd && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install --no-install-recommends -y ca-certificates make wget tar xz-utils zstd perl && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
+# musl cross
 WORKDIR /
 COPY openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst* ./
 RUN if [ ! -f openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst ]; then \
@@ -18,27 +19,44 @@ RUN tar --zstd -xf openwrt-toolchain-25.12.5-ramips-mt7621_gcc-14.3.0_musl.Linux
 ENV PATH="/opt/toolchain/bin:$PATH"
 ENV TOOL_PREFIX=mipsel-openwrt-linux-musl
 ENV TARGET=mipsel-linux-musl
+ENV LIB_PREFIX=/opt/static-deps
 
+# libunistring
+WORKDIR /
 RUN wget --progress=dot:giga https://ftpmirror.gnu.org/libunistring/libunistring-1.4.2.tar.xz || wget --progress=dot:giga https://ftp.gnu.org/gnu/libunistring/libunistring-1.4.2.tar.xz
 RUN if [ "$(sha256sum -b libunistring-1.4.2.tar.xz | cut -d ' ' -f 1)" != '5b46e74377ed7409c5b75e7a96f95377b095623b689d8522620927964a41499c' ]; then \
     echo 'libunistring-1.4.2.tar.xz hash mismatch'; exit 1; fi
 RUN tar -xJf libunistring-1.4.2.tar.xz && rm libunistring-1.4.2.tar.xz
 
 WORKDIR /libunistring-1.4.2
-RUN ./configure --host="$TARGET" --enable-static --disable-shared --disable-rpath --prefix=/opt/static-deps \
+RUN ./configure --host="$TARGET" --enable-static --disable-shared --disable-rpath --prefix="$LIB_PREFIX" \
     CC="${TOOL_PREFIX}-gcc" CPP="${TOOL_PREFIX}-cpp" AR="${TOOL_PREFIX}-ar" AS="${TOOL_PREFIX}-as" LD="${TOOL_PREFIX}-ld" NM="${TOOL_PREFIX}-nm" \
     CFLAGS='-march=mips32r2 -mtune=mips32r2 -msoft-float -mabi=32 -Os' \
     && make -j4 \
     && make install
 
-RUN mkdir -p /src
-WORKDIR /src
+# OpenSSL
+WORKDIR /
+RUN wget --progress=dot:giga https://github.com/openssl/openssl/releases/download/openssl-3.6.4/openssl-3.6.4.tar.gz
+RUN if [ "$(sha256sum -b openssl-3.6.4.tar.gz | cut -d ' ' -f 1)" != '9bffaa1ad1e07b354c21bd3324ec02fa15579f45a7d0494b3e74bc449b7333ef' ]; then \
+    echo 'openssl-3.6.4.tar.gz hash mismatch'; exit 1; fi
+RUN tar -xzf openssl-3.6.4.tar.gz && rm openssl-3.6.4.tar.gz
+
+WORKDIR /openssl-3.6.4
+RUN ./Configure linux-mips32 --prefix="$LIB_PREFIX" \
+    no-apps no-autoerrinit no-dgram no-docs no-dso no-err no-filenames no-http no-ocsp no-quic no-shared no-srp no-srtp no-ssl-trace no-tests no-thread-pool no-ts no-ui-console no-uplink no-zlib no-brotli no-zstd \
+    CC="${TOOL_PREFIX}-gcc" CPP="${TOOL_PREFIX}-cpp" LD="${TOOL_PREFIX}-ld" RANLIB="${TOOL_PREFIX}-ranlib" AR="${TOOL_PREFIX}-gcc-ar" AS="${TOOL_PREFIX}-as" -march=mips32r2 -mtune=mips32r2 -msoft-float -mabi=32 \
+    && make -j4 \
+    && make install
 
 # Copy the source files
+RUN mkdir -p /src
+WORKDIR /src
 COPY Makefile ./
 COPY ./src src
 
 # Build
-RUN make CC=${TOOL_PREFIX}-gcc EXTRA_CFLAGS='-march=mips32r2 -mtune=mips32r2 -msoft-float -mabi=32' STATIC=1 HEADLESS=1 no_ssl
+RUN make CC="${TOOL_PREFIX}-gcc" EXTRA_CFLAGS='-march=mips32r2 -mtune=mips32r2 -msoft-float -mabi=32' STATIC=1 HEADLESS=1
+RUN make CC="${TOOL_PREFIX}-gcc" EXTRA_CFLAGS='-march=mips32r2 -mtune=mips32r2 -msoft-float -mabi=32' STATIC=1 HEADLESS=1 no_ssl
 
-CMD ["mv", "clip_share_no_ssl", "/dist/"]
+CMD ["mv", "clip_share", "clip_share_no_ssl", "/dist/"]

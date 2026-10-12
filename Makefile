@@ -99,6 +99,7 @@ ifeq ($(detected_OS),Linux)
 	STATIC?=0
 	ifeq ($(STATIC),1)
 		CFLAGS+= -I/opt/static-deps/include -ffunction-sections -fdata-sections
+		LDLIBS_SSL+= -lpthread -latomic
 		LINK_FLAGS_BUILD+= -L/opt/static-deps/lib -static
 	endif
 else ifeq ($(detected_OS),Windows)
