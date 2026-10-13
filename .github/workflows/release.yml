@@ -315,6 +315,7 @@ jobs:
           mingw-w64-${{matrix.target.env}}-libunistring \
           make \
           coreutils \
+          perl \
           zip"
         if [ "${{ matrix.target.arch }}" = 'x86_64' ]; then
           install_list="mingw-w64-${{matrix.target.env}}-clang \
