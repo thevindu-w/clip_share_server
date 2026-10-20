@@ -26,7 +26,7 @@
 #include <utils/unistr_wrap.h>
 #include <utils/utils.h>
 
-#define LINE_MAX_LEN 2047
+#define LINE_MAX_LEN 2048
 
 /*
  * Trims all charactors in the range \x01 to \x20 inclusive from both ends of
@@ -54,6 +54,29 @@ static inline void trim(char *str) {
     }
 }
 
+static inline char *expand_path(const char *path) {
+    if (!path || path[0] == '\0') {
+        return NULL;
+    }
+    if (path[0] != '~' || !(path[1] == '/' || path[1] == '\0')) {
+        return strdup(path);
+    }
+    char *home = get_user_home();
+    if (!home) {
+        return NULL;
+    }
+    size_t len = strnlen(home, MAX_FILE_NAME_LEN) + strnlen(path, MAX_FILE_NAME_LEN);
+    char *full_path = (char *)malloc(len);
+    if (!full_path) {
+        free(home);
+        return NULL;
+    }
+    snprintf(full_path, len, "%s%s", home, path + 1);
+    full_path[len - 1] = '\0';
+    free(home);
+    return full_path;
+}
+
 #ifndef NO_SSL
 /*
  * Reads the list of client names from the file given by the filename.
@@ -61,9 +84,16 @@ static inline void trim(char *str) {
  * Returns a list2* of null terminated strings as elements on success.
  * Returns null on error.
  */
-static inline list2 *get_client_list(const char *filename) {
-    FILE *f = fopen(filename, "r");
-    if (!f) error_exit("Error: allowed client list file not found");
+static inline list2 *get_client_list(const char *file_path) {
+    char *path = expand_path(file_path);
+    if (!path) {
+        error_exit("Error: invalid filename");
+    }
+    FILE *f = fopen(path, "r");
+    free(path);
+    if (!f) {
+        error_exit("Error: allowed client list file not found");
+    }
     list2 *client_list = init_list(1);
     if (!client_list) {
         exit(EXIT_FAILURE);
@@ -87,7 +117,7 @@ static inline list2 *get_client_list(const char *filename) {
     if (has_error) {
         free_list(client_list);
         char msg[2048];
-        if (snprintf_check(msg, sizeof(msg), "Error: file %s has invalid utf8 encoding", filename)) {
+        if (snprintf_check(msg, sizeof(msg), "Error: file %s has invalid utf8 encoding", file_path)) {
             error_exit("Error: client list file has invalid utf8 encoding");
         }
         msg[2047] = '\0';
@@ -106,10 +136,16 @@ static inline list2 *get_client_list(const char *filename) {
  * Note that if the file contained null byte in it, the length of the string may be smaller than the allocated memory
  * block.
  */
-static inline void load_file(const char *file_name, data_buffer *buf_ptr) {
-    if (!file_name) error_exit("Error: invalid filename");
-    FILE *file_ptr = fopen(file_name, "rb");
-    if (!file_ptr) error_exit("Error: certificate file not found");
+static inline void load_file(const char *file_path, data_buffer *buf_ptr) {
+    char *path = expand_path(file_path);
+    if (!path) {
+        error_exit("Error: invalid filename");
+    }
+    FILE *file_ptr = fopen(path, "rb");
+    free(path);
+    if (!file_ptr) {
+        error_exit("Error: certificate file not found");
+    }
     int64_t len = get_file_size(file_ptr);
     if (len <= 0 || 65536L < len) {
         fclose(file_ptr);
@@ -316,7 +352,7 @@ static void parse_line(char *line, config *cfg) {
 #endif
     } else if (!strcmp("working_dir", key)) {
         if (cfg->working_dir) free(cfg->working_dir);
-        cfg->working_dir = strdup(value);
+        cfg->working_dir = expand_path(value);
     } else if (!strcmp("bind_address", key)) {
         if (parse_ip(value, &(cfg->bind_addr)) != EXIT_SUCCESS) {
             char msg[64];

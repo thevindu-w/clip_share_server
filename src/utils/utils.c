@@ -49,11 +49,13 @@
 #endif
 #endif
 #if defined(__linux__) || defined(__APPLE__)
+#include <pwd.h>
 #include <time.h>
 #endif
 #ifdef _WIN32
 #include <direct.h>
 #include <shlobj.h>
+#include <userenv.h>
 #include <utils/win_image.h>
 #include <utils/win_load_lib.h>
 #include <windows.h>
@@ -928,6 +930,19 @@ int remove_directory(const char *path) {
 
 #if defined(__linux__) || defined(__APPLE__)
 
+char *get_user_home(void) {
+    const char *home = getenv("HOME");
+    if (!(home && *home)) {
+        struct passwd pw;
+        struct passwd *result = NULL;
+        char buf[MAX_FILE_NAME_LEN];
+        if (getpwuid_r(getuid(), &pw, buf, MAX_FILE_NAME_LEN, &result) || result == NULL) return NULL;
+        home = result->pw_dir;
+    }
+    if (home) return strndup(home, 513);
+    return NULL;
+}
+
 void create_temp_file(void) {
     int fd = open(TEMP_FILE, O_CREAT, 0666);
     close(fd);
@@ -973,6 +988,43 @@ static int url_decode(char *str, uint32_t *len_p) {
     if (len_p) *len_p = (uint32_t)(ptr1 - str);
     return EXIT_SUCCESS;
 }
+
+#elif defined(_WIN32)
+
+char *get_user_home(void) {
+    DWORD pid = GetCurrentProcessId();
+    HANDLE procHndl = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    HANDLE token;
+    if (!OpenProcessToken(procHndl, TOKEN_QUERY, &token)) {
+        CloseHandle(procHndl);
+        return NULL;
+    }
+    DWORD wlen;
+    GetUserProfileDirectoryW(token, NULL, &wlen);
+    CloseHandle(token);
+    if (wlen >= 512) return NULL;
+    wchar_t whome[wlen];
+    if (!OpenProcessToken(procHndl, TOKEN_QUERY, &token)) {
+        CloseHandle(procHndl);
+        return NULL;
+    }
+    if (!GetUserProfileDirectoryW(token, whome, &wlen)) {
+        CloseHandle(procHndl);
+        CloseHandle(token);
+        return NULL;
+    }
+    CloseHandle(token);
+    CloseHandle(procHndl);
+    char *home = NULL;
+    uint32_t len;
+    if (wchar_to_utf8_str(whome, &home, &len) != EXIT_SUCCESS) return NULL;
+    if (len >= 512 && home) {
+        free(home);
+        return NULL;
+    }
+    return home;
+}
+
 #endif
 
 #ifdef __linux__

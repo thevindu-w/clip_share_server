@@ -29,7 +29,6 @@
 #include <utils/utils.h>
 
 #ifdef __linux__
-#include <pwd.h>
 #include <sys/wait.h>
 #include <utils/linux_status_icon.h>
 #elif defined(_WIN32)
@@ -37,12 +36,10 @@
 #include <shellapi.h>
 #include <shellscalingapi.h>
 #include <tlhelp32.h>
-#include <userenv.h>
 #ifdef _WIN64
 #include <utils/win_load_lib.h>
 #endif
 #elif defined(__APPLE__)
-#include <pwd.h>
 #include <utils/mac_menu.h>
 #endif
 
@@ -71,7 +68,6 @@ const char *global_prog_name = NULL;
 #endif
 
 static void print_usage(const char *);
-static char *get_user_home(void);
 static char *get_conf_file(void);
 
 static void print_usage(const char *prog_name) {
@@ -165,7 +161,9 @@ static inline void _change_working_dir(void) {
     if (!(configuration.working_dir && *configuration.working_dir)) error_exit("Invalid working directory");
     char *ptr;
     for (ptr = configuration.working_dir; *ptr; ptr++) {
+#if PATH_SEP != '/'
         if (*ptr == PATH_SEP) *ptr = '/';
+#endif
     }
     ptr--;
     while (*ptr == '/' && ptr > configuration.working_dir) {  // do not remove / from root
@@ -378,40 +376,6 @@ static LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wParam, LPARAM 
 }
 #endif
 
-static char *get_user_home(void) {
-    DWORD pid = GetCurrentProcessId();
-    HANDLE procHndl = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-    HANDLE token;
-    if (!OpenProcessToken(procHndl, TOKEN_QUERY, &token)) {
-        CloseHandle(procHndl);
-        return NULL;
-    }
-    DWORD wlen;
-    GetUserProfileDirectoryW(token, NULL, &wlen);
-    CloseHandle(token);
-    if (wlen >= 512) return NULL;
-    wchar_t whome[wlen];
-    if (!OpenProcessToken(procHndl, TOKEN_QUERY, &token)) {
-        CloseHandle(procHndl);
-        return NULL;
-    }
-    if (!GetUserProfileDirectoryW(token, whome, &wlen)) {
-        CloseHandle(procHndl);
-        CloseHandle(token);
-        return NULL;
-    }
-    CloseHandle(token);
-    CloseHandle(procHndl);
-    char *home = NULL;
-    uint32_t len;
-    if (wchar_to_utf8_str(whome, &home, &len) != EXIT_SUCCESS) return NULL;
-    if (len >= 512 && home) {
-        free(home);
-        return NULL;
-    }
-    return home;
-}
-
 static void start_servers(int8_t daemonize) {
     (void)daemonize;
     WSADATA wsa;
@@ -516,19 +480,6 @@ static void start_servers(int8_t daemonize) {
 #endif
 
 #if defined(__linux__) || defined(__APPLE__)
-
-static char *get_user_home(void) {
-    const char *home = getenv("HOME");
-    if (!(home && *home)) {
-        struct passwd pw;
-        struct passwd *result = NULL;
-        char buf[MAX_FILE_NAME_LEN];
-        if (getpwuid_r(getuid(), &pw, buf, MAX_FILE_NAME_LEN, &result) || result == NULL) return NULL;
-        home = result->pw_dir;
-    }
-    if (home) return strndup(home, 513);
-    return NULL;
-}
 
 __attribute__((noreturn)) static void exit_on_signal_handler(int sig) {
     (void)sig;

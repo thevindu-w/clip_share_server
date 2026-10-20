@@ -90,6 +90,13 @@ extern void error_exit(const char *msg) __attribute__((noreturn));
  */
 extern void cleanup(void);
 
+/*
+ * Returns the process owner's home directory (or user profile directory on Windows).
+ * Returns NULL on error.
+ * Caller needs to free the returned pointer.
+ */
+extern char *get_user_home(void);
+
 extern void create_temp_file(void);
 
 /*
