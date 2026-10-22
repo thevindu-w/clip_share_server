@@ -44,8 +44,9 @@ endif
 CC?=gcc
 CPP=cpp
 EXTRA_CFLAGS?=
-CFLAGS=-c -pipe -I$(SRC_DIR) --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wpedantic -pedantic-errors -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Woverlength-strings
+CFLAGS=-c -pipe --std=gnu11 -fstack-protector -fstack-protector-all -Wall -Wextra -Wpedantic -pedantic-errors -Wdouble-promotion -Wformat=2 -Wformat-nonliteral -Wformat-security -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wstrict-overflow=4 -Wconversion -Wfloat-equal -Wshadow -Wpointer-arith -Wundef -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wnested-externs -Woverlength-strings
 CFLAGS+= -DHEADLESS=$(HEADLESS)
+CPPFLAGS=-I$(SRC_DIR)
 CFLAGS_DEBUG=-g -DDEBUG_MODE
 VPATH=$(SRC_DIR)
 
@@ -98,7 +99,8 @@ ifeq ($(detected_OS),Linux)
 	LINK_FLAGS_BUILD=-no-pie -Wl,-s,--gc-sections,-z,noexecstack
 	STATIC?=0
 	ifeq ($(STATIC),1)
-		CFLAGS+= -I/opt/static-deps/include -ffunction-sections -fdata-sections
+		CPPFLAGS+= -I/opt/static-deps/include
+		CFLAGS+= -ffunction-sections -fdata-sections
 		LDLIBS_SSL+= -lpthread -latomic
 		LINK_FLAGS_BUILD+= -L/opt/static-deps/lib -static
 	endif
@@ -123,8 +125,8 @@ else ifeq ($(detected_OS),Windows)
 	PROGRAM_NAME_WEB:=$(PROGRAM_NAME_WEB).exe
 	PROGRAM_NAME_NO_SSL:=$(PROGRAM_NAME_NO_SSL).exe
 else ifeq ($(detected_OS),Darwin)
-export CPATH=$(shell brew --prefix)/include
-export LIBRARY_PATH=$(shell brew --prefix)/lib
+	CPPFLAGS+= -I$(shell brew --prefix openssl@3)/include -I$(shell brew --prefix)/include
+	LINK_FLAGS_BUILD+= -L$(shell brew --prefix openssl@3)/lib -L$(shell brew --prefix)/lib
 	OBJS_M=utils/mac_utils.o
 	ifneq ($(NO_STATUS_ICON),1)
 		OBJS_M+= utils/mac_menu.o
@@ -149,7 +151,7 @@ ifeq ($(NO_STATUS_ICON),1)
 	CFLAGS+= -DNO_STATUS_ICON=1
 endif
 CFLAGS_OPTIM+= -Werror
-CFLAGS:=$(EXTRA_CFLAGS) $(CFLAGS)
+CFLAGS:=$(CPPFLAGS) $(EXTRA_CFLAGS) $(CFLAGS)
 
 VERSION_FILE=$(SRC_DIR)/res/version
 ifeq (4.2,$(firstword $(sort $(MAKE_VERSION) 4.2)))
