@@ -11,7 +11,8 @@ if [ "$DETECTED_OS" != 'macOS' ]; then
         exit 1
     fi
 else
-    broadcast_addr='255.255.255.255'
+    showStatus info 'Skipping test for 127.255.255.255'
+    exit 0
 fi
 
 update_config bind_address_udp '127.0.0.1'

@@ -20,6 +20,7 @@
 
 #import <AppKit/AppKit.h>
 #import <AppKit/NSPasteboard.h>
+#import <dlfcn.h>
 #import <globals.h>
 #import <objc/Object.h>
 #import <stddef.h>
@@ -212,6 +213,9 @@ static NSBitmapImageRep *get_screen_image(uint16_t disp) {
 
 #else
 
+static CGImageRef (*ptr_CGDisplayCreateImage)(CGDirectDisplayID);
+static dispatch_once_t onceToken;
+
 static inline CGDirectDisplayID get_display_id(uint16_t disp) {
     CGDirectDisplayID disp_ids[65536UL];
     uint32_t disp_cnt;
@@ -225,10 +229,16 @@ static inline CGDirectDisplayID get_display_id(uint16_t disp) {
 }
 
 static NSBitmapImageRep *get_screen_image(uint16_t disp) {
+    dispatch_once(&onceToken, ^{
+        *(void **)&ptr_CGDisplayCreateImage = dlsym(RTLD_DEFAULT, "CGDisplayCreateImage");
+    });
+    if (!ptr_CGDisplayCreateImage) {
+        return NULL;
+    }
     CGDirectDisplayID disp_id = get_display_id(disp);
     CGImageRef screenshot = NULL;
     if (disp_id != (CGDirectDisplayID)-1) {
-        screenshot = CGDisplayCreateImage(disp_id);
+        screenshot = ptr_CGDisplayCreateImage(disp_id);
     }
     if (!screenshot) {
         return NULL;

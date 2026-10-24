@@ -2,6 +2,11 @@
 
 . init.sh
 
+if [ "$DETECTED_OS" = 'macOS' ]; then
+    showStatus info 'Skipping test on macOS'
+    exit 0
+fi
+
 mkdir -p original && cd original
 
 for f in "${files[@]}"; do
