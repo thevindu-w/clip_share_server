@@ -242,7 +242,7 @@ jobs:
         make ARCH=${{matrix.target.arch}} test
 
   Test-on-macOS:
-    runs-on: macos-14
+    runs-on: macos-latest
     timeout-minutes: 10
     needs: Style-Check
 

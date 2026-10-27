@@ -48,7 +48,7 @@ COPY Makefile ./
 COPY ./src src
 
 # Build
-RUN make clean && make
+RUN make clean && make && make no_ssl
 
 COPY --chown=user ./docker/release/AppDir AppDir
 COPY --chmod=755 ./docker/release/build_appimage.sh ./
