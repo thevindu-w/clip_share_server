@@ -171,7 +171,7 @@ jobs:
         echo ARCHIVE_NAME64_NO_SSL_NO_EXT="${archive64_no_ssl}" >> $GITHUB_ENV
         echo ARCHIVE_NAME64_NO_SSL="${archive64_no_ssl}.tar.gz" >> $GITHUB_ENV
         archiveV7="clip_share_server-${version}-linux-armv7"
-        archiveV7_no_ssl="clip_share_server-${version}-linux-armv7"
+        archiveV7_no_ssl="clip_share_server-no_ssl-${version}-linux-armv7"
         echo ARCHIVE_NAMEv7_NO_EXT="${archiveV7}" >> $GITHUB_ENV
         echo ARCHIVE_NAMEv7="${archiveV7}.tar.gz" >> $GITHUB_ENV
         echo ARCHIVE_NAMEv7_NO_SSL_NO_EXT="${archiveV7_no_ssl}" >> $GITHUB_ENV
@@ -233,6 +233,7 @@ jobs:
         gzip -9 >"${{env.ARCHIVE_NAME64_NO_SSL}}"
         tar -cf - --sort=name --owner=root:0 --group=root:0 --no-same-owner "${{env.ARCHIVE_NAME64_NO_EXT}}" | \
         gzip -9 >"${{env.ARCHIVE_NAME64}}"
+        rmdir dist || mv dist dist64 || true
 
     - name: Build on Debian arm/v7
       run: |
@@ -266,6 +267,7 @@ jobs:
         gzip -9 >"${{env.ARCHIVE_NAMEv7_NO_SSL}}"
         tar -cf - --sort=name --owner=root:0 --group=root:0 --no-same-owner "${{env.ARCHIVE_NAMEv7_NO_EXT}}" | \
         gzip -9 >"${{env.ARCHIVE_NAMEv7}}"
+        rmdir dist || mv dist distv7 || true
 
     - name: Upload Linux arm64 version
       uses: actions/upload-artifact@v7
