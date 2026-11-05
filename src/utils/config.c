@@ -502,6 +502,16 @@ void parse_conf(config *cfg, const char *file_name) {
     }
     fclose(f);
 
+#if PATH_SEP != '/'
+    if (cfg->working_dir) {
+        for (char *ptr = cfg->working_dir; *ptr; ptr++) {
+            if (*ptr == '/') {
+                *ptr = PATH_SEP;
+            }
+        }
+    }
+#endif
+
     return;
 }
 

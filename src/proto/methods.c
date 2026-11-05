@@ -349,7 +349,7 @@ static int _save_file_common(int version, socket_t *socket, const char *file_nam
     }
 
 #if (PROTOCOL_MIN <= 4) && (3 <= PROTOCOL_MAX)
-    if (file_size == -1 && version >= 3) {
+    if (file_size == -1 && version >= 3 && file_name[0] == '.') {
         return mkdirs(file_name);
     }
 #else
@@ -556,7 +556,7 @@ static inline int _make_directories(const char *path) {
     char *base_name = strrchr(path, PATH_SEP);
     if (!base_name) return EXIT_FAILURE;
     *base_name = 0;
-    if (mkdirs(path) != EXIT_SUCCESS) {
+    if (path[0] != '.' || mkdirs(path) != EXIT_SUCCESS) {
         *base_name = PATH_SEP;
         return EXIT_FAILURE;
     }

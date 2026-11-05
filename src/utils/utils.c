@@ -246,6 +246,14 @@ int is_directory(const char *path, int follow_symlinks) {
     if (utf8_to_wchar_str(path, &wpath, NULL) != EXIT_SUCCESS) {
         return -1;
     }
+    if (wpath[1] == L':' && wpath[2] == 0) {
+        wpath = realloc_or_free(wpath, 4 * sizeof(wchar_t));
+        if (!wpath) {
+            return -1;
+        }
+        wpath[2] = L'\\';
+        wpath[3] = 0;
+    }
     stat_result = _wstat64(wpath, &sb);
     free(wpath);
 #endif
@@ -532,8 +540,6 @@ static int _mkdir_check(const char *path) {
 }
 
 int mkdirs(const char *dir_path) {
-    if (dir_path[0] != '.') return EXIT_FAILURE;  // path must be relative and start with .
-
     if (file_exists(dir_path)) {
         if (is_directory(dir_path, 0) == 1) {
             return EXIT_SUCCESS;
@@ -553,7 +559,7 @@ int mkdirs(const char *dir_path) {
         return EXIT_FAILURE;
     }
 
-    for (size_t i = 0; i <= len; i++) {
+    for (size_t i = 1; i <= len; i++) {
         if (path[i] != PATH_SEP && path[i] != 0) continue;
         path[i] = 0;
         if (_mkdir_check(path) != EXIT_SUCCESS) {
