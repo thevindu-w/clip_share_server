@@ -441,21 +441,23 @@ jobs:
     - name: Build OpenSSL
       if: ${{ (matrix.target.arch == 'x86_64') && (steps.cache-openssl.outputs.cache-hit != 'true') }}
       run: |
-        curl -OL https://github.com/openssl/openssl/releases/download/openssl-3.5.0/openssl-3.5.0.tar.gz
-        if [ "$(sha256sum -b openssl-3.5.0.tar.gz | cut -d ' ' -f 1)" != \
-            '344d0a79f1a9b08029b0744e2cc401a43f9c90acd1044d09a530b4885a8e9fc0' ]; then
+        curl -OL https://github.com/openssl/openssl/releases/download/openssl-3.6.4/openssl-3.6.4.tar.gz
+        if [ "$(sha256sum -b openssl-3.6.4.tar.gz | cut -d ' ' -f 1)" != \
+            '9bffaa1ad1e07b354c21bd3324ec02fa15579f45a7d0494b3e74bc449b7333ef' ]; then
           echo OpenSSL hash mismatch
           exit 1
         fi
-        tar -xzf openssl-3.5.0.tar.gz
+        tar -xzf openssl-3.6.4.tar.gz
         mkdir "$OPENSSL_PATH"
-        cd openssl-3.5.0
+        cd openssl-3.6.4
         CC=clang ./Configure zlib no-zlib-dynamic no-brotli no-zstd no-shared no-tests no-docs \
+        no-autoerrinit no-dgram no-dso no-err no-filenames no-http no-ocsp no-quic no-srp no-srtp \
+        no-ssl-trace no-thread-pool no-ts no-ui-console no-uplink no-apps \
         --prefix="$OPENSSL_PATH" mingw64
         make -j4
         make install
         cd ..
-        rm -rf openssl-3.5.0*
+        rm -rf openssl-3.6.4*
 
     - name: Setup PatchPE
       if: ${{ matrix.target.arch == 'x86_64' }}
