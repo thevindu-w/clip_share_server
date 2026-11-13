@@ -431,11 +431,21 @@ static inline int _rename_if_exists(char *file_name, size_t max_len) {
         // do not create file named clipshare.conf
         if (snprintf_check(tmp_fname, max_len, ".%c1_%s", PATH_SEP, file_name)) return EXIT_FAILURE;
     }
-    int n = 1;
-    while (file_exists(tmp_fname)) {
-        if (n > 999999L) return EXIT_FAILURE;
-        if (snprintf_check(tmp_fname, max_len, ".%c%i_%s", PATH_SEP, n, file_name)) return EXIT_FAILURE;
-        n++;
+    if (configuration.overwrite_files) {
+        if (file_exists(tmp_fname) && recursive_delete(tmp_fname) != EXIT_SUCCESS) {
+            return EXIT_FAILURE;
+        }
+    } else {
+        int n = 1;
+        while (file_exists(tmp_fname)) {
+            if (n > 999999L) {
+                return EXIT_FAILURE;
+            }
+            if (snprintf_check(tmp_fname, max_len, ".%c%i_%s", PATH_SEP, n, file_name)) {
+                return EXIT_FAILURE;
+            }
+            n++;
+        }
     }
     strncpy(file_name, tmp_fname, max_len);
     file_name[max_len] = 0;
@@ -645,12 +655,22 @@ static char *_check_and_rename(const char *filename, const char *dirname) {
         if (snprintf_check(new_path, name_max_len, ".%c1_%s", PATH_SEP, filename)) return NULL;
     }
 
-    // if new_path already exists, use a different file name
-    int n = 1;
-    while (file_exists(new_path)) {
-        if (n > 999999L) return NULL;
-        if (snprintf_check(new_path, name_max_len, ".%c%i_%s", PATH_SEP, n, filename)) return NULL;
-        n++;
+    if (configuration.overwrite_files) {
+        if (file_exists(new_path) && recursive_delete(new_path) != EXIT_SUCCESS) {
+            return NULL;
+        }
+    } else {
+        // if new_path already exists, use a different file name
+        int n = 1;
+        while (file_exists(new_path)) {
+            if (n > 999999L) {
+                return NULL;
+            }
+            if (snprintf_check(new_path, name_max_len, ".%c%i_%s", PATH_SEP, n, filename)) {
+                return NULL;
+            }
+            n++;
+        }
     }
 
     if (rename_file(old_path, new_path)) {

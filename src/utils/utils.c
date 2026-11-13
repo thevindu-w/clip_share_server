@@ -34,21 +34,18 @@
 #include <unistd.h>
 #include <utils/list_utils.h>
 #include <utils/utils.h>
-#ifdef __linux__
-#if HEADLESS == 1
-#ifndef _XOPEN_SOURCE
-#define _XOPEN_SOURCE 500
-#endif
-#define __USE_XOPEN_EXTENDED
-#include <ftw.h>
-#else
+#if defined(__linux__) && HEADLESS != 1
 #include <X11/Xmu/Atoms.h>
 #include <utils/linux_status_icon.h>
 #include <xclip/xclip.h>
 #include <xscreenshot/xscreenshot.h>
 #endif
-#endif
 #if defined(__linux__) || defined(__APPLE__)
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE 500
+#endif
+#define __USE_XOPEN_EXTENDED
+#include <ftw.h>
 #include <pwd.h>
 #include <time.h>
 #endif
@@ -995,6 +992,25 @@ static int url_decode(char *str, uint32_t *len_p) {
     return EXIT_SUCCESS;
 }
 
+static int _remove_cb(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
+    (void)sb;
+    (void)typeflag;
+    (void)ftwbuf;
+    remove(fpath);
+    return EXIT_SUCCESS;
+}
+
+int recursive_delete(const char *path) {
+    struct stat sb;
+    if (lstat(path, &sb) == -1) {
+        return EXIT_FAILURE;
+    }
+    if (S_ISDIR(sb.st_mode)) {
+        return (nftw(path, _remove_cb, 64, FTW_DEPTH | FTW_MOUNT | FTW_PHYS) == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+    }
+    return remove(path);
+}
+
 #elif defined(_WIN32)
 
 char *get_user_home(void) {
@@ -1029,6 +1045,35 @@ char *get_user_home(void) {
         return NULL;
     }
     return home;
+}
+
+int recursive_delete(const char *path) {
+    wchar_t *wpath;
+    uint32_t wlen;
+    if (utf8_to_wchar_str(path, &wpath, &wlen) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    wlen += 2;
+    wpath = realloc_or_free(wpath, wlen * sizeof(wchar_t));
+    if (!wpath) {
+        return EXIT_FAILURE;
+    }
+    wpath[wlen - 1] = 0;
+
+    SHFILEOPSTRUCTW file_op = {.hwnd = NULL,
+                               .wFunc = FO_DELETE,
+                               .pFrom = wpath,
+                               .pTo = NULL,
+                               .fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT,
+                               .fAnyOperationsAborted = FALSE,
+                               .hNameMappings = NULL,
+                               .lpszProgressTitle = NULL};
+    int res = SHFileOperationW(&file_op);
+    free(wpath);
+    if (res == 0) {
+        return EXIT_SUCCESS;
+    }
+    return EXIT_FAILURE;
 }
 
 #endif
@@ -1300,14 +1345,6 @@ int set_clipboard_cut_files(const list2 *paths) {
     return EXIT_SUCCESS;
 }
 
-static int _remove_cb(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
-    (void)sb;
-    (void)typeflag;
-    (void)ftwbuf;
-    remove(fpath);
-    return EXIT_SUCCESS;
-}
-
 void cleanup_cur_dir(void) {
     list2 *files = list_dir(".");
     if (!files || files->len == 0) {
@@ -1316,7 +1353,7 @@ void cleanup_cur_dir(void) {
     for (uint32_t i = 0; i < files->len; i++) {
         char path[2048] = "./";
         strncat(path, files->array[i], sizeof(path) - 3);
-        nftw(path, _remove_cb, 64, FTW_DEPTH | FTW_MOUNT | FTW_PHYS);
+        recursive_delete(path);
     }
 }
 

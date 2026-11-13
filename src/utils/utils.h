@@ -166,6 +166,12 @@ extern int file_exists(const char *file_name);
  */
 extern int is_directory(const char *path, int follow_symlinks);
 
+/*
+ * Removes a file or directory. In case of a directory, it is deleted recursively.
+ * Returns EXIT_SUCCESS on success and EXIT_FAILURE on failure.
+ */
+extern int recursive_delete(const char *path);
+
 #if defined(__linux__) && HEADLESS != 1 || defined(_WIN32)
 
 /*

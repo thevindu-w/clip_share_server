@@ -383,6 +383,8 @@ static void parse_line(char *line, config *cfg) {
         set_is_true(value, &(cfg->client_selects_display));
     } else if (!strcmp("display", key)) {
         set_uint16(value, &(cfg->display));
+    } else if (!strcmp("overwrite_files", key)) {
+        set_is_true(value, &(cfg->overwrite_files));
     } else if (!strcmp("min_proto_version", key)) {
         set_uint16(value, &(cfg->min_proto_version));
     } else if (!strcmp("max_proto_version", key)) {
@@ -453,6 +455,7 @@ void parse_conf(config *cfg, const char *file_name) {
     cfg->cut_sent_files = -1;
     cfg->client_selects_display = -1;
     cfg->display = 0;
+    cfg->overwrite_files = -1;
 
     cfg->min_proto_version = 0;
     cfg->max_proto_version = 0;

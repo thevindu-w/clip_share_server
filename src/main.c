@@ -217,6 +217,7 @@ static inline void _apply_default_conf(void) {
     if (configuration.cut_sent_files < 0) configuration.cut_sent_files = 0;
     if (configuration.client_selects_display < 0) configuration.client_selects_display = 0;
     if (configuration.display <= 0) configuration.display = 1;
+    if (configuration.overwrite_files < 0) configuration.overwrite_files = 0;
 
     if (configuration.min_proto_version < PROTOCOL_MIN) configuration.min_proto_version = PROTOCOL_MIN;
     if (configuration.min_proto_version > PROTOCOL_MAX) configuration.min_proto_version = PROTOCOL_MAX;

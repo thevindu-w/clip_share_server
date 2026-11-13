@@ -62,6 +62,7 @@ typedef struct _config {
     int8_t cut_sent_files;
     int8_t client_selects_display;
     uint16_t display;
+    int8_t overwrite_files;
 
     uint16_t min_proto_version;
     uint16_t max_proto_version;
