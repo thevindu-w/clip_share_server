@@ -962,7 +962,9 @@ static int url_decode(char *str, uint32_t *len_p) {
     if (strncmp("file://", str, 7)) return EXIT_FAILURE;
     char *ptr1 = str;
     const char *ptr2 = str + 7;
-    if (!ptr2) return EXIT_FAILURE;
+    if (!*ptr2) {
+        return EXIT_FAILURE;
+    }
     do {
         char c;
         if (*ptr2 == '%') {
@@ -1271,7 +1273,7 @@ char *get_copied_files_as_str(int *offset) {
         return NULL;
     }
     list2 *files = list_dir(".");
-    if (!files || files->len == 0) {
+    if ((!files) || files->len == 0) {
         return NULL;
     }
     list2 *urls = init_list(files->len);
@@ -1306,7 +1308,9 @@ char *get_copied_files_as_str(int *offset) {
         tot_len -= url_len + 1;
     }
     free_list(urls);
-    ptr--;
+    if (ptr > all_files) {
+        ptr--;
+    }
     *ptr = 0;
     *offset = 0;
     return all_files;
@@ -1321,7 +1325,7 @@ int set_clipboard_cut_files(const list2 *paths) {
     const char *type = "FILE";
     if (paths->len == 1) {
         const char *fname = paths->array[0];
-        const char *ext = fname + strlen(fname) - 4;
+        const char *ext = fname + (strlen(fname) - 4);
         if (fname < ext && *(ext - 1) != PATH_SEP && strcmp(ext, ".png") == 0) {
             FILE *fd = fopen(CLIPBOARD_IMG_FILE, "w");
             if (!fd) {
@@ -1347,7 +1351,7 @@ int set_clipboard_cut_files(const list2 *paths) {
 
 void cleanup_cur_dir(void) {
     list2 *files = list_dir(".");
-    if (!files || files->len == 0) {
+    if ((!files) || files->len == 0) {
         return;
     }
     for (uint32_t i = 0; i < files->len; i++) {

@@ -414,7 +414,10 @@ static inline int _is_valid_fname(const char *fname, size_t name_length) {
 static inline int _get_base_name(char *file_name, size_t name_length) {
     const char *base_name = strrchr(file_name, '/');  // path separator is / when communicating
     if (base_name) {
-        base_name++;                                                         // don't want the '/' before the file name
+        base_name++;  // don't want the '/' before the file name
+        if (!*base_name) {
+            return EXIT_FAILURE;
+        }
         memmove(file_name, base_name, strnlen(base_name, name_length) + 1);  // overlapping memory area
     }
     return EXIT_SUCCESS;
@@ -1042,14 +1045,10 @@ int get_any_v4(socket_t *socket) {
 int info_v4(socket_t *socket) {
     char payload[4097] = INFO_NAME;
     size_t rem = sizeof(payload) - sizeof(INFO_NAME);
-    char *ptr = payload + sizeof(INFO_NAME) - 1;
+    char *ptr = payload + (sizeof(INFO_NAME) - 1);
 
-    if (configuration.info.name) {
-        if (!snprintf_check(ptr, rem, "\nserver_name=%s", configuration.info.name)) {
-            size_t len = strnlen(ptr, rem);
-            ptr += len;
-            rem -= len;
-        }
+    if (configuration.info.name && !snprintf_check(ptr, rem, "\nserver_name=%s", configuration.info.name)) {
+        ptr += strnlen(ptr, rem);
     }
     *ptr = '\0';
 

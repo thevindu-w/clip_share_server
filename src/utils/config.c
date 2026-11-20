@@ -55,7 +55,7 @@ static inline void trim(char *str) {
 }
 
 static inline char *expand_path(const char *path) {
-    if (!path || path[0] == '\0') {
+    if ((!path) || path[0] == '\0') {
         return NULL;
     }
     if (path[0] != '~' || !(path[1] == '/' || path[1] == '\0')) {
