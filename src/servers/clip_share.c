@@ -19,6 +19,7 @@
 #include <globals.h>
 #include <proto/server.h>
 #include <servers/servers.h>
+#include <stdio.h>
 #include <utils/config.h>
 #include <utils/net_utils.h>
 #include <utils/utils.h>

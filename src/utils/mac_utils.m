@@ -27,6 +27,9 @@
 #import <stdint.h>
 #import <string.h>
 #import <utils/utils.h>
+#ifdef DEBUG_MODE
+#include <stdio.h>
+#endif
 
 #ifdef USE_SCREEN_CAPTURE_KIT
 #import <ScreenCaptureKit/ScreenCaptureKit.h>

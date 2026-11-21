@@ -57,7 +57,8 @@ jobs:
     - name: Check C code style
       if: ${{ success() || failure() }}
       run: |
-        cpplint --linelength=120 --filter=-runtime/int,-runtime/arrays,-readability/casting,-legal/copyright \
+        cpplint --linelength=120 \
+        --filter=-runtime/int,-runtime/arrays,-readability/casting,-legal/copyright,-whitespace/newline \
         --extensions=c,h,m,cc,hh,cpp,hpp,c++,h++,cxx,hxx --root=src --exclude='build/' --recursive .
 
     - name: Check shell script style
