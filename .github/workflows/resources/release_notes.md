@@ -17,6 +17,6 @@ This is Version <VERSION> with support for protocol versions 1, 2, 3, and 4.
 - Installers do not need admin or superuser privileges to run.
 
 **Changes:**
-- Add support for TLS on mipsel_mips32 Linux.
-- Support tilde expansion for paths in config.
-- Include pre-compiled no_ssl binaries for Linux and macOS.
+- Create working dir if not exists.
+- Add a new config option `overwrite_files` to overwrite files if exists.
+- Bug fixes and code quality improvements.
