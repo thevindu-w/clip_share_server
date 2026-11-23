@@ -46,8 +46,8 @@ jobs:
         - fedora
         - arch
         exclude:
-        - distro: ${{ (github.event_name == 'push') && (inputs.trigger != 'workflow_call') && 'fedora' }}
-        - distro: ${{ (github.event_name == 'push') && (inputs.trigger != 'workflow_call') && 'arch' }}
+        - distro: ${{ 'fedora' }}
+        - distro: ${{ 'arch' }}
 
     steps:
     - name: Check out repository code
@@ -128,7 +128,7 @@ jobs:
         event:
         - ${{ inputs.trigger || github.event_name }}
         exclude:
-        - {event: push, target: {arch: x86, env: i686, sys: MINGW32}}
+        - {target: {arch: x86, env: i686, sys: MINGW32}}
 
     defaults:
       run:

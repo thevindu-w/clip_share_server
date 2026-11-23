@@ -88,12 +88,6 @@ jobs:
         docker buildx build -t clipshare:ubuntu26 -f docker/release/Dockerfile \
         --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=resolute' .
 
-    - name: Build on Arch Linux
-      run: docker buildx build -t clipshare:arch -f docker/release/Dockerfile --build-arg 'DISTRO=arch' .
-
-    - name: Build on Fedora
-      run: docker buildx build -t clipshare:fedora -f docker/release/Dockerfile --build-arg 'DISTRO=fedora' .
-
     - name: Copy binaries
       run: |
         mkdir dist
@@ -103,8 +97,8 @@ jobs:
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu22
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu24
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu26
-        docker run -v './dist:/home/user/src/dist' clipshare:arch
-        docker run -v './dist:/home/user/src/dist' clipshare:fedora
+        # docker run -v './dist:/home/user/src/dist' clipshare:arch
+        # docker run -v './dist:/home/user/src/dist' clipshare:fedora
         [ -f helper_tools/install-linux.sh ] && cp helper_tools/install-linux.sh dist/
         sudo chmod +x dist/*
         mkdir "${{env.ARCHIVE_NAME_NO_EXT}}"
@@ -385,9 +379,6 @@ jobs:
         - arch: x86_64
           env: clang-x86_64
           sys: CLANG64
-        - arch: x86
-          env: i686
-          sys: MINGW32
 
     defaults:
       run:
@@ -751,7 +742,7 @@ jobs:
         mv "${{env.FILE_LINUX_AMD64}}" "${{env.FILE_LINUX_NO_SSL_AMD64}}" "${{env.FILE_LINUX_ARM64}}" \
         "${{env.FILE_LINUX_NO_SSL_ARM64}}" "${{env.FILE_LINUX_ARMv7}}" "${{env.FILE_LINUX_NO_SSL_ARMv7}}" \
         "${{env.FILE_LINUX_MIPSEL32}}" "${{env.FILE_LINUX_MIPSEL32_NO_SSL}}" \
-        "${{env.FILE_WINDOWS32}}" "${{env.FILE_WINDOWS64}}" "${{env.FILE_WINDOWS32_NO_SSL}}" \
+        "${{env.FILE_WINDOWS64}}" \
         "${{env.FILE_WINDOWS64_NO_SSL}}" "${{env.FILE_MACOS}}" "${{env.FILE_MACOS_NO_SSL}}" *.AppImage release/
         mv "${{env.INSTALLER_WINDOWS}}/${{env.INSTALLER_WINDOWS}}" release/
         mv .github/workflows/resources/clipshare.conf release/
