@@ -20,6 +20,8 @@
 #include <proto/server.h>
 #include <servers/servers.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <utils/config.h>
 #include <utils/net_utils.h>
 #include <utils/utils.h>
@@ -30,21 +32,23 @@
 #include <unistd.h>
 #elif defined(_WIN32)
 #include <io.h>
-#include <stdlib.h>
 #include <string.h>
 #include <windows.h>
 #endif
 
 #ifdef _WIN32
 static volatile int16_t req_cnt = 0;
+static volatile unsigned int rand_state = 0;
 
 static DWORD WINAPI serverThreadFn(void *arg) {
     socket_t socket;
     memcpy(&socket, arg, sizeof(socket_t));
     free(arg);
+    srand(GetCurrentThreadId() ^ rand_state);
     server(&socket);
     close_socket(&socket);
     req_cnt--;
+    rand_state += GetCurrentThreadId() + (unsigned)time(NULL);
     return 0;
 }
 #endif
@@ -73,6 +77,7 @@ int clip_share(const int is_secure) {
             return EXIT_FAILURE;
         }
         port = configuration.ports.tls;
+        srand((unsigned)~time(NULL));
 #else
         error("Secure mode cannot be enabled");
         return EXIT_FAILURE;
@@ -90,6 +95,7 @@ int clip_share(const int is_secure) {
         // Keys and certificates are not needed for plain sockets
         clear_config_key_cert(&configuration);
 #endif
+        srand((unsigned)time(NULL));
     }
     listener_t listener;
     int sock_type = VALID_SOCK;
@@ -127,6 +133,7 @@ int clip_share(const int is_secure) {
         pid_t pid = fork();
         if (pid > 0) {
             close_socket_no_shdn(&connect_sock);
+            (void)rand();  // update the PRNG state
         } else if (pid == 0) {
             close_listener_socket(&listener);
             server(&connect_sock);
