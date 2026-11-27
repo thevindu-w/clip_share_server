@@ -88,6 +88,12 @@ jobs:
         docker buildx build -t clipshare:ubuntu26 -f docker/release/Dockerfile \
         --build-arg 'DISTRO=ubuntu' --build-arg 'VERSION=resolute' .
 
+    - name: Build on Arch Linux
+      run: docker buildx build -t clipshare:arch -f docker/release/Dockerfile --build-arg 'DISTRO=arch' .
+
+    - name: Build on Fedora
+      run: docker buildx build -t clipshare:fedora -f docker/release/Dockerfile --build-arg 'DISTRO=fedora' .
+
     - name: Copy binaries
       run: |
         mkdir dist
@@ -97,8 +103,8 @@ jobs:
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu22
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu24
         docker run -v './dist:/home/user/src/dist' clipshare:ubuntu26
-        # docker run -v './dist:/home/user/src/dist' clipshare:arch
-        # docker run -v './dist:/home/user/src/dist' clipshare:fedora
+        docker run -v './dist:/home/user/src/dist' clipshare:arch
+        docker run -v './dist:/home/user/src/dist' clipshare:fedora
         [ -f helper_tools/install-linux.sh ] && cp helper_tools/install-linux.sh dist/
         sudo chmod +x dist/*
         mkdir "${{env.ARCHIVE_NAME_NO_EXT}}"

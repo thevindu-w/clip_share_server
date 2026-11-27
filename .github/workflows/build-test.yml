@@ -46,8 +46,8 @@ jobs:
         - fedora
         - arch
         exclude:
-        - distro: ${{ 'fedora' }}
-        - distro: ${{ 'arch' }}
+        - distro: ${{ (github.event_name == 'push') && (inputs.trigger != 'workflow_call') && 'fedora' }}
+        - distro: ${{ (github.event_name == 'push') && (inputs.trigger != 'workflow_call') && 'arch' }}
 
     steps:
     - name: Check out repository code

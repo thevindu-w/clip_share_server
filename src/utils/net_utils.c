@@ -145,17 +145,55 @@ static int load_certificates(SSL_CTX *ctx, const data_buffer *server_cert, const
     return EXIT_SUCCESS;
 }
 
+static void get_common_name(X509 *cert, char *buf, size_t buf_len) {
+    buf[0] = '\0';
+#if OPENSSL_VERSION_NUMBER < 0x40000000L
+    X509_NAME *subject;
+#else
+    const X509_NAME *subject;
+#endif
+    subject = X509_get_subject_name(cert);
+    int idx = X509_NAME_get_index_by_NID(subject, NID_commonName, -1);
+    if (idx < 0) {
+        return;
+    }
+    const X509_NAME_ENTRY *entry = X509_NAME_get_entry(subject, idx);
+    if (!entry) {
+        return;
+    }
+    const ASN1_STRING *data = X509_NAME_ENTRY_get_data(entry);
+    if (!data) {
+        return;
+    }
+    const unsigned char *name = ASN1_STRING_get0_data(data);
+    size_t len;
+#if OPENSSL_VERSION_NUMBER < 0x40100000L
+    int ilen = ASN1_STRING_length(data);
+    len = ilen > 0 ? (size_t)ilen : 0;
+#else
+    len = ASN1_STRING_get_length(data);
+#endif
+    if (!name || len <= 0 || len >= buf_len || memchr(name, '\0', len)) {
+        return;
+    }
+    memcpy(buf, name, len);
+    buf[len] = '\0';
+}
+
 static int check_peer_certs(const SSL *ssl, const list2 *allowed_clients) {
     X509 *cert;
-
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
     cert = SSL_get_peer_certificate(ssl);
+#else
+    cert = SSL_get1_peer_certificate(ssl);
+#endif
     if (!cert) {
         return EXIT_FAILURE;
     }
     int verified = 0;
     char buf[256];
-    X509_NAME_get_text_by_NID(X509_get_subject_name(cert), NID_commonName, buf, 255);
-    buf[255] = 0;
+    get_common_name(cert, buf, sizeof(buf));
+    X509_free(cert);
 #ifdef DEBUG_MODE
     printf("Client Common Name: %s\n", buf);
 #endif
@@ -168,7 +206,6 @@ static int check_peer_certs(const SSL *ssl, const list2 *allowed_clients) {
             break;
         }
     }
-    X509_free(cert);
     return verified ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 #endif
